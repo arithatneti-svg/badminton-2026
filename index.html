@@ -12,6 +12,15 @@
 <script>(function(){var t=localStorage.getItem('userTheme');if(t&&t!=='normal')document.documentElement.setAttribute('data-theme',t);})();</script>
 <!-- Shared Firebase config + init. defer => runs in-order in one batch with app scripts, after parse. -->
 <script defer src="shared/firebase-config.js"></script>
+<!-- PWA: installable + offline-tolerant app shell -->
+<meta name="theme-color" content="#080810">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scoreboard">
+<script defer src="shared/pwa.js"></script>
 <!-- App styles (split from original single <style>) -->
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/login.css">

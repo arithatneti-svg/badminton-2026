@@ -21,8 +21,14 @@ Badminton 2026/
 ├── umpire.html             # แอปกรรมการ — HTML shell
 ├── README.md               # ไฟล์นี้
 │
+├── manifest.webmanifest    # PWA manifest — แอป Scoreboard (ติดตั้งลงจอโฮมได้)
+├── umpire.webmanifest      # PWA manifest — แอป Umpire (ติดตั้งแยกอีกไอคอน)
+├── sw.js                   # ⭐ Service worker — cache app shell (เปิดเร็ว/ทนเน็ตวูบ)
+├── icons/                  # ไอคอน PWA: icon-* (scoreboard), umpire-* (192/512/maskable)
+│
 ├── shared/
-│   └── firebase-config.js  # config + firebase.initializeApp() ใช้ร่วมกันทั้ง 2 แอป
+│   ├── firebase-config.js  # config + firebase.initializeApp() ใช้ร่วมกันทั้ง 2 แอป
+│   └── pwa.js              # ⭐ ลงทะเบียน service worker
 │
 ├── css/                    # สไตล์ของ index.html (แตกจาก <style> ก้อนเดียว)
 │   ├── base.css            # tokens/ตัวแปรสี, ธีม (gold/red/blue), reset, body
@@ -127,6 +133,14 @@ npx --yes serve .
 5. **มี `<style>` เล็ก ๆ 1 ก้อนยังฝังใน `index.html`** (ส่วนกลางของ body) — ตั้งใจคงไว้เพื่อรักษาลำดับ cascade เดิม
 
 ---
+
+## 📲 PWA (ติดตั้ง + ออฟไลน์)
+
+ทั้ง 2 แอปเป็น PWA ติดตั้งลงจอโฮมได้ และมี service worker cache app shell:
+- **ติดตั้ง**: เปิดบนมือถือ → เมนู "เพิ่มลงในหน้าจอโฮม" (Android Chrome เด้ง prompt เอง) → ได้ไอคอนแอปแยกกัน (Scoreboard = 🏸 ทอง, Umpire = 🎯 เขียว)
+- **ทนเน็ตวูบ**: เปิด/รีโหลดได้แม้เน็ตสะดุด (โหลด shell จาก cache) — แต่ **ข้อมูลสด (Firebase) ยังต้องมีเน็ต** (เป็น WebSocket ไม่ได้ cache)
+- **อัปเดต**: ใช้ stale-while-revalidate → หลัง deploy ใหม่ ผู้ใช้ที่ติดตั้งไว้จะได้ของใหม่ใน **การเปิดครั้งถัดไป** (โหลดซ้ำ 1 รอบ) ถ้าเปลี่ยนโครงสร้างไฟล์เยอะ ให้บั๊มเวอร์ชัน `CACHE` ใน `sw.js` (เช่น `bdm2026-shell-v2`)
+- SW ทำงานเฉพาะบน **HTTPS** (หรือ localhost ในเบราว์เซอร์จริง) — ทดสอบบน `pages.dev` ได้เลย
 
 ## 🚀 เส้นทางอัปเกรด (เฟสถัดไป)
 

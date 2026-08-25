@@ -13,6 +13,12 @@
 <!-- Shared Firebase config + init (deferred, runs before umpire.js) -->
 <script defer src="shared/firebase-config.js"></script>
 <link rel="stylesheet" href="css/umpire.css">
+<!-- PWA: installable Umpire app + offline-tolerant shell -->
+<link rel="manifest" href="umpire.webmanifest">
+<link rel="apple-touch-icon" href="icons/umpire-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Umpire">
+<script defer src="shared/pwa.js"></script>
 <script defer src="umpire/umpire.js"></script>
 </head>
 <body class="is-login">
