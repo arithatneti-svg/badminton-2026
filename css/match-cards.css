@@ -1,0 +1,246 @@
+/* ══ MATCH CARDS — Modern redesign ══ */
+.match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px; }
+
+.match-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s, background 0.12s;
+}
+.match-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+}
+.match-card:active {
+  transform: scale(0.985);
+  background: var(--surface2);
+  box-shadow: none;
+  transition: transform 0.08s, background 0.08s;
+}
+@media (hover: none) {
+  .match-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border);
+  }
+}
+
+/* Live card top accent */
+.match-card.live-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--red), var(--blue));
+}
+
+/* Finished card uses winner color */
+.match-card.finished-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--border2);
+}
+.match-card.winner-red::before { background: linear-gradient(90deg, var(--red), transparent); }
+.match-card.winner-blue::before { background: linear-gradient(90deg, var(--blue), transparent); }
+
+.match-card-inner { padding: 16px 18px 14px; }
+
+.match-id-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9em;
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.round-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--gold-dim);
+  color: var(--gold);
+}
+
+/* Live pulse indicator */
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--green);
+  text-transform: uppercase;
+}
+/* ── G1 DONE TOAST ── */
+.g1-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  z-index: 99000;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+.g1-toast.g1-toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.g1-toast-inner {
+  background: rgba(20,20,28,0.96);
+  border: 1px solid rgba(245,200,66,0.35);
+  border-radius: 14px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,200,66,0.1);
+  white-space: nowrap;
+}
+.g1-toast-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--gold);
+  background: rgba(245,200,66,0.12);
+  border: 1px solid rgba(245,200,66,0.25);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+.g1-toast-score { display: flex; align-items: center; }
+.g1-toast-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: live-blink 1.2s ease-in-out infinite;
+}
+@keyframes live-blink { 0%,100% { opacity:1; box-shadow:0 0 4px var(--green); } 50% { opacity:0.3; box-shadow:none; } }
+
+/* Match teams display */
+.match-teams-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.match-team-block { flex: 1; min-width: 0; }
+.match-team-name {
+  font-weight: 700;
+  font-size: 13px;
+  white-space: normal;
+  word-break: break-word;
+  margin-bottom: 2px;
+}
+.match-team-players {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: normal;
+  word-break: break-word;
+}
+
+.match-team-block.red .match-team-name { color: var(--red); }
+.match-team-block.blue .match-team-name { color: var(--blue); }
+.match-team-block.blue { text-align: right; }
+
+.match-score-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+/* Big live score display */
+.live-score-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.live-score-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2em;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.live-score-sep { color: var(--muted); font-size: 1.2em; font-weight: 300; }
+
+.game-scores-row {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.game-score-chip {
+  background: var(--surface2);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Match footer */
+.match-footer {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* Finished card result badge */
+.result-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.result-badge.win-red { background: rgba(255,59,92,0.12); color: var(--red); border: 1px solid rgba(255,59,92,0.2); }
+.result-badge.win-blue { background: rgba(59,142,255,0.12); color: var(--blue); border: 1px solid rgba(59,142,255,0.2); }
+.result-badge.draw { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(245,200,66,0.2); }
+
+.red-text { color: var(--red); font-weight: 700; }
+.blue-text { color: var(--blue); font-weight: 700; }
+.gold-text { color: var(--gold); }
+
+/* MATCH TAGS */
+.finished-tag {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  margin: 2px 2px 0 0;
+  display: inline-block;
+  letter-spacing: 0.3px;
+}
+.tag-comeback { background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+.tag-blowout { background: rgba(255,69,96,0.1); color: #ff7090; border: 1px solid rgba(255,69,96,0.25); }
+.tag-clutch { background: rgba(245,200,66,0.1); color: var(--gold); border: 1px solid rgba(245,200,66,0.25); }
+.tag-normal { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
+.tag-custom { background: rgba(59,142,255,0.1); color: #80bfff; border: 1px solid rgba(59,142,255,0.25); }
+

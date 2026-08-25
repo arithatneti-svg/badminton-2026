@@ -1,0 +1,30 @@
+/* ── LOGIN OVERLAY ── */
+#loginOverlay {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(59,142,255,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(255,59,92,0.06) 0%, transparent 60%),
+              var(--bg);
+  z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+#loginOverlay.modal-open { pointer-events: none; }
+
+.login-card {
+  background: rgba(14,14,26,0.9);
+  backdrop-filter: blur(20px);
+  padding: 44px 40px;
+  border-radius: 24px;
+  border: 1px solid var(--border2);
+  width: min(92vw, 420px);
+  text-align: center;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset;
+}
+
+/* ── ROLE-BASED VISIBILITY ── */
+body.guest-mode .admin-only { display: none !important; }
+body.guest-mode .team-name-edit { pointer-events: none; border-bottom: none; }
+body.admin-mode .superadmin-only { display: none !important; }
+/* superadmin เห็น UI เหมือน admin แต่ container (.container) คุมด้วย .active class เท่านั้น */
+body.superadmin-mode .admin-only:not(.container) { display: revert !important; }
+body.superadmin-mode .superadmin-only { display: revert !important; }
+

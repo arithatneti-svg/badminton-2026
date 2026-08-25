@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #080810;
+  --surface: #0e0e1a;
+  --surface2: #161625;
+  --surface3: #1e1e30;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --red: #ff3b5c;
+  --red-glow: rgba(255,59,92,0.45);
+  --red-dim: rgba(255,59,92,0.1);
+  --blue: #3b8eff;
+  --blue-glow: rgba(59,142,255,0.45);
+  --blue-dim: rgba(59,142,255,0.1);
+  --gold: #f5c842;
+  --gold-dim: rgba(245,200,66,0.12);
+  --gold2: #ffd700;
+
+  /* ── Theme accent (default = gold) ── */
+  --accent:       #f5c842;
+  --accent-dim:   rgba(245,200,66,0.12);
+  --accent-glow:  rgba(245,200,66,0.35);
+  --accent-grad:  linear-gradient(135deg, #f5c842 0%, #ffa040 100%);
+}
+
+/* ── RED THEME ── */
+[data-theme="red"] {
+  --accent:      #ff3b5c;
+  --accent-dim:  rgba(255,59,92,0.12);
+  --accent-glow: rgba(255,59,92,0.4);
+  --accent-grad: linear-gradient(135deg, #ff3b5c 0%, #ff6b35 100%);
+}
+
+/* ── BLUE THEME ── */
+[data-theme="blue"] {
+  --accent:      #3b8eff;
+  --accent-dim:  rgba(59,142,255,0.12);
+  --accent-glow: rgba(59,142,255,0.4);
+  --accent-grad: linear-gradient(135deg, #3b8eff 0%, #00c6ff 100%);
+}
+
+:root {
+  --green: #00e676;
+  --green-dim: rgba(0,230,118,0.1);
+  --purple: #a855f7;
+  --text: #e8e8f0;
+  --text2: #b0b0c8;
+  --muted: #5a5a78;
+  --danger: #ff4560;
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* UX-13: keyboard focus ring for accessibility */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus:not(:focus-visible) { outline: none; }
+
+body {
+  font-family: 'Space Grotesk', 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 60px;
+}
+
+/* Subtle grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ambient glow blobs */
+body::after {
+  content: '';
+  position: fixed;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,142,255,0.04) 0%, transparent 70%);
+  top: -200px; right: -200px;
+  pointer-events: none;
+  z-index: 0;
+}
+

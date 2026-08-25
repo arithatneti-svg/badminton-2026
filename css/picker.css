@@ -1,0 +1,50 @@
+/* ── CREATE MATCH PICKER ── */
+.picker-steps { display: flex; align-items: center; padding: 12px 18px; background: var(--surface2); border-bottom: 1px solid var(--border); gap: 2px; overflow-x: auto; flex-wrap: nowrap; }
+.picker-step { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 6px 12px; border-radius: 20px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; cursor: pointer; }
+.picker-step.active { color: var(--gold); background: var(--gold-dim); }
+.picker-step.done { color: var(--green); }
+.picker-step-arrow { color: var(--muted); font-size: 13px; flex-shrink: 0; opacity: 0.3; }
+.step-num { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.06); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; transition: all 0.2s; }
+.picker-step.active .step-num { background: var(--gold); color: #111; }
+.picker-step.done .step-num { background: var(--green); color: #111; }
+.picker-panel { animation: fadeUp 0.22s ease; }
+
+.round-pill { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; padding: 12px 32px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); cursor: pointer; transition: all 0.18s; letter-spacing: 0.5px; min-width: 110px; }
+.round-pill:hover:not(.round-active) { border-color: var(--border2); color: var(--text); }
+.round-pill.round-active { background: var(--gold) !important; border-color: var(--gold) !important; color: #111 !important; box-shadow: 0 4px 16px rgba(245,200,66,0.4) !important; }
+
+.filter-pill { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: all 0.18s; }
+.filter-pill:hover { border-color: var(--border2); color: var(--text); }
+.filter-pill.active { background: var(--pill-active-bg, var(--gold-dim)); border-color: var(--pill-active-border, rgba(245,200,66,0.25)); color: var(--pill-active-color, var(--gold)); }
+
+.selected-slots { display: flex; gap: 8px; padding: 10px 14px; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border); }
+.selected-slot { flex: 1; height: 42px; border-radius: 8px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--muted); transition: all 0.2s; gap: 7px; padding: 0 10px; }
+.selected-slot.filled-red { border-color: var(--red); background: rgba(255,59,92,0.08); color: white; border-style: solid; }
+.selected-slot.filled-blue { border-color: var(--blue); background: rgba(59,142,255,0.08); color: white; border-style: solid; }
+.slot-num { font-family: 'Bebas Neue', sans-serif; font-size: 15px; opacity: 0.5; }
+.slot-name { flex: 1; white-space: normal; word-break: break-word; font-size: 13px; }
+.slot-remove { font-size: 15px; opacity: 0.5; cursor: pointer; transition: opacity 0.15s; flex-shrink: 0; }
+.slot-remove:hover { opacity: 1; }
+
+.player-card-grid { display: flex; flex-direction: column; gap: 5px; padding: 10px 14px; max-height: 340px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.player-card { display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+.player-card:hover:not(.disabled):not(.in-match) { border-color: var(--border2); background: rgba(255,255,255,0.04); }
+.player-card.red-selected { border-color: var(--red); background: rgba(255,59,92,0.08); }
+.player-card.blue-selected { border-color: var(--blue); background: rgba(59,142,255,0.08); }
+.player-card.disabled { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+.player-card.in-match { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+.player-card.in-match::after { content: '⚡ LIVE'; position: absolute; top: 50%; right: 12px; transform: translateY(-50%); font-size: 9px; font-weight: 700; color: var(--green); letter-spacing: 1px; }
+.player-card.in-match-warn { border-color: rgba(245,200,66,0.3); }
+
+.card-radio { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; }
+.player-card.red-selected .card-radio { border-color: var(--red); background: var(--red); }
+.player-card.blue-selected .card-radio { border-color: var(--blue); background: var(--blue); }
+.card-radio-inner { width: 7px; height: 7px; border-radius: 50%; background: white; opacity: 0; transform: scale(0); transition: all 0.15s; }
+.player-card.red-selected .card-radio-inner, .player-card.blue-selected .card-radio-inner { opacity: 1; transform: scale(1); }
+.card-info { flex: 1; min-width: 0; }
+.card-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: normal; word-break: break-word; }
+.card-sub { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 1px; }
+.card-wr-wrap { flex-shrink: 0; text-align: right; min-width: 42px; }
+.card-wr { font-size: 11px; font-weight: 700; }
+.count-chip { font-size: 12px; font-weight: 700; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); padding: 2px 9px; border-radius: 20px; margin-left: 8px; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0; vertical-align: middle; }
+

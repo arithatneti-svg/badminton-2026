@@ -1,0 +1,21 @@
+# Local backup of the pre-split originals — keep on disk, do NOT deploy/commit
+backup/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/
+
+# Node / future Vite upgrade
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+
+# Logs & temp
+*.log
+tmp/

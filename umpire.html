@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#07070d">
+<title>Umpire Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Thai:wght@400;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+<!-- Shared Firebase config + init (deferred, runs before umpire.js) -->
+<script defer src="shared/firebase-config.js"></script>
+<link rel="stylesheet" href="css/umpire.css">
+<script defer src="umpire/umpire.js"></script>
+</head>
+<body class="is-login">
+
+<!-- ── PAUSE OVERLAY — แตะเพื่อเล่นต่อ ── -->
+<div id="pauseOverlay" onclick="togglePause()">
+  <div class="pause-icon">⏸</div>
+  <div class="pause-label">หยุดพัก</div>
+
+  <!-- เวลาพักครั้งนี้ -->
+  <div class="pause-current-block">
+    <div class="pause-current-label">⏱ พักครั้งนี้</div>
+    <div class="pause-current-timer" id="pauseTimerBig">0:00</div>
+  </div>
+
+  <!-- เวลาพักสะสมทั้งหมด -->
+  <div class="pause-total-block">
+    <div class="pause-total-label">📊 พักสะสมทั้งหมด</div>
+    <div class="pause-total-timer" id="pauseTimerTotal">0:00</div>
+  </div>
+
+  <div class="pause-hint">▶ แตะที่นี่เพื่อเล่นต่อ</div>
+</div>
+
+<!-- ── FULLSCREEN FLOATING BUTTON (non-scoring screens) ── -->
+<button id="fsBtn" onclick="toggleFullScreen()" title="เต็มจอ">⛶</button>
+
+<!-- ── WAKE LOCK BADGE ── -->
+<div id="wakeLockBadge">🔒 หน้าจอติด</div>
+
+<!-- ── FULLSCREEN INDICATOR ── -->
+<div id="fsIndicator">⛶ เต็มจอแล้ว — แตะ 2 ครั้งเพื่อออก</div>
+
+<!-- ── UNDO TOAST ── -->
+<div id="undoToast">↩ ยกเลิกคะแนนล่าสุด</div>
+
+<!-- ── LANDSCAPE FLOATING BAR ── -->
+<div id="landscapeInfo">
+  <button class="li-btn danger" onclick="exitMatch()">← ออก</button>
+  <button class="li-btn" onclick="togglePause()" id="liPauseBtn">⏸ พัก</button>
+  <div class="li-timer" id="liTimer">0:00</div>
+  <div style="font-family:'Bebas Neue';font-size:1em;color:var(--muted);letter-spacing:2px;" id="liGameInd">GAME 1</div>
+  <button class="li-btn" onclick="toggleFullScreen()" id="liFsBtn">⛶</button>
+</div>
+
+<!-- ── NAVBAR ── -->
+<div id="umpireNav">
+  <div class="nav-tabs">
+    <button class="tab-btn active" id="tab-live" onclick="goToTab('live')">🟢 LIVE</button>
+    <button class="tab-btn" id="tab-finished" onclick="goToTab('finished')">🏁 FINISHED</button>
+  </div>
+  <button class="btn-logout" onclick="logoutUmpire()">🚪</button>
+</div>
+
+<!-- ============================================================
+     🔐 LOGIN SCREEN
+     ============================================================ -->
+<div id="screen-login" class="screen active">
+  <div class="login-hero">
+    <span class="login-icon">🏸</span>
+    <div class="login-title">UMPIRE</div>
+    <div class="login-subtitle">กรรมการผู้ตัดสิน · Sports Day 2026</div>
+    <div class="login-fs-row">
+      <button class="btn-login-fs" onclick="toggleFullScreen()">⛶ &nbsp;เปิดเต็มจอ</button>
+    </div>
+  </div>
+
+  <div class="login-card">
+    <!-- STEP 1: TEAM -->
+    <div>
+      <div class="login-section-label"><span>1</span> เลือกทีมของคุณ</div>
+      <div class="toggle-group cols-2" id="team-toggles">
+        <button class="toggle-btn" id="tbtn-Red" onclick="setTeamFilter('Red')">🔴 Red</button>
+        <button class="toggle-btn" id="tbtn-Blue" onclick="setTeamFilter('Blue')">🔵 Blue</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: GROUP -->
+    <div id="group-section" style="display:none;">
+      <div class="login-section-label"><span>2</span> เลือกกลุ่ม</div>
+      <div class="toggle-group cols-4" id="group-toggles">
+        <button class="toggle-btn" onclick="setGroupFilter('')">ทั้งหมด</button>
+        <button class="toggle-btn" onclick="setGroupFilter('1')">G1</button>
+        <button class="toggle-btn" onclick="setGroupFilter('2')">G2</button>
+        <button class="toggle-btn" onclick="setGroupFilter('3')">G3</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: NAME -->
+    <div>
+      <div class="login-section-label"><span id="nameStepNum">2</span> เลือกชื่อของคุณ</div>
+      <div class="select-wrapper">
+        <select id="umpireSelect" class="umpire-select">
+          <option value="">— กำลังโหลดรายชื่อ... —</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-login" onclick="processLogin()">เข้าสู่ระบบ →</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     🟢 LIVE MATCHES
+     ============================================================ -->
+<div id="screen-live" class="screen">
+  <div class="screen-header">
+    <div class="screen-header-text">
+      <div class="screen-title">SELECT MATCH</div>
+      <div class="screen-sub">เลือกแมตช์ที่ต้องการคุมคะแนน</div>
+    </div>
+  </div>
+  <div class="pull-hint">↓ เลื่อนลงเพื่อรีเฟรช</div>
+  <div id="matchList" style="display:flex; flex-direction:column; gap:14px;"></div>
+</div>
+
+<!-- ============================================================
+     🏁 FINISHED
+     ============================================================ -->
+<div id="screen-finished" class="screen">
+  <div class="screen-header">
+    <div class="screen-header-text">
+      <div class="screen-title">FINISHED</div>
+      <div class="screen-sub">ประวัติแมตช์ที่แข่งขันจบไปแล้ว</div>
+    </div>
+  </div>
+  <div id="finishedList" style="display:flex; flex-direction:column; gap:14px;"></div>
+</div>
+
+<!-- ============================================================
+     🏸 SCORING SCREEN
+     ============================================================ -->
+<div id="screen-scoring" class="screen">
+
+  <!-- TOP BAR -->
+  <div class="scoring-topbar">
+    <button class="topbar-btn danger" id="btnBack" onclick="exitMatch()">←</button>
+    <button class="topbar-btn" id="btnPause" onclick="togglePause()">⏸</button>
+
+    <div class="scoring-center">
+      <div class="match-info-text" id="activeMatchInfo">—</div>
+      <div class="timer-display" id="umpireTimerDisplay">0:00</div>
+      <div class="game-indicator" id="gameIndicator">GAME 1</div>
+    </div>
+
+    <button class="topbar-btn" id="btnUndoBar" onclick="undoLastScore()" style="font-size:1rem; display:none; border-color:rgba(240,192,64,0.4); color:var(--gold);">↩</button>
+    <button class="topbar-btn" id="btnFs" onclick="toggleFullScreen()" style="font-size:1.15rem;">⛶</button>
+  </div>
+
+  <!-- RED PANEL -->
+  <div class="score-panel red" id="redPanel">
+    <button class="score-btn-plus" id="btnRedPlus" onclick="updateScore('red',1)" aria-label="เพิ่มคะแนน Red"></button>
+    <div class="score-center-col">
+      <div class="team-name-score" style="color:var(--red);" id="redNames">RED TEAM</div>
+      <div class="score-number" style="color:var(--red);" id="scoreRed">0</div>
+    </div>
+    <button class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนน Red">−</button>
+  </div>
+
+  <!-- LOCK / SUBMIT -->
+  <div class="scoring-actions">
+    <button class="btn-action btn-lock" id="btnLockG1" onclick="lockGame1()">🔒 LOCK GAME 1</button>
+    <button class="btn-action btn-submit" id="btnConfirmMatch" style="display:none;" onclick="confirmMatch()">✅ SUBMIT MATCH</button>
+  </div>
+
+  <!-- BLUE PANEL -->
+  <div class="score-panel blue" id="bluePanel">
+    <button class="score-btn-plus" id="btnBluePlus" onclick="updateScore('blue',1)" aria-label="เพิ่มคะแนน Blue"></button>
+    <div class="score-center-col">
+      <div class="team-name-score" style="color:var(--blue);" id="blueNames">BLUE TEAM</div>
+      <div class="score-number" style="color:var(--blue);" id="scoreBlue">0</div>
+    </div>
+    <button class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนน Blue">−</button>
+  </div>
+
+  <!-- safe area bottom -->
+  <div class="scoring-bottom-safe"></div>
+
+</div>
+
+<!-- ── CUSTOM MODAL (fullscreen-safe แทน alert/confirm) ── -->
+<div id="customModal">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-icon" id="modalIcon"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div id="modalScorePreview" style="display:none;"></div>
+    <div class="modal-btns" id="modalBtns"></div>
+  </div>
+</div>
+
+</body>
+</html>

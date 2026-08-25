@@ -1,0 +1,120 @@
+/* ══════════════════════════════════════
+   FULLSCREEN BOTTOM NAV — Auto-hide
+   ══════════════════════════════════════ */
+.fs-bottom-nav {
+  display: none; /* ซ่อนอยู่ — แสดงเฉพาะตอน fullscreen */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  z-index: 99999;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 16px;
+
+  /* Auto-hide — slide ลงหายเมื่อ idle */
+  transform: translateY(0);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s;
+  opacity: 1;
+}
+.fs-bottom-nav.hidden {
+  transform: translateY(100%);
+  opacity: 0;
+}
+/* แสดงเฉพาะตอน fullscreen */
+:fullscreen .fs-bottom-nav,
+:-webkit-full-screen .fs-bottom-nav {
+  display: flex;
+}
+
+.fs-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 18px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+.fs-nav-btn:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.1);
+}
+.fs-nav-btn.active {
+  background: rgba(245,200,66,0.1);
+  border-color: rgba(245,200,66,0.25);
+}
+.fs-nav-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+.fs-nav-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.fs-nav-btn.active .fs-nav-label { color: var(--gold); }
+.fs-nav-btn:hover .fs-nav-label  { color: var(--text); }
+
+.fs-nav-exit {
+  margin-left: 16px;
+  border-left: 1px solid rgba(255,255,255,0.06);
+  padding-left: 20px;
+}
+.fs-nav-exit .fs-nav-label { color: rgba(255,100,100,0.6); }
+.fs-nav-exit:hover .fs-nav-label { color: var(--danger); }
+
+/* trigger zone — invisible strip ที่ขอบล่าง ให้ mouse hover แล้ว nav โผล่ */
+.fs-trigger-zone {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  z-index: 99998;
+}
+:fullscreen .fs-trigger-zone,
+:-webkit-full-screen .fs-trigger-zone { display: block; }
+
+/* ── padding ล่าง content ตอน fullscreen ป้องกัน nav บัง ── */
+:fullscreen .container,
+:-webkit-full-screen .container {
+  padding-bottom: 72px !important;
+}
+.perf-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px; border-left: 2px solid var(--border); overflow: hidden; }
+.perf-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.perf-header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.perf-id { font-family: 'Bebas Neue', sans-serif; font-size: 1.3em; letter-spacing: 3px; color: var(--gold); flex-shrink: 0; }
+.perf-round { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 2px; flex-shrink: 0; }
+.perf-status-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 9px; border-radius: 20px; border: 1px solid; white-space: nowrap; }
+.perf-duration { font-size: 12px; color: var(--muted); font-weight: 600; flex-shrink: 0; white-space: nowrap; }
+.perf-teams { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; overflow: hidden; }
+.perf-teams .red-text, .perf-teams .blue-text { font-weight: 700; font-size: 15px; white-space: normal; word-break: break-word; max-width: 42%; }
+.perf-teams .vs-sep { color: var(--muted); font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.perf-score-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.perf-score { font-family: 'Bebas Neue', sans-serif; font-size: 1.4em; letter-spacing: 2px; }
+.perf-result-text { font-size: 13px; font-weight: 700; }
+.perf-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.perf-tag { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 20px; border: 1px solid; letter-spacing: 0.5px; }
+.perf-summary { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; border-left: 2px solid var(--border); padding-left: 10px; }
+.perf-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.perf-metric { background: var(--surface2); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.perf-metric-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.7em; letter-spacing: 2px; color: var(--text); }
+.perf-metric-label { font-size: 10px; color: var(--muted); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+
+

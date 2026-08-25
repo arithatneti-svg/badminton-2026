@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Badminton Sports Day 2026 - Scoreboard</title>
+<!-- Fonts loaded via @import in <style> -->
+<!-- 🔴 Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+<!-- apply theme immediately to prevent gold→red/blue flash on load -->
+<script>(function(){var t=localStorage.getItem('userTheme');if(t&&t!=='normal')document.documentElement.setAttribute('data-theme',t);})();</script>
+<!-- Shared Firebase config + init. defer => runs in-order in one batch with app scripts, after parse. -->
+<script defer src="shared/firebase-config.js"></script>
+<!-- App styles (split from original single <style>) -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/login.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/scoreboard.css">
+<link rel="stylesheet" href="css/match-cards.css">
+<link rel="stylesheet" href="css/tables-modals.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/picker.css">
+<link rel="stylesheet" href="css/notifications.css">
+<link rel="stylesheet" href="css/ongoing-finished.css">
+<link rel="stylesheet" href="css/prediction.css">
+<link rel="stylesheet" href="css/climax.css">
+<link rel="stylesheet" href="css/fullscreen.css">
+<link rel="stylesheet" href="css/ranking.css">
+<link rel="stylesheet" href="css/trophy.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/profile.css">
+<link rel="stylesheet" href="css/components.css">
+<!-- App scripts. defer keeps original order AND avoids the cross-file load race. -->
+<script defer src="js/utils.js"></script>
+<script defer src="js/prediction.js"></script>
+<script defer src="js/auth.js"></script>
+<script defer src="js/core.js"></script>
+<script defer src="js/ui.js"></script>
+<script defer src="js/player-profile.js"></script>
+<script defer src="js/season.js"></script>
+<script defer src="js/compare.js"></script>
+<script defer src="js/export-import.js"></script>
+<script defer src="js/match-picker.js"></script>
+<script defer src="js/match-render.js"></script>
+<script defer src="js/result-entry.js"></script>
+<script defer src="js/stats.js"></script>
+<script defer src="js/reports.js"></script>
+<script defer src="js/pdf-export.js"></script>
+<script defer src="js/dashboard.js"></script>
+<script defer src="js/ranking.js"></script>
+<script defer src="js/effects.js"></script>
+<script defer src="js/notifications.js"></script>
+<body>
+
+<!-- ── LOGIN OVERLAY ── -->
+<div id="loginOverlay">
+  <h1 style="font-family:'Bebas Neue',sans-serif; color:var(--gold); font-size:clamp(3em, 8vw, 4em); letter-spacing:4px; margin-bottom:20px; text-shadow:0 0 20px rgba(245,200,66,0.3);">🏸 SPORTS DAY 2026</h1>
+  <div class="login-card" style="position:relative; z-index:10000;">
+    <p style="color:var(--muted); margin-bottom:24px; font-weight:600; font-size:1.1em;">Select Your Access Level</p>
+    <button type="button" class="btn btn-info" style="width:100%; margin-bottom:12px; font-size:1.3em; padding:14px; justify-content:center;" onclick="loginGuest()">📱 GUEST VIEW (ดูคะแนนสด)</button>
+    <button type="button" class="btn btn-outline" style="width:100%; margin-bottom:12px; font-size:1.3em; padding:14px; justify-content:center;" onclick="loginAdmin()">⚙️ ADMIN (สร้างแมตช์ / จัดการผู้เล่น)</button>
+    <button type="button" class="btn" style="width:100%; font-size:1.3em; padding:14px; justify-content:center; background:rgba(245,200,66,0.12); color:var(--gold); border:1px solid rgba(245,200,66,0.3);" onclick="loginSuperAdmin()">👑 SUPER ADMIN (แก้ผล / คะแนน)</button>
+
+    <!-- ── THEME SELECTOR ── -->
+    <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;">
+      <p style="color:var(--muted);font-size:11px;font-weight:700;letter-spacing:2px;text-align:center;margin-bottom:14px;">🎨 คุณเชียร์ทีมไหน?</p>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button type="button" class="theme-pick-btn" id="themeBtnRed" onclick="selectLoginTheme('red')" style="--tc:#ff3b5c;--tc-dim:rgba(255,59,92,0.15);--tc-border:rgba(255,59,92,0.35);">
+          <span style="font-size:20px;">🔴</span>
+          <span>ทีมแดง</span>
+        </button>
+        <button type="button" class="theme-pick-btn active" id="themeBtnNormal" onclick="selectLoginTheme('normal')" style="--tc:var(--gold);--tc-dim:rgba(245,200,66,0.12);--tc-border:rgba(245,200,66,0.35);">
+          <span style="font-size:20px;">⚫</span>
+          <span>ปกติ</span>
+        </button>
+        <button type="button" class="theme-pick-btn" id="themeBtnBlue" onclick="selectLoginTheme('blue')" style="--tc:#3b8eff;--tc-dim:rgba(59,142,255,0.15);--tc-border:rgba(59,142,255,0.35);">
+          <span style="font-size:20px;">🔵</span>
+          <span>ทีมน้ำเงิน</span>
+        </button>
+      </div>
+      <p id="themeHint" style="text-align:center;font-size:10px;color:var(--muted);margin-top:10px;letter-spacing:0.5px;">ถ้าทีมที่เลือกแพ้ จะได้เห็น GIF พิเศษ 😢</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN / SUPERADMIN PASSCODE MODAL ── -->
+<div id="passcodeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; justify-content:center; align-items:center; flex-direction:column; gap:16px; flex-wrap:nowrap;">
+  <div style="background:#111118; border:1px solid rgba(245,200,66,0.3); border-radius:16px; padding:36px 32px; width:min(90vw,360px); text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.8);">
+    <div id="passcodeModalTitle" style="font-family:'Bebas Neue',sans-serif; font-size:1.8em; letter-spacing:4px; color:#f5c842; margin-bottom:6px;">&#x1F510; ADMIN LOGIN</div>
+    <div id="passcodeModalSub" style="color:#6b6b80; font-size:13px; margin-bottom:20px;">Enter Passcode</div>
+    <input type="password" id="passcodeInput" placeholder="Passcode..."
+      style="width:100%; padding:12px 16px; background:#1a1a24; border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#e8e8f0; font-size:1.2em; text-align:center; font-family:Rajdhani,sans-serif; outline:none; margin-bottom:16px; letter-spacing:4px;"
+      onkeydown="if(event.key==='Enter') submitPasscode()">
+    <div id="passcodeError" style="color:#e74c3c; font-size:13px; font-weight:700; margin-bottom:12px; display:none;">&#x274C; รหัสผ่านไม่ถูกต้อง</div>
+    <div style="display:flex; gap:10px;">
+      <button onclick="submitPasscode()" style="flex:1; padding:13px; background:#f5c842; color:#111; border:none; border-radius:8px; font-family:'Bebas Neue',sans-serif; font-size:1.3em; letter-spacing:2px; cursor:pointer;">&#x2713; CONFIRM</button>
+      <button onclick="closePasscodeModal()" style="padding:13px 16px; background:rgba(255,255,255,0.06); color:#6b6b80; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-family:Rajdhani,sans-serif; font-size:1em; font-weight:700; cursor:pointer;">&#x2715;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CUSTOM CONFIRM DIALOG MODAL ── -->
+<!-- ── RESET CHOICE MODAL ── -->
+<div id="resetChoiceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:20000;flex-direction:column;justify-content:center;align-items:center;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,0.6);">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6em;letter-spacing:4px;color:var(--danger);margin-bottom:6px;">↺ RESET DATA</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;">เลือกว่าจะ Reset อะไร — การกระทำนี้ไม่สามารถย้อนกลับได้</div>
+
+    <!-- Option A: Match Only -->
+    <button onclick="doResetMatchOnly()" style="width:100%;background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.25);border-radius:14px;padding:18px 20px;text-align:left;cursor:pointer;margin-bottom:12px;transition:background 0.2s;" onmouseover="this.style.background='rgba(245,200,66,0.12)'" onmouseout="this.style.background='rgba(245,200,66,0.07)'">
+      <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:6px;">🗂 Reset เฉพาะผลแมตช์</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+        <span style="color:var(--danger);">🗑 จะลบ:</span> ผลการแข่งขัน, คะแนนทีม, Win/Loss สถิติ, Ongoing matches<br>
+        <span style="color:var(--green);">✅ เก็บไว้:</span> ชื่อผู้เล่น, Play Style, Base Score, Ability Chart, Form
+      </div>
+    </button>
+
+    <!-- Option B: Full Reset -->
+    <button onclick="doResetFull()" style="width:100%;background:rgba(255,59,92,0.06);border:1px solid rgba(255,59,92,0.2);border-radius:14px;padding:18px 20px;text-align:left;cursor:pointer;margin-bottom:20px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,59,92,0.12)'" onmouseout="this.style.background='rgba(255,59,92,0.06)'">
+      <div style="font-size:14px;font-weight:700;color:var(--danger);margin-bottom:6px;">💣 Reset ทั้งหมด (Full Reset)</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;">
+        <span style="color:var(--danger);">🗑 จะลบ:</span> ทุกอย่างรวมถึง Player Profiles, Play Style, Base Score, Ability Chart<br>
+        <span style="color:var(--green);">✅ เก็บไว้:</span> รายชื่อผู้เล่น (ID, ชื่อ, ทีม, กลุ่ม) เท่านั้น
+      </div>
+    </button>
+
+    <button onclick="document.getElementById('resetChoiceModal').style.display = 'none'" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;">ยกเลิก</button>
+  </div>
+</div>
+
+<div id="confirmDialogModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; justify-content:center; align-items:center; flex-direction:column;">
+  <div style="background:#111118; border:1px solid rgba(245,200,66,0.3); border-radius:16px; padding:36px 32px; width:min(90vw,360px); text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.8);">
+    <div id="confirmDialogMsg" style="color:#e8e8f0; font-size:1.2em; margin-bottom:24px; font-weight:600; line-height:1.5;"></div>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button id="confirmDialogOK" class="btn btn-primary" style="flex:1; padding:12px; font-size:1.1em;">✓ OK</button>
+      <button onclick="closeConfirmDialog()" class="btn btn-danger" style="flex:1; padding:12px; font-size:1.1em;">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav" id="mainNav">
+  <span class="nav-title">🏸 <span id="seasonNavTitle">SPORTS DAY 2026</span></span>
+  <div class="nav-tabs">
+    <button class="tab-btn" id="tab-scoreboard" onclick="switchTab('scoreboard', this)">Scoreboard</button>
+    <button class="tab-btn" id="tab-ongoing" onclick="switchTab('ongoing', this)">🟢 Ongoing <span id="navOngoingBadge" style="display:none;background:var(--green);color:#000;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
+    <button class="tab-btn" id="tab-finished" onclick="switchTab('finished', this)">🏁 Finished <span id="navFinishedBadge" style="display:none;background:var(--muted);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
+    <button class="tab-btn" id="tab-players" onclick="switchTab('players', this)">👤 Players</button>
+    <!-- Admin Only Tabs -->
+    <button class="tab-btn admin-only" id="tab-dashboard" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+    <button class="tab-btn admin-only" id="tab-admin" onclick="switchTab('admin', this)">⚙️ Admin</button>
+    <button class="tab-btn admin-only" id="tab-report" onclick="switchTab('report', this)">📈 Reports</button>
+  </div>
+  <div class="nav-actions">
+    <span id="dbStatusDot" title="Firebase connection" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);padding:5px 8px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);">
+      <span id="dbDot" style="width:7px;height:7px;border-radius:50%;background:var(--muted);transition:background 0.4s;flex-shrink:0;"></span>
+      <span id="dbDotLabel">...</span>
+    </span>
+    <!-- Season badge + archive viewer -->
+    <span id="seasonBadge" class="season-badge superadmin-only" onclick="openSeasonArchive()" title="ดู Season Archive">📅 2026</span>
+    <button class="btn btn-outline btn-sm superadmin-only" onclick="openSeasonWizard()" style="font-size:10px;letter-spacing:1px;" title="เริ่ม Season ใหม่">🔄 New Season</button>
+
+    <!-- ── THEME TOGGLE ── -->
+    <div id="navThemePicker" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:2px;">
+      <button id="navThemeRed"    onclick="selectLoginTheme('red')"    title="เชียร์ทีมแดง"    class="nav-theme-btn" style="--ntc:var(--red);">🔴</button>
+      <button id="navThemeNormal" onclick="selectLoginTheme('normal')" title="ปกติ"             class="nav-theme-btn active" style="--ntc:var(--gold);">⚫</button>
+      <button id="navThemeBlue"   onclick="selectLoginTheme('blue')"   title="เชียร์ทีมน้ำเงิน" class="nav-theme-btn" style="--ntc:var(--blue);">🔵</button>
+    </div>
+
+    <button class="btn-fs" onclick="toggleFullScreen()">⛶ Full</button>
+    <button class="btn-reset admin-only superadmin-only" onclick="clearData()">↺ Reset</button>
+    <span id="roleBadge" style="display:none; font-size:0.75rem; font-weight:800; letter-spacing:1px; padding:5px 10px; border-radius:6px; white-space:nowrap;"></span>
+    <button class="btn-fs" onclick="logout()">🚪 Exit</button>
+  </div>
+</div>
+
+<!-- SCOREBOARD TAB -->
+<div id="scoreboard" class="container" style="padding: 0; max-width: 100%;">
+  <div class="scoreboard-wrapper">
+    <div class="team-panel red" id="redPanel">
+      <input class="team-name-edit red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()">
+      <div class="score-ring"><div class="glow-disc"></div><div class="arc-ring"></div><canvas class="fire-canvas" id="fireCanvasRed" width="500" height="400"></canvas><div class="score-digit red-text" id="displayRedScore">0</div></div>
+      <div class="score-pts-badge red-text">POINTS</div>
+      <div class="lead-indicator" id="redLeadBadge">▲ LEADING</div>
+    </div>
+    <div class="score-vs">
+      <div class="vs-line"></div>
+
+      <!-- ── EVENT TITLE BANNER ── -->
+      <div id="eventTitleBanner" style="
+        display: flex; flex-direction: column; align-items: center;
+        gap: 0; padding: 10px 4px; position: relative; z-index: 5;
+      ">
+        <!-- Shuttlecock icon -->
+        <div style="font-size: clamp(1.4em, 3.5vw, 2.2em); margin-bottom: 2px; filter: drop-shadow(0 0 10px rgba(245,200,66,0.6)); animation: shuttle-spin 6s ease-in-out infinite;">🏸</div>
+
+        <!-- RED split text -->
+        <div style="
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(1.6em, 4.5vw, 3em);
+          letter-spacing: clamp(4px, 1.5vw, 10px);
+          color: var(--red);
+          text-shadow: 0 0 20px rgba(255,59,59,0.5), 0 0 40px rgba(255,59,59,0.25);
+          line-height: 1;
+          white-space: nowrap;
+          animation: title-glow-red 3s ease-in-out infinite alternate;
+        ">RED</div>
+
+        <!-- VS divider -->
+        <div style="
+          display: flex; align-items: center; gap: 6px;
+          margin: 2px 0; width: 100%;
+        ">
+          <div style="flex:1; height:1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.15));"></div>
+          <span style="
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(0.7em, 2vw, 1em);
+            letter-spacing: 4px; color: var(--muted);
+          ">VS</span>
+          <div style="flex:1; height:1px; background: linear-gradient(to left, transparent, rgba(255,255,255,0.15));"></div>
+        </div>
+
+        <!-- BLUE split text -->
+        <div style="
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(1.6em, 4.5vw, 3em);
+          letter-spacing: clamp(4px, 1.5vw, 10px);
+          color: var(--blue);
+          text-shadow: 0 0 20px rgba(59,142,255,0.5), 0 0 40px rgba(59,142,255,0.25);
+          line-height: 1;
+          white-space: nowrap;
+          animation: title-glow-blue 3s ease-in-out infinite alternate;
+        ">BLUE</div>
+
+        <!-- Subtitle line -->
+        <div style="
+          margin-top: 8px;
+          font-family: 'Rajdhani', sans-serif;
+          font-size: clamp(0.55em, 1.4vw, 0.8em);
+          font-weight: 700;
+          letter-spacing: clamp(2px, 0.8vw, 5px);
+          color: var(--muted);
+          text-transform: uppercase;
+          text-align: center;
+          white-space: nowrap;
+          line-height: 1.4;
+        ">
+          <span style="color: var(--gold); opacity: 0.8;">BADMINTON</span>
+          <span style="color: rgba(255,255,255,0.25); margin: 0 4px;">·</span>
+          <span>SPORTS DAY</span>
+          <span style="color: rgba(255,255,255,0.25); margin: 0 4px;">·</span>
+          <span style="color: var(--gold); opacity: 0.8;">2026</span>
+        </div>
+
+        <!-- Decorative line bottom -->
+        <div style="
+          margin-top: 8px; width: 60%;
+          height: 1px;
+          background: linear-gradient(to right, transparent, var(--gold), transparent);
+          opacity: 0.4;
+        "></div>
+      </div>
+
+      <div class="vs-line"></div>
+    </div>
+
+<style>
+@keyframes shuttle-spin {
+  0%, 100% { transform: rotate(-8deg) scale(1); }
+  50% { transform: rotate(8deg) scale(1.15); }
+}
+@keyframes title-glow-red {
+  from { text-shadow: 0 0 12px rgba(255,59,59,0.4), 0 0 30px rgba(255,59,59,0.15); }
+  to   { text-shadow: 0 0 22px rgba(255,59,59,0.7), 0 0 50px rgba(255,59,59,0.35), 0 2px 0 rgba(255,59,59,0.2); }
+}
+@keyframes title-glow-blue {
+  from { text-shadow: 0 0 12px rgba(59,142,255,0.4), 0 0 30px rgba(59,142,255,0.15); }
+  to   { text-shadow: 0 0 22px rgba(59,142,255,0.7), 0 0 50px rgba(59,142,255,0.35), 0 2px 0 rgba(59,142,255,0.2); }
+}
+/* Mobile: ย้าย banner ออกจาก score-vs ไปแสดงข้างบน */
+@media (max-width: 768px) {
+  #eventTitleBanner {
+    padding: 6px 2px;
+    gap: 0;
+  }
+  #eventTitleBanner > div:first-child { font-size: 1.4em; }
+}
+</style>
+    <div class="team-panel blue" id="bluePanel">
+      <input class="team-name-edit blue" id="blueTeamName" value="BLUE TEAM" maxlength="16" onchange="saveTeamNames()">
+      <div class="score-ring"><div class="glow-disc"></div><div class="arc-ring"></div><canvas class="fire-canvas" id="fireCanvasBlue" width="500" height="400"></canvas><div class="score-digit blue-text" id="displayBlueScore">0</div></div>
+      <div class="score-pts-badge blue-text">POINTS</div>
+      <div class="lead-indicator" id="blueLeadBadge">▲ LEADING</div>
+    </div>
+  </div>
+  
+  <div class="admin-only superadmin-only" style="text-align:center; padding:10px; background:rgba(255,255,255,0.02); border-top:1px solid var(--border);">
+    <button class="btn" onclick="openQuickScore()" style="font-size:13px;padding:7px 20px;background:rgba(245,200,66,0.08);color:var(--gold);border:1px solid rgba(245,200,66,0.2);letter-spacing:1px;">⚡ Quick Score Adjust</button>
+  </div>
+</div>
+
+<!-- ONGOING MATCH TAB -->
+<div id="ongoing" class="container" style="max-width:1200px;">
+  <!-- Hero stats bar -->
+  <div class="ongoing-hero">
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">LIVE ON COURT</div>
+      <div class="ongoing-live-count" id="ongoingLiveCount">0</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="live-dot"></div>
+        <span style="font-size:12px;font-weight:700;letter-spacing:2px;color:var(--green);">REAL-TIME</span>
+      </div>
+      <span id="ongoingQueueCount" style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);">0 รอคิว</span>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:0;">
+    <span class="live-dot" style="width:8px;height:8px;margin-right:-4px;"></span>
+    LIVE NOW
+  </div>
+  <div id="publicLiveMatches" class="court-grid" style="margin-bottom:32px;"></div>
+
+  <div class="section-title">⏳ UPCOMING MATCHES</div>
+  <div id="publicUpcomingMatches" class="queue-list"></div>
+</div>
+
+<!-- FINISHED MATCH TAB -->
+<div id="finished" class="container">
+  <div class="report-header" style="margin-bottom:20px;">
+    <div class="section-title" style="margin:0;">🏁 Finished Matches</div>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <input type="text" id="finishedSearch" placeholder="🔍 Search match..." style="width:150px; font-size:13px; padding:6px 12px;" oninput="debounce(renderFinishedMatches,220)()">
+      <select id="finishedFilterRound" style="font-size:13px; padding:6px 10px;" onchange="renderFinishedMatches()">
+        <option value="">All Rounds</option>
+        <option value="1">Round 1</option>
+        <option value="2">Round 2</option>
+        <option value="3">Round 3</option>
+      </select>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <button class="filter-pill active" id="frAll"  onclick="setFinishedResultFilter('')">ทั้งหมด</button>
+        <button class="filter-pill" id="frRed"  onclick="setFinishedResultFilter('red')"  style="--pill-active-bg:rgba(255,59,92,0.15);--pill-active-border:rgba(255,59,92,0.35);--pill-active-color:var(--red);">🔴 Red Win</button>
+        <button class="filter-pill" id="frDraw" onclick="setFinishedResultFilter('draw')" style="--pill-active-bg:rgba(245,200,66,0.15);--pill-active-border:rgba(245,200,66,0.35);--pill-active-color:var(--gold);">🤝 Draw</button>
+        <button class="filter-pill" id="frBlue" onclick="setFinishedResultFilter('blue')" style="--pill-active-bg:rgba(59,142,255,0.15);--pill-active-border:rgba(59,142,255,0.35);--pill-active-color:var(--blue);">🔵 Blue Win</button>
+      </div>
+    </div>
+  </div>
+  <!-- Tag Legend Box -->
+  <div class="tag-legend-box" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1em;letter-spacing:3px;color:var(--gold);margin-bottom:12px;">📖 ความหมายของ Tag</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
+        <span class="finished-tag tag-comeback" style="white-space:nowrap;flex-shrink:0;">🔥 Epic Comeback</span>
+        <span style="font-size:12px;color:var(--muted);line-height:1.5;">ตามหลัง 4+ แต้มช่วงท้ายแล้วพลิกชนะ</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
+        <span class="finished-tag tag-clutch" style="white-space:nowrap;flex-shrink:0;">⚔️ The Gladiators</span>
+        <span style="font-size:12px;color:var(--muted);line-height:1.5;">แต้มรวม 2 เกม ห่างกันไม่เกิน 5 แต้ม</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
+        <span class="finished-tag tag-custom" style="white-space:nowrap;flex-shrink:0;">🏃‍♂️ Marathon</span>
+        <span style="font-size:12px;color:var(--muted);line-height:1.5;">มีเกมที่ดิวซ์ยาวถึง 22 แต้มขึ้นไป</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
+        <span class="finished-tag tag-custom" style="white-space:nowrap;flex-shrink:0;">🎢 Rollercoaster</span>
+        <span style="font-size:12px;color:var(--muted);line-height:1.5;">ผลัดกันชนะ-แพ้ขาดคนละเกม</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
+        <span class="finished-tag tag-blowout" style="white-space:nowrap;flex-shrink:0;">🌪️ Blowout</span>
+        <span style="font-size:12px;color:var(--muted);line-height:1.5;">ทีมชนะทุบขาด แต้มห่างรวม 16 แต้มขึ้นไป</span>
+      </div>
+    </div>
+  </div>
+  <div id="finishedMatchesGrid" class="match-grid"></div>
+</div>
+
+<!-- DASHBOARD TAB (Admin) -->
+<div id="dashboard" class="container admin-only">
+  <!-- ── DASHBOARD LEGEND ── -->
+  <details style="background:rgba(245,200,66,0.04);border:1px solid rgba(245,200,66,0.15);border-radius:10px;padding:10px 16px;margin-bottom:16px;">
+    <summary style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--gold);cursor:pointer;outline:none;list-style:none;">📖 ความหมายของตัวชี้วัดใน Dashboard ▾</summary>
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;">
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">KPI CARDS</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+          <b style="color:var(--text);">Total Matches</b> = จำนวนแมตช์ที่จบแล้ว<br>
+          <b style="color:var(--text);">Avg Score/Match</b> = แต้มรวมเฉลี่ยต่อแมตช์<br>
+          <b style="color:var(--text);">Deuce Rate</b> = % เกมที่เข้าดิวซ์ (≥21 แต้ม)<br>
+          <b style="color:var(--text);">Epic Comebacks</b> = จำนวนครั้งที่พลิกแพ้จากตาม 4+ แต้ม
+        </div>
+      </div>
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">MATCH QUALITY</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+          <b style="color:var(--text);">Evenly Matched</b> = ผล WL ใกล้เคียง ไม่มีทีมครอง<br>
+          <b style="color:var(--text);">Competitive Edge</b> = ทีมนึงเหนือกว่าเล็กน้อย<br>
+          <b style="color:var(--text);">Superior</b> = ทีมนึงเหนือกว่าชัดเจน<br>
+          <b style="color:var(--text);">Outclassed</b> = ห่างกันมาก ไม่สูสีเลย<br>
+          <b style="color:var(--text);">True Tie / Close Encounter / Deceptive Draw</b> = ประเภทการเสมอ
+        </div>
+      </div>
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">MOMENTUM CHART</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+          กราฟแสดง <b style="color:var(--red);">คะแนนทีมแดง</b> vs <b style="color:var(--blue);">คะแนนทีมน้ำเงิน</b> สะสมรายแมตช์<br>
+          เส้นที่พุ่งขึ้นแรง = ทีมนั้นมีแมตช์ชนะติดต่อกัน<br>
+          จุดที่เส้นตัดกัน = ทีมพลิกขึ้นมานำ
+        </div>
+      </div>
+    </div>
+  </details>
+  <div class="db-kpi-row" id="dbKpiRow"></div>
+  <div class="db-grid-2" style="margin-top:20px;">
+    <div class="db-card">
+      <div class="db-card-title">📈 Momentum — คะแนนสะสม</div>
+      <div style="position:relative;">
+        <canvas id="momentumChart" height="200" style="width:100%;display:block;"></canvas>
+        <div id="momentumEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-weight:600;">ยังไม่มีข้อมูลแมตช์</div>
+      </div>
+    </div>
+    <div class="db-card">
+      <div class="db-card-title">📊 Match Quality Distribution</div>
+      <div id="dbMatchDist" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;min-height:80px;"></div>
+    </div>
+  </div>
+  <div class="db-grid-2" style="margin-top:20px;">
+    <div class="db-card">
+      <div class="db-card-title">⭐ Top Players — Real-time</div>
+      <div id="dbTopPlayers"></div>
+    </div>
+    <div class="db-card">
+      <div class="db-card-title">🏁 Recent Matches</div>
+      <div id="dbRecentMatches"></div>
+    </div>
+  </div>
+
+  <!-- ── NEW ROW: Raw Score Battle + Match Duration ── -->
+  <div class="db-grid-2" style="margin-top:20px;">
+    <div class="db-card">
+      <div class="db-card-title">🎯 Raw Score Battle — คะแนนดิบรวม</div>
+      <div id="dbRawScoreSection">
+        <!-- KPI summary -->
+        <div id="dbRawScoreKpi" style="display:flex;gap:10px;margin-bottom:14px;"></div>
+        <!-- Canvas bar per match -->
+        <div style="position:relative;">
+          <canvas id="rawScoreChart" height="200" style="width:100%;display:block;"></canvas>
+          <div id="rawScoreEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-weight:600;">ยังไม่มีข้อมูลแมตช์</div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:8px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);margin-right:4px;vertical-align:middle;"></span>RED</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--blue);margin-right:4px;vertical-align:middle;"></span>BLUE</span>
+        </div>
+      </div>
+    </div>
+    <div class="db-card">
+      <div class="db-card-title">⏱ Match Duration — เวลาเฉลี่ย</div>
+      <div id="dbDurationSection">
+        <!-- KPI summary -->
+        <div id="dbDurationKpi" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"></div>
+        <!-- Duration per match list -->
+        <div id="dbDurationList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN TAB (Admin) -->
+<div id="admin" class="container admin-only">
+  
+  <details style="margin-bottom: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+    <summary style="font-family: 'Bebas Neue', sans-serif; font-size: 1.4em; letter-spacing: 2px; color: var(--muted); cursor: pointer; outline: none; display: flex; justify-content: space-between; align-items: center;">
+      <span>👤 Player Management (Add/Import)</span>
+      <span style="font-size: 12px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;">Click to expand</span>
+    </summary>
+    <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+      <div class="form-row">
+        <div class="field-group"><input type="text" id="newPlayerName" placeholder="Name" style="width:140px;"></div>
+        <div class="field-group"><select id="newPlayerTeam"><option value="Red">🔴 Red Team</option><option value="Blue">🔵 Blue Team</option></select></div>
+        <div class="field-group"><select id="newPlayerGroup"><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option></select></div>
+        <div class="field-group"><button class="btn btn-primary" onclick="addPlayer()">+ Add</button></div>
+      </div>
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span style="font-size:12px;letter-spacing:2px;color:var(--muted);font-weight:700;">IMPORT FROM CSV</span>
+        <label class="btn btn-info btn-sm" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;">📂 Choose File <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="importCSV(this)"></label>
+      </div>
+    </div>
+  </details>
+
+  <div class="section-title" style="margin-top: 0;">Create Match (Queue) <span class="count-chip" id="ongoingCount">0</span></div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="picker-steps">
+      <div class="picker-step active" id="step1Indicator" onclick="goPickerStep(1)" style="cursor:pointer;"><span class="step-num">1</span> Round</div><div class="picker-step-arrow">›</div>
+      <div class="picker-step" id="step2Indicator" onclick="goPickerStep(2)" style="cursor:pointer;"><span class="step-num">2</span> Red Team</div><div class="picker-step-arrow">›</div>
+      <div class="picker-step" id="step3Indicator" onclick="goPickerStep(3)" style="cursor:pointer;"><span class="step-num">3</span> Blue Team</div><div class="picker-step-arrow">›</div>
+      <div class="picker-step" id="step4Indicator" onclick="goPickerStep(4)" style="cursor:pointer;"><span class="step-num">4</span> Confirm</div>
+    </div>
+    <!-- Step 1 -->
+    <div class="picker-panel" id="pickerStep1">
+      <div style="padding:24px;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="round-pill round-active" id="rpill1" onclick="selectRound('1')">Round 1</button>
+          <button class="round-pill" id="rpill2" onclick="selectRound('2')">Round 2</button>
+          <button class="round-pill" id="rpill3" onclick="selectRound('3')">Round 3</button>
+        </div>
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="goPickerStep(2)">Next → Pick Red Team</button>
+      </div>
+    </div>
+    <!-- Step 2 -->
+    <div class="picker-panel" id="pickerStep2" style="display:none;">
+      <div style="padding:16px 20px 10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--border);">
+        <div class="red-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:4px;">🔴 เลือกผู้เล่นทีมแดง <span style="color:var(--muted);font-size:0.65em;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;">เลือก 2 คน</span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="redCardSearch" placeholder="🔍 ค้นหา..." style="width:120px;font-size:13px;padding:6px 10px;" oninput="renderCardPicker('red')">
+          <div style="display:flex;gap:4px;" id="redGroupFilter"><button class="filter-pill active" onclick="setCardGroup('red','')">ทั้งหมด</button><button class="filter-pill" onclick="setCardGroup('red','1')">G1</button><button class="filter-pill" onclick="setCardGroup('red','2')">G2</button><button class="filter-pill" onclick="setCardGroup('red','3')">G3</button></div>
+        </div>
+      </div>
+      <div class="selected-slots" id="redSelectedSlots">
+        <div class="selected-slot" id="redSlot1"><span class="slot-num">1</span><span style="color:var(--muted);font-size:13px;">เลือกคนที่ 1</span></div>
+        <div class="selected-slot" id="redSlot2"><span class="slot-num">2</span><span style="color:var(--muted);font-size:13px;">เลือกคนที่ 2</span></div>
+      </div>
+      <div id="redCardGrid" class="player-card-grid"></div>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;">
+        <button class="btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);" onclick="goPickerStep(1)">← Back</button>
+        <button class="btn btn-primary" id="redNextBtn" onclick="goPickerStep(3)" disabled style="opacity:0.4;">ถัดไป → เลือกทีมน้ำเงิน</button>
+        <span id="redCountLabel" style="margin-left:auto;font-size:13px;color:var(--muted);font-weight:700;">0 / 2</span>
+      </div>
+    </div>
+    <!-- Step 3 -->
+    <div class="picker-panel" id="pickerStep3" style="display:none;">
+      <div style="padding:16px 20px 10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--border);">
+        <div class="blue-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:4px;">🔵 เลือกผู้เล่นทีมน้ำเงิน <span style="color:var(--muted);font-size:0.65em;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;">เลือก 2 คน</span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="blueCardSearch" placeholder="🔍 ค้นหา..." style="width:120px;font-size:13px;padding:6px 10px;" oninput="renderCardPicker('blue')">
+          <div style="display:flex;gap:4px;" id="blueGroupFilter"><button class="filter-pill active" onclick="setCardGroup('blue','')">ทั้งหมด</button><button class="filter-pill" onclick="setCardGroup('blue','1')">G1</button><button class="filter-pill" onclick="setCardGroup('blue','2')">G2</button><button class="filter-pill" onclick="setCardGroup('blue','3')">G3</button></div>
+        </div>
+      </div>
+      <div class="selected-slots" id="blueSelectedSlots">
+        <div class="selected-slot" id="blueSlot1"><span class="slot-num">1</span><span style="color:var(--muted);font-size:13px;">เลือกคนที่ 1</span></div>
+        <div class="selected-slot" id="blueSlot2"><span class="slot-num">2</span><span style="color:var(--muted);font-size:13px;">เลือกคนที่ 2</span></div>
+      </div>
+      <div id="blueCardGrid" class="player-card-grid"></div>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;">
+        <button class="btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);" onclick="goPickerStep(2)">← Back</button>
+        <button class="btn btn-primary" id="blueNextBtn" onclick="goPickerStep(4)" disabled style="opacity:0.4;">ถัดไป → ยืนยัน</button>
+        <span id="blueCountLabel" style="margin-left:auto;font-size:13px;color:var(--muted);font-weight:700;">0 / 2</span>
+      </div>
+    </div>
+    <!-- Step 4 -->
+    <div class="picker-panel" id="pickerStep4" style="display:none;">
+      <div style="padding:24px;">
+        <div id="matchConfirmPreview" style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:24px;"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);" onclick="goPickerStep(3)">← Back</button>
+          <button class="btn btn-primary" style="font-size:16px;padding:12px 32px;" onclick="createMatch()">⚡ Create Match in Queue</button>
+          <button class="btn btn-danger btn-sm" onclick="resetPicker()" style="margin-left:auto;">✕ Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div style="margin-top:20px; margin-bottom: 20px; display:flex; gap:10px;">
+    <button class="btn btn-info" onclick="createMockMatch()">⚡ สุ่มสร้างคิวแข่ง (Auto Random Match)</button>
+    <button class="btn btn-primary" onclick="openEndGame()" style="margin-left:auto; font-size:16px; padding:12px 24px; box-shadow:0 0 15px rgba(245,200,66,0.3);">🏆 สรุปผลการแข่งขัน (Ceremony)</button>
+  </div>
+
+  <div class="section-title">Manage All Matches (Live & Queue)</div>
+  <div id="adminOngoingMatchesContainer" class="match-grid"></div>
+
+</div>
+
+<!-- ── PLAYERS TAB ── -->
+<div id="players" class="container" style="max-width:1000px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+    <div class="section-title" style="margin:0;">👤 Player Directory</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input type="text" id="playersTabSearch" placeholder="🔍 ค้นหาชื่อ..." style="width:140px;font-size:13px;padding:7px 12px;" oninput="renderPlayersTab()">
+      <select id="playersTabFilterTeam" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
+        <option value="">ทุกทีม</option><option value="Red">🔴 Red</option><option value="Blue">🔵 Blue</option>
+      </select>
+      <select id="playersTabFilterGroup" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
+        <option value="">ทุกกลุ่ม</option><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option>
+      </select>
+      <select id="playersTabFilterStyle" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
+        <option value="">ทุก Style</option>
+        <option value="attacker">⚔️ Attacker</option>
+        <option value="defender">🛡️ Defender</option>
+        <option value="allround">🎯 All-Round</option>
+        <option value="controller">🧠 Controller</option>
+        <option value="speed">⚡ Speed Runner</option>
+        <option value="deceptive">🔮 Deceptive</option>
+        <option value="power">💪 Power Hitter</option>
+        <option value="netmaster">🕸️ Net Master</option>
+      </select>
+      <select id="playersTabSortBy" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
+        <option value="pts">↓ Points</option>
+        <option value="winRate">↓ Win Rate</option>
+        <option value="pointDiff">↓ Point Diff</option>
+        <option value="name">A–Z Name</option>
+        <option value="style">Style</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Export / Import bar (superadmin only) -->
+  <div class="export-import-bar superadmin-only">
+    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">📦 PLAYER DATA</span>
+    <button class="btn btn-outline btn-sm" onclick="exportPlayerProfiles()">📤 Export JSON</button>
+    <button class="btn btn-outline btn-sm" onclick="exportPlayerCSV()">📊 Export CSV</button>
+    <label class="btn btn-outline btn-sm" style="cursor:pointer;margin:0;">
+      📥 Import JSON
+      <input type="file" accept=".json" style="display:none;" onchange="importPlayerProfiles(this)">
+    </label>
+  </div>
+
+  <div id="playersTabGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
+</div>
+
+<!-- REPORTS TAB (Admin) -->
+<div id="report" class="container admin-only">
+
+  <!-- ── HERO STATS ROW ── -->
+  <div class="rpt-hero-row" id="rptHeroRow">
+    <div class="rpt-hero-card">
+      <div class="rpt-hero-val" id="rptHeroMatches">—</div>
+      <div class="rpt-hero-lbl">MATCHES PLAYED</div>
+    </div>
+    <div class="rpt-hero-card" style="border-color:rgba(255,59,92,0.3);">
+      <div class="rpt-hero-val" style="color:var(--red);" id="rptHeroRedWins">—</div>
+      <div class="rpt-hero-lbl">🔴 RED WINS</div>
+    </div>
+    <div class="rpt-hero-card" style="border-color:rgba(245,200,66,0.3);">
+      <div class="rpt-hero-val" style="color:var(--gold);" id="rptHeroDraws">—</div>
+      <div class="rpt-hero-lbl">🤝 DRAWS</div>
+    </div>
+    <div class="rpt-hero-card" style="border-color:rgba(59,142,255,0.3);">
+      <div class="rpt-hero-val" style="color:var(--blue);" id="rptHeroBlueWins">—</div>
+      <div class="rpt-hero-lbl">🔵 BLUE WINS</div>
+    </div>
+    <div class="rpt-hero-card" style="border-color:rgba(46,204,113,0.3);">
+      <div class="rpt-hero-val" style="color:var(--green);" id="rptHeroPredAcc">—</div>
+      <div class="rpt-hero-lbl">🔮 PRED ACCURACY</div>
+    </div>
+    <div class="rpt-hero-card">
+      <div class="rpt-hero-val" id="rptHeroUpsets">—</div>
+      <div class="rpt-hero-lbl">⚡ UPSETS</div>
+    </div>
+  </div>
+
+  <!-- ── REPORT LEGEND BANNER ── -->
+  <details style="background:rgba(245,200,66,0.04);border:1px solid rgba(245,200,66,0.15);border-radius:10px;padding:10px 16px;margin-bottom:14px;">
+    <summary style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--gold);cursor:pointer;outline:none;list-style:none;">📖 ความหมายตัวชี้วัดใน Report ▾</summary>
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;">
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">คอลัมน์หลัก</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+          <b style="color:var(--text);">PTS</b> = Match Points (ชนะ +3, เสมอ +1, แพ้ +0)<br>
+          <b style="color:var(--text);">±PD</b> = Point Differential (แต้มได้รวม − แต้มเสียรวม)<br>
+          <b style="color:var(--text);">GW/GL</b> = Game Wins/Losses (ระดับเกม)<br>
+          <b style="color:var(--text);">WR%</b> = Game Win Rate = GW ÷ (GW+GL) × 100<br>
+          <b style="color:var(--text);">M</b> = จำนวน Match · <b style="color:var(--text);">D</b> = Match Draw
+        </div>
+      </div>
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">Prediction & BaseScore</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+          <b style="color:var(--text);">Base Score</b> = ค่าความสามารถรายบุคคล (0.5–3.0 ขยับทีละ 0.5)<br>
+          <b style="color:var(--text);">Prediction</b> = เปรียบ BS รวมทีม: diff=0→25/50/25%, diff=0.5→65/20/15%, diff=1.0→75/15/10%, diff≥1.5→85/10/5%<br>
+          <b style="color:var(--text);">PRED ACC</b> = % แมตช์ที่ทีม win% สูงกว่าชนะจริง
+        </div>
+      </div>
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">PERF Score & Under/Over</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+          <b style="color:var(--text);">PERF</b> = Performance Score ปรับตามความยากคู่แข่ง<br>
+          <b style="color:var(--green);">Underrated</b> = WR จริง > คาดจาก BS (+15% ขึ้นไป) → ควรเพิ่ม BS<br>
+          <b style="color:var(--danger);">Overrated</b> = WR จริง < คาดจาก BS (−15% ลงไป) → ควรลด BS<br>
+          <b style="color:var(--text);">opp adj</b> = ปรับตาม BS เฉลี่ยของคู่แข่งที่เจอ ±8%<br>
+          <b style="color:var(--gold);">⚡ UPSETS</b> = แมตช์ที่ทีม BS ต่ำกว่าพลิกชนะ
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ── REPORT SUB-TABS ── -->
+  <div class="rpt-tab-bar">
+    <button class="rpt-tab active" id="rtab-players"  onclick="switchReportTab('players',this)">👥 Players</button>
+    <button class="rpt-tab"        id="rtab-ranking"  onclick="switchReportTab('ranking',this)">🏅 Ranking</button>
+    <button class="rpt-tab"        id="rtab-rounds"   onclick="switchReportTab('rounds',this)">🎯 Rounds</button>
+    <button class="rpt-tab"        id="rtab-matches"  onclick="switchReportTab('matches',this)">⚡ Matches</button>
+    <button class="rpt-tab"        id="rtab-history"  onclick="switchReportTab('history',this)">📋 History</button>
+    <button class="rpt-tab"        id="rtab-chart"    onclick="switchReportTab('chart',this)">📊 Chart</button>
+    <button class="rpt-tab"        id="rtab-umpire"   onclick="switchReportTab('umpire',this)">👔 Umpire</button>
+    <button class="rpt-tab"        id="rtab-undover"  onclick="switchReportTab('undover',this)">📈 Under/Over</button>
+  </div>
+
+  <!-- ─────────── TAB: PLAYERS ─────────── -->
+  <div class="rpt-panel active" id="rpanel-players">
+    <div class="rpt-panel-toolbar">
+      <input type="text" id="reportSearch" placeholder="🔍 ค้นหาผู้เล่น..." class="rpt-search" oninput="renderReports()">
+      <select id="reportFilterTeam" class="rpt-select" onchange="renderReports()">
+        <option value="">ทุกทีม</option>
+        <option value="Red">🔴 Red</option>
+        <option value="Blue">🔵 Blue</option>
+      </select>
+      <div class="rpt-group-pills">
+        <button class="filter-pill active" id="gpAll" onclick="setGroupFilter('')">All</button>
+        <button class="filter-pill" id="gp1" onclick="setGroupFilter('1')">G1</button>
+        <button class="filter-pill" id="gp2" onclick="setGroupFilter('2')">G2</button>
+        <button class="filter-pill" id="gp3" onclick="setGroupFilter('3')">G3</button>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-success btn-sm" onclick="exportReportToCSV()">📥 CSV</button>
+        <button class="btn btn-info btn-sm" onclick="printReport()">🖨 Print</button>
+        <button class="btn btn-outline btn-sm" onclick="exportSummaryPDF()">📄 Summary PDF</button>
+        <div style="display:flex;gap:5px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;">
+          <span style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:1px;white-space:nowrap;">👤 PDF:</span>
+          <select id="pdfFilterMode" class="rpt-select" style="padding:3px 6px;font-size:12px;min-width:80px;" onchange="renderPlayerPdfControls()">
+            <option value="all">ทั้งหมด</option>
+            <option value="player">ผู้เล่น</option>
+            <option value="group">กลุ่ม</option>
+            <option value="team">สี/ทีม</option>
+          </select>
+          <select id="pdfFilterValue" class="rpt-select" style="padding:3px 6px;font-size:12px;min-width:80px;display:none;"></select>
+          <button class="btn btn-primary btn-sm" onclick="exportPlayerPDF()" style="white-space:nowrap;padding:4px 10px;font-size:12px;">📄 Export</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat card summary row above table -->
+    <div id="playerStatCards" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+
+    <div class="table-wrap">
+      <table id="playerStatsTable">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortPlayers('id')">ID <span class="sort-icon" data-col="id">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('name')">ชื่อ <span class="sort-icon" data-col="name">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('team')">ทีม <span class="sort-icon" data-col="team">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('group')">กลุ่ม <span class="sort-icon" data-col="group">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('pts')" title="Match Points">PTS <span class="sort-icon" data-col="pts">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('pointDiff')" title="Point Differential">±PD <span class="sort-icon" data-col="pointDiff">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('w')" title="Game Wins">GW <span class="sort-icon" data-col="w">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('l')" title="Game Losses">GL <span class="sort-icon" data-col="l">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('matchDraw')" title="Match Draws">D <span class="sort-icon" data-col="matchDraw">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('matchesPlayed')" title="Matches Played">M <span class="sort-icon" data-col="matchesPlayed">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('winRate')" title="Game Win Rate">WR% <span class="sort-icon" data-col="winRate">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('epicTags')" title="Epic Comeback Count">🔥 <span class="sort-icon" data-col="epicTags">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('matchWin')" title="Match Wins / Losses">MW/ML <span class="sort-icon" data-col="matchWin">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('matchWinRate')" title="Match Win Rate">MWR% <span class="sort-icon" data-col="matchWinRate">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('baseScore')" title="Base Score (ความสามารถ)">BS <span class="sort-icon" data-col="baseScore">⇅</span></th>
+            <th title="Streak ช่วง 5 แมตช์ล่าสุด">Form</th>
+          </tr>
+        </thead>
+        <tbody id="statsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─────────── TAB: ROUNDS ─────────── -->
+  <div class="rpt-panel" id="rpanel-rounds">
+    <div class="rpt-panel-toolbar">
+      <span style="font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px;">📊 สรุปผลการแข่งขันแต่ละรอบ</span>
+      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" onclick="exportRoundsPDF()">📄 Export PDF</button>
+      </div>
+    </div>
+    <div id="roundsReportContent" style="display:flex;flex-direction:column;gap:18px;margin-top:4px;"></div>
+  </div>
+
+  <!-- ─────────── TAB: RANKING ─────────── -->
+  <div class="rpt-panel" id="rpanel-ranking">
+    <div class="perf-rank-section" id="perfRankSection">
+      <div class="rpt-panel-toolbar">
+        <span style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">VIEW:</span>
+        <button class="perf-rank-tab active" id="rankTabAll"  onclick="setRankView('all',this)">ทั้งหมด</button>
+        <button class="perf-rank-tab"        id="rankTabRed"  onclick="setRankView('red',this)">🔴 Red</button>
+        <button class="perf-rank-tab"        id="rankTabBlue" onclick="setRankView('blue',this)">🔵 Blue</button>
+      </div>
+      <div class="rank-legend" style="margin-bottom:16px;">
+        <div class="rank-legend-item"><div class="rank-legend-dot" style="background:var(--purple)"></div>Upset win</div>
+        <div class="rank-legend-item"><div class="rank-legend-dot" style="background:var(--green)"></div>Over-perform</div>
+        <div class="rank-legend-item"><div class="rank-legend-dot" style="background:var(--danger)"></div>Under-perform</div>
+        <div class="rank-legend-item" style="color:var(--muted);font-size:10px;">PERF = คะแนนปรับตามความยากของคู่แข่ง</div>
+      </div>
+      <div class="rank-grid" id="rankGrid"></div>
+    </div>
+  </div>
+
+  <!-- ─────────── TAB: MATCHES (Performance Cards) ─────────── -->
+  <div class="rpt-panel" id="rpanel-matches">
+    <div class="rpt-panel-toolbar">
+      <select id="perfFilterRound" onchange="renderPerformance()" class="rpt-select">
+        <option value="">ทุก Round</option>
+        <option value="1">Round 1</option>
+        <option value="2">Round 2</option>
+        <option value="3">Round 3</option>
+      </select>
+      <select id="perfFilterStatus" onchange="renderPerformance()" class="rpt-select">
+        <option value="">ทุก Status</option>
+        <option value="Evenly Matched">Evenly Matched</option>
+        <option value="Competitive Edge">Competitive Edge</option>
+        <option value="Superior">Superior</option>
+        <option value="Outclassed">Outclassed</option>
+        <option value="True Tie">True Tie</option>
+        <option value="Close Encounter">Close Encounter</option>
+        <option value="Deceptive Draw">Deceptive Draw</option>
+      </select>
+    </div>
+    <div id="perfTagFilterRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"></div>
+    <div id="perfCardsContainer"></div>
+  </div>
+
+  <!-- ─────────── TAB: HISTORY ─────────── -->
+  <div class="rpt-panel" id="rpanel-history">
+    <div class="table-wrap">
+      <table id="matchDetailsTable">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortMatches('id')">ID <span class="sort-icon" data-col="mid">⇅</span></th>
+            <th class="sortable" onclick="sortMatches('round')">Round <span class="sort-icon" data-col="round">⇅</span></th>
+            <th class="sortable" onclick="sortMatches('redNames')">🔴 Red Team <span class="sort-icon" data-col="redNames">⇅</span></th>
+            <th class="sortable" onclick="sortMatches('blueNames')">🔵 Blue Team <span class="sort-icon" data-col="blueNames">⇅</span></th>
+            <th>G1</th><th>G2</th>
+            <th class="sortable" onclick="sortMatches('result')">Result <span class="sort-icon" data-col="mresult">⇅</span></th>
+            <th>Umpire</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─────────── TAB: CHART ─────────── -->
+  <div class="rpt-panel" id="rpanel-chart">
+    <div class="chart-container">
+      <div class="chart-title">📊 Points by Player</div>
+      <div class="chart-bars" id="statsChart"><div class="chart-axis"></div></div>
+    </div>
+  </div>
+
+  <!-- ── UMPIRE WORKLOAD PANEL ── -->
+  <div class="rpt-panel" id="rpanel-umpire">
+    <div id="umpireWorkloadContent"></div>
+  </div>
+
+  <!-- ── UNDERRATE / OVERRATE PANEL ── -->
+  <div class="rpt-panel" id="rpanel-undover">
+    <div id="undOverContent"></div>
+  </div>
+
+</div>
+
+
+<!-- ── MODALS (ADMIN ONLY) ── -->
+
+<!-- RESULT CONFIRM MODAL -->
+<div id="confirmModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--green);">✅ Confirm Result</div>
+    <div id="confirmText" style="margin:20px 0; font-size:1.2em; line-height:1.6;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="finalizeResult()">✓ Confirm & Save</button>
+      <button class="btn btn-danger" onclick="closeConfirm()">✕ Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORCE RESULT MODAL -->
+<div id="resultModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--blue);">⚡ Force Result</div>
+    <div class="modal-match-info" id="modalMatchInfo"></div>
+    <input type="hidden" id="currentMatchId">
+    <div class="score-inputs">
+      <div class="score-input-row">
+        <span class="game-label">Game 1</span>
+        <input type="number" id="g1Red" placeholder="R" min="0">
+        <span class="score-sep">—</span>
+        <input type="number" id="g1Blue" placeholder="B" min="0">
+      </div>
+      <div class="score-input-row">
+        <span class="game-label">Game 2</span>
+        <input type="number" id="g2Red" placeholder="R" min="0">
+        <span class="score-sep">—</span>
+        <input type="number" id="g2Blue" placeholder="B" min="0">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="previewResult()">✓ Preview</button>
+      <button class="btn btn-danger" onclick="closeModal()">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- SEASON WIZARD MODAL -->
+<div id="seasonWizardModal" class="modal-overlay" onclick="if(event.target===this)closeSeasonWizard()">
+  <div class="modal-box" style="max-width:700px;width:95%;max-height:92vh;overflow-y:auto;padding:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;letter-spacing:3px;color:var(--gold);">🔄 NEW SEASON WIZARD</div>
+      <button onclick="closeSeasonWizard()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <!-- Steps indicator -->
+      <div class="wizard-steps">
+        <div class="wizard-step active" id="wzStep1Ind">1 Archive</div>
+        <div class="wizard-step" id="wzStep2Ind">2 Season</div>
+        <div class="wizard-step" id="wzStep3Ind">3 ผู้เล่น</div>
+        <div class="wizard-step" id="wzStep4Ind">4 ยืนยัน</div>
+      </div>
+
+      <!-- Step 1: Archive current season -->
+      <div id="wzStep1" class="wz-step-content">
+        <div style="font-size:15px;font-weight:700;margin-bottom:12px;">📦 Archive Season ปัจจุบัน</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7;padding:12px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);margin-bottom:16px;">
+          ระบบจะบันทึก <b>snapshot</b> ของ Season ปัจจุบันลง Firebase<br>
+          <code style="color:var(--gold);font-size:12px;">/seasons_archive/<span id="wzCurrentYear">2026</span>/</code><br><br>
+          ข้อมูลที่จะ archive:
+          <ul style="margin:8px 0 0;padding-left:18px;color:var(--text2);">
+            <li>ผลการแข่งขันทั้งหมด (<span id="wzMatchCount">0</span> แมตช์)</li>
+            <li>สถิติผู้เล่น W/L/PTS</li>
+            <li>คะแนนทีม Red vs Blue</li>
+            <li>ข้อมูลผู้เล่น (ability, style)</li>
+          </ul>
+        </div>
+        <div id="wzArchiveStatus" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;"></div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button onclick="wzArchiveSeason()" class="btn btn-primary">📦 Archive Now</button>
+          <button onclick="wzSkipArchive()" class="btn btn-outline btn-sm" style="font-size:11px;">ข้ามขั้นตอนนี้</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Name new season -->
+      <div id="wzStep2" class="wz-step-content" style="display:none;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:12px;">🗓️ ตั้งค่า Season ใหม่</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="profile-field">
+            <label>ชื่องาน Season ใหม่</label>
+            <input type="text" id="wzNewSeasonName" value="Sports Day 2027" style="font-size:14px;padding:10px 14px;" placeholder="Sports Day 2027">
+          </div>
+          <div class="profile-field">
+            <label>ปี (ใช้ใน archive key)</label>
+            <input type="text" id="wzNewSeasonYear" value="2027" style="font-size:14px;padding:10px 14px;" placeholder="2027">
+          </div>
+          <div style="padding:12px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);font-size:12px;color:var(--muted);">
+            ⚠️ ข้อมูลการแข่งขัน (ongoing, finished matches, คะแนน) จะถูก <b style="color:var(--danger);">reset ทั้งหมด</b><br>
+            ข้อมูลผู้เล่น (ชื่อ, ability, style) จะ <b style="color:var(--green);">ยกมาทั้งหมด</b>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button onclick="wzGoStep(1)" class="btn btn-outline btn-sm">← กลับ</button>
+          <button onclick="wzGoStep(3)" class="btn btn-primary">ถัดไป →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Re-assign players -->
+      <div id="wzStep3" class="wz-step-content" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:15px;font-weight:700;">🔀 จัดทีมใหม่</div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="wzShufflePlayers()" class="btn btn-outline btn-sm">🎲 Random Shuffle</button>
+            <span style="font-size:11px;color:var(--muted);align-self:center;">แก้ได้ทีละคน</span>
+          </div>
+        </div>
+        <div class="reassign-grid" id="wzReassignGrid"></div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button onclick="wzGoStep(2)" class="btn btn-outline btn-sm">← กลับ</button>
+          <button onclick="wzGoStep(4)" class="btn btn-primary">ถัดไป →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Confirm -->
+      <div id="wzStep4" class="wz-step-content" style="display:none;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:12px;">✅ ยืนยันเริ่ม Season ใหม่</div>
+        <div id="wzConfirmSummary" style="padding:14px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);font-size:13px;line-height:1.8;margin-bottom:16px;"></div>
+        <div style="padding:10px 14px;background:rgba(255,59,92,0.06);border:1px solid rgba(255,59,92,0.2);border-radius:8px;font-size:12px;color:var(--danger);margin-bottom:16px;">
+          ⚠️ การกระทำนี้ไม่สามารถย้อนกลับได้ — ตรวจสอบให้แน่ใจก่อนกด
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="wzGoStep(3)" class="btn btn-outline btn-sm">← กลับ</button>
+          <button onclick="wzConfirmNewSeason()" class="btn btn-danger" style="letter-spacing:1px;">🚀 เริ่ม Season ใหม่</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SEASON ARCHIVE VIEWER MODAL -->
+<div id="seasonArchiveModal" class="modal-overlay" onclick="if(event.target===this)closeSeasonArchive()">
+  <div class="modal-box" style="max-width:700px;width:95%;max-height:90vh;overflow-y:auto;padding:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;letter-spacing:3px;color:var(--gold);">📅 SEASON ARCHIVE</div>
+      <button onclick="closeSeasonArchive()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:20px 24px;" id="seasonArchiveContent">
+      <div style="text-align:center;color:var(--muted);padding:24px;">กำลังโหลด...</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div id="compareModal" class="modal-overlay" style="display:none;align-items:center;justify-content:center;z-index:2000;" onclick="if(event.target===this)closeCompareModal()">
+  <div class="modal-box" style="max-width:680px;width:95%;max-height:90vh;overflow-y:auto;padding:0;">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;letter-spacing:3px;color:var(--gold);">⚖️ COMPARE PLAYERS</div>
+      <button onclick="closeCompareModal()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+    </div>
+    <!-- Slots -->
+    <div style="display:flex;gap:12px;align-items:center;padding:16px 24px;flex-wrap:wrap;">
+      <div class="compare-slot slot-a" id="compareSlotA" style="flex:1;min-width:140px;">
+        <span style="font-size:16px;">🔴</span>
+        <span id="compareSlotAText" style="flex:1;">เลือกผู้เล่น A</span>
+        <button id="compareSlotAClear" style="display:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;" onclick="clearCompareSlot('a')">✕</button>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6em;color:var(--muted);letter-spacing:4px;flex-shrink:0;">VS</div>
+      <div class="compare-slot slot-b" id="compareSlotB" style="flex:1;min-width:140px;">
+        <span style="font-size:16px;">🔵</span>
+        <span id="compareSlotBText" style="flex:1;">เลือกผู้เล่น B</span>
+        <button id="compareSlotBClear" style="display:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;" onclick="clearCompareSlot('b')">✕</button>
+      </div>
+    </div>
+    <!-- Content -->
+    <div id="compareModalContent" style="padding:0 24px 24px;">
+      <div id="compareEmptyHint" style="text-align:center;color:var(--muted);font-size:13px;padding:24px 0;">
+        กด <b style="color:var(--gold);">⚖️</b> ที่ card ผู้เล่นเพื่อเลือก — ต้องการ 2 คนเพื่อ Compare
+      </div>
+
+      <!-- ── PUBLIC SECTION ── -->
+      <div id="comparePublicSection" style="display:none;">
+
+        <!-- Stat bars: win rate, matches, point diff -->
+        <div id="compareStatBars" style="margin-bottom:16px;"></div>
+
+        <!-- Play Style + Dominant Shot -->
+        <div id="compareStyleSection" style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:10px;">🎭 PLAY STYLE & DOMINANT SHOT</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:120px;" id="compareStyleA"></div>
+            <div style="flex:1;min-width:120px;text-align:right;" id="compareStyleB"></div>
+          </div>
+        </div>
+
+        <!-- H2H -->
+        <div id="compareH2H" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:10px;">HEAD-TO-HEAD (รายเกม)</div>
+          <div id="compareH2HContent"></div>
+        </div>
+
+        <!-- Weakness — superadmin only -->
+        <div id="compareWeaknessSection" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--danger);margin-bottom:10px;">⚠️ จุดอ่อน (SUPERADMIN)</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:120px;" id="compareWeaknessA"></div>
+            <div style="flex:1;min-width:120px;text-align:right;" id="compareWeaknessB"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCOUT SECTION (locked) ── -->
+      <div id="compareScoutSection" style="display:none;border-top:1px solid var(--border);padding-top:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--gold);">🔍 SCOUT — ABILITY COMPARISON</div>
+          <span id="compareScoutLockBadge" style="font-size:10px;color:var(--muted);cursor:pointer;" onclick="lockCompareScout()">🔒 ล็อค</span>
+        </div>
+
+        <!-- Lock screen -->
+        <div id="compareScoutLock" style="text-align:center;padding:20px 12px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7;">
+            ข้อมูล Ability เป็น <b style="color:var(--text);">POV ของเพชร</b> — ใส่รหัสเพื่อดู
+          </div>
+          <div style="display:flex;gap:8px;justify-content:center;">
+            <input type="password" id="compareScoutPassInput" placeholder="รหัส Scout" maxlength="20"
+              style="padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;width:150px;text-align:center;letter-spacing:3px;"
+              onkeydown="if(event.key==='Enter')verifyCompareScoutPass()">
+            <button onclick="verifyCompareScoutPass()" class="btn btn-outline" style="padding:8px 14px;">เข้าดู →</button>
+          </div>
+          <div id="compareScoutPassErr" style="font-size:11px;color:var(--danger);margin-top:8px;min-height:16px;"></div>
+        </div>
+
+        <!-- Radar + Bars (unlocked) -->
+        <div id="compareRadarWrap" style="display:none;flex-wrap:wrap;gap:20px;align-items:flex-start;justify-content:center;margin-top:14px;">
+          <svg id="compareRadarSvg" style="overflow:visible;display:block;" width="230" height="250" viewBox="-115 -115 230 240"></svg>
+          <div class="compare-bar-section" id="compareBarSection" style="flex:1;min-width:200px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- QUICK SCORE MODAL -->
+<div id="quickScoreModal" class="modal-overlay">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-title" style="font-size:1.5em;">⚡ Quick Score</div>
+    <div style="display:flex;gap:20px;justify-content:center;margin-bottom:28px; margin-top:20px;">
+      <div style="text-align:center;">
+        <div class="red-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:3px;margin-bottom:10px;">RED TEAM</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-danger" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';" onclick="quickAdj('red',-1)">−</button>
+          <span id="qsRed" style="font-family:'Bebas Neue',sans-serif;font-size:2em;color:var(--red);min-width:40px;">0</span>
+          <button class="btn" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';background:rgba(255,59,59,0.15);color:var(--red);" onclick="quickAdj('red',1)">+</button>
+        </div>
+      </div>
+      <div style="text-align:center;">
+        <div class="blue-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:3px;margin-bottom:10px;">BLUE TEAM</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-danger" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';" onclick="quickAdj('blue',-1)">−</button>
+          <span id="qsBlue" style="font-family:'Bebas Neue',sans-serif;font-size:2em;color:var(--blue);min-width:40px;">0</span>
+          <button class="btn" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';background:rgba(59,142,255,0.15);color:var(--blue);" onclick="quickAdj('blue',1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="applyQuickScore()">✓ Apply</button>
+      <button class="btn btn-danger" onclick="closeQuickScore()">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT RESULT MODAL -->
+<div id="editResultModal" class="modal-overlay">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-title" style="color:#f5c842;">✏️ Edit Match</div>
+    <div class="modal-match-info" id="editModalMatchInfo"></div>
+    <input type="hidden" id="editMatchHistoryId">
+
+    <!-- ── Player Reassignment Section ── -->
+    <div id="editPlayersSection" style="margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">🔄 แก้ไขผู้เล่น (เลือกใหม่ได้)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:5px;letter-spacing:1px;">🔴 RED TEAM</div>
+          <select id="editR1" class="rpt-select" style="width:100%;margin-bottom:6px;border-color:rgba(255,59,92,0.3);background:rgba(255,59,92,0.05);"></select>
+          <select id="editR2" class="rpt-select" style="width:100%;border-color:rgba(255,59,92,0.3);background:rgba(255,59,92,0.05);"></select>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:5px;letter-spacing:1px;">🔵 BLUE TEAM</div>
+          <select id="editB1" class="rpt-select" style="width:100%;margin-bottom:6px;border-color:rgba(59,142,255,0.3);background:rgba(59,142,255,0.05);"></select>
+          <select id="editB2" class="rpt-select" style="width:100%;border-color:rgba(59,142,255,0.3);background:rgba(59,142,255,0.05);"></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Score Edit ── -->
+    <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">📝 แก้ไขคะแนน</div>
+    <div class="score-inputs">
+      <div class="score-input-row">
+        <span class="game-label">Game 1</span>
+        <input type="number" id="eg1Red" placeholder="R" min="0">
+        <span class="score-sep">—</span>
+        <input type="number" id="eg1Blue" placeholder="B" min="0">
+      </div>
+      <div class="score-input-row">
+        <span class="game-label">Game 2</span>
+        <input type="number" id="eg2Red" placeholder="R" min="0">
+        <span class="score-sep">—</span>
+        <input type="number" id="eg2Blue" placeholder="B" min="0">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="submitEditResult()" style="font-size:16px; padding:12px 28px;">✓ Save Edit</button>
+      <button class="btn btn-danger" onclick="closeEditModal()" style="font-size:16px; padding:12px 28px;">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAG EDIT MODAL -->
+<div id="editTagsModal" class="modal-overlay">
+  <div class="modal-box" style="max-width: 500px;">
+    <div class="modal-title" style="color:var(--gold);">🏷️ Edit Match Tags</div>
+    <div class="modal-match-info" id="editTagsMatchInfo"></div>
+    <input type="hidden" id="editTagsMatchId">
+    
+    <div class="tag-checkbox-list" id="tagCheckboxList">
+        <label class="tag-checkbox-item"><input type="checkbox" value="epic_red" data-label="🔥 Epic Comeback G1 Red" data-class="tag-comeback"><span>🔥 Epic Comeback (เฉพาะทีมแดง)</span></label>
+        <label class="tag-checkbox-item"><input type="checkbox" value="epic_blue" data-label="🔥 Epic Comeback G1 Blue" data-class="tag-comeback"><span>🔥 Epic Comeback (เฉพาะทีมน้ำเงิน)</span></label>
+        <label class="tag-checkbox-item"><input type="checkbox" value="clutch" data-label="⚔️ The Gladiators (สูสีสุดๆ)" data-class="tag-clutch"><span>⚔️ The Gladiators (คะแนนสูสีสุดๆ ทั้ง 4 คนได้)</span></label>
+        <label class="tag-checkbox-item"><input type="checkbox" value="marathon" data-label="🏃‍♂️ Marathon Match" data-class="tag-custom"><span>🏃‍♂️ Marathon Match (เกมยืดเยื้อ ดิวซ์เดือด ทั้ง 4 คนได้)</span></label>
+        <label class="tag-checkbox-item"><input type="checkbox" value="rollercoaster" data-label="🎢 The Rollercoaster" data-class="tag-custom"><span>🎢 The Rollercoaster (ผลัดกันขาดคนละเกม ทั้ง 4 คนได้)</span></label>
+        <label class="tag-checkbox-item"><input type="checkbox" value="blowout" data-label="🌪️ ยำใหญ่ (Blowout)" data-class="tag-blowout"><span>🌪️ ยำใหญ่ (Blowout)</span></label>
+    </div>
+
+    <div class="modal-actions" style="margin-top: 20px;">
+      <button class="btn btn-primary" onclick="saveMatchTags()">✓ Save Tags</button>
+      <button class="btn btn-danger" onclick="closeEditTagsModal()">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- AWARD CRITERIA INFO MODAL -->
+<div id="awardInfoModal" class="modal-overlay" style="z-index: 3000;">
+  <div class="modal-box" style="text-align: left; max-width: 600px;">
+    <div class="modal-title" style="text-align:center;">ℹ️ กติกาการตัดสินรางวัล</div>
+    <div style="margin-top:20px; line-height:1.6; font-size:14px; color:var(--text);">
+        <b style="color:var(--gold);">🏆 MVP Top 5 (ผู้ทำแต้มสูงสุด):</b><br>
+        เรียงจากผู้ที่สะสมแต้มทีมได้มากที่สุด<br>
+        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Points → Point Diff → Game Wins</span><br><br>
+        
+        <b style="color:var(--gold);">🛡️ Toughest Player (ผู้เล่นเคี้ยวยาก):</b><br>
+        ผู้เล่นที่พาทีมเสมอได้บ่อยที่สุด สะท้อนความสมดุลและความสม่ำเสมอ<br>
+        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Draws มากสุด → |Point Diff| ใกล้ 0 มากสุด</span><br><br>
+        
+        <b style="color:var(--gold);">🔥 Epic Comeback Kings (ราชาพลิกนรก):</b><br>
+        ตามหลัง 4+ แต้มช่วงท้ายในขณะที่คู่ต่อสู้มีแต้ม 17 ขึ้นไป แล้วพลิกชนะได้<br>
+        เกิดได้ 2 ครั้งต่อ Match · ได้รับเฉพาะทีมที่พลิกชนะ<br>
+        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → Wins → Point Diff</span><br><br>
+        
+        <b style="color:var(--gold);">⚔️ The Gladiators (นักสู้หัวใจเพชร):</b><br>
+        แต้มรวม 2 เกมของทั้งแมตช์ห่างกันไม่เกิน 5 แต้ม — เกมสูสีสุดขีด<br>
+        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → |Point Diff| ใกล้ 0 → Draws</span><br><br>
+        
+        <b style="color:var(--gold);">🏃‍♂️ Iron Lungs (ปอดเหล็ก):</b><br>
+        ผ่านเกมที่มีดิวซ์ยาวนานถึง 22 แต้มขึ้นไป ทดสอบความอดทนสูงสุด<br>
+        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → Wins → Point Diff</span><br><br>
+
+        <hr style="border-color:var(--border);margin:12px 0;">
+        <b style="color:var(--muted);font-size:12px;">📌 หมายเหตุ: รางวัล Rollercoaster และ Blowout ไม่มีในพิธีมอบรางวัล แต่ยังปรากฏใน Match History</b>
+    </div>
+    <div class="modal-actions" style="margin-top: 24px;">
+      <button class="btn btn-primary" onclick="document.getElementById('awardInfoModal').classList.remove('open')">✓ ปิดหน้าต่าง</button>
+    </div>
+  </div>
+</div>
+
+<!-- MATCH NOTIFICATION -->
+<div id="matchNotiOverlay">
+  <div id="matchNotiBox">
+    <div id="matchNotiGlow"></div>
+
+    <!-- ── HEADER: Match ID + Status ── -->
+    <div id="matchNotiHeader">
+      <div id="matchNotiMatchId">MATCH M01</div>
+      <div id="matchNotiStatusBadge">จบแมตช์!</div>
+    </div>
+
+    <!-- ── TEAM NAMES ── -->
+    <div id="matchNotiTeams">
+      <div id="matchNotiRedName" class="mnoti-team-name red">RED</div>
+      <div class="mnoti-vs">VS</div>
+      <div id="matchNotiBlueNameEl" class="mnoti-team-name blue">BLUE</div>
+    </div>
+
+    <!-- ── SCORE BOARD: แสดงทั้ง 2 เกม ── -->
+    <div id="matchNotiScoreBoard">
+      <!-- G1 -->
+      <div class="mnoti-game-row" id="mnotiG1Row">
+        <div class="mnoti-game-label">G1</div>
+        <div id="mnotiG1Red" class="mnoti-score-cell red">0</div>
+        <div class="mnoti-score-sep">–</div>
+        <div id="mnotiG1Blue" class="mnoti-score-cell blue">0</div>
+        <div id="mnotiG1Winner" class="mnoti-game-winner"></div>
+      </div>
+      <!-- G2 -->
+      <div class="mnoti-game-row" id="mnotiG2Row">
+        <div class="mnoti-game-label">G2</div>
+        <div id="mnotiG2Red" class="mnoti-score-cell red">0</div>
+        <div class="mnoti-score-sep">–</div>
+        <div id="mnotiG2Blue" class="mnoti-score-cell blue">0</div>
+        <div id="mnotiG2Winner" class="mnoti-game-winner"></div>
+      </div>
+    </div>
+
+    <!-- ── RESULT HEADLINE ── -->
+    <div id="matchNotiResultLine"></div>
+
+    <!-- ── TAGS ── -->
+    <div id="matchNotiTags"></div>
+
+    <!-- ── NARRATIVE / SITUATION SUMMARY ── -->
+    <div id="matchNotiNarrative"></div>
+
+    <!-- ── GIF ── -->
+    <div id="matchNotiGifWrap"></div>
+
+    <!-- ── OVERALL TEAM SCORE ── -->
+    <div id="matchNotiOverallScore"></div>
+
+    <!-- ── CLOSE BUTTON ── -->
+    <button id="matchNotiClose" onclick="closeMatchNoti()">ปิด</button>
+
+    <div id="matchNotiProgress" style="position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 20px 20px;width:100%;background:rgba(255,255,255,0.08);">
+      <div id="matchNotiProgressBar" style="height:100%;width:0%;border-radius:0 0 20px 20px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- TROPHY CEREMONY OVERLAY -->
+<div id="trophyOverlay" style="display:none; position:fixed; inset:0; z-index:2000; overflow-y:auto; overflow-x:hidden;">
+<canvas id="confettiCanvas" style="position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:1;"></canvas>
+  <div id="trophyBg" style="position:fixed; inset:0; transition:background 1.2s; z-index:0;"></div>
+  <svg id="starLayer" style="position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:2;" xmlns="http://www.w3.org/2000/svg"></svg>
+  
+  <div style="position:absolute; top:20px; right:20px; z-index:100;">
+      <button class="btn btn-outline" style="border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.7); font-size:13px;" onclick="document.getElementById('awardInfoModal').classList.add('open')">ℹ️ กติกาการตัดสินรางวัล</button>
+  </div>
+
+  <div class="trophy-content">
+    <div id="trophyWinnerLabel" style="font-family:'Rajdhani',sans-serif;font-size:clamp(12px,2vw,18px);font-weight:700;letter-spacing:8px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:20px;opacity:0;transform:translateY(-20px);transition:opacity 0.6s 0.2s,transform 0.6s 0.2s;">🏸 SPORTS DAY 2026 · CHAMPION</div>
+    <div id="trophySvgWrap" style="opacity:0;transform:scale(0.2) translateY(80px);transition:opacity 1s 0.4s,transform 1s 0.4s cubic-bezier(0.34,1.56,0.64,1);margin-bottom:24px;">
+      <svg id="trophySvg" width="320" height="380" viewBox="0 0 320 380" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 40px rgba(245,200,66,0.8)) drop-shadow(0 0 90px rgba(245,180,0,0.4));">
+        <defs>
+          <linearGradient id="tgBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFF8DC"/>
+            <stop offset="15%" stop-color="#FFE566"/>
+            <stop offset="40%" stop-color="#F5C800"/>
+            <stop offset="65%" stop-color="#C8960A"/>
+            <stop offset="85%" stop-color="#F5D060"/>
+            <stop offset="100%" stop-color="#8B5E00"/>
+          </linearGradient>
+          <linearGradient id="tgBodySide" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#8B5E00"/>
+            <stop offset="20%" stop-color="#C8960A"/>
+            <stop offset="50%" stop-color="#FFE566"/>
+            <stop offset="80%" stop-color="#C8960A"/>
+            <stop offset="100%" stop-color="#8B5E00"/>
+          </linearGradient>
+          <linearGradient id="tgHandle" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#8B5E00"/>
+            <stop offset="35%" stop-color="#FFE566"/>
+            <stop offset="65%" stop-color="#F5C800"/>
+            <stop offset="100%" stop-color="#8B5E00"/>
+          </linearGradient>
+          <linearGradient id="tgBase" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FFE566"/>
+            <stop offset="40%" stop-color="#C8960A"/>
+            <stop offset="100%" stop-color="#6B4000"/>
+          </linearGradient>
+          <linearGradient id="tgNeck" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#8B5E00"/>
+            <stop offset="30%" stop-color="#F5D060"/>
+            <stop offset="70%" stop-color="#F5D060"/>
+            <stop offset="100%" stop-color="#8B5E00"/>
+          </linearGradient>
+          <linearGradient id="tgSheen" x1="0%" y1="0%" x2="40%" y2="100%">
+            <stop offset="0%" stop-color="rgba(255,255,255,0.6)"/>
+            <stop offset="60%" stop-color="rgba(255,255,255,0.1)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+          </linearGradient>
+          <radialGradient id="tgGlow" cx="40%" cy="30%">
+            <stop offset="0%" stop-color="rgba(255,248,200,0.5)"/>
+            <stop offset="100%" stop-color="rgba(255,200,0,0)"/>
+          </radialGradient>
+          <filter id="tgSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="tgStarGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- ambient glow ring -->
+        <ellipse cx="160" cy="155" rx="130" ry="125" fill="url(#tgGlow)" opacity="0.5"/>
+
+        <!-- LEFT HANDLE -->
+        <path d="M93,72 C55,68 28,90 26,122 C24,150 46,170 78,174" fill="none" stroke="url(#tgHandle)" stroke-width="22" stroke-linecap="round"/>
+        <path d="M93,72 C55,68 28,90 26,122 C24,150 46,170 78,174" fill="none" stroke="rgba(255,248,180,0.45)" stroke-width="7" stroke-linecap="round"/>
+        <path d="M93,72 C58,68 34,88 32,118" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3" stroke-linecap="round"/>
+        <!-- handle end cap -->
+        <circle cx="26" cy="122" r="11" fill="url(#tgBody)" filter="url(#tgSoftGlow)"/>
+        <circle cx="26" cy="122" r="5" fill="rgba(255,248,200,0.8)"/>
+
+        <!-- RIGHT HANDLE -->
+        <path d="M227,72 C265,68 292,90 294,122 C296,150 274,170 242,174" fill="none" stroke="url(#tgHandle)" stroke-width="22" stroke-linecap="round"/>
+        <path d="M227,72 C265,68 292,90 294,122 C296,150 274,170 242,174" fill="none" stroke="rgba(255,248,180,0.45)" stroke-width="7" stroke-linecap="round"/>
+        <path d="M227,72 C262,68 286,88 288,118" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="294" cy="122" r="11" fill="url(#tgBody)" filter="url(#tgSoftGlow)"/>
+        <circle cx="294" cy="122" r="5" fill="rgba(255,248,200,0.8)"/>
+
+        <!-- CUP BODY — main bowl -->
+        <path d="M90,28 L230,28 Q248,28 252,46 L246,178 Q220,212 160,214 Q100,212 74,178 L68,46 Q72,28 90,28 Z" fill="url(#tgBody)" filter="url(#tgSoftGlow)"/>
+
+        <!-- rim highlight top -->
+        <path d="M90,28 L230,28 Q248,28 252,46 L248,60 Q220,68 160,68 Q100,68 72,60 L68,46 Q72,28 90,28 Z" fill="rgba(255,255,255,0.18)"/>
+        <line x1="70" y1="60" x2="250" y2="60" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+
+        <!-- middle band engraving -->
+        <path d="M74,118 Q118,128 160,128 Q202,128 246,118 L244,140 Q202,150 160,150 Q118,150 76,140 Z" fill="rgba(0,0,0,0.14)"/>
+        <line x1="76" y1="118" x2="244" y2="118" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
+        <line x1="78" y1="140" x2="242" y2="140" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
+
+        <!-- sheen highlight left side -->
+        <path d="M97,34 Q92,90 90,148 Q108,170 130,178" fill="none" stroke="url(#tgSheen)" stroke-width="26" stroke-linecap="round" opacity="0.55"/>
+        <path d="M115,36 Q111,80 108,122" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="7" stroke-linecap="round"/>
+
+        <!-- decorative lines left -->
+        <g fill="none" stroke="rgba(160,110,0,0.6)" stroke-width="1.4">
+          <path d="M97,158 C86,146 80,132 85,118"/>
+          <path d="M107,164 C94,154 86,138 90,122"/>
+          <path d="M118,168 C104,160 95,144 98,128"/>
+        </g>
+        <!-- decorative lines right -->
+        <g fill="none" stroke="rgba(160,110,0,0.6)" stroke-width="1.4">
+          <path d="M223,158 C234,146 240,132 235,118"/>
+          <path d="M213,164 C226,154 234,138 230,122"/>
+          <path d="M202,168 C216,160 225,144 222,128"/>
+        </g>
+
+        <!-- STAR center -->
+        <polygon id="trophyStar" points="160,72 168,96 194,96 174,112 182,136 160,120 138,136 146,112 126,96 152,96" fill="rgba(255,255,255,0.97)" filter="url(#tgStarGlow)"/>
+        <polygon points="160,80 166,96 182,96 170,106 174,122 160,113 146,122 150,106 138,96 154,96" fill="rgba(255,220,60,0.65)"/>
+        <!-- star sparkle center -->
+        <circle cx="160" cy="100" r="5" fill="rgba(255,255,255,0.9)"/>
+
+        <!-- NECK -->
+        <path d="M142,214 L150,252 L170,252 L178,214 Z" fill="url(#tgNeck)"/>
+        <path d="M145,214 L152,252" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
+        <path d="M175,214 L168,252" stroke="rgba(0,0,0,0.1)" stroke-width="2"/>
+
+        <!-- neck top collar -->
+        <rect x="132" y="210" width="56" height="12" rx="5" fill="url(#tgBodySide)" filter="url(#tgSoftGlow)"/>
+        <rect x="135" y="211" width="50" height="5" rx="3" fill="rgba(255,255,255,0.32)"/>
+
+        <!-- BASE tiers -->
+        <!-- tier 1 -->
+        <rect x="108" y="252" width="104" height="24" rx="7" fill="url(#tgBase)" filter="url(#tgSoftGlow)"/>
+        <rect x="112" y="253" width="96" height="9" rx="4" fill="rgba(255,255,255,0.2)"/>
+        <!-- tier 2 (wider) -->
+        <rect x="92" y="272" width="136" height="18" rx="7" fill="url(#tgBase)"/>
+        <rect x="96" y="273" width="128" height="7" rx="3" fill="rgba(255,255,255,0.12)"/>
+        <!-- tier 3 bottom -->
+        <rect x="82" y="286" width="156" height="14" rx="7" fill="url(#tgBase)"/>
+        <rect x="86" y="287" width="148" height="5" rx="3" fill="rgba(255,255,255,0.09)"/>
+
+        <!-- base gem center -->
+        <circle cx="160" cy="263" r="9" fill="#1a80ff" filter="url(#tgSoftGlow)"/>
+        <circle cx="160" cy="263" r="6" fill="#60b0ff"/>
+        <circle cx="157" cy="260" r="3" fill="rgba(255,255,255,0.85)"/>
+
+        <!-- shadow under base -->
+        <ellipse cx="160" cy="303" rx="74" ry="8" fill="rgba(0,0,0,0.32)"/>
+
+        <!-- sparkle accents -->
+        <circle cx="252" cy="46" r="5" fill="#FFF8DC" opacity="0.92" filter="url(#tgSoftGlow)"/>
+        <circle cx="68" cy="46" r="5" fill="#FFF8DC" opacity="0.92" filter="url(#tgSoftGlow)"/>
+        <circle cx="160" cy="22" r="6" fill="#FFF8DC" opacity="0.97" filter="url(#tgStarGlow)"/>
+        <circle cx="248" cy="98" r="3.5" fill="#FFF8DC" opacity="0.75"/>
+        <circle cx="72" cy="98" r="3.5" fill="#FFF8DC" opacity="0.75"/>
+        <!-- sparkle cross top right -->
+        <g stroke="#FFF8DC" stroke-width="2" opacity="0.85" stroke-linecap="round">
+          <line x1="258" y1="62" x2="258" y2="74"/><line x1="252" y1="68" x2="264" y2="68"/>
+          <line x1="58" y1="62" x2="58" y2="74"/><line x1="52" y1="68" x2="64" y2="68"/>
+        </g>
+        <!-- tiny sparkle dots -->
+        <circle cx="238" cy="34" r="2" fill="#FFF8DC" opacity="0.6"/>
+        <circle cx="82" cy="34" r="2" fill="#FFF8DC" opacity="0.6"/>
+        <circle cx="270" cy="150" r="2.5" fill="#FFF8DC" opacity="0.5"/>
+        <circle cx="50" cy="150" r="2.5" fill="#FFF8DC" opacity="0.5"/>
+      </svg>
+    </div>
+    <div id="trophyTeamName" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(3em,11vw,7.5em);line-height:1;letter-spacing:8px;opacity:0;transform:scale(0.6);transition:opacity 0.8s 1s,transform 0.8s 1s cubic-bezier(0.34,1.56,0.64,1);text-shadow:0 0 60px currentColor,0 0 120px currentColor,0 6px 30px rgba(0,0,0,0.6);">RED TEAM</div>
+    <div id="trophyScore" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(1.4em,4.5vw,2.8em);letter-spacing:8px;color:rgba(255,255,255,0.65);margin-top:10px;opacity:0;transition:opacity 0.6s 1.4s;"></div>
+    <div id="trophyStats" style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:28px;opacity:0;transition:opacity 0.7s 1.6s;"></div>
+    
+    <!-- SPECIAL AWARDS SECTION (แสดง 5 รางวัลที่ขอมา) -->
+    <div id="trophySpecialAwards" style="margin-top:36px;width:100%;max-width:1100px;opacity:0;transform:translateY(16px);transition:opacity 0.7s 1.9s,transform 0.7s 1.9s; display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
+        <!-- Inject by JS -->
+    </div>
+    
+    <!-- MVP TOP 5 -->
+    <div id="trophyTop5" style="margin-top:26px;width:100%;max-width:1100px;opacity:0;transform:translateY(16px);transition:opacity 0.7s 2.1s,transform 0.7s 2.1s;"></div>
+    
+    <button onclick="closeTrophy()" id="trophyCloseBtn">✕ Close Ceremony</button>
+  </div>
+</div>
+
+<!-- ══ PLAYER PROFILE OVERLAY ══ -->
+<div id="playerProfileOverlay">
+  <button class="profile-close-btn" onclick="closePlayerProfile()" title="ปิด (Esc)">✕</button>
+  <div class="profile-wrap" id="playerProfileWrap">
+    <!-- Header -->
+    <div class="profile-header" id="profileHeader"></div>
+    <!-- Stats bar -->
+    <div class="profile-stats-bar" id="profileStatBar"></div>
+    <!-- Body -->
+    <div class="profile-body">
+      <!-- Tab Nav -->
+      <div class="pd-tabs">
+        <button class="pd-tab-btn active" onclick="switchPdTab('personal',this)">👤 ข้อมูล</button>
+        <button class="pd-tab-btn" onclick="switchPdTab('career',this)">📈 Career</button>
+        <button class="pd-tab-btn" onclick="switchPdTab('matches',this)">🏸 แมตช์</button>
+        <button class="pd-tab-btn" onclick="switchPdTab('scout',this)">🔍 Scout</button>
+      </div>
+
+      <!-- TAB: Personal -->
+      <div id="pdTabPersonal" class="pd-tab-content active">
+      <div id="pdViewPersonal">
+        <div class="profile-section-title">👤 ข้อมูลส่วนตัว</div>
+        <div id="pdPersonalGrid" class="profile-field-grid"></div>
+        <div id="pdEditBtnWrap" style="display:none;margin-top:18px;">
+          <button onclick="openPdEdit()" class="btn btn-outline btn-sm">✏️ แก้ไขข้อมูลส่วนตัว</button>
+        </div>
+        <!-- Style badges + Dominant Shot -->
+        <div id="pdStyleRow" style="display:none;margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;"></div>
+      </div>
+      <!-- Personal edit -->
+      <div id="pdEditPersonal" style="display:none;">
+        <div class="profile-section-title">✏️ แก้ไขข้อมูล</div>
+        <!-- Ability sliders — superadmin only -->
+        <div class="superadmin-only" style="margin-bottom:18px;">
+          <div class="profile-section-title" style="font-size:11px;">⚡ กำหนดค่าพลัง (Super Admin)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;">🏃 Speed <span id="pdEditSpeedVal" style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;color:var(--gold);">3</span></div>
+              <input type="range" id="pdEditSpeed" min="1" max="5" step="0.5" value="3" style="width:100%;accent-color:var(--gold);" oninput="document.getElementById('pdEditSpeedVal').textContent=this.value">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;">💪 Power <span id="pdEditPowerVal" style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;color:var(--gold);">3</span></div>
+              <input type="range" id="pdEditPower" min="1" max="5" step="0.5" value="3" style="width:100%;accent-color:var(--gold);" oninput="document.getElementById('pdEditPowerVal').textContent=this.value">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;">🔋 Stamina <span id="pdEditStaminaVal" style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;color:var(--gold);">3</span></div>
+              <input type="range" id="pdEditStamina" min="1" max="5" step="0.5" value="3" style="width:100%;accent-color:var(--gold);" oninput="document.getElementById('pdEditStaminaVal').textContent=this.value">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;">🎯 Technique <span id="pdEditTechniqueVal" style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;color:var(--gold);">3</span></div>
+              <input type="range" id="pdEditTechnique" min="1" max="5" step="0.5" value="3" style="width:100%;accent-color:var(--gold);" oninput="document.getElementById('pdEditTechniqueVal').textContent=this.value">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;">🎯 Accuracy <span id="pdEditAccuracyVal" style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;color:var(--gold);">3</span></div>
+              <input type="range" id="pdEditAccuracy" min="1" max="5" step="0.5" value="3" style="width:100%;accent-color:var(--gold);" oninput="document.getElementById('pdEditAccuracyVal').textContent=this.value">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;">🧠 Tactics <span id="pdEditTacticsVal" style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;color:var(--gold);">3</span></div>
+              <input type="range" id="pdEditTactics" min="1" max="5" step="0.5" value="3" style="width:100%;accent-color:var(--gold);" oninput="document.getElementById('pdEditTacticsVal').textContent=this.value">
+            </div>
+          </div>
+        </div>
+        <div class="profile-field-grid">
+          <div class="profile-field">
+            <label>เพศ</label>
+            <select id="pdEditGender">
+              <option value="">ไม่ระบุ</option>
+              <option value="ชาย">ชาย</option>
+              <option value="หญิง">หญิง</option>
+              <option value="อื่นๆ">อื่นๆ</option>
+            </select>
+          </div>
+          <div class="profile-field">
+            <label>มือถนัด</label>
+            <select id="pdEditHand">
+              <option value="">ไม่ระบุ</option>
+              <option value="ขวา">ขวา</option>
+              <option value="ซ้าย">ซ้าย</option>
+              <option value="สองมือ">สองมือ</option>
+            </select>
+          </div>
+          <div class="profile-field">
+            <label>ตำแหน่ง</label>
+            <select id="pdEditPosition">
+              <option value="">ไม่ระบุ</option>
+              <option value="หน้า">หน้า</option>
+              <option value="หลัง">หลัง</option>
+              <option value="ทั้งคู่">ทั้งคู่</option>
+            </select>
+          </div>
+          <div class="profile-field">
+            <label>🎯 Base Score</label>
+            <select id="pdEditBaseScore">
+              <option value="">ไม่ระบุ</option>
+              <option value="0.5">0.5</option>
+              <option value="1">1.0</option>
+              <option value="1.5">1.5</option>
+              <option value="2">2.0</option>
+              <option value="2.5">2.5</option>
+              <option value="3">3.0</option>
+              <option value="3.5">3.5</option>
+            </select>
+          </div>
+        </div>
+        <div class="profile-field" style="margin-bottom:10px;">
+          <label>⭐ จุดเด่น / สไตล์การเล่น</label>
+          <textarea id="pdEditStrengths" rows="2" placeholder="เช่น ตีลูกหลังคอร์ทเก่ง สมาธิดี..."></textarea>
+        </div>
+
+        <!-- Play Style -->
+        <div class="profile-field" style="margin-bottom:10px;">
+          <label>🎮 Play Style (เลือกได้สูงสุด 2)</label>
+          <div id="pdEditStyleGrid" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+            <button type="button" class="style-badge style-attacker"   data-style="attacker"   onclick="toggleStyle(this)" title="เน้นรุก smash กดดัน">⚔️ Attacker</button>
+            <button type="button" class="style-badge style-defender"   data-style="defender"   onclick="toggleStyle(this)" title="เน้นรับ ดึง counter">🛡️ Defender</button>
+            <button type="button" class="style-badge style-allround"   data-style="allround"   onclick="toggleStyle(this)" title="สมดุลทุกด้าน">🎯 All-Round</button>
+            <button type="button" class="style-badge style-controller" data-style="controller" onclick="toggleStyle(this)" title="เน้น placement ควบคุม rally">🧠 Controller</button>
+            <button type="button" class="style-badge style-speed"      data-style="speed"      onclick="toggleStyle(this)" title="เร็ว เคลื่อนที่ไว">⚡ Speed Runner</button>
+            <button type="button" class="style-badge style-deceptive"  data-style="deceptive"  onclick="toggleStyle(this)" title="หลอก feint trick shot">🔮 Deceptive</button>
+            <button type="button" class="style-badge style-power"      data-style="power"      onclick="toggleStyle(this)" title="ตีแรง flat drive hard clear">💪 Power Hitter</button>
+            <button type="button" class="style-badge style-netmaster"  data-style="netmaster"  onclick="toggleStyle(this)" title="เน้น net play dropshot">🕸️ Net Master</button>
+          </div>
+        </div>
+
+        <!-- Dominant Shot (superadmin only) -->
+        <div class="superadmin-only profile-field" style="margin-bottom:10px;">
+          <label>🏸 Dominant Shot — ลูกที่ถนัดที่สุด</label>
+          <select id="pdEditDominantShot" style="font-size:13px;padding:7px 10px;">
+            <option value="">— ยังไม่ได้กำหนด —</option>
+            <option value="smash">💥 Smash — ลูกตบหนักตรงๆ</option>
+            <option value="drop">🪂 Drop Shot — หยอดหน้าเน็ต</option>
+            <option value="drive">⚡ Drive — ตบแบนข้ามเน็ต</option>
+            <option value="clear">🌈 Clear — ตีหลังคอร์ท</option>
+            <option value="netshot">🕸️ Net Shot — เล่นหน้าเน็ต</option>
+            <option value="lob">🌀 Lob — โยนข้ามหัว</option>
+          </select>
+        </div>
+
+        <!-- Weakness (superadmin only, private) -->
+        <div class="superadmin-only profile-field" style="margin-bottom:10px;">
+          <label>🔒 จุดอ่อน (private — เห็นเฉพาะ Superadmin)</label>
+          <textarea id="pdEditWeakness" rows="2" placeholder="เช่น อ่อนลูก backhand, เหนื่อยง่ายช่วงท้าย..."></textarea>
+        </div>
+
+        <div class="profile-field" style="margin-bottom:14px;">
+          <label>📝 หมายเหตุ</label>
+          <textarea id="pdEditNotes" rows="2" placeholder="ข้อมูลเพิ่มเติม..."></textarea>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div class="profile-section-title" style="font-size:11px;">🤝 ผู้เล่นมือใกล้เคียง (สูงสุด 3 คน)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+            <div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">คนที่ 1</div>
+              <select id="pdEditSimilar1" style="font-size:12px;padding:7px 10px;"></select>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">คนที่ 2</div>
+              <select id="pdEditSimilar2" style="font-size:12px;padding:7px 10px;"></select>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">คนที่ 3</div>
+              <select id="pdEditSimilar3" style="font-size:12px;padding:7px 10px;"></select>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;padding-top:12px;border-top:1px solid var(--border);">
+          <button onclick="savePdEdit()" class="btn btn-primary btn-sm">💾 บันทึก</button>
+          <button onclick="closePdEdit()" class="btn btn-outline btn-sm">ยกเลิก</button>
+        </div>
+      </div><!-- end pdEditPersonal -->
+      </div><!-- end pdTabPersonal -->
+
+      <!-- TAB: Career / All-Time Stats -->
+      <div id="pdTabCareer" class="pd-tab-content">
+        <div id="pdCareerContent" style="padding:4px 0;">
+          <div style="text-align:center;color:var(--muted);font-size:13px;padding:24px;">กำลังโหลดประวัติ...</div>
+        </div>
+      </div>
+
+      <!-- TAB: Match History + H2H -->
+      <div id="pdTabMatches" class="pd-tab-content">
+        <div id="pdMatchHistory" style="margin-bottom:16px;"></div>
+        <div id="pdH2H"></div>
+      </div>
+
+      <!-- TAB: Scout Report — ต้องใช้รหัส -->
+      <div id="pdTabScout" class="pd-tab-content">
+
+        <!-- LOCK SCREEN -->
+        <div id="scoutLockScreen" style="text-align:center;padding:36px 20px;">
+          <div style="font-size:2.5em;margin-bottom:8px;">🔍</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6em;letter-spacing:4px;color:var(--gold);margin-bottom:6px;">SCOUT REPORT</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:24px;line-height:1.7;">ข้อมูลในส่วนนี้เป็น <b style="color:var(--text);">Point of view ส่วนตัวของผู้สร้างระบบ</b> เท่านั้น<br>ค่าต่างๆ อาจไม่ตรงกับความเป็นจริงในมุมมองของทุกคน<br>กรุณาใส่รหัสเพื่อเข้าดู</div>
+          <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:12px;">
+            <input type="password" id="scoutPassInput" placeholder="รหัส Scout" maxlength="20"
+              style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;width:180px;text-align:center;letter-spacing:4px;"
+              onkeydown="if(event.key==='Enter')verifyScoutPass()">
+            <button onclick="verifyScoutPass()" class="btn btn-outline" style="padding:10px 18px;">เข้าดู →</button>
+          </div>
+          <div id="scoutPassError" style="font-size:12px;color:var(--danger);min-height:18px;"></div>
+        </div>
+
+        <!-- SCOUT CONTENT (hidden until unlocked) -->
+        <div id="scoutContent" style="display:none;">
+          <!-- Disclaimer banner -->
+          <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px;">
+            <span style="font-size:16px;flex-shrink:0;">💡</span>
+            <span style="font-size:11px;color:var(--gold);line-height:1.6;font-weight:600;">
+              นี่คือ <b>Point of view ส่วนตัวของผู้สร้างระบบ</b> เท่านั้น — ค่าความสามารถและการวิเคราะห์ทั้งหมดมาจากการสังเกตการณ์ส่วนตัว อาจไม่ตรงกับความเป็นจริงในมุมมองของบางคน
+            </span>
+          </div>
+
+          <!-- ⚡ Ability Chart -->
+          <div class="profile-section-title">⚡ Ability Chart</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:16px 0 8px;">
+            <div style="display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;justify-content:center;">
+              <svg id="pdRadarSvg" style="overflow:visible;display:block;" width="200" height="200" viewBox="-110 -110 220 220"></svg>
+              <div id="pdAbilityBars" style="display:flex;flex-direction:column;gap:10px;min-width:180px;"></div>
+            </div>
+          </div>
+
+          <!-- จุดเด่น -->
+          <div style="margin-bottom:14px;">
+            <div class="profile-section-title" style="font-size:11px;">⭐ จุดเด่น / สไตล์การเล่น</div>
+            <div id="pdStrengthsView" style="font-size:13px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);min-height:36px;"></div>
+          </div>
+
+          <!-- หมายเหตุ -->
+          <div id="pdViewNotesWrap" style="display:none;margin-bottom:14px;">
+            <div class="profile-section-title" style="font-size:11px;">📝 หมายเหตุ</div>
+            <div id="pdViewNotes" style="font-size:13px;color:var(--text2);line-height:1.6;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);"></div>
+          </div>
+
+          <!-- ผู้เล่นมือใกล้เคียง -->
+          <div id="pdViewSimilarWrap" style="display:none;margin-bottom:14px;">
+            <div class="profile-section-title" style="font-size:11px;">🤝 ผู้เล่นมือใกล้เคียง</div>
+            <div id="pdViewSimilarList" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          </div>
+
+          <!-- จุดอ่อน -->
+          <div id="pdWeaknessWrap" style="display:none;margin-bottom:14px;">
+            <div class="profile-section-title" style="font-size:11px;">⚠️ จุดอ่อน</div>
+            <div id="pdWeaknessView" style="font-size:13px;color:var(--danger);line-height:1.6;padding:10px 12px;background:rgba(255,59,92,0.04);border-radius:8px;border:1px solid rgba(255,59,92,0.15);"></div>
+          </div>
+
+          <button onclick="lockScoutTab()" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-top:8px;">🔒 ล็อคอีกครั้ง</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── FULLSCREEN BOTTOM NAV ── -->
+<div id="fsBottomNav" class="fs-bottom-nav">
+  <button class="fs-nav-btn active" onclick="switchTab('ongoing');  fsBtnActive(this)">
+    <span class="fs-nav-icon">🟢</span><span class="fs-nav-label">Live</span>
+  </button>
+  <button class="fs-nav-btn" onclick="switchTab('finished'); fsBtnActive(this)">
+    <span class="fs-nav-icon">🏁</span><span class="fs-nav-label">Finished</span>
+  </button>
+  <button class="fs-nav-btn" onclick="switchTab('players');  fsBtnActive(this)">
+    <span class="fs-nav-icon">👤</span><span class="fs-nav-label">Players</span>
+  </button>
+  <button class="fs-nav-btn" onclick="switchTab('scoreboard'); fsBtnActive(this)">
+    <span class="fs-nav-icon">📋</span><span class="fs-nav-label">Scoreboard</span>
+  </button>
+  <button class="fs-nav-btn" onclick="switchTab('dashboard'); fsBtnActive(this)">
+    <span class="fs-nav-icon">📊</span><span class="fs-nav-label">Dashboard</span>
+  </button>
+  <button class="fs-nav-btn fs-nav-exit" onclick="document.exitFullscreen()">
+    <span class="fs-nav-icon">✕</span><span class="fs-nav-label">ออก</span>
+  </button>
+</div>
+<!-- invisible trigger strip ขอบล่าง -->
+<div class="fs-trigger-zone" id="fsTriggerZone"></div>
+
+</body>
+</html>

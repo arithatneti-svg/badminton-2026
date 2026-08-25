@@ -1,0 +1,298 @@
+/* ── ONGOING TAB — Enhanced ── */
+.ongoing-hero {
+  background: linear-gradient(135deg, rgba(255,59,92,0.06) 0%, rgba(59,142,255,0.06) 100%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ongoing-live-count {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3em;
+  color: var(--green);
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0,230,118,0.4);
+}
+
+/* ── FINISHED TAB — Enhanced ── */
+.tag-legend-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+}
+
+/* ══════════════════════════════════════════════
+   FINISHED MATCHES — Score-Hero List Layout
+   Mobile-first, collapsible tags, clear hierarchy
+   ══════════════════════════════════════════════ */
+
+#finishedMatchesGrid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+/* ── Main row card ── */
+.frow {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s, background 0.12s;
+  cursor: pointer;
+}
+.frow:hover {
+  border-color: var(--border2);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.32);
+  transform: translateY(-2px);
+}
+/* Touch feedback — mobile active press */
+.frow:active {
+  transform: scale(0.985);
+  background: var(--surface2);
+  box-shadow: none;
+  transition: transform 0.08s, background 0.08s;
+}
+/* Disable hover lift on touch devices (no hover support) */
+@media (hover: none) {
+  .frow:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border);
+  }
+}
+
+/* Winner accent bar — left edge */
+.frow.winner-red  { border-left: 3px solid var(--red);  }
+.frow.winner-blue { border-left: 3px solid var(--blue); }
+.frow.draw-match  { border-left: 3px solid var(--gold); }
+
+/* ── Top meta bar ── */
+.frow-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 0;
+}
+.frow-match-id {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95em;
+  letter-spacing: 3px;
+  color: var(--muted);
+}
+.frow-meta-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Score-Hero section (core of the card) ── */
+.frow-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px 14px;
+  flex-wrap: wrap;
+}
+
+/* Team block — left */
+.frow-team-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 180px;
+  flex-shrink: 1;
+}
+/* Team block — right (mirror) */
+.frow-team-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 180px;
+  text-align: right;
+  align-items: flex-end;
+  flex-shrink: 1;
+}
+
+.frow-player {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: normal;
+  word-break: break-word;
+  max-width: 100%;
+  color: var(--text);
+  transition: color 0.2s;
+}
+/* Loser dims */
+.frow-player.loser { color: var(--muted); font-weight: 500; }
+/* Winner glows */
+.frow-team-left  .frow-player.winner { color: var(--red); }
+.frow-team-right .frow-player.winner { color: var(--blue); }
+
+/* ── Score hero center ── */
+.frow-score-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.frow-score-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+}
+.frow-glabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--muted);
+  background: var(--surface3);
+  padding: 2px 5px;
+  border-radius: 3px;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+.frow-glabel.g2-label {
+  color: var(--gold);
+  background: rgba(245,200,66,0.1);
+}
+.frow-snum {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.85em;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.frow-snum.red  { color: var(--red); }
+.frow-snum.blue { color: var(--blue); }
+.frow-ssep {
+  color: rgba(255,255,255,0.25);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4em;
+  line-height: 1;
+  padding: 0 3px;
+}
+
+/* ── Footer: tags + admin (collapsed by default) ── */
+.frow-footer {
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 7px 16px 9px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 0;
+}
+.frow-footer:empty { display: none; }
+
+/* ── Tag icon pills (compact) ── */
+.frow-tag-icon {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ── Admin controls inline ── */
+.frow-admin {
+  margin-left: auto;
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.frow-admin-btn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.frow-admin-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+.frow-admin-btn.edit  { color: var(--blue); border-color: rgba(59,142,255,0.2); }
+.frow-admin-btn.edit:hover { background: rgba(59,142,255,0.08); }
+.frow-admin-btn.del   { color: var(--danger); border-color: rgba(255,69,96,0.2); }
+.frow-admin-btn.del:hover { background: rgba(255,69,96,0.08); }
+
+/* ── Umpire chip ── */
+.frow-umpire {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ════════════════════════════════════
+   MOBILE — stack layout < 520px
+   ════════════════════════════════════ */
+@media (max-width: 520px) {
+  .frow-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 8px;
+    padding: 8px 14px 10px;
+  }
+  /* Score row goes first on mobile — hero element */
+  .frow-score-hero { order: -1; flex-direction: row; gap: 12px; }
+  .frow-score-row  { gap: 0; }
+  .frow-snum       { font-size: 2em; }
+
+  .frow-team-left  { flex-direction: row; align-items: center; gap: 6px; }
+  .frow-team-right { flex-direction: row; align-items: center; gap: 6px; text-align: left; align-items: flex-start; }
+
+  .frow-player     { font-size: 13px; }
+  .frow-meta       { padding: 7px 14px 0; }
+  .frow-footer     { padding: 6px 14px 8px; }
+  .frow-admin      { margin-left: 0; }
+}
+
+/* Live card score bigger on ongoing tab */
+.live-card .score-big {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.2em;
+  line-height: 1;
+}
+
+/* ══════════════════════════════════════════
+   ONGOING TAB — Court Grid + Queue List
+   ══════════════════════════════════════════ */
+
+/* Court grid: max 2 col desktop (larger cards), 1 col mobile */
+.court-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+@media (min-width: 1300px) {
+  .court-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .court-grid { grid-template-columns: 1fr; gap: 14px; }
+}
+
+/* ── Court card ── */

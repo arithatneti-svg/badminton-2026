@@ -1,0 +1,47 @@
+/* ════════════════════════════════════════════════
+   GLOBAL MOBILE RESPONSIVE IMPROVEMENTS
+   ════════════════════════════════════════════════ */
+
+/* Nav — wrapping on mobile */
+@media (max-width: 640px) {
+  .nav { padding: 8px 12px; gap: 6px; }
+  .nav-title { font-size: 1.1em; letter-spacing: 2px; }
+  .tab-btn { padding: 6px 10px; font-size: 12px; }
+  .nav-actions { gap: 4px; }
+  .btn-reset, .btn-fs { padding: 6px 10px; font-size: 12px; }
+  .container { padding: 16px 14px; }
+
+  /* Ongoing tab: single column on mobile */
+  #publicLiveMatches,
+  #publicUpcomingMatches { grid-template-columns: 1fr !important; }
+
+  /* match-grid single col */
+  .match-grid { grid-template-columns: 1fr !important; }
+
+  /* Finished tab legend collapse */
+  .tag-legend-box > div { flex-direction: column !important; }
+}
+
+@media (max-width: 400px) {
+  .nav-title { display: none; }
+  .tab-btn { padding: 5px 8px; font-size: 11px; }
+}
+
+/* Ensure match-grid for ongoing is max 2 cols on tablet */
+@media (max-width: 900px) and (min-width: 641px) {
+  #publicLiveMatches { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+}
+
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  15%      { transform: translateX(-8px); }
+  30%      { transform: translateX(8px); }
+  45%      { transform: translateX(-6px); }
+  60%      { transform: translateX(6px); }
+  75%      { transform: translateX(-3px); }
+  90%      { transform: translateX(3px); }
+}
+.shake { animation: shake 0.45s ease-in-out; }
+
+
