@@ -304,7 +304,7 @@ function saveMatchTags() {
 let _qsRed = 0, _qsBlue = 0;
 function openQuickScore() { if (userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Super Admin', 'error'); _qsRed = appState.globalScoreRed; _qsBlue = appState.globalScoreBlue; document.getElementById('qsRed').textContent = _qsRed; document.getElementById('qsBlue').textContent = _qsBlue; document.getElementById('quickScoreModal').classList.add('open'); }
 function quickAdj(team, delta) { if (team === 'red') _qsRed = Math.max(0, _qsRed + delta); else _qsBlue = Math.max(0, _qsBlue + delta); document.getElementById('qsRed').textContent = _qsRed; document.getElementById('qsBlue').textContent = _qsBlue; }
-function applyQuickScore() { appState.globalScoreRed = _qsRed; appState.globalScoreBlue = _qsBlue; closeQuickScore(); saveData(true); showToast('Score updated ✓', 'success'); }
+function applyQuickScore() { appState.globalScoreRed = _qsRed; appState.globalScoreBlue = _qsBlue; closeQuickScore(); saveKeys(['globalScoreRed', 'globalScoreBlue'], true); showToast('Score updated ✓', 'success'); }
 function closeQuickScore() { document.getElementById('quickScoreModal').classList.remove('open'); }
 function undoLastResult() {
   if (appState.matchHistory.length === 0) return showToast('No results to undo', 'error');

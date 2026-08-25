@@ -35,6 +35,14 @@ dbRef.on('value', (snapshot) => {
 
 function saveData() { dbRef.set(appState); }
 
+// เขียนเฉพาะคอร์ทที่ระบุ (child path) แทนการ set ทั้งก้อน
+// → ไม่ทับข้อมูลฝั่ง admin (players/history) และไม่ทับคอร์ทอื่นที่กรรมการคนอื่นคุมอยู่
+function saveMatch(mId) {
+  const idx = appState.ongoingMatches.findIndex(x => x.id === mId);
+  if (idx < 0) { saveData(); return; } // fallback ถ้าหาคอร์ทไม่เจอ
+  firebase.database().ref('sportsday_2026_data/ongoingMatches/' + idx).set(appState.ongoingMatches[idx]);
+}
+
 // ==========================================
 // FULLSCREEN
 // ==========================================
@@ -520,7 +528,7 @@ function selectMatch(mId) {
   m.umpire = currentUmpire;
   if (!m.live) m.live = { g1R:0, g1B:0, g2R:0, g2B:0, g1Locked:false, isPaused:false, elapsedMs:0 };
   if (!m.timerStartedAt) m.timerStartedAt = Date.now();
-  saveData();
+  saveMatch(mId); // เขียนเฉพาะคอร์ทนี้
 
   document.getElementById('umpireNav').style.display = 'none';
   document.getElementById('activeMatchInfo').textContent = `${m.id} | ${currentUmpire}`;
@@ -761,7 +769,7 @@ async function lockGame1() {
     showUndoButton(false);
     vibrateDevice([40, 30, 60]);
     renderGameUI();
-    saveData();
+    saveMatch(activeMatchId); // lock G1 → เขียนเฉพาะคอร์ทนี้
   }
 }
 
@@ -803,7 +811,7 @@ function togglePause() {
     document.getElementById('pauseOverlay').classList.add('show');
   }
 
-  saveData();
+  saveMatch(activeMatchId); // pause/resume → เขียนเฉพาะคอร์ทนี้
   renderGameUI();
 }
 

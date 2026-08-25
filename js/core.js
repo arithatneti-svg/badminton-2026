@@ -281,6 +281,23 @@ function saveData(immediate = false) {
   if (immediate) doSave(); else _saveTimer = setTimeout(doSave, 400);
 }
 
+// เขียนเฉพาะ top-level key ที่เปลี่ยน (dbRef.update) แทนการ set ทั้งก้อน
+// ป้องกันการทับ subtree อื่น เช่น ongoingMatches ที่กรรมการกำลังเขียนคะแนนสดอยู่
+let _saveKeysTimer = null;
+function saveKeys(keys, immediate = false) {
+  if (userRole !== 'admin' && userRole !== 'superadmin') return;
+  if (!appState.players || appState.players.length === 0) {
+    console.warn('saveKeys blocked: appState.players empty — possible partial state');
+    return;
+  }
+  const patch = {};
+  keys.forEach(k => { if (appState[k] !== undefined) patch[k] = appState[k]; });
+  if (Object.keys(patch).length === 0) return;
+  clearTimeout(_saveKeysTimer);
+  const doSave = () => { dbRef.update(patch); };
+  if (immediate) doSave(); else _saveKeysTimer = setTimeout(doSave, 400);
+}
+
 function clearData() {
   if (userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Super Admin', 'error');
   // Show custom reset modal

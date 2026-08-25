@@ -300,7 +300,7 @@ function savePdEdit() {
     }),
     ...abilityData,
   };
-  saveData(true);
+  saveKeys(['players', 'playerProfiles'], true); // เฉพาะข้อมูลผู้เล่น ไม่แตะแมตช์สด
   closePdEdit();
   renderPdPersonalView(appState.playerProfiles[_pdCurrentId]);
   showToast('✓ บันทึกข้อมูลผู้เล่นเรียบร้อย','success');

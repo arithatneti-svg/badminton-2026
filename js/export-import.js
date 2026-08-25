@@ -46,7 +46,7 @@ function importPlayerProfiles(input) {
           imported++;
         });
       }
-      saveData(true);
+      saveKeys(['playerProfiles'], true);
       renderPlayersTab();
       showToast(`📥 Import สำเร็จ ${imported} ผู้เล่น`, 'success');
     } catch(err) {
@@ -98,7 +98,7 @@ function addPlayer() {
   const newId = prefix + (num < 10 ? '0' + num : num);
   appState.players.push({ id: newId, name, team, group });
   document.getElementById('newPlayerName').value = '';
-  saveData(); showToast(`${name} added`, 'success');
+  saveKeys(['players']); showToast(`${name} added`, 'success');
 }
 
 function deletePlayer(id) {
@@ -106,7 +106,7 @@ function deletePlayer(id) {
   if (inMatch) return showToast('Cannot delete — player is in active match', 'error');
   showConfirmDialog(`Delete player ${id}?`, function() {
     appState.players = appState.players.filter(p => p.id !== id);
-    saveData(); showToast('Player removed', 'success'); // UX-12: was using wrong 'error' type
+    saveKeys(['players']); showToast('Player removed', 'success'); // UX-12: was using wrong 'error' type
   });
 }
 
@@ -126,7 +126,7 @@ function importCSV(input) {
       appState.players.push({ id: prefix + (maxNum + 1 < 10 ? '0'+(maxNum+1) : maxNum+1), name, team, group: group||'1' });
       added++;
     });
-    input.value = ''; saveData(true); showToast(`Imported ${added} players`, 'success');
+    input.value = ''; saveKeys(['players'], true); showToast(`Imported ${added} players`, 'success');
   };
   reader.readAsText(file);
 }

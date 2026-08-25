@@ -67,7 +67,7 @@ function saveTeamNames() {
   if (userRole !== 'admin' && userRole !== 'superadmin') return;
   appState.redTeamName = document.getElementById('redTeamName').value.trim().toUpperCase() || 'RED TEAM';
   appState.blueTeamName = document.getElementById('blueTeamName').value.trim().toUpperCase() || 'BLUE TEAM';
-  saveData();
+  saveKeys(['redTeamName', 'blueTeamName']); // เขียนเฉพาะชื่อทีม ไม่แตะ ongoingMatches
 }
 
 let _toastTimer = null;
