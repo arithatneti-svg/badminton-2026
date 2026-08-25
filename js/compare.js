@@ -1,44 +1,12 @@
 // ── COMPARE STATE ──
 let _compareA = null, _compareB = null;
 
-// ── COMPARE SCOUT UNLOCK (ใช้รหัสเดียวกับ Scout Tab) ──
-function verifyCompareScoutPass() {
-  const input = document.getElementById('compareScoutPassInput');
-  const errEl = document.getElementById('compareScoutPassErr');
-  if (!input) return;
-  if (input.value.trim() === SCOUT_PASS || userRole === 'superadmin') {
-    _scoutUnlocked = true;
-    input.value = '';
-    if (errEl) errEl.textContent = '';
-    renderComparePanel();
-  } else {
-    if (errEl) errEl.textContent = '❌ รหัสไม่ถูกต้อง';
-    input.value = '';
-    input.style.borderColor = 'var(--danger)';
-    setTimeout(() => { input.style.borderColor = ''; }, 1200);
-  }
-}
-
-function lockCompareScout() {
-  _scoutUnlocked = false;
-  renderComparePanel();
-}
-
 function _renderCompareScoutContent(pA, pB, profA, profB, colorA, colorB, sameTeam) {
-  const lockEl  = document.getElementById('compareScoutLock');
   const radarEl = document.getElementById('compareRadarWrap');
-  const lockBadge = document.getElementById('compareScoutLockBadge');
 
-  if (!_scoutUnlocked && userRole !== 'superadmin') {
-    lockEl.style.display  = 'block';
-    radarEl.style.display = 'none';
-    if (lockBadge) lockBadge.style.display = 'none';
-    return;
-  }
-  // unlocked
-  lockEl.style.display  = 'none';
+  // Scout comparison = admin/superadmin only (section is hidden for guests)
+  if (!canScout()) { if (radarEl) radarEl.style.display = 'none'; return; }
   radarEl.style.display = 'flex';
-  if (lockBadge) lockBadge.style.display = 'inline';
 
   // สีเต็ม
   const cA    = pA.team === 'Red' ? 'rgba(255,59,92,0.9)'  : 'rgba(59,142,255,0.9)';
@@ -170,7 +138,7 @@ function renderComparePanel() {
   }
   hint.style.display = 'none';
   publicSec.style.display = 'block';
-  scoutSec.style.display  = 'block';
+  scoutSec.style.display  = canScout() ? 'block' : 'none';
 
   // ── สีผู้เล่น ──
   const teamA = pA.team || 'Red';

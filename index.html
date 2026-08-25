@@ -1085,28 +1085,13 @@
         </div>
       </div>
 
-      <!-- ── SCOUT SECTION (locked) ── -->
+      <!-- ── SCOUT SECTION (admin/superadmin only) ── -->
       <div id="compareScoutSection" style="display:none;border-top:1px solid var(--border);padding-top:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="margin-bottom:12px;">
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--gold);">🔍 SCOUT — ABILITY COMPARISON</div>
-          <span id="compareScoutLockBadge" style="font-size:10px;color:var(--muted);cursor:pointer;" onclick="lockCompareScout()">🔒 ล็อค</span>
         </div>
 
-        <!-- Lock screen -->
-        <div id="compareScoutLock" style="text-align:center;padding:20px 12px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7;">
-            ข้อมูล Ability เป็น <b style="color:var(--text);">POV ของเพชร</b> — ใส่รหัสเพื่อดู
-          </div>
-          <div style="display:flex;gap:8px;justify-content:center;">
-            <input type="password" id="compareScoutPassInput" placeholder="รหัส Scout" maxlength="20"
-              style="padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;width:150px;text-align:center;letter-spacing:3px;"
-              onkeydown="if(event.key==='Enter')verifyCompareScoutPass()">
-            <button onclick="verifyCompareScoutPass()" class="btn btn-outline" style="padding:8px 14px;">เข้าดู →</button>
-          </div>
-          <div id="compareScoutPassErr" style="font-size:11px;color:var(--danger);margin-top:8px;min-height:16px;"></div>
-        </div>
-
-        <!-- Radar + Bars (unlocked) -->
+        <!-- Radar + Bars -->
         <div id="compareRadarWrap" style="display:none;flex-wrap:wrap;gap:20px;align-items:flex-start;justify-content:center;margin-top:14px;">
           <svg id="compareRadarSvg" style="overflow:visible;display:block;" width="230" height="250" viewBox="-115 -115 230 240"></svg>
           <div class="compare-bar-section" id="compareBarSection" style="flex:1;min-width:200px;"></div>
@@ -1512,7 +1497,7 @@
         <button class="pd-tab-btn active" onclick="switchPdTab('personal',this)">👤 ข้อมูล</button>
         <button class="pd-tab-btn" onclick="switchPdTab('career',this)">📈 Career</button>
         <button class="pd-tab-btn" onclick="switchPdTab('matches',this)">🏸 แมตช์</button>
-        <button class="pd-tab-btn" onclick="switchPdTab('scout',this)">🔍 Scout</button>
+        <button class="pd-tab-btn admin-only" onclick="switchPdTab('scout',this)">🔍 Scout</button>
       </div>
 
       <!-- TAB: Personal -->
@@ -1682,24 +1667,10 @@
         <div id="pdH2H"></div>
       </div>
 
-      <!-- TAB: Scout Report — ต้องใช้รหัส -->
+      <!-- TAB: Scout Report — admin/superadmin only (แท็บซ่อนสำหรับ guest) -->
       <div id="pdTabScout" class="pd-tab-content">
 
-        <!-- LOCK SCREEN -->
-        <div id="scoutLockScreen" style="text-align:center;padding:36px 20px;">
-          <div style="font-size:2.5em;margin-bottom:8px;">🔍</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6em;letter-spacing:4px;color:var(--gold);margin-bottom:6px;">SCOUT REPORT</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:24px;line-height:1.7;">ข้อมูลในส่วนนี้เป็น <b style="color:var(--text);">Point of view ส่วนตัวของผู้สร้างระบบ</b> เท่านั้น<br>ค่าต่างๆ อาจไม่ตรงกับความเป็นจริงในมุมมองของทุกคน<br>กรุณาใส่รหัสเพื่อเข้าดู</div>
-          <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:12px;">
-            <input type="password" id="scoutPassInput" placeholder="รหัส Scout" maxlength="20"
-              style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;width:180px;text-align:center;letter-spacing:4px;"
-              onkeydown="if(event.key==='Enter')verifyScoutPass()">
-            <button onclick="verifyScoutPass()" class="btn btn-outline" style="padding:10px 18px;">เข้าดู →</button>
-          </div>
-          <div id="scoutPassError" style="font-size:12px;color:var(--danger);min-height:18px;"></div>
-        </div>
-
-        <!-- SCOUT CONTENT (hidden until unlocked) -->
+        <!-- SCOUT CONTENT -->
         <div id="scoutContent" style="display:none;">
           <!-- Disclaimer banner -->
           <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px;">
@@ -1741,8 +1712,6 @@
             <div class="profile-section-title" style="font-size:11px;">⚠️ จุดอ่อน</div>
             <div id="pdWeaknessView" style="font-size:13px;color:var(--danger);line-height:1.6;padding:10px 12px;background:rgba(255,59,92,0.04);border-radius:8px;border:1px solid rgba(255,59,92,0.15);"></div>
           </div>
-
-          <button onclick="lockScoutTab()" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-top:8px;">🔒 ล็อคอีกครั้ง</button>
         </div>
       </div>
 

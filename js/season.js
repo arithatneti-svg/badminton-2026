@@ -20,20 +20,10 @@ function switchPdTab(tabId, btn) {
   if (el) el.classList.add('active');
   if (tabId === 'career'  && _pdCurrentId) renderCareerTab(_pdCurrentId);
   if (tabId === 'matches' && _pdCurrentId) { renderPdMatchHistory(_pdCurrentId); renderPdH2H(_pdCurrentId); }
-  if (tabId === 'scout') {
-    if (_scoutUnlocked || userRole === 'superadmin') {
-      // unlock แล้วใน session นี้ หรือเป็น superadmin — เข้าได้เลย
-      _scoutUnlocked = true;
-      document.getElementById('scoutLockScreen').style.display = 'none';
-      document.getElementById('scoutContent').style.display    = 'block';
-      const prof = (appState.playerProfiles||{})[_pdCurrentId] || {};
-      _renderScoutContent(prof);
-    } else {
-      document.getElementById('scoutLockScreen').style.display = 'block';
-      document.getElementById('scoutContent').style.display    = 'none';
-      document.getElementById('scoutPassError').textContent    = '';
-      setTimeout(() => document.getElementById('scoutPassInput')?.focus(), 200);
-    }
+  if (tabId === 'scout' && canScout()) {
+    document.getElementById('scoutContent').style.display = 'block';
+    const prof = (appState.playerProfiles||{})[_pdCurrentId] || {};
+    _renderScoutContent(prof);
   }
 }
 

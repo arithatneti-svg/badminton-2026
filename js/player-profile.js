@@ -49,7 +49,7 @@ function closePlayerProfile() {
   if (overlay) overlay.classList.remove('open');
   document.body.style.overflow = '';
   _pdCurrentId = null;
-  // หมายเหตุ: _scoutUnlocked ไม่ reset ที่นี่ — unlock อยู่ตลอด session
+  // หมายเหตุ: Scout tab แสดงเฉพาะ admin/superadmin (แท็บถูกซ่อนสำหรับ guest)
 }
 
 function renderPdPersonalView(prof) {

@@ -1,21 +1,7 @@
 // ==========================================
 // 0b. PREDICTION ENGINE
 // ==========================================
-// Analyst passcode gate — separate from admin/superadmin
-let _analystUnlocked = localStorage.getItem('bdm_analyst_unlocked') === '1';
-const ANALYST_PASS   = 'guest2026'; // passcode to unlock predictions
-
-function unlockAnalyst() {
-  const p = prompt('🔮 Enter Analyst passcode:');
-  if (p === ANALYST_PASS) {
-    _analystUnlocked = true;
-    localStorage.setItem('bdm_analyst_unlocked', '1');
-    renderPublicOngoingMatches();
-    showToast('🔮 Analyst Mode ปลดล็อคแล้ว!', 'success');
-  } else if (p !== null) {
-    showToast('❌ รหัสไม่ถูกต้อง', 'error');
-  }
-}
+// Predictions are shown to admin/superadmin only (guests never see them).
 
 /**
  * getMatchPrediction(r1id, r2id, b1id, b2id)
@@ -148,7 +134,7 @@ function areSetsEqual(a, b) {
  * buildPredictionHTML(pred, compact)
  * Returns HTML string for the prediction bar.
  * compact=true → short version for queue rows
- * Requires _analystUnlocked or admin/superadmin role to show numbers.
+ * Shown to admin/superadmin only (guests get an empty string).
  */
 
 // ── Thai label map ──
@@ -175,16 +161,8 @@ const PRED_TIER_DESC = {
 
 function buildPredictionHTML(pred, compact = false) {
   if (!pred) return '';
-  // Guest view: ไม่แสดง Prediction เลย
-  if (userRole === 'guest' || !userRole) return '';
-  const isGuest = (userRole === 'guest' || !userRole);
-  const canSee = !isGuest && (_analystUnlocked || userRole === 'admin' || userRole === 'superadmin');
-
-  if (!canSee) {
-    return `<div class="pred-teaser" onclick="unlockAnalyst()">
-      🔮 <span>ดู Prediction</span> <span style="color:var(--gold);font-size:0.85em;">🔒</span>
-    </div>`;
-  }
+  // Guest view: ไม่แสดง Prediction เลย (แสดงเฉพาะ admin/superadmin)
+  if (userRole !== 'admin' && userRole !== 'superadmin') return '';
 
   // ── No base scores warning ──
   if (pred.noBaseScore) {

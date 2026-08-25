@@ -35,8 +35,6 @@ window.onload = () => {
     switchTab('scoreboard', document.getElementById('tab-scoreboard'));
   } else if (savedRole === 'guest') {
     userRole = 'guest';
-    _analystUnlocked = false; // guest ไม่มีสิทธิ์ดู Prediction ไม่ว่าจะเคย unlock ไว้หรือไม่
-    localStorage.removeItem('bdm_analyst_unlocked');
     document.getElementById('loginOverlay').style.display = 'none';
     document.body.classList.add('guest-mode');
     switchTab('ongoing', document.getElementById('tab-ongoing'));
@@ -48,7 +46,6 @@ window.onload = () => {
 // เหมือน guest แต่ไม่ต้องใส่รหัส และไม่ persist (ผูกกับลิงก์ ไม่ค้างในเครื่อง)
 function enterSpectatorMode() {
   userRole = 'guest';
-  _analystUnlocked = false;
   const ov = document.getElementById('loginOverlay');
   if (ov) ov.style.display = 'none';
   document.body.classList.remove('admin-mode', 'superadmin-mode');
@@ -56,12 +53,8 @@ function enterSpectatorMode() {
   switchTab('ongoing', document.getElementById('tab-ongoing'));
 }
 
-const BLUEWIN_PASS = 'Bluewin'; // passcode สำหรับเข้า Guest View
-
 function loginGuest() {
   userRole = 'guest';
-  _analystUnlocked = false; // guest ไม่มีสิทธิ์ดู Prediction
-  localStorage.removeItem('bdm_analyst_unlocked');
   localStorage.setItem('bdm_scoreboard_role', 'guest');
   document.getElementById('loginOverlay').style.display = 'none';
   document.body.classList.remove('admin-mode');

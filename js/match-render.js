@@ -364,7 +364,7 @@ function renderFinishedMatches() {
 
     // ── Prediction accuracy + Upset Alert ──
     let predAccHtml = '';
-    if ((_analystUnlocked || userRole === 'admin' || userRole === 'superadmin') && m.r1 && m.r2 && m.b1 && m.b2) {
+    if ((userRole === 'admin' || userRole === 'superadmin') && m.r1 && m.r2 && m.b1 && m.b2) {
       const pred = getMatchPrediction(m.r1, m.r2, m.b1, m.b2);
       if (pred) {
         const acc = checkPredictionAccuracy(pred, m.rStat);

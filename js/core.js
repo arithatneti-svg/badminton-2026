@@ -49,38 +49,8 @@ function seedDefaultPlayers(state) {
   });
 }
 
-// ── SCOUT REPORT PASSCODE ──
-const SCOUT_PASS = 'guest2026'; // เปลี่ยนได้ที่นี่
-let _scoutUnlocked = false; // unlock ครั้งเดียวต่อ session
-
-function verifyScoutPass() {
-  const input = document.getElementById('scoutPassInput');
-  const errEl = document.getElementById('scoutPassError');
-  if (!input) return;
-  if (input.value.trim() === SCOUT_PASS || userRole === 'superadmin') {
-    _scoutUnlocked = true;
-    document.getElementById('scoutLockScreen').style.display = 'none';
-    document.getElementById('scoutContent').style.display    = 'block';
-    input.value = '';
-    if (errEl) errEl.textContent = '';
-    const prof = (appState.playerProfiles||{})[_pdCurrentId] || {};
-    _renderScoutContent(prof);
-  } else {
-    if (errEl) errEl.textContent = '❌ รหัสไม่ถูกต้อง';
-    input.value = '';
-    input.focus();
-    input.style.borderColor = 'var(--danger)';
-    setTimeout(() => { input.style.borderColor = ''; }, 1200);
-  }
-}
-
-function lockScoutTab() {
-  _scoutUnlocked = false;
-  document.getElementById('scoutLockScreen').style.display = 'block';
-  document.getElementById('scoutContent').style.display    = 'none';
-  if (document.getElementById('scoutPassError'))
-    document.getElementById('scoutPassError').textContent = '';
-}
+// ── SCOUT REPORT — visible to admin/superadmin (no separate passcode) ──
+function canScout() { return userRole === 'admin' || userRole === 'superadmin'; }
 
 function _renderScoutContent(prof) {
   // ── Ability Chart ──
