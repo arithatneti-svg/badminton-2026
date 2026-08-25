@@ -20,11 +20,6 @@ function switchPdTab(tabId, btn) {
   if (el) el.classList.add('active');
   if (tabId === 'career'  && _pdCurrentId) renderCareerTab(_pdCurrentId);
   if (tabId === 'matches' && _pdCurrentId) { renderPdMatchHistory(_pdCurrentId); renderPdH2H(_pdCurrentId); }
-  if (tabId === 'scout' && canScout()) {
-    document.getElementById('scoutContent').style.display = 'block';
-    const prof = (appState.playerProfiles||{})[_pdCurrentId] || {};
-    _renderScoutContent(prof);
-  }
 }
 
 // ── Career / All-Time Stats Tab ──
@@ -329,39 +324,6 @@ async function wzLoadArchivePlayers(year) {
 // เพิ่ม season modals ใน Escape handler
 
 
-// ── PLAY STYLES CONFIG ──
-const PLAY_STYLES = [
-  { key:'attacker',   label:'Attacker',    icon:'⚔️', cls:'style-attacker',  desc:'เน้นรุก smash กดดัน' },
-  { key:'defender',   label:'Defender',    icon:'🛡️', cls:'style-defender',  desc:'เน้นรับ ดึง counter' },
-  { key:'allround',   label:'All-Round',   icon:'🎯', cls:'style-allround',  desc:'สมดุลทุกด้าน' },
-  { key:'controller', label:'Controller',  icon:'🧠', cls:'style-controller',desc:'เน้น placement ควบคุม rally' },
-  { key:'speed',      label:'Speed Runner',icon:'⚡', cls:'style-speed',     desc:'เร็ว เคลื่อนที่ไว' },
-  { key:'deceptive',  label:'Deceptive',   icon:'🔮', cls:'style-deceptive', desc:'หลอก feint trick shot' },
-  { key:'power',      label:'Power Hitter',icon:'💪', cls:'style-power',     desc:'ตีแรง flat drive hard clear' },
-  { key:'netmaster',  label:'Net Master',  icon:'🕸️', cls:'style-netmaster', desc:'เน้น net play dropshot' },
-];
-const DOMINANT_SHOTS = {
-  smash:   '💥 Smash — ลูกตบหนักตรงๆ',
-  drop:    '🪂 Drop Shot — หยอดหน้าเน็ต',
-  drive:   '⚡ Drive — ตบแบนข้ามเน็ต',
-  clear:   '🌈 Clear — ตีหลังคอร์ท',
-  netshot: '🕸️ Net Shot — เล่นหน้าเน็ต',
-  lob:     '🌀 Lob — โยนข้ามหัว',
-};
-const FORM_CONFIG = { hot:{label:'🔥 Hot',cls:'form-hot'}, normal:{label:'😐 Normal',cls:'form-normal'}, cold:{label:'❄️ Cold',cls:'form-cold'} };
-
-function toggleStyle(btn) {
-  const active = document.querySelectorAll('#pdEditStyleGrid button.style-active');
-  if (btn.classList.contains('style-active')) {
-    btn.classList.remove('style-active');
-    btn.style.opacity = '0.45';
-  } else {
-    if (active.length >= 2) { showToast('เลือกได้สูงสุด 2 style','warning'); return; }
-    btn.classList.add('style-active');
-    btn.style.opacity = '1';
-  }
-}
-
 function renderPlayersTab() {
   const grid = document.getElementById('playersTabGrid');
   if (!grid) return;
@@ -403,14 +365,6 @@ function renderPlayersTab() {
       ? `<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;background:${streak.bg};color:${streak.color};border:1px solid ${streak.border};">${streak.label}</span>`
       : '';
     // style badges (no form badge)
-    const styleBadges = (prof.styles||[]).map(sk => {
-      const st = PLAY_STYLES.find(x=>x.key===sk);
-      return st ? `<span class="style-badge ${st.cls}" title="${st.desc}">${st.icon} ${st.label}</span>` : '';
-    }).join('');
-    // compare btn state
-    const isA = _compareA === p.id, isB = _compareB === p.id;
-    const cBtnCls = isA?'compare-btn selected-a':isB?'compare-btn selected-b':'compare-btn';
-    const cBtnTitle = isA?'Slot A':isB?'Slot B':'เพิ่มใน Compare';
     const delBtnHtml = userRole === 'superadmin'
       ? `<button class="btn btn-danger btn-sm" style="font-size:11px;padding:4px 8px;flex-shrink:0;" title="ลบผู้เล่น" onclick="event.stopPropagation();deletePlayer('${p.id}')">🗑</button>`
       : '';
@@ -422,14 +376,11 @@ function renderPlayersTab() {
             <div style="font-size:15px;font-weight:700;line-height:1.2;">${escHtml(p.name)}</div>
             <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center;">
               <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:${isRed?'rgba(255,59,92,0.1)':'rgba(59,142,255,0.1)'};color:${tc};">G${p.group}</span>
-              ${prof.baseScore?`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--gold-dim);color:var(--gold);">⚡${prof.baseScore}</span>`:''}
               ${streakHtml}
             </div>
           </div>
-          <button class="${cBtnCls}" title="${cBtnTitle}" onclick="event.stopPropagation();toggleCompare('${p.id}')">⚖️</button>
           ${delBtnHtml}
         </div>
-        ${styleBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">${styleBadges}</div>`:''}
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;">
           <div style="background:var(--surface2);border-radius:8px;padding:6px 4px;"><div style="font-family:'Bebas Neue';font-size:1.4em;color:var(--gold);">${s.pts||0}</div><div style="font-size:9px;color:var(--muted);font-weight:700;letter-spacing:0.5px;">PTS</div></div>
           <div style="background:var(--surface2);border-radius:8px;padding:6px 4px;"><div style="font-family:'Bebas Neue';font-size:1.4em;color:${wrc};">${s.total>0?s.winRate+'%':'—'}</div><div style="font-size:9px;color:var(--muted);font-weight:700;letter-spacing:0.5px;">WIN%</div></div>

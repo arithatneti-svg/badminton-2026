@@ -63,7 +63,6 @@ document.addEventListener('keydown', e => {
   const modals = [
     { el: document.getElementById('seasonWizardModal'),  close: () => closeSeasonWizard() },
     { el: document.getElementById('seasonArchiveModal'), close: () => closeSeasonArchive() },
-    { el: document.getElementById('compareModal'),        close: () => closeCompareModal() },
     { el: document.getElementById('passcodeModal'),      close: () => closePasscodeModal() },
     { el: document.getElementById('resultModal'),        close: () => closeModal() },
     { el: document.getElementById('confirmModal'),       close: () => closeConfirm() },

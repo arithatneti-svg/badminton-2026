@@ -5,7 +5,7 @@
 
 | แอป | ไฟล์ | ใช้ทำอะไร |
 |-----|------|-----------|
-| **Scoreboard / Admin** | `index.html` | จอแสดงผลหลัก, สร้างแมตช์, รายงาน, dashboard, โปรไฟล์ผู้เล่น, ระบบ prediction |
+| **Scoreboard / Admin** | `index.html` | จอแสดงผลหลัก, สร้างแมตช์, รายงาน, dashboard, โปรไฟล์ผู้เล่น |
 | **Umpire Panel** | `umpire.html` | แผงกรรมการบนมือถือ — กดคะแนนสด เขียนลง `ongoingMatches/*/live/*` |
 
 > เดิมทั้งหมดรวมอยู่ในไฟล์เดียว (`index.html` ~10,500 บรรทัด / `umpire.html` ~2,300 บรรทัด)
@@ -41,14 +41,13 @@ Badminton 2026/
 │   ├── picker.css          # ตัวเลือกสร้างแมตช์
 │   ├── notifications.css    # ป็อปอัปแจ้งผลแมตช์ (slide-in)
 │   ├── ongoing-finished.css# แท็บ Ongoing/Finished + row card + score hero
-│   ├── prediction.css      # สไตล์ prediction engine
 │   ├── climax.css          # การ์ด climax/deuce + live score display
 │   ├── fullscreen.css      # bottom nav ตอน fullscreen
 │   ├── ranking.css         # performance ranking
 │   ├── trophy.css          # พิธีมอบถ้วย (trophy ceremony)
 │   ├── responsive.css      # responsive/มือถือ (navbar wrap ฯลฯ)
 │   ├── profile.css         # โมดัลโปรไฟล์ผู้เล่น
-│   ├── components.css      # toast, season, compare, play-style badges, theme fixes, mobile fixes
+│   ├── components.css      # toast, season, theme fixes, mobile fixes
 │   ├── backup.css          # UI ของ Backup & Restore
 │   ├── qr.css              # UI ของ QR modal (ผู้ชม / กรรมการ)
 │   ├── tv.css              # TV/Projector mode (จอใหญ่หน้างาน)
@@ -56,19 +55,17 @@ Badminton 2026/
 │
 ├── js/                     # โค้ดของ index.html (แตกจาก <script> ก้อนเดียว)
 │   ├── utils.js            # debounce, escHtml
-│   ├── prediction.js       # prediction engine (getMatchPrediction, buildPredictionHTML …)
 │   ├── auth.js             # login/logout, ระบบ role (guest/admin/superadmin)
-│   ├── core.js             # ⭐ appState, dbRef, DEFAULT_PLAYERS, loadData/saveData, reset, scout gate, realtime listeners
+│   ├── core.js             # ⭐ appState, dbRef, DEFAULT_PLAYERS, loadData/saveData, reset, realtime listeners
 │   ├── ui.js               # switchTab, updateUI, showToast, fullscreen
-│   ├── player-profile.js   # โมดัลโปรไฟล์ + ability chart + H2H + career tab
-│   ├── season.js           # season wizard/archive + play styles + Players tab
-│   ├── compare.js          # เปรียบเทียบผู้เล่น
+│   ├── player-profile.js   # โมดัลโปรไฟล์ (ข้อมูล/Career/แมตช์ + H2H)
+│   ├── season.js           # season wizard/archive + Players tab
 │   ├── export-import.js    # export/import ข้อมูล
 │   ├── match-picker.js     # สร้างแมตช์ (queue) + mock match
 │   ├── match-render.js     # timers + render ongoing/finished
 │   ├── result-entry.js     # กรอก/แก้ผล + auto-finalize จาก umpire + quick score
 │   ├── stats.js            # analyzeSkillGap, buildPlayerStats, player DB render
-│   ├── reports.js          # แท็บ Reports (ตาราง, sub-tabs, umpire workload, under/over)
+│   ├── reports.js          # แท็บ Reports (ตาราง, sub-tabs, umpire workload)
 │   ├── pdf-export.js       # export PDF (summary/rounds/player) + CSV
 │   ├── dashboard.js        # dashboard charts (raw score, momentum, heatmap …)
 │   ├── ranking.js          # performance ranking engine

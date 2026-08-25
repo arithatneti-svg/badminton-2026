@@ -210,28 +210,7 @@ function renderPerformance() {
     return;
   }
 
-  // ── Prediction accuracy banner ──
-  let predCorrect = 0, predTotal = 0, upsetCount = 0;
-  matches.forEach(m => {
-    if (!m.r1 || !m.b1) return;
-    const pred = getMatchPrediction(m.r1, m.r2, m.b1, m.b2);
-    if (!pred || pred.noBaseScore) return;
-    const acc = checkPredictionAccuracy(pred, m.rStat);
-    if (!acc) return;
-    predTotal++;
-    if (acc.correct) predCorrect++;
-    else if (acc.confidence >= 60) upsetCount++;
-  });
-  const accPct  = predTotal > 0 ? Math.round(predCorrect/predTotal*100) : null;
-  const accHtml = predTotal > 0 ? `
-    <div class="pred-acc-row">
-      <span class="pa-label">🔮 PRED ACCURACY</span>
-      <div class="pred-acc-bar"><div class="pred-acc-bar-fill" style="width:${accPct}%;background:${accPct>=60?'var(--green)':accPct>=40?'var(--gold)':'var(--danger)'};"></div></div>
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;color:${accPct>=60?'var(--green)':accPct>=40?'var(--gold)':'var(--danger)'};">${accPct}%</span>
-      <span style="font-size:11px;color:var(--muted);">${predCorrect}/${predTotal} ถูก · ⚡ ${upsetCount} Upsets</span>
-    </div>` : '';
-
-  container.innerHTML = accHtml + `<div class="perf-card-grid">` + matches.map(m => {
+  container.innerHTML = `<div class="perf-card-grid">` + matches.map(m => {
     const a = m.analysis;
     const [g1r,g1b] = (m.game1||'0:0').split(':').map(Number);
     const [g2r,g2b] = (m.game2||'0:0').split(':').map(Number);

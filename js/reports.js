@@ -23,7 +23,6 @@ function switchReportTab(tab, btn) {
   if (tab === 'history')  renderReports();
   if (tab === 'chart')    renderChartOnly();
   if (tab === 'umpire')   renderUmpireWorkload();
-  if (tab === 'undover')  renderUndOverReport();
 }
 
 function renderUmpireWorkload() {
@@ -105,165 +104,6 @@ function renderUmpireWorkload() {
     ${rows}`;
 }
 
-// ══════════════════════════════════════════
-// UNDERRATE / OVERRATE REPORT
-// Logic:
-//  expectedWR = f(baseScore) — ผู้เล่น baseScore สูงควรชนะมากกว่า
-//  actualWR   = ค่า winRate จริงจาก matchHistory
-//  diff = actualWR - expectedWR
-//  diff > +15% → Underrated (เก่งกว่า base)
-//  diff < -15% → Overrated  (อ่อนกว่า base)
-// ══════════════════════════════════════════
-function renderUndOverReport() {
-  const el = document.getElementById('undOverContent');
-  if (!el) return;
-
-  const stats   = getPlayerStats();
-  const players = appState.players || [];
-  const profiles = appState.playerProfiles || {};
-
-  // คำนวณ expectedWinRate จาก baseScore (scale 0.5-3.0 → 30%-70%)
-  // BS 0.5=30%, 1.0=40%, 1.5=50%, 2.0=56%, 2.5=62%, 3.0=70%
-  const expectedWR = bs => {
-    const score = parseFloat(bs) || 1.5;
-    return Math.round(30 + Math.max(0, score - 0.5) / 2.5 * 40);
-  };
-
-  // ปรับตาม BaseScore คู่แข่งที่เจอจริงๆ ±8%
-  const getOppBaseAdj = (playerId) => {
-    const prof = profiles[playerId] || {};
-    const myBs = parseFloat(prof.baseScore) || 1.5;
-    const myMatches = (appState.matchHistory || []).filter(m =>
-      m.r1 === playerId || m.r2 === playerId || m.b1 === playerId || m.b2 === playerId
-    );
-    if (myMatches.length === 0) return 0;
-    let totalOppBs = 0, count = 0;
-    myMatches.forEach(h => {
-      const isRed = h.r1 === playerId || h.r2 === playerId;
-      const oppIds = isRed ? [h.b1, h.b2] : [h.r1, h.r2];
-      oppIds.forEach(oid => {
-        const op = profiles[oid] || {};
-        const obs = parseFloat(op.baseScore);
-        if (!isNaN(obs)) { totalOppBs += obs; count++; }
-      });
-    });
-    if (count === 0) return 0;
-    const avgOppBs = totalOppBs / count;
-    return Math.max(-8, Math.min(8, Math.round((myBs - avgOppBs) * 4)));
-  };
-
-  const results = players.map(p => {
-    const s    = stats[p.id] || {};
-    const prof = profiles[p.id] || {};
-    const bs   = parseFloat(prof.baseScore) || null;
-    const wr   = s.winRate !== undefined ? s.winRate : null;
-    const matches = s.matchesPlayed || s.total || 0;
-
-    if (bs === null || wr === null || matches < 2) return null;
-
-    const oppAdj = getOppBaseAdj(p.id);
-    const exp    = expectedWR(bs) - oppAdj;
-    const diff   = wr - exp;
-
-    const pd     = s.pointDiff || 0;
-    const pdNorm = Math.max(-1, Math.min(1, pd / (matches * 5)));
-    const adjDiff = diff + pdNorm * 5;
-
-    let verdict = 'balanced';
-    if (adjDiff >= 15)       verdict = 'underrated';
-    else if (adjDiff <= -15) verdict = 'overrated';
-    else if (adjDiff >= 7)   verdict = 'slight-under';
-    else if (adjDiff <= -7)  verdict = 'slight-over';
-
-    return { p, s, prof, bs, wr, exp: Math.round(exp), diff: Math.round(adjDiff), oppAdj, pd, matches, verdict };
-  }).filter(Boolean);
-
-  if (results.length === 0) {
-    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);font-size:14px;">ต้องมีข้อมูล Base Score และแข่งอย่างน้อย 2 แมตช์ถึงจะวิเคราะห์ได้</div>`;
-    return;
-  }
-
-  // แยกกลุ่ม
-  const underrated   = results.filter(r => r.verdict === 'underrated').sort((a,b) => b.diff - a.diff);
-  const slightUnder  = results.filter(r => r.verdict === 'slight-under').sort((a,b) => b.diff - a.diff);
-  const balanced     = results.filter(r => r.verdict === 'balanced').sort((a,b) => b.diff - a.diff);
-  const slightOver   = results.filter(r => r.verdict === 'slight-over').sort((a,b) => a.diff - b.diff);
-  const overrated    = results.filter(r => r.verdict === 'overrated').sort((a,b) => a.diff - b.diff);
-
-  const makeCard = (r, showBadge) => {
-    const teamColor = r.p.team === 'Red' ? 'var(--red)' : 'var(--blue)';
-    const diffColor = r.diff > 0 ? 'var(--green)' : r.diff < 0 ? 'var(--danger)' : 'var(--muted)';
-    const diffSign  = r.diff > 0 ? '+' : '';
-    const suggestBS = r.diff >= 15 ? Math.min(3.0, parseFloat(r.bs) + 0.5).toFixed(1)
-                    : r.diff <= -15 ? Math.max(0.5, parseFloat(r.bs) - 0.5).toFixed(1)
-                    : r.bs;
-    const suggestChanged = suggestBS != r.bs;
-    const oppAdjText = (r.oppAdj && r.oppAdj !== 0)
-      ? `<span style="font-size:9px;color:${r.oppAdj > 0 ? 'var(--gold)' : 'var(--muted)'};" title="ปรับตาม BaseScore คู่แข่งที่เจอ">⚖️ opp ${r.oppAdj > 0 ? '+' : ''}${r.oppAdj}%</span>`
-      : '';
-    return `
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);">
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;color:${teamColor};">${escHtml(r.p.name)}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
-            <span>BS ${r.bs}</span><span>·</span><span>G${r.p.group}</span><span>·</span><span>${r.matches} แมตช์</span>
-            ${oppAdjText}
-          </div>
-        </div>
-        <div style="text-align:center;min-width:48px;">
-          <div style="font-size:10px;color:var(--muted);">คาดไว้</div>
-          <div style="font-size:13px;font-weight:700;color:var(--muted);">${r.exp}%</div>
-        </div>
-        <div style="text-align:center;min-width:48px;">
-          <div style="font-size:10px;color:var(--muted);">จริง</div>
-          <div style="font-size:13px;font-weight:700;color:${teamColor};">${r.wr}%</div>
-        </div>
-        <div style="text-align:center;min-width:44px;">
-          <div style="font-size:10px;color:var(--muted);">diff</div>
-          <div style="font-size:13px;font-weight:700;color:${diffColor};">${diffSign}${r.diff}%</div>
-        </div>
-        ${suggestChanged ? `<div style="text-align:center;min-width:60px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.25);border-radius:8px;padding:4px 8px;">
-          <div style="font-size:9px;color:var(--gold);font-weight:700;">แนะนำ BS</div>
-          <div style="font-size:13px;font-weight:800;color:var(--gold);">${suggestBS}</div>
-        </div>` : `<div style="min-width:60px;text-align:center;font-size:10px;color:var(--muted);">คงเดิม</div>`}
-      </div>`;
-  };
-
-  const makeSection = (title, icon, color, bg, items) => {
-    if (items.length === 0) return '';
-    return `
-      <div style="background:${bg};border:1px solid ${color}30;border-radius:12px;overflow:hidden;margin-bottom:14px;">
-        <div style="padding:10px 16px 8px;border-bottom:1px solid ${color}20;display:flex;align-items:center;gap:8px;">
-          <span style="font-size:16px;">${icon}</span>
-          <span style="font-size:11px;font-weight:800;letter-spacing:2px;color:${color};">${title} (${items.length} คน)</span>
-        </div>
-        ${items.map(r => makeCard(r)).join('')}
-      </div>`;
-  };
-
-  el.innerHTML = `
-    <div style="margin-bottom:16px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;letter-spacing:3px;color:var(--gold);margin-bottom:4px;">📈 UNDER / OVERRATE ANALYSIS</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.6;">
-        เปรียบ <b style="color:var(--text);">Win Rate จริง</b> กับ <b style="color:var(--text);">Expected WR จาก Base Score</b> (ปรับตามความแข็งของคู่แข่ง)<br>
-        <b style="color:var(--green);">Underrated ≥+15%</b> = เก่งกว่าที่ BS บอก → ควรเพิ่ม BS ครั้งหน้า &nbsp;|&nbsp;
-        <b style="color:var(--danger);">Overrated ≤−15%</b> = อ่อนกว่าที่ BS บอก → ควรลด BS ครั้งหน้า
-      </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-top:8px;font-size:11px;color:var(--muted);line-height:1.7;">
-        <b style="color:var(--gold);">สูตร Expected WR:</b> BS 0.5→30% · 1.0→40% · 1.5→50% · 2.0→56% · 2.5→62% · 3.0→70%
-        &nbsp;(±opp adj สูงสุด 8% ตาม BS เฉลี่ยคู่แข่ง)
-      </div>
-    </div>
-    ${makeSection('🔥 UNDERRATED', '🔥', '#00e676', 'rgba(0,230,118,0.05)', underrated)}
-    ${makeSection('📈 ค่อนข้าง Underrated', '📈', '#7ee787', 'rgba(0,230,118,0.03)', slightUnder)}
-    ${makeSection('⚖️ สมดุล', '⚖️', 'var(--muted)', 'rgba(255,255,255,0.02)', balanced)}
-    ${makeSection('📉 ค่อนข้าง Overrated', '📉', '#ff9966', 'rgba(255,80,0,0.03)', slightOver)}
-    ${makeSection('⚠️ OVERRATED', '⚠️', 'var(--danger)', 'rgba(255,59,92,0.05)', overrated)}
-    <div style="font-size:10px;color:var(--muted);margin-top:12px;padding:10px 14px;background:var(--surface2);border-radius:8px;">
-      💡 ต้องการข้อมูลอย่างน้อย 2 แมตช์และมี Base Score ถึงจะวิเคราะห์ได้ · Threshold: ±15% = significant · ±7% = slight<br>
-      <span style="color:var(--gold);">⚖️ opp adj</span> = ปรับ expected WR ตาม BaseScore เฉลี่ยของคู่แข่งที่เจอ (เจอคู่แข่งแข็งกว่า → expected ลดลง)
-    </div>`;
-}
 
 function renderChartOnly() {
   // Chart is inside rpanel-chart — trigger statsChart update
@@ -281,33 +121,11 @@ function renderReportHero() {
   const blueWins   = hist.filter(m => m.bStat === 'W').length;
   const draws      = hist.filter(m => m.rStat === 'D').length;
 
-  // Prediction accuracy
-  let predCorrect = 0, predTotal = 0;
-  hist.forEach(m => {
-    if (!m.r1 || !m.r2 || !m.b1 || !m.b2) return;
-    const pred = getMatchPrediction(m.r1, m.r2, m.b1, m.b2);
-    if (!pred || pred.noBaseScore) return;
-    const acc = checkPredictionAccuracy(pred, m.rStat);
-    if (acc) { predTotal++; if (acc.correct) predCorrect++; }
-  });
-  const predAccStr = predTotal > 0 ? `${Math.round(predCorrect/predTotal*100)}%` : '—';
-
-  // Upset count
-  const upsets = hist.filter(m => {
-    if (!m.r1 || !m.b1) return false;
-    const pred = getMatchPrediction(m.r1, m.r2, m.b1, m.b2);
-    if (!pred || pred.noBaseScore) return false;
-    const acc = checkPredictionAccuracy(pred, m.rStat);
-    return acc && !acc.correct && acc.confidence >= 60;
-  }).length;
-
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('rptHeroMatches',  total   || '—');
   set('rptHeroRedWins',  redWins || '—');
   set('rptHeroDraws',    draws   || '—');
   set('rptHeroBlueWins', blueWins|| '—');
-  set('rptHeroPredAcc',  predAccStr);
-  set('rptHeroUpsets',   upsets  || '—');
 }
 
 function renderReports() {
@@ -319,13 +137,7 @@ function renderReports() {
   
   const { col: pCol, dir: pDir } = sortState.players; 
   const playerArr = Object.values(stats).filter(s => (!rSearch || s.name.toLowerCase().includes(rSearch) || s.id.toLowerCase().includes(rSearch)) && (!rTeam || s.team === rTeam) && (!activeGroup || s.group === activeGroup)).sort((a,b) => { 
-    let av, bv;
-    if (pCol === 'baseScore') {
-      av = parseFloat((appState.playerProfiles||{})[a.id]?.baseScore) || 0;
-      bv = parseFloat((appState.playerProfiles||{})[b.id]?.baseScore) || 0;
-    } else {
-      av=a[pCol]; bv=b[pCol];
-    }
+    let av=a[pCol], bv=b[pCol];
     if(typeof av==='string'){av=av.toLowerCase();bv=bv.toLowerCase();} 
     return pDir==='asc'?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0); 
   });
@@ -387,7 +199,6 @@ function renderReports() {
       <td style="font-size:12px;">${specTags}</td>
       <td style="white-space:nowrap;"><span class="stat-pill pill-win" style="font-size:10px;">${s.matchWin||0}W</span> <span class="stat-pill pill-lose" style="font-size:10px;">${s.matchLose||0}L</span></td>
       <td style="font-weight:700;color:${(s.matchWinRate||0)>=60?'var(--green)':(s.matchWinRate||0)>=40?'var(--gold)':s.matchesPlayed>0?'var(--danger)':'var(--muted)'};">${s.matchesPlayed>0?(s.matchWinRate||0)+'%':'—'}</td>
-      <td style="font-weight:700;color:var(--gold);">${(function(){ const prof=(appState.playerProfiles||{})[s.id]||{}; return prof.baseScore?'⚡'+prof.baseScore:'—'; })()}</td>
       <td>${(function(){ const sk=getPlayerStreak(s.id); return sk?'<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;background:'+sk.bg+';color:'+sk.color+';border:1px solid '+sk.border+';">'+sk.label+'</span>':'<span style="color:var(--muted);font-size:10px;">—</span>'; })()}</td>
     </tr>`;
   }).join(''); 

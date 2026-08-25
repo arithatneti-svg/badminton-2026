@@ -49,35 +49,6 @@ function seedDefaultPlayers(state) {
   });
 }
 
-// ── SCOUT REPORT — visible to admin/superadmin (no separate passcode) ──
-function canScout() { return userRole === 'admin' || userRole === 'superadmin'; }
-
-function _renderScoutContent(prof) {
-  // ── Ability Chart ──
-  renderAbilityChart(prof);
-
-  const strEl = document.getElementById('pdStrengthsView');
-  if (strEl) strEl.textContent = prof.strengths || '—';
-  const nw = document.getElementById('pdViewNotesWrap');
-  const nv = document.getElementById('pdViewNotes');
-  if (nv) nv.textContent = prof.notes || '';
-  if (nw) nw.style.display = prof.notes ? 'block' : 'none';
-  const sw = document.getElementById('pdViewSimilarWrap');
-  const sl = document.getElementById('pdViewSimilarList');
-  if (sl) {
-    const simHtml = (prof.similar||[]).filter(Boolean).map(id => {
-      const sp = ( appState.players || [] ).find(x=>x.id===id);
-      return sp ? `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:700;">${escHtml(sp.name)}<span style="font-size:10px;color:var(--muted);">G${sp.group}</span></span>` : '';
-    }).join('');
-    sl.innerHTML = simHtml;
-    if (sw) sw.style.display = simHtml ? 'block' : 'none';
-  }
-  const ww = document.getElementById('pdWeaknessWrap');
-  const wv = document.getElementById('pdWeaknessView');
-  if (wv) wv.textContent = prof.weakness || '';
-  if (ww) ww.style.display = prof.weakness ? 'block' : 'none';
-}
-
 // ── State vars ที่ต้อง declare ก่อน loadData และ dbRef.on ──
 let _prevMatchHistoryLength = -1; // -1 = ยังไม่ init
 let _notiDismissTimer       = null;

@@ -412,7 +412,6 @@ function exportPlayerPDF() {
             <span class="p-chip" style="background:${teamBg};border-color:${teamBorder};color:${teamColor};">${p.team}</span>
             <span class="p-chip">Group ${p.group}</span>
             <span class="p-chip">${p.id}</span>
-            ${prof.baseScore?`<span class="p-chip" style="background:#fffde7;border-color:#f9a825;color:#e65100;">⚡ BS ${prof.baseScore}</span>`:''}
             ${streakHtml}
           </div>
         </div>

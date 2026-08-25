@@ -166,9 +166,7 @@ function renderPublicOngoingMatches() {
       const redPlayersHtml  = redParts.map(n  => `<div class="court-player-name red">${escHtml(n)}</div>`).join('');
       const bluePlayersHtml = blueParts.map(n => `<div class="court-player-name blue">${escHtml(n)}</div>`).join('');
 
-      // ── Prediction ──
-      const pred = (m.r1 && m.r2 && m.b1 && m.b2) ? getMatchPrediction(m.r1, m.r2, m.b1, m.b2) : null;
-      const predHtml = buildPredictionHTML(pred, false);
+      const predHtml = '';
 
       liveContainer.innerHTML += `
         <div class="court-card ${climaxClass}">
@@ -211,8 +209,7 @@ function renderPublicOngoingMatches() {
       const safeId    = m.id && m.id !== 'undefined' ? m.id : '⚠️ CORRUPT';
       const redNames  = isCorrupt ? '—' : (m.redNames||'').split(' & ').map(n => stripGroup(n.trim())).join(' & ');
       const blueNames = isCorrupt ? '—' : (m.blueNames||'').split(' & ').map(n => stripGroup(n.trim())).join(' & ');
-      const qPred     = (!isCorrupt && m.r1 && m.r2 && m.b1 && m.b2) ? getMatchPrediction(m.r1, m.r2, m.b1, m.b2) : null;
-      const qPredHtml = buildPredictionHTML(qPred, true);
+      const qPredHtml = '';
       const corruptBadge = isCorrupt ? `<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:rgba(255,69,96,0.15);color:var(--danger);border:1px solid rgba(255,69,96,0.3);">⚠️ ข้อมูลเสีย</span>` : '';
       queueContainer.innerHTML += `
         <div class="queue-row" style="flex-direction:column;align-items:stretch;padding:10px 14px;gap:6px;${isCorrupt?'border-color:rgba(255,69,96,0.3);background:rgba(255,69,96,0.04);':''}">
@@ -362,26 +359,7 @@ function renderFinishedMatches() {
     const footerHtml = hasFooter
       ? `<div class="frow-footer">${tagHtml}${umpireHtml}${adminHtml}</div>` : '';
 
-    // ── Prediction accuracy + Upset Alert ──
-    let predAccHtml = '';
-    if ((userRole === 'admin' || userRole === 'superadmin') && m.r1 && m.r2 && m.b1 && m.b2) {
-      const pred = getMatchPrediction(m.r1, m.r2, m.b1, m.b2);
-      if (pred) {
-        const acc = checkPredictionAccuracy(pred, m.rStat);
-        if (acc) {
-          const isUpset = !acc.correct && acc.confidence >= 60;
-          const upsetBadge = isUpset
-            ? `<span class="upset-alert">⚡ UPSET!</span>` : '';
-          const accBadge = acc.correct
-            ? `<span class="pred-acc-correct">✓ Prediction correct (${acc.confidence}%)</span>`
-            : `<span class="pred-acc-wrong">✗ Upset — predicted ${acc.predicted} (${acc.confidence}%)</span>`;
-          const bar = buildPredictionHTML(pred, true);
-          predAccHtml = `<div style="padding:8px 12px;background:rgba(0,0,0,0.2);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
-            ${accBadge}${upsetBadge}
-          </div>${bar}`;
-        }
-      }
-    }
+    const predAccHtml = '';
 
     // ── Winner class ──
     const winClass = isRedWin ? 'winner-red' : isBlueWin ? 'winner-blue' : 'draw-match';
