@@ -43,6 +43,7 @@ Badminton 2026/
 │   ├── responsive.css      # responsive/มือถือ (navbar wrap ฯลฯ)
 │   ├── profile.css         # โมดัลโปรไฟล์ผู้เล่น
 │   ├── components.css      # toast, season, compare, play-style badges, theme fixes, mobile fixes
+│   ├── backup.css          # UI ของ Backup & Restore
 │   └── umpire.css          # สไตล์ทั้งหมดของ umpire.html
 │
 ├── js/                     # โค้ดของ index.html (แตกจาก <script> ก้อนเดียว)
@@ -64,7 +65,8 @@ Badminton 2026/
 │   ├── dashboard.js        # dashboard charts (raw score, momentum, heatmap …)
 │   ├── ranking.js          # performance ranking engine
 │   ├── effects.js          # print report, flashScore, fire/confetti, trophy
-│   └── notifications.js    # GIF pool, ป็อปอัปแจ้งผล, narrative builder, confirm dialog, app init (DOMContentLoaded)
+│   ├── notifications.js    # GIF pool, ป็อปอัปแจ้งผล, narrative builder, confirm dialog, app init (DOMContentLoaded)
+│   └── backup.js           # ⭐ Auto-backup + Restore (snapshot ไป path แยก sportsday_2026_backups)
 │
 ├── umpire/
 │   └── umpire.js           # โค้ดทั้งหมดของ umpire.html (dbRef → end)

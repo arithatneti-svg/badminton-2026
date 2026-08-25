@@ -1,0 +1,29 @@
+/* ── BACKUP & RESTORE ── */
+.backup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 48vh;
+  overflow-y: auto;
+}
+.backup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.backup-info { min-width: 0; }
+.backup-when { font-weight: 700; font-size: 13px; color: var(--text); }
+.backup-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.backup-row .btn { flex-shrink: 0; }
+.backup-empty {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 24px 12px;
+  line-height: 1.6;
+}

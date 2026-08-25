@@ -242,6 +242,7 @@ dbRef.on('value', (snapshot) => {
   // updateUI() render แค่ถ้า activeTab === 'ongoing' แต่ถ้าไม่อยู่ tab ongoing ก็ยังต้อง clear court card
   if (newLen > prevLen && prevLen !== -1) {
     renderPublicOngoingMatches();
+    backupState('finalize'); // auto-backup ทุกครั้งที่จบแมตช์ (gated เป็น admin/superadmin ภายใน)
   }
 });
 
@@ -288,7 +289,8 @@ function clearData() {
 
 function doResetFull() {
   document.getElementById('resetChoiceModal').style.display = 'none';
-  showConfirmDialog('⚠️ Reset ทั้งหมด รวมถึง Player profiles, play style, base score? ไม่สามารถกู้คืนได้', function() {
+  showConfirmDialog('⚠️ Reset ทั้งหมด รวมถึง Player profiles, play style, base score? (ระบบจะ backup ตัวปัจจุบันไว้ให้ก่อน — กู้คืนได้จากปุ่ม Backup & Restore)', function() {
+    backupState('pre-reset', 'ก่อน Reset ทั้งหมด'); // safety snapshot ก่อนล้าง
     const currentPlayers = appState.players || [];
     appState = { globalScoreRed:0, globalScoreBlue:0, players:currentPlayers, playerProfiles:{}, ongoingMatches:[], matchHistory:[], matchCounter:1, redTeamName:'RED TEAM', blueTeamName:'BLUE TEAM' };
     saveData(true); showToast('🗑 Reset ทั้งหมดเรียบร้อย', 'success');
@@ -297,7 +299,8 @@ function doResetFull() {
 
 function doResetMatchOnly() {
   document.getElementById('resetChoiceModal').style.display = 'none';
-  showConfirmDialog('⚠️ Reset ผลแมตช์ทั้งหมด? Player profiles และ play style จะยังอยู่ครบ', function() {
+  showConfirmDialog('⚠️ Reset ผลแมตช์ทั้งหมด? Player profiles และ play style จะยังอยู่ครบ (ระบบจะ backup ตัวปัจจุบันไว้ให้ก่อน)', function() {
+    backupState('pre-reset', 'ก่อน Reset ผลแมตช์'); // safety snapshot ก่อนล้าง
     const currentPlayers  = appState.players || [];
     const currentProfiles = appState.playerProfiles || {};
     // ไม่แตะ player object เพราะ pts/w/l คำนวณจาก matchHistory ใน buildPlayerStats()

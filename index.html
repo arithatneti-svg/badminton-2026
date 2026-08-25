@@ -31,6 +31,7 @@
 <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/profile.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/backup.css">
 <!-- App scripts. defer keeps original order AND avoids the cross-file load race. -->
 <script defer src="js/utils.js"></script>
 <script defer src="js/prediction.js"></script>
@@ -51,6 +52,7 @@
 <script defer src="js/ranking.js"></script>
 <script defer src="js/effects.js"></script>
 <script defer src="js/notifications.js"></script>
+<script defer src="js/backup.js"></script>
 <body>
 
 <!-- ── LOGIN OVERLAY ── -->
@@ -612,6 +614,13 @@
       📥 Import JSON
       <input type="file" accept=".json" style="display:none;" onchange="importPlayerProfiles(this)">
     </label>
+  </div>
+
+  <!-- Backup & Restore bar (superadmin only) -->
+  <div class="export-import-bar superadmin-only">
+    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">🛟 BACKUP</span>
+    <button class="btn btn-outline btn-sm" onclick="manualBackup()">💾 Backup ตอนนี้</button>
+    <button class="btn btn-primary btn-sm" onclick="openBackupModal()">🛟 Backup &amp; Restore</button>
   </div>
 
   <div id="playersTabGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
@@ -1749,6 +1758,24 @@
 </div>
 <!-- invisible trigger strip ขอบล่าง -->
 <div class="fs-trigger-zone" id="fsTriggerZone"></div>
+
+<!-- ── BACKUP & RESTORE MODAL (superadmin) ── -->
+<div id="backupModal" class="modal-overlay" onclick="if(event.target===this)closeBackupModal()">
+  <div class="modal-box" style="width:min(560px,94vw);text-align:left;">
+    <div class="modal-title" style="text-align:center;">🛟 BACKUP &amp; RESTORE</div>
+    <div style="color:var(--muted);font-size:12px;text-align:center;margin-bottom:16px;line-height:1.6;">
+      Backup อัตโนมัติทุกครั้งที่จบแมตช์ และก่อน Reset · เก็บ 30 ชุดล่าสุด
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" onclick="manualBackup()">💾 Backup ตอนนี้</button>
+      <button class="btn btn-outline btn-sm" onclick="renderBackupList()">🔄 รีเฟรช</button>
+    </div>
+    <div id="backupList" class="backup-list"></div>
+    <div style="text-align:center;margin-top:18px;">
+      <button class="btn btn-outline btn-sm" onclick="closeBackupModal()">ปิด</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
