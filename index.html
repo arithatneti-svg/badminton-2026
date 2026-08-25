@@ -32,6 +32,7 @@
 <link rel="stylesheet" href="css/profile.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/backup.css">
+<link rel="stylesheet" href="css/qr.css">
 <!-- App scripts. defer keeps original order AND avoids the cross-file load race. -->
 <script defer src="js/utils.js"></script>
 <script defer src="js/prediction.js"></script>
@@ -53,6 +54,8 @@
 <script defer src="js/effects.js"></script>
 <script defer src="js/notifications.js"></script>
 <script defer src="js/backup.js"></script>
+<script defer src="js/vendor/qrcode.min.js"></script>
+<script defer src="js/qr.js"></script>
 <body>
 
 <!-- ── LOGIN OVERLAY ── -->
@@ -162,6 +165,7 @@
     <!-- Season badge + archive viewer -->
     <span id="seasonBadge" class="season-badge superadmin-only" onclick="openSeasonArchive()" title="ดู Season Archive">📅 2026</span>
     <button class="btn btn-outline btn-sm superadmin-only" onclick="openSeasonWizard()" style="font-size:10px;letter-spacing:1px;" title="เริ่ม Season ใหม่">🔄 New Season</button>
+    <button class="btn btn-outline btn-sm admin-only" onclick="openQrModal()" style="font-size:10px;letter-spacing:1px;" title="QR สำหรับผู้ชม / กรรมการ">📱 QR</button>
 
     <!-- ── THEME TOGGLE ── -->
     <div id="navThemePicker" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:2px;">
@@ -1758,6 +1762,36 @@
 </div>
 <!-- invisible trigger strip ขอบล่าง -->
 <div class="fs-trigger-zone" id="fsTriggerZone"></div>
+
+<!-- ── QR CODES MODAL (admin/superadmin) ── -->
+<div id="qrModal" class="modal-overlay" onclick="if(event.target===this)closeQrModal()">
+  <div class="modal-box" style="width:min(680px,94vw);">
+    <div class="modal-title" style="text-align:center;">📱 QR CODES</div>
+    <div style="color:var(--muted);font-size:12px;text-align:center;margin-bottom:20px;line-height:1.6;">
+      แปะหน้างานให้สแกน — ผู้ชมดูคะแนนสด / กรรมการเข้าแผงให้คะแนน
+    </div>
+    <div class="qr-grid">
+      <div class="qr-card">
+        <img id="qrSpectatorImg" class="qr-img" alt="QR ผู้ชม">
+        <div class="qr-card-title">👀 ดูคะแนนสด</div>
+        <div class="qr-card-desc">ผู้ชม — ดูอย่างเดียว ไม่ต้องล็อกอิน</div>
+        <div id="qrSpectatorUrl" class="qr-url"></div>
+        <button class="btn btn-outline btn-sm" onclick="copyQrLink('spectator')">📋 คัดลอกลิงก์</button>
+      </div>
+      <div class="qr-card">
+        <img id="qrUmpireImg" class="qr-img" alt="QR กรรมการ">
+        <div class="qr-card-title">🎯 กรรมการ</div>
+        <div class="qr-card-desc">กรรมการ — เข้าแผงให้คะแนน</div>
+        <div id="qrUmpireUrl" class="qr-url"></div>
+        <button class="btn btn-outline btn-sm" onclick="copyQrLink('umpire')">📋 คัดลอกลิงก์</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:22px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="printQrCodes()">🖨 พิมพ์ทั้งคู่</button>
+      <button class="btn btn-outline btn-sm" onclick="closeQrModal()">ปิด</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── BACKUP & RESTORE MODAL (superadmin) ── -->
 <div id="backupModal" class="modal-overlay" onclick="if(event.target===this)closeBackupModal()">

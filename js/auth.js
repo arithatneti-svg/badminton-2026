@@ -6,6 +6,13 @@ let prevRed = 0, prevBlue = 0;
 let _pendingLoginRole = null; // 'admin' or 'superadmin' — which button was clicked
 
 window.onload = () => {
+  // Spectator live view via QR link (?view=live) — read-only, no passcode, not persisted
+  const _params = new URLSearchParams(location.search);
+  if (_params.get('view') === 'live') {
+    enterSpectatorMode();
+    loadData();
+    return;
+  }
   const savedRole = localStorage.getItem('bdm_scoreboard_role');
   if (savedRole === 'superadmin') {
     userRole = 'superadmin';
@@ -30,6 +37,18 @@ window.onload = () => {
   }
   loadData();
 };
+
+// Read-only live view for spectators — opened via QR link (?view=live).
+// เหมือน guest แต่ไม่ต้องใส่รหัส และไม่ persist (ผูกกับลิงก์ ไม่ค้างในเครื่อง)
+function enterSpectatorMode() {
+  userRole = 'guest';
+  _analystUnlocked = false;
+  const ov = document.getElementById('loginOverlay');
+  if (ov) ov.style.display = 'none';
+  document.body.classList.remove('admin-mode', 'superadmin-mode');
+  document.body.classList.add('guest-mode', 'spectator-mode');
+  switchTab('ongoing', document.getElementById('tab-ongoing'));
+}
 
 const BLUEWIN_PASS = 'Bluewin'; // passcode สำหรับเข้า Guest View
 
