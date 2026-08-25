@@ -42,6 +42,7 @@
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/backup.css">
 <link rel="stylesheet" href="css/qr.css">
+<link rel="stylesheet" href="css/tv.css">
 <!-- App scripts. defer keeps original order AND avoids the cross-file load race. -->
 <script defer src="js/utils.js"></script>
 <script defer src="js/prediction.js"></script>
@@ -65,6 +66,7 @@
 <script defer src="js/backup.js"></script>
 <script defer src="js/vendor/qrcode.min.js"></script>
 <script defer src="js/qr.js"></script>
+<script defer src="js/tv.js"></script>
 <body>
 
 <!-- ── LOGIN OVERLAY ── -->
@@ -1772,6 +1774,9 @@
 <!-- invisible trigger strip ขอบล่าง -->
 <div class="fs-trigger-zone" id="fsTriggerZone"></div>
 
+<!-- ── TV / PROJECTOR MODE (?view=tv) — big-screen auto-rotating display ── -->
+<div id="tvView"></div>
+
 <!-- ── QR CODES MODAL (admin/superadmin) ── -->
 <div id="qrModal" class="modal-overlay" onclick="if(event.target===this)closeQrModal()">
   <div class="modal-box" style="width:min(680px,94vw);">
@@ -1797,6 +1802,7 @@
     </div>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:22px;flex-wrap:wrap;">
       <button class="btn btn-primary btn-sm" onclick="printQrCodes()">🖨 พิมพ์ทั้งคู่</button>
+      <button class="btn btn-outline btn-sm" onclick="openTvScreen()">🖥️ เปิดจอ TV</button>
       <button class="btn btn-outline btn-sm" onclick="closeQrModal()">ปิด</button>
     </div>
   </div>

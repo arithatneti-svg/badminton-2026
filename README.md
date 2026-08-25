@@ -51,6 +51,7 @@ Badminton 2026/
 │   ├── components.css      # toast, season, compare, play-style badges, theme fixes, mobile fixes
 │   ├── backup.css          # UI ของ Backup & Restore
 │   ├── qr.css              # UI ของ QR modal (ผู้ชม / กรรมการ)
+│   ├── tv.css              # TV/Projector mode (จอใหญ่หน้างาน)
 │   └── umpire.css          # สไตล์ทั้งหมดของ umpire.html
 │
 ├── js/                     # โค้ดของ index.html (แตกจาก <script> ก้อนเดียว)
@@ -75,6 +76,7 @@ Badminton 2026/
 │   ├── notifications.js    # GIF pool, ป็อปอัปแจ้งผล, narrative builder, confirm dialog, app init (DOMContentLoaded)
 │   ├── backup.js           # ⭐ Auto-backup + Restore (snapshot ไป path แยก sportsday_2026_backups)
 │   ├── qr.js               # ⭐ QR: ผู้ชมดูสด (?view=live) + กรรมการ (umpire.html)
+│   ├── tv.js               # ⭐ TV/Projector mode (?view=tv) — วน Battle/Live/Leaderboard
 │   └── vendor/
 │       └── qrcode.min.js   # QR generator (Kazuhiko Arase, MIT) — vendored, ไม่พึ่ง CDN
 │
@@ -137,6 +139,16 @@ npm run preview   # build แล้วเสิร์ฟ dist/ → http://localh
 5. **มี `<style>` เล็ก ๆ 1 ก้อนยังฝังใน `index.html`** (ส่วนกลางของ body) — ตั้งใจคงไว้เพื่อรักษาลำดับ cascade เดิม
 
 ---
+
+## 👀 โหมดการดู (เปิดผ่าน URL / QR — ไม่ต้องล็อกอิน)
+
+| URL | ใคร | ได้อะไร |
+|-----|-----|---------|
+| `/?view=live` | ผู้ชม | ดูคะแนนสด read-only (เข้าแท็บ Ongoing) |
+| `/?view=tv` | จอโปรเจกเตอร์/ทีวี | จอใหญ่วนอัตโนมัติทุก 14 วิ: Team Battle → Live Now → Leaderboard |
+| `/umpire.html` | กรรมการ | แผงให้คะแนน |
+
+QR ของ live/กรรมการ + ปุ่ม "เปิดจอ TV" อยู่ในปุ่ม **📱 QR** บน nav (admin)
 
 ## 📲 PWA (ติดตั้ง + ออฟไลน์)
 

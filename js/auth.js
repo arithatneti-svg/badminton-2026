@@ -6,8 +6,14 @@ let prevRed = 0, prevBlue = 0;
 let _pendingLoginRole = null; // 'admin' or 'superadmin' — which button was clicked
 
 window.onload = () => {
-  // Spectator live view via QR link (?view=live) — read-only, no passcode, not persisted
+  // TV / projector mode (?view=tv) — big-screen auto-rotating public display
   const _params = new URLSearchParams(location.search);
+  if (_params.get('view') === 'tv') {
+    enterTvMode();
+    loadData();
+    return;
+  }
+  // Spectator live view via QR link (?view=live) — read-only, no passcode, not persisted
   if (_params.get('view') === 'live') {
     enterSpectatorMode();
     loadData();

@@ -18,7 +18,7 @@ const ASSETS = join(DIST, 'assets');
 // ---- load order (must match index.html / umpire.html) ----
 const CSS = ['base','login','nav','scoreboard','match-cards','tables-modals','dashboard','picker',
   'notifications','ongoing-finished','prediction','climax','fullscreen','ranking','trophy',
-  'responsive','profile','components','backup','qr'].map(n => `css/${n}.css`);
+  'responsive','profile','components','backup','qr','tv'].map(n => `css/${n}.css`);
 
 const JS = [
   'shared/firebase-config.js',
@@ -27,7 +27,7 @@ const JS = [
   'js/match-picker.js','js/match-render.js','js/result-entry.js','js/stats.js',
   'js/reports.js','js/pdf-export.js','js/dashboard.js','js/ranking.js',
   'js/effects.js','js/notifications.js','js/backup.js',
-  'js/vendor/qrcode.min.js','js/qr.js',
+  'js/vendor/qrcode.min.js','js/qr.js','js/tv.js',
   'shared/pwa.js',
 ];
 

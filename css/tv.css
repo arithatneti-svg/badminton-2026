@@ -1,0 +1,93 @@
+/* ── TV / PROJECTOR MODE (?view=tv) — big-screen auto-rotating public display ── */
+#tvView { display: none; }
+body.tv-mode { overflow: hidden; }
+body.tv-mode .nav,
+body.tv-mode .container,
+body.tv-mode #fsNav,
+body.tv-mode .fs-trigger-zone { display: none !important; }
+
+body.tv-mode #tvView {
+  position: fixed; inset: 0; z-index: 4000;
+  display: flex; flex-direction: column;
+  background:
+    radial-gradient(ellipse at 25% 15%, rgba(255,59,92,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 85%, rgba(59,142,255,0.10) 0%, transparent 55%),
+    var(--bg);
+  color: var(--text);
+  padding: clamp(20px, 4vh, 56px) clamp(20px, 4vw, 72px);
+}
+
+.tv-panel { flex: 1; display: flex; flex-direction: column; animation: tvFade .6s ease; min-height: 0; }
+@keyframes tvFade { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.tv-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px, 4.5vw, 68px);
+  letter-spacing: 6px; color: var(--accent);
+  text-align: center; margin-bottom: clamp(12px, 2.5vh, 40px);
+  text-shadow: 0 0 30px var(--accent-glow);
+}
+
+/* ── Battle ── */
+.tv-battle { justify-content: center; }
+.tv-battle-row { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 4vw, 80px); }
+.tv-team { text-align: center; flex: 1; max-width: 40%; transition: transform .4s; }
+.tv-team.lead { transform: scale(1.06); }
+.tv-team-name {
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(26px, 4vw, 64px);
+  letter-spacing: 3px; margin-bottom: clamp(6px, 1.5vh, 20px); line-height: 1.05;
+}
+.tv-team-score {
+  font-family: 'Bebas Neue', sans-serif; font-weight: 400;
+  font-size: clamp(90px, 22vw, 340px); line-height: 0.9;
+}
+.tv-team.red  .tv-team-name, .tv-team.red  .tv-team-score { color: var(--red);  }
+.tv-team.blue .tv-team-name, .tv-team.blue .tv-team-score { color: var(--blue); }
+.tv-team.red.lead  .tv-team-score { text-shadow: 0 0 60px var(--red-glow); }
+.tv-team.blue.lead .tv-team-score { text-shadow: 0 0 60px var(--blue-glow); }
+.tv-vs {
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(24px, 3vw, 56px);
+  color: var(--muted); letter-spacing: 4px;
+}
+
+/* ── Live ── */
+.tv-live-grid {
+  flex: 1; display: grid; gap: clamp(12px, 2vw, 28px); min-height: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  align-content: center;
+}
+.tv-live-card {
+  background: rgba(255,255,255,0.04); border: 2px solid var(--border2);
+  border-radius: 20px; padding: clamp(14px, 2vh, 30px) clamp(16px, 2vw, 34px);
+}
+.tv-live-id { font-family: 'Bebas Neue', sans-serif; font-size: clamp(18px, 2vw, 34px); color: var(--accent); letter-spacing: 2px; }
+.tv-live-teams { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
+.tv-lt { flex: 1; font-size: clamp(16px, 1.6vw, 30px); font-weight: 700; line-height: 1.15; }
+.tv-lt.red  { color: var(--red);  text-align: left; }
+.tv-lt.blue { color: var(--blue); text-align: right; }
+.tv-live-score { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px, 6vw, 96px); white-space: nowrap; flex-shrink: 0; }
+.tv-live-score .red { color: var(--red); } .tv-live-score .blue { color: var(--blue); } .tv-live-score .sep { color: var(--muted); margin: 0 .12em; }
+.tv-live-games { text-align: center; color: var(--muted); font-size: clamp(13px, 1.3vw, 22px); font-weight: 600; }
+
+/* ── Leaderboard ── */
+.tv-board { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: clamp(8px, 1.4vh, 20px); max-width: 1100px; margin: 0 auto; width: 100%; }
+.tv-board-row {
+  display: grid; grid-template-columns: clamp(48px,6vw,96px) 1fr auto auto; align-items: center; gap: clamp(12px, 2vw, 32px);
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px;
+  padding: clamp(8px, 1.4vh, 18px) clamp(16px, 2.5vw, 36px);
+}
+.tv-rank { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 3.6vw, 60px); text-align: center; }
+.tv-pname { font-size: clamp(20px, 2.6vw, 46px); font-weight: 700; }
+.tv-pname.red { color: var(--red); } .tv-pname.blue { color: var(--blue); }
+.tv-pmeta { color: var(--muted); font-size: clamp(12px, 1.3vw, 22px); font-weight: 600; white-space: nowrap; }
+.tv-ppts { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 3.6vw, 58px); color: var(--accent); }
+.tv-ppts span { font-size: .4em; color: var(--muted); margin-left: 4px; }
+
+.tv-empty { color: var(--muted); font-size: clamp(20px, 3vw, 40px); text-align: center; margin: auto; }
+
+/* ── Footer (dots + brand) ── */
+.tv-foot { display: flex; align-items: center; justify-content: space-between; padding-top: clamp(10px, 2vh, 28px); }
+.tv-dots { display: flex; gap: 12px; }
+.tv-dot { width: clamp(10px, 1vw, 16px); height: clamp(10px, 1vw, 16px); border-radius: 50%; background: var(--border2); transition: all .3s; }
+.tv-dot.on { background: var(--accent); box-shadow: 0 0 14px var(--accent-glow); transform: scale(1.2); }
+.tv-brand { color: var(--muted); font-size: clamp(12px, 1.3vw, 22px); letter-spacing: 2px; font-weight: 600; }

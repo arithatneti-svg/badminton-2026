@@ -12,6 +12,8 @@ function _appBaseUrl() {
 }
 function spectatorUrl() { return _appBaseUrl() + '?view=live'; }
 function umpireUrl()    { return _appBaseUrl() + 'umpire.html'; }
+function tvUrl()        { return _appBaseUrl() + '?view=tv'; }
+function openTvScreen() { window.open(tvUrl(), '_blank'); } // เปิดจอ TV (โปรเจกเตอร์)
 
 function _makeQrDataUrl(text, cell = 7, margin = 4) {
   try {
