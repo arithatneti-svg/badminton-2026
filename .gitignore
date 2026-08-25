@@ -9,7 +9,7 @@ desktop.ini
 .vscode/
 .idea/
 
-# Node / future Vite upgrade
+# Node + build output (Cloudflare builds dist/ from source)
 node_modules/
 dist/
 .env

@@ -48,6 +48,24 @@ gh repo create badminton-2026 --private --source=. --push
 
 ---
 
+## ⚡ (แนะนำ) เปิด build mode — เสิร์ฟไฟล์ที่ bundle+minify แล้ว
+
+โปรเจกต์รองรับ 2 โหมด — **ทั้งคู่ใช้งานได้**:
+- **Source mode (ค่าเริ่มต้น)**: เสิร์ฟไฟล์แยกจาก root ตรง ๆ (Build command เว้นว่าง, Output `/`)
+- **Build mode**: รวม js/css เป็นก้อนเดียว+ย่อขนาด โหลดเร็วขึ้น
+
+สลับเป็น build mode: Cloudflare Pages → โปรเจกต์ → **Settings → Build → Build configuration → แก้ไข**
+
+| ช่อง | ค่า |
+|------|-----|
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+
+กด Save แล้ว **Retry deployment** (หรือ push ใหม่) → Cloudflare จะ `npm install` + build เอง แล้วเสิร์ฟจาก `dist/`
+> ถ้ามีปัญหา สลับกลับ Source mode ได้ทันที (Build command เว้นว่าง, Output `/`) — โค้ด source ยังอยู่ครบ
+
+---
+
 ## ② หลังจากนี้ (ทุกครั้งที่แก้โค้ด)
 
 ```bash

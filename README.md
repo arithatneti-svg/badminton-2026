@@ -88,17 +88,21 @@ Badminton 2026/
 
 ---
 
-## ▶️ วิธีรัน (local)
+## ▶️ วิธีรัน / build (local)
 
-ต้องเปิดผ่าน **HTTP server** ไม่ใช่ double-click ไฟล์ (`file://`) เพราะ Firebase + การโหลดไฟล์ย่อยต้องใช้ origin แบบ http/https
+ครั้งแรกลง dependency (มีแค่ esbuild): `npm install`
 
 ```bash
-# ใช้ Node (มีติดตั้งอยู่แล้ว)
-npx --yes serve .
-# หรือถ้ามี Python: python -m http.server 8000
+npm run dev       # เสิร์ฟ source ตรง ๆ (ไฟล์แยก) → http://localhost:5173  ไม่ต้อง build
+npm run build     # รวม+ย่อ js/css เป็นก้อนเดียว → dist/
+npm run preview   # build แล้วเสิร์ฟ dist/ → http://localhost:4173 (เหมือน production)
 ```
 
-แล้วเปิด `http://localhost:PORT/index.html` และ `.../umpire.html`
+- **แก้โค้ด** ให้แก้ที่ไฟล์ source (`css/*`, `js/*`) แล้วดูด้วย `npm run dev` — **ห้ามแก้ที่ `dist/`** (ถูก gen ใหม่ทุก build และ gitignore ไว้)
+- **Build ทำอะไร**: ต่อไฟล์ตามลำดับโหลด → `dist/assets/app.js` + `app.css` (และ `umpire.*`), ย่อขนาด **โดยไม่เปลี่ยนชื่อ global** (onclick/ตัวแปรร่วมยังทำงานเหมือนเดิม), คัดลอก icons/manifests, สร้าง `sw.js` ที่ชี้ bundle ใหม่
+- ต้องเปิดผ่าน HTTP server (ไม่ใช่ `file://`) เพราะ Firebase ต้องใช้ origin http/https
+
+> **หมายเหตุ:** บน localhost จะเห็น `PERMISSION_DENIED` + service worker ลงทะเบียนไม่ได้ ('unknown error fetching script') — ปกติ SW ต้อง HTTPS ทดสอบจริงบน `pages.dev` ได้เลย
 
 > **หมายเหตุ:** ตอนรันบน localhost จะเห็น `PERMISSION_DENIED` ที่ `/sportsday_2026_data` ใน console —
 > เป็นเรื่อง **security rules** ของ Firebase (อนุญาตเฉพาะโดเมนที่ deploy) ไม่เกี่ยวกับการแยกไฟล์
