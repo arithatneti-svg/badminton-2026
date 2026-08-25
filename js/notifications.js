@@ -1,24 +1,3 @@
-function preloadGif(url) {
-  if (!url) return;
-  _preloadedGifUrl = url;
-  const img = new Image();
-  img.src = url;
-}
-
-function pickGifFromPool(key, pool) {
-  if (!pool || pool.length === 0) return null;
-  if (!_gifSeenMap[key] || _gifSeenMap[key].length === 0) {
-    // reset: สร้าง index array ใหม่แบบ shuffle
-    const indices = pool.map((_, i) => i);
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
-    _gifSeenMap[key] = indices;
-  }
-  return pool[_gifSeenMap[key].pop()];
-}
-
 // ── USER THEME (red / blue / normal) ──
 let userTheme = localStorage.getItem('userTheme') || 'normal';
 
@@ -43,9 +22,9 @@ function selectLoginTheme(theme) {
 
   // update login hint
   const hints = {
-    red:    'ถ้าทีมแดงแพ้ จะได้ GIF พิเศษ 😢',
-    blue:   'ถ้าทีมน้ำเงินแพ้ จะได้ GIF พิเศษ 😢',
-    normal: 'ถ้าทีมที่เลือกแพ้ จะได้เห็น GIF พิเศษ 😢',
+    red:    'เชียร์ทีมแดง — สีธีมจะเป็นสีแดง 🔴',
+    blue:   'เชียร์ทีมน้ำเงิน — สีธีมจะเป็นสีน้ำเงิน 🔵',
+    normal: 'เลือกทีมที่เชียร์เพื่อเปลี่ยนสีธีม 🎨',
   };
   const hint = document.getElementById('themeHint');
   if (hint) hint.textContent = hints[theme] || hints.normal;
@@ -56,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
   selectLoginTheme(userTheme); // จะ set data-theme และ sync buttons ทั้งหมด
 });
 
-function pickGif({ tags, rStat, winnerSide }) {
-  // Best-of-2: แสดง GIF เฉพาะตอนจบ Match เท่านั้น
+// เลือก reaction (emoji + ข้อความ) ตามผลแมตช์ + แท็ก + ทีมที่ผู้ชมเชียร์
+function pickReaction({ tags, rStat, winnerSide }) {
   const tagIds = tags ? tags.map(t => t.id) : [];
   const hasEpic          = tagIds.some(t => t.includes('epic'));
   const hasBlowout       = tagIds.includes('blowout');
@@ -65,49 +44,31 @@ function pickGif({ tags, rStat, winnerSide }) {
   const hasRollercoaster = tagIds.includes('rollercoaster');
   const hasEpicRed       = tagIds.some(t => t.includes('epic_red'));
   const hasEpicBlue      = tagIds.some(t => t.includes('epic_blue'));
-
   const themeIsRed  = userTheme === 'red';
   const themeIsBlue = userTheme === 'blue';
 
-  let key = null;
-
-  // ── เสมอ: ไม่มีฝั่งชนะ/แพ้ — ใช้ draw pool เสมอ ──
+  let key;
   if (rStat === 'D') {
     if (hasRollercoaster) key = 'draw_rollercoaster';
     else if (hasGladiators) key = 'draw_bloody';
     else key = 'draw_normal';
-    return pickGifFromPool(key, GIF_LIBRARY[key]);
-  }
-
-  // ── มีผู้ชนะ: แยกตาม Theme ──
-  const themeLost = (themeIsRed  && winnerSide === 'blue') ||
-                    (themeIsBlue && winnerSide === 'red');
-  const themeWon  = (themeIsRed  && winnerSide === 'red') ||
-                    (themeIsBlue && winnerSide === 'blue');
-
-  if (themeLost) {
-    // ── ผู้ดูเลือกทีมที่แพ้ → lose pool ──
-    const opponentComeback = themeIsRed ? hasEpicBlue : hasEpicRed;
-    if (opponentComeback) key = 'lose_comeback';
-    else if (hasBlowout)  key = 'lose_blowout';
-    else                  key = 'lose_normal';
-
-  } else if (themeWon) {
-    // ── ผู้ดูเลือกทีมที่ชนะ → win pool ──
-    if (hasBlowout)         key = 'win_blowout';
-    else if (hasEpic)       key = 'win_comeback';
-    else if (hasGladiators) key = 'win_hardfought';
-    else                    key = 'win_normal';
-
   } else {
-    // ── Theme กลาง (normal/gold): ใช้ win pool ของฝั่งที่ชนะ ──
-    if (hasBlowout)         key = 'win_blowout';
-    else if (hasEpic)       key = 'win_comeback';
-    else if (hasGladiators) key = 'win_hardfought';
-    else                    key = 'win_normal';
+    const themeLost = (themeIsRed && winnerSide === 'blue') || (themeIsBlue && winnerSide === 'red');
+    if (themeLost) {
+      // ผู้ชมเชียร์ทีมที่แพ้
+      const opponentComeback = themeIsRed ? hasEpicBlue : hasEpicRed;
+      if (opponentComeback) key = 'lose_comeback';
+      else if (hasBlowout)  key = 'lose_blowout';
+      else                  key = 'lose_normal';
+    } else {
+      // ผู้ชมเชียร์ทีมที่ชนะ หรือธีมกลาง → มุมมองฝั่งชนะ
+      if (hasBlowout)         key = 'win_blowout';
+      else if (hasEpic)       key = 'win_comeback';
+      else if (hasGladiators) key = 'win_hardfought';
+      else                    key = 'win_normal';
+    }
   }
-
-  return pickGifFromPool(key, GIF_LIBRARY[key]);
+  return NOTI_REACTIONS[key] || NOTI_REACTIONS.win_normal;
 }
 
 // ── MATCH NOTIFICATION QUEUE ──
@@ -126,13 +87,6 @@ function queueMatchNoti(params) {
     return;
   }
 
-  // preload GIF ล่วงหน้าทันทีที่ queue เพื่อให้โหลดเสร็จก่อน popup โผล่
-  const winnerSideQ = params.rStat === 'W' ? 'red' : params.rStat === 'L' ? 'blue' : 'draw';
-  const gifUrlQ = pickGif({ tags: params.tags, rStat: params.rStat, winnerSide: winnerSideQ });
-  if (gifUrlQ) {
-    preloadGif(gifUrlQ);
-    params._preloadedGif = gifUrlQ;
-  }
   _notiQueue.push(params);
   if (!_notiActive) _processNotiQueue();
 }
@@ -177,7 +131,7 @@ function showMatchNoti(params) {
   queueMatchNoti(params);
 }
 
-function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, gameNum, gameWinner, globalRedBefore, globalBlueBefore, pRed, pBlue, tags, isMatchEnd, rStat, _preloadedGif }) {
+function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, gameNum, gameWinner, globalRedBefore, globalBlueBefore, pRed, pBlue, tags, isMatchEnd, rStat }) {
 
   // FIX-DEDUP: track what's currently on screen so queueMatchNoti can dedup
   _currentNotiMatchId = matchId;
@@ -256,55 +210,15 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
   const notiNarrative = document.getElementById('matchNotiNarrative');
   notiNarrative.textContent = narrative;
 
-  // ── GIF — robust display with fallback chain ──
+  // ── Reaction — self-contained emoji burst (no external GIF/CDN dependency) ──
   const winnerSide = rStat === 'W' ? 'red' : rStat === 'L' ? 'blue' : 'draw';
-  const gifUrl = _preloadedGif || pickGif({ tags, rStat, winnerSide });
+  const reaction = pickReaction({ tags, rStat, winnerSide });
   const gifWrap = document.getElementById('matchNotiGifWrap');
-  
-  if (gifUrl) {
-    gifWrap.innerHTML = '';
-    
-    const img = document.createElement('img');
-    img.alt = 'reaction gif';
-    img.style.cssText = 'width:100%;display:block;max-height:260px;object-fit:contain;background:#000;border-radius:8px;';
-    
-    const themeIsRed  = userTheme === 'red';
-    const themeIsBlue = userTheme === 'blue';
-    const viewerLost  = (themeIsRed && winnerSide === 'blue') || (themeIsBlue && winnerSide === 'red');
-    
-    let fallbackUrl;
-    if (winnerSide === 'draw') {
-      fallbackUrl = GIF_LIBRARY.draw_normal[0];
-    } else if (viewerLost) {
-      fallbackUrl = GIF_LIBRARY.lose_normal[0];
-    } else {
-      fallbackUrl = GIF_LIBRARY.win_normal[0];
-    }
-    
-    let errorCount = 0;
-    img.onerror = function() {
-      errorCount++;
-      if (errorCount === 1 && fallbackUrl && this.src !== fallbackUrl) {
-        // First failure: try the fallback
-        this.src = fallbackUrl;
-      } else if (errorCount === 2) {
-        // Second failure: try the most reliable static fallback
-        const lastResort = 'https://media.giphy.com/media/3ohs4BSacFKI1vYSgE/giphy.gif';
-        if (this.src !== lastResort) {
-          this.src = lastResort;
-        } else {
-          // All fallbacks failed — hide wrap
-          gifWrap.innerHTML = '';
-        }
-      } else {
-        gifWrap.innerHTML = '';
-      }
-    };
-    
-    img.src = gifUrl;
-    gifWrap.appendChild(img);
-  } else {
-    gifWrap.innerHTML = '';
+  if (gifWrap) {
+    gifWrap.innerHTML = reaction
+      ? `<div class="noti-reaction"><div class="noti-reaction-emoji">${reaction.emoji}</div>` +
+        (reaction.text ? `<div class="noti-reaction-text">${escHtml(reaction.text)}</div>` : '') + `</div>`
+      : '';
   }
 
   // ── Overall score + แต้มที่ได้ ──

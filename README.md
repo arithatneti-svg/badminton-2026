@@ -73,7 +73,7 @@ Badminton 2026/
 │   ├── dashboard.js        # dashboard charts (raw score, momentum, heatmap …)
 │   ├── ranking.js          # performance ranking engine
 │   ├── effects.js          # print report, flashScore, fire/confetti, trophy
-│   ├── notifications.js    # GIF pool, ป็อปอัปแจ้งผล, narrative builder, confirm dialog, app init (DOMContentLoaded)
+│   ├── notifications.js    # ป็อปอัปแจ้งผล + reaction (emoji ในตัว), narrative builder, confirm dialog, app init
 │   ├── backup.js           # ⭐ Auto-backup + Restore (snapshot ไป path แยก sportsday_2026_backups)
 │   ├── qr.js               # ⭐ QR: ผู้ชมดูสด (?view=live) + กรรมการ (umpire.html)
 │   ├── tv.js               # ⭐ TV/Projector mode (?view=tv) — วน Battle/Live/Leaderboard

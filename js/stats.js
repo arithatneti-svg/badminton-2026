@@ -76,10 +76,7 @@ function invalidateStatsCache() { _statsCache = null; _statsCacheVersion = -1; }
 // ══════════════════════════════════════
 
 // ── 1. Hot / Cold Streak — ดู 5 แมตช์ล่าสุดของผู้เล่น ──
-// ── 2. GIF Preloader — declared here for use in preloadGif ──
-let _preloadedGifUrl = null;
-
-// ── 3. Umpire Workload Stats ──
+// ── 2. Umpire Workload Stats ──
 function getUmpireStats() {
   const stats = {};
   appState.matchHistory.forEach(h => {

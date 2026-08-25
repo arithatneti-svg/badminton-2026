@@ -193,90 +193,17 @@ let starRAF = null; function startStarBursts(color) { const svg = document.getEl
 
 // ── MATCH NOTIFICATION SYSTEM ──
 
-// ── GIF LIBRARY — direct Giphy media URLs (no redirect, CORS-safe for <img>) ──
-const GIF_LIBRARY = {
-  // ชนะขาด
-  win_blowout: [
-    'https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3a2wybTRuc3R2YWN1dXhiNnA1cGRwNjJ1ZjhkYjNmanQzcjhxZXV4MyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7qE2VAxuXWeyvJIY/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDdkcTI5bDEzMjc2Mzl0bnY0aWQ1a2pueXh0aWswbnMzZTZma2ZmciZlcD12MV9naWZzX3NlYXJjaCZjdD1n/d2r5afIHy34mWTM8r4/giphy.gif',
-    'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzYwbWJ5N2ljZWZ4Zmk4a2g0enkxNmcwaWQ5amV4OHNodzNoZjVxeiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Vu5UbNpjpqfMq2UFg0/giphy.gif',
-    'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExb29idHNyMzV2NjAxcjE0MTJ0cnJ2YW1scXB3aWFwaWhrNXNxYXVxMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VLcKpKJTM867hWXdIR/giphy.gif',
-    'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWprbHU2bTk2MzRlaWtyYjFiMDFzcjMwb25uN21xdHc1NnYzY2NuYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/6vaX3rmgrO2sWEXZQz/giphy.gif',
-    'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3oxbTduZmRleThsaTFldzB3cHJla3Z0MDAwNGoybmg2ZWpmZGY3bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/eKIXKFcp4oibK/giphy.gif',
-    'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWJxaW1leHlpNnJjOXFhMGFqbTM4eDczZWRyMDJobDN6b2g1N3hjNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1TC7pvSZYvguvtjR5q/giphy.gif',
-  ],
-  // comeback ชนะ
-  win_comeback: [
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHpuNGZpaXY5ajhyMmxuaXdwcWh5N2EycWlwdmx3MWZ4czNpZzNkeiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/1zkMbX7k4nd1AM4i4k/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGN0am0yOXExbzc5cWxpbzgyeHRwcXJjZjM4aHd4emlxY29xODI4aiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/8OVKEnGXDv1HdfIlUQ/giphy.gif',
-    'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDB5ZHpzZXNlOHF0d3RnejVkeG5tbnlkY2M3eGhrdHMzc251eTB2aiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RJ3TJTKS7CDLwWqcec/giphy.gif',
-    'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTlwbHo5eXlsazVlZ3Bsb3hmNTQ1cDZibmVqczF3ZWk4ZW45NGM3NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xUPGcpbyVkrL9ejly8/giphy.gif',
-    'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXFxbjNwazZ0ZTE3c2Q0aGV6YWNia3g5MmU5MDN4MGlhMHFoNzI2ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/M9GxkmF9loF2z5bZiR/giphy.gif',
-    'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ292azJxeTRib2xwMHNheDNtOWkzanlzZzBwMXZ5NnNmNmNncGpvaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rOsebqhlfCRby/giphy.gif',
-  ],
-  // สู้กันหนัก ชนะ
-  win_hardfought: [
-    'https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3dDZrMzM2Y3RqM3p6dTI4d3gyN3l0ZmVsZmpyeW1tZG5iNzVuNGdoYyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/kBYnXmFqP2QAbbx1Og/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExemVkbmIyaWlkZGl3YmIwY3NvNmdoOWRvZGg0MDIzdmV3ZDd3YzdjbSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/9UHMJaqyUjOv646OsT/giphy.gif',
-    'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3YyNTNwa2luNmluYWY5bmNhbHZiMmh5d3JvOHdha3NjZnFqaTNnbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1IFYQTsv9VyoYOcsAF/giphy.gif',
-    'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2FuejB1aGdvMjlhc3I3b2ZjYXBhdGt5ZXFxeXZ3MjNjYWM5djdpOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dC9MLSjtPIgLZgUf75/giphy.gif',
-    'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExemlvaWNvczZwdW5xb3FicW1panMyamN4d3gwZHkzdzh6cm9qMnExcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3kD720zFVu22rfIA0s/giphy.gif',
-    'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExY2tsbThtZnM0cDNrMDJiM2t2dXhldjJidjNzemdyOHFqZWF0dW55bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xUOxeWlnnN4ZpamMOk/giphy.gif',
-  ],
-  // ชนะปกติ
-  win_normal: [
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWNzajE5MDhhdWR0NjVsNnFlb2ZuYjY3MzhtbXFsNnRxY2ZxazYyYSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/K4o1c3zfNQH59jWqSv/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWNzajE5MDhhdWR0NjVsNnFlb2ZuYjY3MzhtbXFsNnRxY2ZxazYyYSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/0ixAZaU8Gp8R5TdRQT/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3dDZrMzM2Y3RqM3p6dTI4d3gyN3l0ZmVsZmpyeW1tZG5iNzVuNGdoYyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/LoHprP1EItHyCNfue7/giphy.gif',
-    'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExazNoZXU2b3I1NTRuNzFxMDBxYnRxazJoMmxrZmhteXdibTY4eWZ0NCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7Wiozceem6Vt2eMFxO/giphy.gif',
-  ],
-  // เสมอ ผลัดกันนำ
-  draw_rollercoaster: [
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWhzaWUzYjBmOWl2NW9yaWxwamtvdngyMGtvdDh1aDZreGNoaWY5NCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Jq824R93JsLwZCaiSL/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWhzaWUzYjBmOWl2NW9yaWxwamtvdngyMGtvdDh1aDZreGNoaWY5NCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/JWnXY237vWeX3zx64V/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWhzaWUzYjBmOWl2NW9yaWxwamtvdngyMGtvdDh1aDZreGNoaWY5NCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0Iy69RBwtdmvwkIo/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExajZydzZoeHplbnJmdzZ6cHNwbDZpZTh1OHQybWtoM2ZsM3B6MXE4YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l2JhtkIh8ZwgfJZ04/giphy.gif',
-  ],
-  // เสมอ สู้กันหนัก
-  draw_bloody: [
-    'https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3dDIyZGZvMmQ4bnByanY2aDVoY3J6ZjI0d3dwdmc0YjlvemRhY3Z3dyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/pHZBZs6C7Vx3xpvlIn/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWVqZ3k4aHltYjZ4MGQzaHN3NHRzbzdneDI3NGZmZmMxenA5ZTk2dSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/LRVnPYqM8DLag/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWVqZ3k4aHltYjZ4MGQzaHN3NHRzbzdneDI3NGZmZmMxenA5ZTk2dSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/5xtDarIN81U0KvlnzKo/giphy.gif',
-  ],
-  // เสมอ ปกติ
-  draw_normal: [
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWl5bmJncTRyZ3lkOGs4MWthdHlvZGY5M2I4Z3ViY2V4YW01OTFobSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0HlSlAv2LLHoIrvi/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjN6bmlwemJ2ZnJsYm51Zng4NW8yZ2xtd2s2MGx2eGtidWZqczhoNSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/WT94Wy5a1AyCKekQhq/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHp3aTB5YW40Nm9jcjdoeG1sM25rNWxpZjltdzJxYnM4bzNvMm0zbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xUOrwlBhEwKHZZZKOA/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmk2em9ybG1rczA2eDJvcG01dmNqdmdmejk5Y2c3dGg2Z203djhhMiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/b5L1Lt3k4hGNDZWVIw/giphy.gif',
-  ],
-  // แพ้ ปกติ
-  lose_normal: [
-    'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExYmdnbHdrc2drZjZxbnFibGF2b3g3YnU5MjQzYnJkOTJhNmJlcmczYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKr3nzbh5WgCFxe/giphy.gif',
-    'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3kwajgxd2t3ZjB4cTJmdHBhZWVkN3liNHB6YXBhd2JnZjE4NHlkdiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4zzJHOTm1KElgk4r92/giphy.gif',
-    'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWhtbGM4bTc0YXd5cXV3ang0OXFhdHhwcGVkbmFqcmU3ajJpazBmNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/B36Pgsli5yrHrMcXFd/giphy.gif',
-    'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnphOWJrbmZ6czVsMGtxbXQ2Y3RrOWRwbTV0M2h1OHpkcDU4NGpvdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qKwHRZg3T8mx74psnt/giphy.gif',
-  ],
-  // แพ้ขาด
-  lose_blowout: [
-    'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWR0emd0N2poaXhhcmFieGRjNzk4M3hnY2g1YzNqdHk4ZXJjeWI2eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/tw0xsY7gXcLIfnfFfc/giphy.gif',
-    'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMG53emF3ZDdpd2owMDJmdjl3dnFvbjVmYm43czkxOXp0bjEya2xxbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l1IXWyCZDnZJEkv6g/giphy.gif',
-    'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbWwwMmZ1bXJoYmF4MG5mYmN6d3lsdXBnOXE0eTJiczZpMDdyZDFxNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/lPMSxygwKx7dOuEoGZ/giphy.gif',
-    'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExemNtaXJ5eGFmb2UwazQzM215NmJ6MWZweDRsYnFpemY0ZThxNzljciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ayun3jxxfQKePctZkk/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGN0am0yOXExbzc5cWxpbzgyeHRwcXJjZjM4aHd4emlxY29xODI4aiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KGTTNpVuGVhN6/giphy.gif',
-  ],
-  // โดน comeback
-  lose_comeback: [
-    'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHcwYjhhb2treGpvdTQ5MmxqbWdxNHF3cXBvY3o2dXhoYWZtd3ZoaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xUPGcpbyVkrL9ejly8/giphy.gif',
-    'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExeTRpYTMyZ3QxM3J2b296cXl5ajZjM3l3a2R6MGlvMmJzZGFhd2xtbSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hqNT8jtpZYK9IHUhBY/giphy.gif',
-    'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNzd2dzdnbHI4M2c5czBtdDlsZ2hvajl5OGZyNmQyeWtraGp6OTU5aiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3og0IS3Cm5CWNQF02I/giphy.gif',
-    'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExYmk3YXQydTVjZnNsM3RxZWZqdTdzanY5NDV5ZnRmZXRuYm92M2w3NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/sknO0eYHs8alt3RikJ/giphy.gif',
-    'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTBpd3Aydm1mNHlhYTh6MjM3dzJ0b2phYXNsazUzb3g1OTFkZHY5YiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/EEmh0Vi8yCfbKQpVt4/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGM3OHdvaDUxbGJtZzJqaTNxNWhsMXU4eDE1cWZ4eGM3aGF2ZzZicyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/5bpZkvrwx0B4PqgQFd/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGN0am0yOXExbzc5cWxpbzgyeHRwcXJjZjM4aHd4emlxY29xODI4aiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KGTTNpVuGVhN6/giphy.gif',
-  ],
+// ── MATCH REACTIONS — self-contained (emoji + line). No external GIF/CDN:
+// works offline, never shows a broken image, and cuts ~50 hardcoded URLs.
+const NOTI_REACTIONS = {
+  win_blowout:        { emoji: '🔥💪', text: 'ถล่มขาดลอย!' },
+  win_comeback:       { emoji: '😤🔥', text: 'พลิกกลับมาชนะ!' },
+  win_hardfought:     { emoji: '💪🏸', text: 'สู้สุดใจ คว้าชัย!' },
+  win_normal:         { emoji: '🎉🏸', text: 'ชนะ!' },
+  lose_comeback:      { emoji: '😱💔', text: 'โดนพลิกกลับ…' },
+  lose_blowout:       { emoji: '😭',   text: 'พ่ายยับ ไว้แก้มือ!' },
+  lose_normal:        { emoji: '😢',   text: 'สู้ใหม่รอบหน้า!' },
+  draw_rollercoaster: { emoji: '🎢😮‍💨', text: 'สูสีสุด ๆ เสมอ!' },
+  draw_bloody:        { emoji: '⚔️🤝', text: 'ศึกดุเดือด เสมอ!' },
+  draw_normal:        { emoji: '🤝',   text: 'เสมอ!' },
 };
-
-// ── GIF SHUFFLE (no-repeat until all seen) ──
-const _gifSeenMap = {};
-// ── GIF PRELOAD — โหลด GIF ล่วงหน้าก่อน popup ──
