@@ -706,6 +706,26 @@ function renderGameUI() {
     const liInd = document.getElementById('liGameInd');
     if (liInd) liInd.textContent = 'GAME 1';
   }
+
+  // ปุ่ม "แก้เกม 1" — โชว์เฉพาะตอนอยู่เกม 2
+  const btnEdit = document.getElementById('btnEditG1');
+  if (btnEdit) btnEdit.style.display = isGame2 ? 'block' : 'none';
+
+  // ป้าย Deuce / Game Point ของเกมปัจจุบัน
+  const badge = document.getElementById('situationBadge');
+  if (badge) {
+    const curR = isGame2 ? (match.live.g2R || 0) : (match.live.g1R || 0);
+    const curB = isGame2 ? (match.live.g2B || 0) : (match.live.g1B || 0);
+    const sit = gameSituation(curR, curB);
+    if (!sit) {
+      badge.style.display = 'none';
+    } else if (sit.type === 'deuce') {
+      badge.style.display = 'block'; badge.className = 'sit-badge sit-deuce'; badge.textContent = 'DEUCE ⚡';
+    } else {
+      badge.style.display = 'block'; badge.className = 'sit-badge sit-' + sit.side;
+      badge.textContent = (sit.side === 'red' ? '🔴' : '🔵') + ' GAME POINT';
+    }
+  }
 }
 
 // ==========================================
@@ -736,12 +756,9 @@ async function lockGame1() {
 
   const g1r = Number(match.live.g1R || 0);
   const g1b = Number(match.live.g1B || 0);
-  const err  = scoreValidationMsg(g1r, g1b, 'Game 1');
-  if (err) {
-    vibrateDevice([80, 40, 80]);
-    await showAlert('❌', 'ล็อกไม่ได้', err + '\n\nกรุณาตรวจสอบคะแนนก่อนนะครับ');
-    return;
-  }
+  // คะแนนไม่เข้ากติกา 21 แต้ม (ยอมแพ้/เจ็บ/เล่นสั้น) → เตือนแต่ให้ล็อกได้ ไม่ block
+  const warn = scoreValidationMsg(g1r, g1b, 'Game 1');
+  if (warn) vibrateDevice([60, 30, 60]);
 
   const scoreHtml = `
     <div class="modal-score-preview">
@@ -755,7 +772,7 @@ async function lockGame1() {
       </div>
     </div>`;
 
-  const ok = await showConfirm('🔒', 'LOCK GAME 1?', 'จะเริ่มนับ Game 2 ทันที', {
+  const ok = await showConfirm('🔒', 'LOCK GAME 1?', warn ? `⚠️ ${warn}\nจะล็อกตามคะแนนนี้` : 'จะเริ่มนับ Game 2 ทันที', {
     scoreHtml,
     confirmLabel: 'LOCK',
     confirmClass: 'modal-btn-danger',
@@ -827,6 +844,40 @@ function exitMatch() {
   goToTab('live');
 }
 
+// ถามยืนยันก่อนออก (กันแตะพลาดตอนคุมคะแนน) — คะแนนถูกบันทึกไว้แล้ว
+async function confirmExit() {
+  const ok = await showConfirm('🚪', 'ออกจากการคุมคะแนน?', 'คะแนนถูกบันทึกไว้แล้ว กลับเข้ามาคุมต่อได้เสมอ', {
+    confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ'
+  });
+  if (ok) exitMatch();
+}
+
+// ปลดล็อก Game 1 กลับไปแก้คะแนน (Game 2 ยังอยู่)
+async function editGame1() {
+  const match = appState.ongoingMatches.find(m => m.id === activeMatchId);
+  if (!match || !match.live) return;
+  const ok = await showConfirm('✏️', 'แก้ Game 1?', 'จะกลับไปแก้คะแนน Game 1 (คะแนน Game 2 ที่กดไว้ยังอยู่)', {
+    confirmLabel: 'แก้เลย', cancelLabel: 'ยกเลิก'
+  });
+  if (!ok) return;
+  match.live.g1Locked = false;
+  isGame2 = false;
+  _lastScoreUndo = null; showUndoButton(false);
+  vibrateDevice([30]);
+  renderGameUI();
+  saveMatch(activeMatchId);
+}
+
+// สถานการณ์เกมปัจจุบัน: deuce / game point (แบด 21, cap 30)
+function gameSituation(a, b) {
+  a = Number(a || 0); b = Number(b || 0);
+  if (a >= 20 && b >= 20 && Math.abs(a - b) < 2 && Math.max(a, b) < 30) return { type: 'deuce' };
+  const isGP = (s, o) => { const n = s + 1; return (n >= 21 && n - o >= 2) || n === 30; };
+  if (isGP(a, b)) return { type: 'gp', side: 'red' };
+  if (isGP(b, a)) return { type: 'gp', side: 'blue' };
+  return null;
+}
+
 function analyzeSkillGap(g1r, g1b, g2r, g2b, rStat, potFlags) {
   const M1=g1r-g1b, M2=g2r-g2b, absM1=Math.abs(M1), absM2=Math.abs(M2), totalMargin=absM1+absM2, netMargin=Math.abs((g1r+g2r)-(g1b+g2b)), volatility=Math.abs(absM1-absM2), isDraw=rStat==='D';
   let status='', statusColor='';
@@ -852,10 +903,9 @@ async function confirmMatch() {
   const g1r=Number(m.live.g1R||0), g1b=Number(m.live.g1B||0);
   const g2r=Number(m.live.g2R||0), g2b=Number(m.live.g2B||0);
 
-  const g1Err = scoreValidationMsg(g1r, g1b, 'Game 1');
-  if (g1Err) { vibrateDevice([80,40,80]); await showAlert('❌', 'ส่งผลไม่ได้', g1Err); return; }
-  const g2Err = scoreValidationMsg(g2r, g2b, 'Game 2');
-  if (g2Err) { vibrateDevice([80,40,80]); await showAlert('❌', 'ส่งผลไม่ได้', g2Err); return; }
+  // คะแนนไม่มาตรฐานก็ส่งได้ (ยอมแพ้/เจ็บ/เล่นสั้น) — เตือนแต่ไม่ block
+  const _warns = [scoreValidationMsg(g1r, g1b, 'Game 1'), scoreValidationMsg(g2r, g2b, 'Game 2')].filter(Boolean);
+  if (_warns.length) vibrateDevice([60,30,60]);
 
   const scoreHtml = `
     <div class="modal-score-preview">
@@ -878,7 +928,7 @@ async function confirmMatch() {
       </div>
     </div>`;
 
-  const ok = await showConfirm('🏁', 'SUBMIT MATCH?', 'ผลจะส่งไปที่ Scoreboard ทันที', {
+  const ok = await showConfirm('🏁', 'SUBMIT MATCH?', _warns.length ? `⚠️ ${_warns.join(' · ')}\nจะส่งผลตามคะแนนนี้` : 'ผลจะส่งไปที่ Scoreboard ทันที', {
     scoreHtml,
     confirmLabel: 'SUBMIT',
     confirmClass: 'modal-btn-confirm',

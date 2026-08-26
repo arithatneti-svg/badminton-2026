@@ -57,7 +57,7 @@
 
 <!-- ── LANDSCAPE FLOATING BAR ── -->
 <div id="landscapeInfo">
-  <button class="li-btn danger" onclick="exitMatch()">← ออก</button>
+  <button class="li-btn danger" onclick="confirmExit()">← ออก</button>
   <button class="li-btn" onclick="togglePause()" id="liPauseBtn">⏸ พัก</button>
   <div class="li-timer" id="liTimer">0:00</div>
   <div style="font-family:'Bebas Neue';font-size:1em;color:var(--muted);letter-spacing:2px;" id="liGameInd">GAME 1</div>
@@ -155,7 +155,7 @@
 
   <!-- TOP BAR -->
   <div class="scoring-topbar">
-    <button class="topbar-btn danger" id="btnBack" onclick="exitMatch()">←</button>
+    <button class="topbar-btn danger" id="btnBack" onclick="confirmExit()">←</button>
     <button class="topbar-btn" id="btnPause" onclick="togglePause()">⏸</button>
 
     <div class="scoring-center">
@@ -167,6 +167,9 @@
     <button class="topbar-btn" id="btnUndoBar" onclick="undoLastScore()" style="font-size:1rem; display:none; border-color:rgba(240,192,64,0.4); color:var(--gold);">↩</button>
     <button class="topbar-btn" id="btnFs" onclick="toggleFullScreen()" style="font-size:1.15rem;">⛶</button>
   </div>
+
+  <!-- DEUCE / GAME POINT BADGE -->
+  <div id="situationBadge" class="sit-badge" style="display:none;"></div>
 
   <!-- RED PANEL -->
   <div class="score-panel red" id="redPanel">
@@ -181,6 +184,7 @@
   <!-- LOCK / SUBMIT -->
   <div class="scoring-actions">
     <button class="btn-action btn-lock" id="btnLockG1" onclick="lockGame1()">🔒 LOCK GAME 1</button>
+    <button class="btn-action btn-edit-g1" id="btnEditG1" style="display:none;" onclick="editGame1()">✏️ แก้เกม 1</button>
     <button class="btn-action btn-submit" id="btnConfirmMatch" style="display:none;" onclick="confirmMatch()">✅ SUBMIT MATCH</button>
   </div>
 
