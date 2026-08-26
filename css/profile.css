@@ -237,3 +237,67 @@
 .pd-avatar-btn:hover { transform: scale(1.1); }
 .pd-admin-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
 .pd-admin-row .btn { font-size: 12px; padding: 5px 11px; }
+
+/* ── Match history: partner + opponents ── */
+.profile-match-pair { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pmr-line { display: flex; align-items: center; gap: 5px; font-size: 12.5px; min-width: 0; }
+.pmr-line b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pmr-lbl {
+  font-size: 9.5px; font-weight: 800; letter-spacing: 1px;
+  color: var(--muted); text-transform: uppercase;
+  flex-shrink: 0; min-width: 34px;
+}
+
+/* ── Play-style chips in read mode ── */
+.pd-chip-style {
+  background: rgba(168,85,247,0.1);
+  border-color: rgba(168,85,247,0.28);
+  color: #c084fc;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ── Style picker in edit mode ── */
+.pd-style-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 7px;
+  margin-top: 4px;
+}
+.pd-style-opt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 11px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: all 0.15s;
+  user-select: none;
+}
+.pd-style-opt:hover { border-color: var(--border2); }
+.pd-style-opt input { accent-color: var(--gold); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+.pd-style-opt.on {
+  background: rgba(245,200,66,0.08);
+  border-color: rgba(245,200,66,0.3);
+  color: var(--gold);
+}
+
+/* ── Edit-mode note fields ── */
+.pd-edit-notes { display: grid; gap: 12px; margin-top: 16px; }
+.pd-edit-notes textarea { min-height: 84px; }
+@media (min-width: 700px) {
+  .pd-edit-notes { grid-template-columns: 1fr 1fr; }
+  .pd-edit-notes .profile-field:last-child { grid-column: 1 / -1; }
+}
+
+/* On a phone the id + result + score already fill the line, so the
+   partner/opponent names get their own full-width row instead of
+   being ellipsised down to a few characters. */
+@media (max-width: 600px) {
+  .profile-match-row { row-gap: 6px; }
+  .profile-match-pair { flex-basis: 100%; order: 3; }
+  .profile-match-score { margin-left: auto; }
+  .pmr-line { font-size: 13px; }
+}

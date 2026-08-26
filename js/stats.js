@@ -60,16 +60,17 @@ function analyzeSkillGap(g1r, g1b, g2r, g2b, rStat, mId, potFlags) {
 // ── SHARED STATS BUILDER (FIX-7: extracted from 3 duplicate locations) ──
 // ── buildPlayerStats cache — reset ทุกครั้งที่ data เปลี่ยน ──
 let _statsCache = null;
-let _statsCacheVersion = -1;
+let _statsCacheVersion = '';
 function getPlayerStats() {
-  // ใช้ matchHistory.length เป็น version key — ถ้าเพิ่มขึ้นแสดงว่า data เปลี่ยน
-  const v = (appState.matchHistory||[]).length;
+  // key on the roster too: adding a player does not change matchHistory,
+  // so a match-count-only key kept serving stats that omit the new player
+  const v = (appState.matchHistory||[]).length + ':' + (appState.players||[]).length;
   if (_statsCache && _statsCacheVersion === v) return _statsCache;
   _statsCache = buildPlayerStats();
   _statsCacheVersion = v;
   return _statsCache;
 }
-function invalidateStatsCache() { _statsCache = null; _statsCacheVersion = -1; }
+function invalidateStatsCache() { _statsCache = null; _statsCacheVersion = ''; }
 
 // ══════════════════════════════════════
 // PERFORMANCE ENHANCEMENTS

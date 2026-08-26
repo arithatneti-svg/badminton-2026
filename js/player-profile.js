@@ -26,7 +26,8 @@ function openPlayerProfile(playerId) {
       ${canEdit ? `<div class="pd-admin-row">
         <button class="btn btn-outline btn-sm" onclick="pickPlayerPhoto('${p.id}')">📷 ${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}</button>
         ${hasPhoto ? `<button class="btn btn-outline btn-sm" onclick="removePlayerPhoto('${p.id}')">🗑 ลบรูป</button>` : ''}
-        <button class="btn btn-outline btn-sm" onclick="closePlayerProfile();openPlayerEdit('${p.id}')">✏️ แก้ไขข้อมูล</button>
+        <button class="btn btn-outline btn-sm" onclick="togglePdEdit(true)">📝 แก้ไขโปรไฟล์</button>
+        <button class="btn btn-outline btn-sm" onclick="closePlayerProfile();openPlayerEdit('${p.id}')">✏️ ชื่อ/ทีม/กลุ่ม</button>
       </div>` : ''}
     </div>`;
 
@@ -45,6 +46,8 @@ function openPlayerProfile(playerId) {
   renderPdScoutNotes(prof);
   renderPdMatchHistory(playerId);
   renderPdH2H(playerId);
+  const _rv = document.getElementById('pdReadView'), _ev = document.getElementById('pdEditView');
+  if (_rv && _ev) { _rv.hidden = false; _ev.hidden = true; }
   overlay.classList.add('open');
   overlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
@@ -54,6 +57,7 @@ function closePlayerProfile() {
   const overlay = document.getElementById('playerProfileOverlay');
   if (overlay) overlay.classList.remove('open');
   document.body.style.overflow = '';
+  togglePdEdit(false);
   _pdCurrentId = null;
 }
 
@@ -66,10 +70,11 @@ function renderPdIdentity(prof) {
     { icon:'⚧', label:'เพศ',     value: prof.gender },
     { icon:'✋', label:'มือถนัด', value: prof.hand },
     { icon:'📍', label:'ตำแหน่ง', value: prof.position },
+    { icon:'🏸', label:'ลูกถนัด', value: prof.dominantShot },
   ].filter(c => c.value);
-  el.innerHTML = chips.length
-    ? chips.map(c => `<span class="pd-chip"><span class="pd-chip-lbl">${c.icon} ${c.label}</span><b>${escHtml(c.value)}</b></span>`).join('')
-    : '';
+  const styles = (Array.isArray(prof.styles) ? prof.styles : []).filter(Boolean);
+  const styleChips = styles.map(id => `<span class="pd-chip pd-chip-style">${pdStyleLabel(id)}</span>`).join('');
+  el.innerHTML = chips.map(c => `<span class="pd-chip"><span class="pd-chip-lbl">${c.icon} ${c.label}</span><b>${escHtml(c.value)}</b></span>`).join('') + styleChips;
 }
 
 // จุดแข็ง / จุดอ่อน / โน้ต — free text the desk wrote per player.
@@ -96,18 +101,34 @@ function renderPdMatchHistory(playerId) {
   if (!el) return;
   const matches = appState.matchHistory.filter(h=>[h.r1,h.r2,h.b1,h.b2].includes(playerId)).slice(-10).reverse();
   if (!matches.length) { el.innerHTML = ''; return; }
+  const nameOf = id => (appState.players || []).find(p => p.id === id)?.name || id;
   el.innerHTML = `<div class="profile-section-title">📋 ประวัติการแข่ง (${matches.length} ล่าสุด)</div>` +
     matches.map(h => {
       const isRed=[h.r1,h.r2].includes(playerId);
       const stat=isRed?h.rStat:h.bStat;
       const sc=stat==='W'?'var(--green)':stat==='L'?'var(--danger)':'var(--gold)';
       const sl=stat==='W'?'WIN':stat==='L'?'LOSE':'DRAW';
-      const opp=isRed?h.blueNames:h.redNames;
+      // the other player on this player's own side
+      const mateId = isRed ? (h.r1 === playerId ? h.r2 : h.r1)
+                           : (h.b1 === playerId ? h.b2 : h.b1);
+      const oppIds = isRed ? [h.b1, h.b2] : [h.r1, h.r2];
+      const sideColor = isRed ? 'var(--red)' : 'var(--blue)';
+      const oppColor  = isRed ? 'var(--blue)' : 'var(--red)';
       const tags=(h.analysis?.tags||[]).map(t=>`<span class="finished-tag tag-${t.id||'normal'}">${t.label||t.id}</span>`).join('');
       return `<div class="profile-match-row">
         <div class="profile-match-id">${h.id}</div>
         <div class="profile-match-result" style="background:${sc}22;color:${sc};border:1px solid ${sc}44;">${sl}</div>
-        <div class="profile-match-vs">vs ${escHtml(opp)}</div>
+        <div class="profile-match-pair">
+          <div class="pmr-line">
+            <span class="pmr-lbl">คู่กับ</span>
+            ${mateId ? avatarHtml(mateId, 20, {className:'pav-inline'}) : ''}
+            <b style="color:${sideColor};">${escHtml(mateId ? nameOf(mateId) : '—')}</b>
+          </div>
+          <div class="pmr-line">
+            <span class="pmr-lbl">พบ</span>
+            <b style="color:${oppColor};">${escHtml(oppIds.filter(Boolean).map(nameOf).join(' & '))}</b>
+          </div>
+        </div>
         <div class="profile-match-score">${h.game1} / ${h.game2||'—'}</div>
         ${tags?`<div class="profile-match-tags">${tags}</div>`:''}
       </div>`;
@@ -164,3 +185,118 @@ function renderPdH2H(playerId) {
     }).join('');
 }
 
+// ══════════════════════════════════════════
+// PROFILE EDIT — swaps in place over the read view (admin only).
+// Writes to playerProfiles[id]; name/team/group live on players and
+// keep their own modal (openPlayerEdit).
+// ══════════════════════════════════════════
+const PD_STYLES = [
+  { id:'attacker',   label:'⚔️ Attacker' },
+  { id:'defender',   label:'🛡️ Defender' },
+  { id:'allround',   label:'🎯 All-Round' },
+  { id:'controller', label:'🧠 Controller' },
+  { id:'speed',      label:'⚡ Speed Runner' },
+  { id:'deceptive',  label:'🔮 Deceptive' },
+  { id:'power',      label:'💪 Power Hitter' },
+  { id:'netmaster',  label:'🕸️ Net Master' },
+];
+const PD_HANDS     = ['ขวา', 'ซ้าย', 'ถนัดสองมือ'];
+const PD_GENDERS   = ['ชาย', 'หญิง'];
+const PD_POSITIONS = ['หน้า', 'หลัง', 'ทั้งคู่'];
+
+function pdStyleLabel(id) { return PD_STYLES.find(s => s.id === id)?.label || id; }
+
+function togglePdEdit(on) {
+  const read = document.getElementById('pdReadView');
+  const edit = document.getElementById('pdEditView');
+  if (!read || !edit) return;
+  if (on) {
+    if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+    renderPdEditForm((appState.playerProfiles || {})[_pdCurrentId] || {});
+    read.hidden = true; edit.hidden = false;
+  } else {
+    edit.hidden = true; read.hidden = false;
+  }
+}
+
+function renderPdEditForm(prof) {
+  const el = document.getElementById('pdEditView');
+  if (!el) return;
+  const sel = (id, label, options, value) => `
+    <div class="profile-field">
+      <label>${label}</label>
+      <select id="${id}">
+        <option value="">— ไม่ระบุ —</option>
+        ${options.map(o => `<option value="${escHtml(o)}"${o === value ? ' selected' : ''}>${escHtml(o)}</option>`).join('')}
+      </select>
+    </div>`;
+  const txt = (id, label, value, ph) => `
+    <div class="profile-field">
+      <label>${label}</label>
+      <input type="text" id="${id}" value="${escHtml(value || '')}" placeholder="${ph || ''}">
+    </div>`;
+  const area = (id, label, value, ph) => `
+    <div class="profile-field">
+      <label>${label}</label>
+      <textarea id="${id}" placeholder="${ph || ''}">${escHtml(value || '')}</textarea>
+    </div>`;
+
+  const styles = Array.isArray(prof.styles) ? prof.styles : [];
+  el.innerHTML = `
+    <div class="profile-section-title">📝 แก้ไขโปรไฟล์</div>
+    <div class="profile-field-grid">
+      ${sel('pdfGender',   'เพศ',       PD_GENDERS,   prof.gender)}
+      ${sel('pdfHand',     'มือถนัด',   PD_HANDS,     prof.hand)}
+      ${sel('pdfPosition', 'ตำแหน่ง',   PD_POSITIONS, prof.position)}
+      ${txt('pdfShot',     'ลูกถนัด',   prof.dominantShot, 'เช่น ตบ, หยอด, ดาด')}
+    </div>
+
+    <div class="profile-field" style="margin-top:14px;">
+      <label>สไตล์การเล่น (เลือกได้หลายอย่าง)</label>
+      <div class="pd-style-picker" id="pdfStyles">
+        ${PD_STYLES.map(s => `
+          <label class="pd-style-opt${styles.includes(s.id) ? ' on' : ''}">
+            <input type="checkbox" value="${s.id}"${styles.includes(s.id) ? ' checked' : ''}
+                   onchange="this.closest('.pd-style-opt').classList.toggle('on', this.checked)">
+            <span>${s.label}</span>
+          </label>`).join('')}
+      </div>
+    </div>
+
+    <div class="pd-edit-notes">
+      ${area('pdfStrengths', '💪 จุดแข็ง', prof.strengths, 'เช่น ลูกเซฟดี วางลูกแม่น ใจเย็น')}
+      ${area('pdfWeakness',  '🎯 จุดอ่อน', prof.weakness,  'เช่น แบ็คแฮนด์ไม่ถึงหลัง เหนื่อยง่าย')}
+      ${area('pdfNotes',     '📝 โน้ต',    prof.notes,     'บันทึกอื่น ๆ ที่อยากจำ')}
+    </div>
+
+    <div class="profile-save-row">
+      <button class="btn btn-primary" onclick="savePdProfile()">💾 บันทึก</button>
+      <button class="btn btn-outline" onclick="togglePdEdit(false)">ยกเลิก</button>
+    </div>`;
+}
+
+function savePdProfile() {
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  const id = _pdCurrentId;
+  if (!id) return;
+  const v = elId => document.getElementById(elId)?.value.trim() || '';
+  const styles = [...document.querySelectorAll('#pdfStyles input:checked')].map(c => c.value);
+
+  if (!appState.playerProfiles) appState.playerProfiles = {};
+  const prev = appState.playerProfiles[id] || {};
+  appState.playerProfiles[id] = {
+    ...prev,                       // keep fields this form does not edit
+    gender:       v('pdfGender'),
+    hand:         v('pdfHand'),
+    position:     v('pdfPosition'),
+    dominantShot: v('pdfShot'),
+    styles,
+    strengths:    v('pdfStrengths'),
+    weakness:     v('pdfWeakness'),
+    notes:        v('pdfNotes'),
+  };
+  saveKeys(['playerProfiles'], true);
+  togglePdEdit(false);
+  openPlayerProfile(id);          // repaint the read view with the new values
+  showToast('✅ บันทึกโปรไฟล์แล้ว', 'success');
+}

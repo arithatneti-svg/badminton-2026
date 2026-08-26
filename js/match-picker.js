@@ -78,8 +78,15 @@ function boardFillRandom() {
   const free = teamName => appState.players.filter(p => p.team === teamName && !activeIds.includes(p.id));
   const pick2 = list => {
     const fresh = list.filter(p => getPlayerMatchCountInRound(p.id, round) < 1);
-    const pool = fresh.length >= 2 ? fresh : list;
-    return pool.slice().sort(() => Math.random() - 0.5).slice(0, 2).map(p => p.id);
+    const pool = (fresh.length >= 2 ? fresh : list).slice();
+    // Fisher-Yates. sort(() => Math.random() - 0.5) is NOT a shuffle: the
+    // comparator is inconsistent, so the engine leaves most elements near
+    // their original index and the same first two names keep coming up.
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, 2).map(p => p.id);
   };
   const reds = free('Red'), blues = free('Blue');
   if (reds.length < 2 || blues.length < 2) return showToast('ผู้เล่นที่ว่าง (ไม่ติดแมตช์สด) มีไม่พอ 2 คนต่อทีม', 'error');

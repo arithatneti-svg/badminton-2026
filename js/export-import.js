@@ -97,6 +97,7 @@ function addPlayer() {
   const num = maxNum + 1;
   const newId = prefix + (num < 10 ? '0' + num : num);
   appState.players.push({ id: newId, name, team, group });
+  invalidateStatsCache();
   nameEl.value = ''; nameEl.focus(); // เคลียร์ + โฟกัสต่อ เพิ่มรัว ๆ ได้
   saveKeys(['players']);
   if (typeof renderPlayersTab === 'function') renderPlayersTab();
@@ -110,6 +111,7 @@ function deletePlayer(id) {
   if (inMatch) return showToast('ลบไม่ได้ — ผู้เล่นกำลังอยู่ในแมตช์สด (เอาออกจากคิวก่อน)', 'error');
   showConfirmDialog(`ลบผู้เล่น ${id}?`, function() {
     appState.players = appState.players.filter(p => p.id !== id);
+    invalidateStatsCache();
     saveKeys(['players']);
     if (typeof renderPlayersTab === 'function') renderPlayersTab();
     if (typeof renderMatchBoard === 'function') renderMatchBoard();
@@ -141,6 +143,7 @@ function savePlayerEdit() {
   p.name  = name;
   p.team  = document.getElementById('editPlayerTeam').value;
   p.group = document.getElementById('editPlayerGroup').value;
+  invalidateStatsCache();
   saveKeys(['players'], true);
   closePlayerEdit();
   if (typeof renderPlayersTab === 'function') renderPlayersTab();

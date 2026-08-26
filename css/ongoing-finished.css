@@ -30,202 +30,204 @@
 }
 
 /* ══════════════════════════════════════════════
-   FINISHED MATCHES — Score-Hero List Layout
-   Mobile-first, collapsible tags, clear hierarchy
+   FINISHED MATCHES — result list
+   One grid row per match: id | red | score | blue | result.
+   The old layout centred a ~180px cluster inside a 1290px card,
+   so 86% of every row was empty black. Columns now span the row
+   and the names sit against the score in the middle.
    ══════════════════════════════════════════════ */
 
+/* a result list reads better in a column than stretched to 1340px */
+#finished { max-width: 1120px; }
+
+/* ── Tag legend, collapsed ── */
+.fin-legend {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+.fin-legend > summary {
+  list-style: none;
+  cursor: pointer;
+  outline: none;
+  padding: 11px 16px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1em;
+  letter-spacing: 3px;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fin-legend > summary::-webkit-details-marker { display: none; }
+.fin-legend > summary::after {
+  content: '▾';
+  margin-left: auto;
+  font-size: 13px;
+  transition: transform 0.2s;
+}
+.fin-legend[open] > summary::after { transform: rotate(180deg); }
+.fin-legend-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 9px 18px;
+  padding: 4px 16px 15px;
+  border-top: 1px solid var(--border);
+  padding-top: 13px;
+}
+.fin-legend-item { display: flex; align-items: flex-start; gap: 8px; }
+.fin-legend-item .finished-tag { white-space: nowrap; flex-shrink: 0; }
+.fin-legend-item > span:last-child { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ── List ── */
 #finishedMatchesGrid {
   display: flex !important;
   flex-direction: column !important;
   gap: 6px !important;
 }
 
-/* ── Main row card ── */
 .frow {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s, background 0.12s;
-  cursor: pointer;
+  transition: border-color 0.18s, background 0.15s;
 }
-.frow:hover {
-  border-color: var(--border2);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.32);
-  transform: translateY(-2px);
-}
-/* Touch feedback — mobile active press */
-.frow:active {
-  transform: scale(0.985);
-  background: var(--surface2);
-  box-shadow: none;
-  transition: transform 0.08s, background 0.08s;
-}
-/* Disable hover lift on touch devices (no hover support) */
-@media (hover: none) {
-  .frow:hover {
-    transform: none;
-    box-shadow: none;
-    border-color: var(--border);
-  }
-}
+/* no cursor:pointer / lift — the row is not clickable, only its buttons are */
+.frow:hover { background: var(--surface2); border-color: var(--border2); }
+.frow.winner-red  { border-left-color: var(--red); }
+.frow.winner-blue { border-left-color: var(--blue); }
+.frow.draw-match  { border-left-color: var(--gold); }
 
-/* Winner accent bar — left edge */
-.frow.winner-red  { border-left: 3px solid var(--red);  }
-.frow.winner-blue { border-left: 3px solid var(--blue); }
-.frow.draw-match  { border-left: 3px solid var(--gold); }
-
-/* ── Top meta bar ── */
-.frow-meta {
-  display: flex;
+/* ── Main row ── */
+.frow-main {
+  display: grid;
+  grid-template-areas: "id red score blue result";
+  grid-template-columns: 74px minmax(0,1fr) auto minmax(0,1fr) 106px;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px 0;
+  gap: 14px;
+  padding: 12px 16px;
 }
+
+.frow-id { grid-area: id; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .frow-match-id {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 0.95em;
-  letter-spacing: 3px;
-  color: var(--muted);
-}
-.frow-meta-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-size: 1.15em;
+  letter-spacing: 2px;
+  color: var(--gold);
 }
 
-/* ── Score-Hero section (core of the card) ── */
-.frow-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 12px 16px 14px;
-  flex-wrap: wrap;
-}
-
-/* Team block — left */
-.frow-team-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  max-width: 180px;
-  flex-shrink: 1;
-}
-/* Team block — right (mirror) */
-.frow-team-right {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  max-width: 180px;
-  text-align: right;
-  align-items: flex-end;
-  flex-shrink: 1;
-}
+/* teams sit against the score, not out at the card edges */
+.frow-team { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.frow-team-left  { grid-area: red;  align-items: flex-end;   text-align: right; }
+.frow-team-right { grid-area: blue; align-items: flex-start; text-align: left; }
 
 .frow-player {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
   line-height: 1.3;
-  white-space: normal;
-  word-break: break-word;
   max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--text);
-  transition: color 0.2s;
 }
-/* Loser dims */
 .frow-player.loser { color: var(--muted); font-weight: 500; }
-/* Winner glows */
 .frow-team-left  .frow-player.winner { color: var(--red); }
 .frow-team-right .frow-player.winner { color: var(--blue); }
 
-/* ── Score hero center ── */
+/* ── Score ── */
 .frow-score-hero {
+  grid-area: score;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
+  padding: 4px 12px;
+  background: rgba(255,255,255,0.022);
+  border-radius: 10px;
   flex-shrink: 0;
 }
-.frow-score-row {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  white-space: nowrap;
-}
+.frow-score-row { display: flex; align-items: center; white-space: nowrap; }
 .frow-glabel {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 800;
   letter-spacing: 1px;
   color: var(--muted);
   background: var(--surface3);
   padding: 2px 5px;
   border-radius: 3px;
-  margin-right: 5px;
+  margin-right: 7px;
   flex-shrink: 0;
 }
-.frow-glabel.g2-label {
-  color: var(--gold);
-  background: rgba(245,200,66,0.1);
-}
+.frow-glabel.g2-label { color: var(--gold); background: rgba(245,200,66,0.1); }
 .frow-snum {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.85em;
-  line-height: 1;
-  letter-spacing: 0;
+  font-size: 1.7em;
+  line-height: 1.05;
+  min-width: 30px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 .frow-snum.red  { color: var(--red); }
 .frow-snum.blue { color: var(--blue); }
 .frow-ssep {
   color: rgba(255,255,255,0.25);
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4em;
+  font-size: 1.3em;
   line-height: 1;
-  padding: 0 3px;
+  padding: 0 2px;
 }
 
-/* ── Footer: tags + admin (collapsed by default) ── */
+.frow-main .result-badge { grid-area: result; justify-self: end; white-space: nowrap; }
+
+/* ── Footer: tags + umpire + admin ── */
 .frow-footer {
   border-top: 1px solid rgba(255,255,255,0.04);
-  padding: 7px 16px 9px;
+  padding: 7px 16px 8px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 5px;
-  min-height: 0;
+  gap: 6px;
 }
 .frow-footer:empty { display: none; }
 
-/* ── Tag icon pills (compact) ── */
 .frow-tag-icon {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.3px;
-  padding: 3px 8px;
-  border-radius: 5px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.frow-umpire {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-/* ── Admin controls inline ── */
+/* 39 rows x 3 buttons is a lot of chrome — keep it quiet until hover */
 .frow-admin {
   margin-left: auto;
   display: flex;
   gap: 5px;
-  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.16s;
 }
+.frow:hover .frow-admin,
+.frow:focus-within .frow-admin { opacity: 1; }
+@media (hover: none) { .frow-admin { opacity: 0.6; } }
+
 .frow-admin-btn {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
-  font-weight: 600;
-  padding: 4px 9px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 7px;
   background: transparent;
+  border: 1px solid var(--border);
   color: var(--muted);
   cursor: pointer;
   transition: all 0.15s;
@@ -237,38 +239,46 @@
 .frow-admin-btn.del   { color: var(--danger); border-color: rgba(255,69,96,0.2); }
 .frow-admin-btn.del:hover { background: rgba(255,69,96,0.08); }
 
-/* ── Umpire chip ── */
-.frow-umpire {
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* ── Tablet: drop the fixed id/result rails, let them share the top ── */
+@media (max-width: 860px) {
+  .frow-main {
+    grid-template-areas:
+      "id   id     result"
+      "red  score  blue";
+    grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+    gap: 8px 10px;
+    padding: 10px 13px 12px;
+  }
+  .frow-id { justify-self: start; }
+  .frow-main .result-badge { justify-self: end; }
+  .frow-score-hero { padding: 3px 10px; }
 }
 
-/* ════════════════════════════════════
-   MOBILE — stack layout < 520px
-   ════════════════════════════════════ */
-@media (max-width: 520px) {
-  .frow-body {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 8px;
-    padding: 8px 14px 10px;
+/* ── Phone: the score block is wider than two name columns can afford
+   at 375px, so it drops to its own full-width row and goes horizontal ── */
+@media (max-width: 560px) {
+  #finished { padding-left: 12px; padding-right: 12px; }
+  .frow-main {
+    grid-template-areas:
+      "id    result"
+      "red   blue"
+      "score score";
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+    padding: 11px 13px 12px;
   }
-  /* Score row goes first on mobile — hero element */
-  .frow-score-hero { order: -1; flex-direction: row; gap: 12px; }
-  .frow-score-row  { gap: 0; }
-  .frow-snum       { font-size: 2em; }
-
-  .frow-team-left  { flex-direction: row; align-items: center; gap: 6px; }
-  .frow-team-right { flex-direction: row; align-items: center; gap: 6px; text-align: left; align-items: flex-start; }
-
-  .frow-player     { font-size: 13px; }
-  .frow-meta       { padding: 7px 14px 0; }
-  .frow-footer     { padding: 6px 14px 8px; }
-  .frow-admin      { margin-left: 0; }
+  .frow-team-left  { align-items: flex-start; text-align: left; }
+  .frow-score-hero {
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+    padding: 5px 10px;
+    margin-top: 2px;
+  }
+  .frow-player { font-size: 13.5px; }
+  .frow-snum { font-size: 1.5em; min-width: 26px; }
+  .frow-footer { padding: 6px 13px 8px; }
+  .fin-legend-body { grid-template-columns: 1fr; }
 }
 
 /* Live card score bigger on ongoing tab */

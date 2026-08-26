@@ -307,7 +307,6 @@ function renderFinishedMatches() {
 
   container.innerHTML = matches.map(m => {
     const isRedWin = m.rStat==='W', isBlueWin = m.bStat==='W';
-    const winnerClass = isRedWin?'winner-red':isBlueWin?'winner-blue':'';
     const resultBadgeClass = isRedWin?'win-red':isBlueWin?'win-blue':'draw';
     const resultLabel = isRedWin?'🔴 RED WINS':isBlueWin?'🔵 BLUE WINS':'🤝 DRAW';
     const [g1r,g1b] = (m.game1||'0:0').split(':').map(Number);
@@ -362,26 +361,21 @@ function renderFinishedMatches() {
     const footerHtml = hasFooter
       ? `<div class="frow-footer">${tagHtml}${umpireHtml}${adminHtml}</div>` : '';
 
-    const predAccHtml = '';
-
     // ── Winner class ──
     const winClass = isRedWin ? 'winner-red' : isBlueWin ? 'winner-blue' : 'draw-match';
 
     return `<div class="frow ${winClass}">
-      <div class="frow-meta">
-        <span class="frow-match-id">${m.id}</span>
-        <span class="round-badge">R${m.round}</span>
-        <div class="frow-meta-right">
-          <span class="result-badge ${resultBadgeClass}">${resultLabel}</span>
+      <div class="frow-main">
+        <div class="frow-id">
+          <span class="frow-match-id">${m.id}</span>
+          <span class="round-badge">R${m.round}</span>
         </div>
-      </div>
-      <div class="frow-body">
-        <div class="frow-team-left">${redPlayers}</div>
+        <div class="frow-team frow-team-left">${redPlayers}</div>
         ${scoreHero}
-        <div class="frow-team-right">${bluePlayers}</div>
+        <div class="frow-team frow-team-right">${bluePlayers}</div>
+        <span class="result-badge ${resultBadgeClass}">${resultLabel}</span>
       </div>
       ${footerHtml}
-      ${predAccHtml}
     </div>`;
 
 

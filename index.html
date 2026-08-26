@@ -363,32 +363,18 @@
       </div>
     </div>
   </div>
-  <!-- Tag Legend Box -->
-  <div class="tag-legend-box" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1em;letter-spacing:3px;color:var(--gold);margin-bottom:12px;">📖 ความหมายของ Tag</div>
-    <div style="display:flex;flex-wrap:wrap;gap:10px;">
-      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
-        <span class="finished-tag tag-comeback" style="white-space:nowrap;flex-shrink:0;">🔥 Epic Comeback</span>
-        <span style="font-size:12px;color:var(--muted);line-height:1.5;">ตามหลัง 4+ แต้มช่วงท้ายแล้วพลิกชนะ</span>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
-        <span class="finished-tag tag-clutch" style="white-space:nowrap;flex-shrink:0;">⚔️ The Gladiators</span>
-        <span style="font-size:12px;color:var(--muted);line-height:1.5;">แต้มรวม 2 เกม ห่างกันไม่เกิน 5 แต้ม</span>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
-        <span class="finished-tag tag-custom" style="white-space:nowrap;flex-shrink:0;">🏃‍♂️ Marathon</span>
-        <span style="font-size:12px;color:var(--muted);line-height:1.5;">มีเกมที่ดิวซ์ยาวถึง 22 แต้มขึ้นไป</span>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
-        <span class="finished-tag tag-custom" style="white-space:nowrap;flex-shrink:0;">🎢 Rollercoaster</span>
-        <span style="font-size:12px;color:var(--muted);line-height:1.5;">ผลัดกันชนะ-แพ้ขาดคนละเกม</span>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:8px;min-width:200px;flex:1;">
-        <span class="finished-tag tag-blowout" style="white-space:nowrap;flex-shrink:0;">🌪️ Blowout</span>
-        <span style="font-size:12px;color:var(--muted);line-height:1.5;">ทีมชนะทุบขาด แต้มห่างรวม 16 แต้มขึ้นไป</span>
-      </div>
+  <!-- Tag legend — collapsed by default; it is reference material, not
+       something you need on screen while scanning 39 results. -->
+  <details class="fin-legend">
+    <summary>📖 ความหมายของ Tag</summary>
+    <div class="fin-legend-body">
+      <div class="fin-legend-item"><span class="finished-tag tag-comeback">🔥 Epic Comeback</span><span>ตามหลัง 4+ แต้มช่วงท้ายแล้วพลิกชนะ</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-clutch">⚔️ The Gladiators</span><span>แต้มรวม 2 เกม ห่างกันไม่เกิน 5 แต้ม</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-custom">🏃 Marathon</span><span>มีเกมที่ดิวซ์ยาวถึง 22 แต้มขึ้นไป</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-custom">🎢 Rollercoaster</span><span>ผลัดกันชนะ-แพ้ขาดคนละเกม</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-blowout">🌪️ Blowout</span><span>ทีมชนะทุบขาด แต้มห่างรวม 16 แต้มขึ้นไป</span></div>
     </div>
-  </div>
+  </details>
   <div id="finishedMatchesGrid" class="match-grid"></div>
 </div>
 
@@ -1334,8 +1320,13 @@
          (Career tab removed: seasons_archive is empty, so it only ever
          repeated the stat bar above.) -->
     <div class="profile-body">
-      <div id="pdIdentityRow" class="pd-identity"></div>
-      <div id="pdScoutNotes"></div>
+      <!-- read mode -->
+      <div id="pdReadView">
+        <div id="pdIdentityRow" class="pd-identity"></div>
+        <div id="pdScoutNotes"></div>
+      </div>
+      <!-- edit mode (admin) — swaps in place, no modal over the overlay -->
+      <div id="pdEditView" hidden></div>
       <div id="pdMatchHistory"></div>
       <div id="pdH2H"></div>
     </div>

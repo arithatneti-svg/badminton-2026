@@ -6,7 +6,7 @@
 // NOTE: Firebase Realtime DB traffic is WebSocket (not fetch),
 // so live data still needs a connection — this only caches the shell.
 // ============================================================
-const CACHE = 'bdm2026-shell-v1';
+const CACHE = 'bdm2026-shell-v3';
 
 const SHELL = [
     "./",
@@ -30,7 +30,7 @@ const SHELL = [
     "css/profile.css",
     "css/qr.css",
     "css/tv.css",
-    "css/ranking.css",
+    "css/report.css",
     "css/responsive.css",
     "css/scoreboard.css",
     "css/tables-modals.css",
@@ -46,6 +46,7 @@ const SHELL = [
     "js/match-render.js",
     "js/notifications.js",
     "js/pdf-export.js",
+    "js/player-photo.js",
     "js/player-profile.js",
     "js/qr.js",
     "js/tv.js",
@@ -103,7 +104,24 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Same-origin → stale-while-revalidate
+  // Navigations / HTML → network-first.
+  // The document is the manifest of which scripts exist, so serving a
+  // cached one next to freshly-revalidated JS can produce a page running
+  // code its own script tags never loaded. Cache is the offline fallback.
+  const isDoc = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+  if (isDoc) {
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.status === 200) caches.open(CACHE).then((c) => c.put(req, res.clone()));
+          return res;
+        })
+        .catch(() => caches.open(CACHE).then((c) => c.match(req).then((hit) => hit || c.match('index.html'))))
+    );
+    return;
+  }
+
+  // Everything else same-origin → stale-while-revalidate
   e.respondWith(
     caches.open(CACHE).then((c) =>
       c.match(req).then((hit) => {
