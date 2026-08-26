@@ -115,70 +115,8 @@ function exportSummaryPDF() {
 // ══════════════════════════════════════════
 // ROUNDS REPORT — per-round summary
 // ══════════════════════════════════════════
-function renderRoundsReport() {
-  const el = document.getElementById('roundsReportContent');
-  if (!el) return;
-  const hist = appState.matchHistory || [];
-  if (hist.length === 0) {
-    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px;">ยังไม่มีแมตช์ที่จบแล้ว</div>';
-    return;
-  }
-  const rounds = [...new Set(hist.map(m => m.round))].sort((a,b) => parseInt(a)-parseInt(b));
-  el.innerHTML = rounds.map(r => {
-    const ms = hist.filter(m => m.round === r);
-    const redW = ms.filter(m => m.rStat === 'W').length;
-    const blueW = ms.filter(m => m.bStat === 'W').length;
-    const draws = ms.filter(m => m.rStat === 'D').length;
-    const total = ms.length;
-    const redPct = total ? Math.round(redW/total*100) : 0;
-    const bluePct = total ? Math.round(blueW/total*100) : 0;
-    const drawPct = total ? Math.round(draws/total*100) : 0;
-    const winner = redW > blueW ? 'RED' : blueW > redW ? 'BLUE' : 'DRAW';
-    const wColor = winner==='RED'?'var(--red)':winner==='BLUE'?'var(--blue)':'var(--gold)';
-    const matchRows = ms.map(m => {
-      const rc = m.rStat==='W'?'var(--red)':m.bStat==='W'?'var(--blue)':'var(--gold)';
-      const res = (m.result||'').replace(/[🔴🔵🤝]/g,'').trim();
-      return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-        <td style="color:var(--gold);font-weight:700;padding:7px 10px;">${m.id}</td>
-        <td style="color:var(--red);padding:7px 10px;font-size:12px;">${escHtml(m.redNames)}</td>
-        <td style="text-align:center;padding:7px 8px;font-weight:800;letter-spacing:1px;font-family:monospace;">${m.game1} / ${m.game2||'—'}</td>
-        <td style="color:var(--blue);padding:7px 10px;font-size:12px;text-align:right;">${escHtml(m.blueNames)}</td>
-        <td style="text-align:center;padding:7px 10px;"><span style="color:${rc};font-weight:800;font-size:12px;">${res}</span></td>
-      </tr>`;
-    }).join('');
-    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
-      <div style="background:var(--surface2);padding:14px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--border);">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5em;letter-spacing:3px;color:var(--gold);">ROUND ${r}</div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span style="background:rgba(255,59,92,0.12);color:var(--red);border:1px solid rgba(255,59,92,0.25);padding:3px 10px;border-radius:8px;font-weight:800;font-size:13px;">🔴 ${redW}W</span>
-          <span style="background:rgba(245,200,66,0.1);color:var(--gold);border:1px solid rgba(245,200,66,0.2);padding:3px 10px;border-radius:8px;font-weight:800;font-size:13px;">🤝 ${draws}D</span>
-          <span style="background:rgba(59,142,255,0.12);color:var(--blue);border:1px solid rgba(59,142,255,0.25);padding:3px 10px;border-radius:8px;font-weight:800;font-size:13px;">🔵 ${blueW}W</span>
-        </div>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-          <span style="font-size:11px;color:var(--muted);">${total} แมตช์ · ผู้นำรอบ:</span>
-          <span style="font-weight:800;color:${wColor};font-size:13px;">${winner}</span>
-        </div>
-      </div>
-      <div style="padding:8px 12px;">
-        <div style="display:flex;height:8px;border-radius:6px;overflow:hidden;margin:10px 4px 6px;gap:2px;">
-          ${redPct>0?`<div style="flex:${redPct};background:var(--red);border-radius:4px 0 0 4px;"></div>`:''}
-          ${drawPct>0?`<div style="flex:${drawPct};background:var(--gold);"></div>`:''}
-          ${bluePct>0?`<div style="flex:${bluePct};background:var(--blue);border-radius:0 4px 4px 0;"></div>`:''}
-        </div>
-        <table style="width:100%;border-collapse:collapse;margin-top:8px;">
-          <thead><tr style="border-bottom:1px solid var(--border2);">
-            <th style="text-align:left;padding:6px 10px;font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px;">MATCH</th>
-            <th style="text-align:left;padding:6px 10px;font-size:10px;color:var(--red);font-weight:800;letter-spacing:1px;">RED</th>
-            <th style="text-align:center;padding:6px 8px;font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px;">SCORE</th>
-            <th style="text-align:right;padding:6px 10px;font-size:10px;color:var(--blue);font-weight:800;letter-spacing:1px;">BLUE</th>
-            <th style="text-align:center;padding:6px 10px;font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px;">RESULT</th>
-          </tr></thead>
-          <tbody>${matchRows}</tbody>
-        </table>
-      </div>
-    </div>`;
-  }).join('');
-}
+// Round summary is drawn by renderMatchesPanel() in js/reports.js now;
+// only the PDF export of it lives here.
 
 function exportRoundsPDF() {
   const hist = appState.matchHistory || [];

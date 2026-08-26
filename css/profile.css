@@ -102,6 +102,46 @@
 }
 .profile-section-title:first-child { margin-top: 0; }
 
+/* ── Identity chips (เพศ / มือถนัด / ตำแหน่ง) ── */
+.pd-identity { display: flex; flex-wrap: wrap; gap: 8px; }
+.pd-identity:not(:empty) { margin-bottom: 4px; }
+.pd-chip {
+  display: inline-flex; align-items: baseline; gap: 7px;
+  padding: 7px 13px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+}
+.pd-chip-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: var(--muted); }
+.pd-chip b { color: var(--text); font-weight: 700; }
+
+/* ── Scout notes (free text written by the desk) ── */
+.pd-notes { display: grid; gap: 10px; }
+.pd-note {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border2);
+  border-radius: 10px;
+  padding: 11px 14px;
+  background: rgba(255,255,255,0.015);
+}
+.pd-note-title {
+  font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+.pd-note-text { font-size: 13px; line-height: 1.75; color: var(--text2); white-space: pre-wrap; }
+.pd-note-good { border-left-color: var(--green); }
+.pd-note-good .pd-note-title { color: var(--green); }
+.pd-note-bad { border-left-color: var(--danger); }
+.pd-note-bad .pd-note-title { color: var(--danger); }
+.pd-note-note { border-left-color: var(--gold); }
+.pd-note-note .pd-note-title { color: var(--gold); }
+
+@media (min-width: 700px) {
+  .pd-notes { grid-template-columns: 1fr 1fr; }
+  .pd-note-note { grid-column: 1 / -1; }
+}
+
 /* Edit fields */
 .profile-field-grid {
   display: grid;
@@ -172,7 +212,28 @@
 
 @media (max-width: 600px) {
   .profile-header { padding: 20px 16px 16px; gap: 14px; }
+  .pd-avatar-wrap .pav { --pav-size: 84px !important; }
   .profile-body { padding: 18px 16px; }
   .profile-close-btn { top: 12px; right: 12px; }
 }
 
+
+/* ── Photo controls in the profile header ── */
+.pd-avatar-wrap { position: relative; flex-shrink: 0; }
+.pd-avatar-btn {
+  position: absolute;
+  right: 0; bottom: 2px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  background: var(--gold);
+  color: #14140c;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s;
+}
+.pd-avatar-btn:hover { transform: scale(1.1); }
+.pd-admin-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.pd-admin-row .btn { font-size: 12px; padding: 5px 11px; }

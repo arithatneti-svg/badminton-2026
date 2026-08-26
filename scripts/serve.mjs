@@ -18,7 +18,12 @@ createServer((req, res) => {
   if (!fp.startsWith(root)) { res.writeHead(403); return res.end('forbidden'); }
   readFile(fp, (err, data) => {
     if (err) { res.writeHead(404); return res.end('404 ' + p); }
-    res.writeHead(200, { 'Content-Type': TYPES[extname(fp)] || 'application/octet-stream' });
+    // never cache in dev — otherwise an edited js/css keeps serving stale
+    // until a hard refresh, which silently hides changes you just made
+    res.writeHead(200, {
+      'Content-Type': TYPES[extname(fp)] || 'application/octet-stream',
+      'Cache-Control': 'no-store, must-revalidate',
+    });
     res.end(data);
   });
 }).listen(port, () => console.log(`serving ${root} → http://localhost:${port}`));

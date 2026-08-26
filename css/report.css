@@ -1,0 +1,844 @@
+/* ══════════════════════════════════════════════════════════════
+   REPORT DASHBOARD — design system
+   Everything here is scoped under #report so it can't leak into
+   the scoreboard / picker / umpire screens.
+   Loaded AFTER ranking.css + fullscreen.css so it can refine the
+   .rank-* / .perf-* cards those files define.
+   Mobile-first. Breakpoints: 640 (phone→tablet), 900 (→laptop).
+   ══════════════════════════════════════════════════════════════ */
+
+#report {
+  --rp-pad: 14px;
+  --rp-radius: 14px;
+  --rp-gap: 12px;
+  /* one shared card surface: flat surface + a faint top-light so cards
+     read as lit from above instead of as plain grey rectangles */
+  --rp-card: linear-gradient(180deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0) 42%), var(--surface);
+}
+
+/* numbers line up in every table / metric in the report */
+#report .rp-num,
+#report table td,
+#report .rp-metric-val,
+#report .rp-hs-val { font-variant-numeric: tabular-nums; }
+
+/* ── shared card shell ───────────────────────────────────── */
+#report .rp-card {
+  background: var(--rp-card);
+  border: 1px solid var(--border);
+  border-radius: var(--rp-radius);
+  overflow: hidden;
+}
+
+/* ── section title (Bebas + gold rule) ───────────────────── */
+#report .rp-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.25em;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+#report .rp-sec-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(245,200,66,0.25), transparent);
+}
+#report .rp-sec-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+/* ── empty state ─────────────────────────────────────────── */
+#report .rp-empty {
+  text-align: center;
+  padding: 44px 20px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.7;
+  background: rgba(255,255,255,0.015);
+  border: 1px dashed var(--border2);
+  border-radius: var(--rp-radius);
+}
+#report .rp-empty-icon { font-size: 30px; display: block; margin-bottom: 8px; opacity: 0.5; }
+
+/* ══ 1. HERO — one summary banner, not four flat tiles ═════ */
+#report .rp-hero {
+  position: relative;
+  background: var(--rp-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px var(--rp-pad) 14px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+/* ambient team glow, red on the left, blue on the right */
+#report .rp-hero::before {
+  content: '';
+  position: absolute;
+  inset: -40% -10% auto;
+  height: 180%;
+  background:
+    radial-gradient(closest-side, rgba(255,59,92,0.10), transparent 70%) left center / 45% 100% no-repeat,
+    radial-gradient(closest-side, rgba(59,142,255,0.10), transparent 70%) right center / 45% 100% no-repeat;
+  pointer-events: none;
+}
+#report .rp-hero > * { position: relative; }
+
+#report .rp-hero-top {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+#report .rp-hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15em;
+  letter-spacing: 4px;
+  color: var(--text2);
+}
+#report .rp-hero-total {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+#report .rp-hero-total b {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.7em;
+  letter-spacing: 1px;
+  color: var(--gold);
+  margin-right: 3px;
+}
+
+/* three big numbers */
+#report .rp-hero-scores {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+#report .rp-hs { text-align: center; min-width: 0; }
+#report .rp-hs-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.2em, 11vw, 3.4em);
+  line-height: 0.95;
+  letter-spacing: 2px;
+}
+#report .rp-hs-lbl {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+#report .rp-hs-red  .rp-hs-val { color: var(--red);  text-shadow: 0 0 24px rgba(255,59,92,0.35); }
+#report .rp-hs-blue .rp-hs-val { color: var(--blue); text-shadow: 0 0 24px rgba(59,142,255,0.35); }
+#report .rp-hs-draw .rp-hs-val { color: var(--gold); font-size: clamp(1.5em, 7vw, 2.1em); }
+#report .rp-hs-draw .rp-hs-lbl { font-size: 8px; }
+
+/* proportional win-share bar */
+#report .rp-hero-bar {
+  display: flex;
+  height: 8px;
+  gap: 2px;
+  margin-top: 14px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface3);
+}
+#report .rp-hero-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  transition: flex-grow 0.6s cubic-bezier(0.34,1.3,0.64,1);
+}
+#report .rp-hb-red  { background: linear-gradient(90deg, #ff3b5c, #ff6b7f); }
+#report .rp-hb-draw { background: var(--gold); }
+#report .rp-hb-blue { background: linear-gradient(90deg, #6bb0ff, #3b8eff); }
+
+/* ══ 2. LEGEND — slim, collapsed by default ════════════════ */
+#report .rp-legend {
+  background: rgba(245,200,66,0.035);
+  border: 1px solid rgba(245,200,66,0.14);
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+#report .rp-legend > summary {
+  list-style: none;
+  cursor: pointer;
+  outline: none;
+  padding: 9px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#report .rp-legend > summary::-webkit-details-marker { display: none; }
+#report .rp-legend > summary::after {
+  content: '▾';
+  margin-left: auto;
+  transition: transform 0.2s;
+  font-size: 13px;
+}
+#report .rp-legend[open] > summary::after { transform: rotate(180deg); }
+#report .rp-legend-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 6px 20px;
+  padding: 2px 14px 14px;
+  border-top: 1px solid rgba(245,200,66,0.1);
+  margin-top: 2px;
+  padding-top: 12px;
+}
+#report .rp-legend-col h5 {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--text2);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+#report .rp-legend-col p {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.85;
+}
+#report .rp-legend-col b { color: var(--text); }
+
+/* ══ 3. SUB-TABS ═══════════════════════════════════════════ */
+.rpt-tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.rpt-tab-bar::-webkit-scrollbar { display: none; }
+.rpt-tab {
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 9px;
+  color: var(--muted);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.18s, background 0.18s;
+}
+.rpt-tab:hover { color: var(--text); background: var(--surface2); }
+.rpt-tab.active {
+  color: #14140c;
+  background: linear-gradient(135deg, var(--gold) 0%, #ffb340 100%);
+  box-shadow: 0 4px 14px rgba(245,200,66,0.22);
+}
+
+/* Panels */
+.rpt-panel { display: none; }
+.rpt-panel.active { display: block; animation: fadeUp 0.22s ease both; }
+
+/* ══ 4. TOOLBAR ════════════════════════════════════════════ */
+.rpt-panel-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.rpt-search {
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: 13px;
+  padding: 9px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.rpt-search:focus { border-color: var(--gold); background: var(--surface3); }
+.rpt-select {
+  font-size: 13px;
+  padding: 9px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+.rpt-select:focus { border-color: var(--gold); }
+.rpt-group-pills { display: flex; gap: 4px; flex-shrink: 0; }
+
+/* Export cluster — one toggle that opens a panel, so the toolbar
+   stays a single tidy row on a phone instead of eight loose buttons. */
+#report .rp-export { position: relative; margin-left: auto; }
+#report .rp-export > summary {
+  list-style: none;
+  cursor: pointer;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 9px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+#report .rp-export > summary::-webkit-details-marker { display: none; }
+#report .rp-export > summary:hover { border-color: var(--border2); color: var(--text); }
+#report .rp-export[open] > summary {
+  background: var(--gold-dim);
+  border-color: rgba(245,200,66,0.3);
+  color: var(--gold);
+}
+#report .rp-export-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  width: min(280px, calc(100vw - 32px));
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeUp 0.16s ease both;
+}
+#report .rp-export-menu .btn { width: 100%; justify-content: center; }
+#report .rp-export-group {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#report .rp-export-group-lbl {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+#report .rp-export-row { display: flex; gap: 6px; }
+#report .rp-export-row .rpt-select { flex: 1; min-width: 0; }
+
+/* ══ 5. METRIC STRIP (small tiles above a panel) ═══════════ */
+#report .rp-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+#report .rp-metric {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 10px 8px;
+  text-align: center;
+  min-width: 0;
+}
+#report .rp-metric-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.55em;
+  letter-spacing: 1px;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#report .rp-metric-lbl {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* ══ 6. BARS & BADGES (shared) ═════════════════════════════ */
+#report .rp-bar {
+  height: 6px;
+  background: var(--surface3);
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 34px;
+}
+#report .rp-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(0.34,1.3,0.64,1);
+}
+#report .rp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+#report .rp-badge.b-red   { background: rgba(255,59,92,0.12);  color: var(--red);    border-color: rgba(255,59,92,0.28); }
+#report .rp-badge.b-blue  { background: rgba(59,142,255,0.12); color: var(--blue);   border-color: rgba(59,142,255,0.28); }
+#report .rp-badge.b-gold  { background: rgba(245,200,66,0.1);  color: var(--gold);   border-color: rgba(245,200,66,0.25); }
+#report .rp-badge.b-green { background: rgba(0,230,118,0.12);  color: var(--green);  border-color: rgba(0,230,118,0.25); }
+#report .rp-badge.b-danger{ background: rgba(255,69,96,0.1);   color: var(--danger); border-color: rgba(255,69,96,0.22); }
+#report .rp-badge.b-hot   { background: rgba(255,107,53,0.12); color: #ff6b35;       border-color: rgba(255,107,53,0.3); }
+#report .rp-badge.b-cold  { background: rgba(96,165,250,0.12); color: #60a5fa;       border-color: rgba(96,165,250,0.3); }
+#report .rp-badge.b-mute  { background: var(--surface2);       color: var(--muted);  border-color: var(--border); }
+
+/* ══ 7. PLAYERS — card list (phone) + table (laptop) ═══════
+   Both are rendered; CSS decides which one is visible, so there
+   is no JS branch and no resize listener to keep in sync.        */
+#report .rp-plist { display: flex; flex-direction: column; gap: 8px; }
+#report .rp-ptable-wrap { display: none; }
+
+#report .rp-prow {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  grid-template-areas:
+    "pos  id    pts"
+    "pos  meta  pts"
+    "bar  bar   bar"
+    "foot foot  foot";
+  align-items: center;
+  gap: 2px 10px;
+  background: var(--rp-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 13px;
+  transition: border-color 0.18s, transform 0.15s;
+}
+#report .rp-prow:active { transform: scale(0.995); }
+#report .rp-prow.is-red  { border-left: 3px solid rgba(255,59,92,0.5); }
+#report .rp-prow.is-blue { border-left: 3px solid rgba(59,142,255,0.5); }
+
+#report .rp-prow-pos {
+  grid-area: pos;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.35em;
+  text-align: center;
+  color: var(--muted);
+  align-self: start;
+  padding-top: 2px;
+}
+#report .rp-prow-pos.p1 { color: #FFD700; }
+#report .rp-prow-pos.p2 { color: #C0C0C0; }
+#report .rp-prow-pos.p3 { color: #CD7F32; }
+
+#report .rp-prow-id { grid-area: id; display: flex; align-items: center; gap: 7px; min-width: 0; }
+#report .rp-prow-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+#report .rp-prow-name:hover { color: var(--gold); }
+#report .rp-prow-meta {
+  grid-area: meta;
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+#report .rp-prow-pts {
+  grid-area: pts;
+  text-align: right;
+  flex-shrink: 0;
+}
+#report .rp-prow-pts b {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9em;
+  line-height: 0.9;
+  letter-spacing: 1px;
+  color: var(--gold);
+}
+#report .rp-prow-pts span {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+#report .rp-prow-bar {
+  grid-area: bar;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+}
+#report .rp-prow-bar .rp-bar { flex: 1; }
+#report .rp-prow-wr {
+  font-size: 11.5px;
+  font-weight: 800;
+  min-width: 34px;
+  text-align: right;
+}
+#report .rp-prow-foot {
+  grid-area: foot;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--muted);
+}
+#report .rp-prow-foot .sep { color: var(--border2); }
+#report .rp-prow-tags { margin-left: auto; display: flex; gap: 5px; font-size: 11.5px; }
+
+/* table variant */
+#report .rp-ptable-wrap .table-wrap { max-height: 68vh; overflow: auto; }
+#report .rp-ptable-wrap thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface3);
+}
+#report table tbody tr:nth-child(even) { background: rgba(255,255,255,0.012); }
+#report table tbody tr:hover { background: rgba(245,200,66,0.045); }
+#report table td, #report table th { padding: 9px 11px; }
+#report .rp-name-link {
+  cursor: pointer;
+  border-bottom: 1px dashed rgba(255,255,255,0.18);
+}
+#report .rp-name-link:hover { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* WR cell inside the table */
+.wr-cell { display: flex; align-items: center; gap: 7px; }
+.wr-bar-wrap { flex: 1; height: 5px; background: var(--surface3); border-radius: 4px; overflow: hidden; min-width: 34px; }
+.wr-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+/* ══ 8. ROUNDS ═════════════════════════════════════════════ */
+#report .rp-rounds { display: flex; flex-direction: column; gap: 14px; }
+#report .rp-round-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+#report .rp-round-no {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.45em;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+#report .rp-round-tally { display: flex; gap: 6px; }
+#report .rp-round-lead {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+#report .rp-round-lead b { font-size: 12.5px; }
+#report .rp-round-bar {
+  display: flex;
+  height: 6px;
+  gap: 2px;
+  margin: 12px 14px 4px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--surface3);
+}
+#report .rp-round-bar > span { border-radius: 3px; }
+#report .rp-round-body { padding: 4px 4px 8px; }
+
+/* per-round match list — a grid, so it reflows on a phone
+   instead of forcing a five-column table off-screen */
+#report .rp-mrow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas:
+    "id    id    res"
+    "red   score blue";
+  align-items: center;
+  gap: 3px 10px;
+  padding: 9px 12px;
+  border-radius: 9px;
+}
+#report .rp-mrow + .rp-mrow { border-top: 1px solid var(--border); border-radius: 0; }
+#report .rp-mrow:hover { background: rgba(255,255,255,0.02); }
+#report .rp-mrow-id { grid-area: id; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: var(--gold); }
+#report .rp-mrow-res { grid-area: res; text-align: right; font-size: 11px; font-weight: 800; }
+#report .rp-mrow-red  { grid-area: red;  font-size: 12.5px; color: var(--red);  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#report .rp-mrow-blue { grid-area: blue; font-size: 12.5px; color: var(--blue); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+#report .rp-mrow-score {
+  grid-area: score;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05em;
+  letter-spacing: 1.5px;
+  color: var(--text2);
+  white-space: nowrap;
+  padding: 1px 9px;
+  background: var(--surface2);
+  border-radius: 6px;
+}
+
+/* ══ 9. UMPIRE WORKLOAD ════════════════════════════════════ */
+#report .rp-ulist { display: flex; flex-direction: column; gap: 9px; }
+#report .rp-ucard {
+  background: var(--rp-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+#report .rp-uhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+#report .rp-upos { font-size: 1.05em; flex-shrink: 0; min-width: 22px; }
+#report .rp-uname { font-size: 14.5px; font-weight: 700; color: var(--text); }
+#report .rp-ucount { margin-left: auto; display: flex; align-items: baseline; gap: 4px; }
+#report .rp-ucount b { font-family: 'Bebas Neue', sans-serif; font-size: 1.6em; letter-spacing: 1px; }
+#report .rp-ucount span { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); }
+#report .rp-ufoot { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-size: 11.5px; color: var(--muted); }
+#report .rp-ufoot b { color: var(--text); }
+
+/* ══ 10. CHART ═════════════════════════════════════════════ */
+#report .chart-container {
+  background: var(--rp-card);
+  border: 1px solid var(--border);
+  border-radius: var(--rp-radius);
+  padding: 18px 16px;
+  margin-bottom: 0;
+}
+#report .chart-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.25em;
+  color: var(--gold);
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+#report .chart-bars {
+  align-items: flex-end;
+  gap: 6px;
+  height: 200px;
+  min-width: 560px;
+  border-bottom: 1px solid var(--border2);
+  margin-top: 28px;
+}
+#report .chart-bar {
+  max-width: 30px;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.55s cubic-bezier(0.34,1.3,0.64,1), filter 0.2s;
+}
+#report .chart-bar-wrap:hover .chart-bar { filter: brightness(1.25); }
+#report .chart-bar::after {
+  top: -19px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--text2);
+}
+#report .chart-bar-name { font-size: 10px; width: 56px; }
+
+/* ══ 11. RANKING / PERFORMANCE refinements ═════════════════ */
+#report .rank-grid { grid-template-columns: 1fr; gap: 12px; }
+#report .rank-card { background: var(--rp-card); }
+#report .rank-card-header { padding: 11px 14px 10px; background: rgba(255,255,255,0.015); }
+#report .rank-row { padding: 9px 14px 4px; border-bottom: none; }
+#report .rank-bar-wrap { margin: 0 14px 10px; }
+#report .rank-bar-wrap + .rank-row { border-top: 1px solid var(--border); padding-top: 11px; }
+#report .rank-name { font-size: 13.5px; }
+#report .rank-sub { font-size: 10.5px; line-height: 1.7; }
+
+#report .perf-card-grid { grid-template-columns: 1fr; gap: 12px; }
+#report .perf-card { background: var(--rp-card); padding: 14px; margin-bottom: 0; border-left-width: 3px; }
+#report .perf-metrics { gap: 6px; }
+#report .perf-metric { padding: 8px 6px; border-radius: 9px; }
+#report .perf-metric-val { font-size: 1.45em; }
+
+/* tag filter pills — styled here instead of inline in dashboard.js */
+#report .rp-tagfilter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+#report .rp-tagpill {
+  cursor: pointer;
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: all 0.18s;
+}
+#report .rp-tagpill:hover { border-color: var(--border2); color: var(--text); }
+#report .rp-tagpill.active { background: var(--tp-bg); border-color: var(--tp-border); color: var(--tp-text); }
+#report .rp-tagpill.rp-tagclear { background: transparent; font-size: 11.5px; }
+
+/* ══ 12. HISTORY table on small screens ════════════════════ */
+#report #rpanel-history .table-wrap { max-height: 70vh; overflow: auto; }
+#report #rpanel-history thead th { position: sticky; top: 0; z-index: 2; background: var(--surface3); }
+
+/* ══════════════════════════════════════════════════════════
+   BREAKPOINTS
+   ══════════════════════════════════════════════════════════ */
+
+/* ── ≥640px : tablet ─────────────────────────────────────── */
+@media (min-width: 640px) {
+  #report { --rp-pad: 18px; }
+  #report .rp-hero { padding: 20px 22px 18px; }
+  #report .rp-metrics { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+  #report .rp-mrow { grid-template-columns: 90px 1fr auto 1fr 84px; grid-template-areas: "id red score blue res"; gap: 10px; }
+  #report .rp-mrow-id { font-size: 11px; }
+  #report .rp-mrow-res { font-size: 11.5px; }
+  #report .perf-card-grid { grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+  #report .rank-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+}
+
+/* ── ≥900px : laptop — table replaces the card list ──────── */
+@media (min-width: 900px) {
+  #report .rp-plist { display: none; }
+  #report .rp-ptable-wrap { display: block; }
+  #report .rp-hero-scores { grid-template-columns: 1fr auto 1fr; gap: 24px; }
+  #report .rp-hs-val { font-size: 3.2em; }
+  #report .rp-hs-draw .rp-hs-val { font-size: 2em; }
+  #report .rpt-tab { padding: 10px 18px; font-size: 13.5px; }
+  #report .rp-ulist { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+}
+
+/* ── ≤420px : small phone — trim what can be trimmed ─────── */
+@media (max-width: 420px) {
+  #report .rp-metrics { grid-template-columns: repeat(2, 1fr); }
+  #report .rp-hero-total b { font-size: 1.4em; }
+  #report .rpt-search { flex-basis: 100%; }
+  #report .rp-export { margin-left: 0; flex: 1; }
+  #report .rp-export > summary { width: 100%; justify-content: center; }
+  #report .rp-prow { grid-template-columns: 28px 1fr auto; padding: 10px 11px; }
+  #report .rp-prow-name { font-size: 13.5px; }
+}
+
+/* ══ 13. FOLDS (chart, umpire) ══════════════════════════════
+   Sections that used to be whole tabs but are really a detail
+   view of the panel they sit in. */
+#report .rp-fold {
+  margin-top: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+#report .rp-fold > summary {
+  list-style: none;
+  cursor: pointer;
+  outline: none;
+  padding: 13px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+#report .rp-fold > summary::-webkit-details-marker { display: none; }
+#report .rp-fold > summary::after {
+  content: '▾';
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+#report .rp-fold > summary:hover { background: var(--surface2); color: var(--text); }
+#report .rp-fold[open] > summary {
+  color: var(--gold);
+  border-bottom: 1px solid var(--border);
+}
+#report .rp-fold[open] > summary::after { transform: rotate(180deg); }
+#report .rp-fold-body { padding: 14px 16px 16px; animation: fadeUp 0.2s ease both; }
+#report .rp-fold-body .chart-container { border: none; padding: 0; background: none; overflow-x: auto; }
+#report .rp-fold-body .chart-bars { margin-top: 26px; }
+
+/* ══ 14. EXPANDABLE MATCH ROW ══════════════════════════════ */
+#report .rp-mitem + .rp-mitem { border-top: 1px solid var(--border); }
+#report .rp-mrow { cursor: pointer; user-select: none; transition: background 0.15s; }
+#report .rp-mitem + .rp-mitem > .rp-mrow { border-top: none; }
+#report .rp-mrow.open { background: rgba(245,200,66,0.05); }
+#report .rp-mrow-caret {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 9px;
+  color: var(--muted);
+  transition: transform 0.2s;
+}
+#report .rp-mrow.open .rp-mrow-caret { transform: rotate(180deg); color: var(--gold); }
+
+#report .rp-mdetail {
+  padding: 4px 12px 14px;
+  border-left: 2px solid var(--gold);
+  margin: 0 12px 10px;
+  background: rgba(255,255,255,0.015);
+  border-radius: 0 8px 8px 0;
+  animation: fadeUp 0.18s ease both;
+}
+#report .rp-mdetail[hidden] { display: none; }
+#report .rp-mdetail-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  margin-bottom: 8px;
+}
+#report .rp-mdetail-edit {
+  margin-left: auto;
+  background: rgba(245,200,66,0.1);
+  color: var(--gold);
+  border: 1px solid rgba(245,200,66,0.25);
+  font-size: 12px;
+  padding: 4px 11px;
+}
+#report .rp-mdetail .perf-tags { margin-bottom: 8px; }
+#report .rp-mdetail .perf-summary { margin-bottom: 10px; font-size: 12px; }
+#report .rp-mdetail .perf-metrics { gap: 6px; }
+#report .rp-mdetail .perf-metric { padding: 8px 6px; border-radius: 9px; }
+#report .rp-mdetail .perf-metric-val { font-size: 1.4em; }
+
+/* face + name in the reports table cell */
+#report .rp-name-cell { display: inline-flex; align-items: center; min-width: 0; }

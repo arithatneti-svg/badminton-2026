@@ -244,3 +244,8 @@
 .tag-normal { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
 .tag-custom { background: rgba(59,142,255,0.1); color: #80bfff; border: 1px solid rgba(59,142,255,0.25); }
 
+
+/* face beside each name on a live court card */
+.court-player-name { display: flex; align-items: center; gap: 7px; }
+.court-player-name.blue { flex-direction: row-reverse; }
+.court-pav { --pav-size: 24px; border-width: 1px; }

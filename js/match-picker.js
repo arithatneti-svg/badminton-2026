@@ -47,7 +47,7 @@ function renderMatchBoard() {
       const cnt = getPlayerMatchCountInRound(p.id, round);
       const meta = inMatch ? 'กำลังแข่ง' : (cnt > 0 ? `R${round}·${cnt}` : '');
       const cls = 'mb-chip ' + team + (picked ? ' picked' : '') + (inMatch ? ' live' : '');
-      return `<button class="${cls}" onclick="boardToggle('${p.id}','${team}')">${escHtml(p.name)}${meta ? `<span class="mb-chip-meta">${meta}</span>` : ''}</button>`;
+      return `<button class="${cls}" onclick="boardToggle('${p.id}','${team}')">${avatarHtml(p, 22, {className:'mb-chip-pav'})}${escHtml(p.name)}${meta ? `<span class="mb-chip-meta">${meta}</span>` : ''}</button>`;
     }).join('');
   };
   renderPool('red'); renderPool('blue');

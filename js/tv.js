@@ -19,6 +19,7 @@ function enterTvMode() {
   const el = document.getElementById('tvView'); if (el) el.style.display = 'flex';
   _tvPanel = 0; _tvSecs = 0;
   renderTvPanel();
+  _tvBindFsControls();
   clearInterval(_tvTimer);
   _tvTimer = setInterval(() => {
     _tvSecs++;
@@ -64,9 +65,9 @@ function renderTvPanel() {
       return `<div class="tv-live-card">
         <div class="tv-live-id">🟢 ${escHtml(m.id)}</div>
         <div class="tv-live-teams">
-          <div class="tv-lt red">${escHtml(_tvStrip(m.redNames))}</div>
+          <div class="tv-lt red"><span class="tv-faces">${[m.r1,m.r2].map(id=>avatarHtml(id,34)).join('')}</span>${escHtml(_tvStrip(m.redNames))}</div>
           <div class="tv-live-score"><span class="red">${g2on ? g2r : g1r}</span><span class="sep">:</span><span class="blue">${g2on ? g2b : g1b}</span></div>
-          <div class="tv-lt blue">${escHtml(_tvStrip(m.blueNames))}</div>
+          <div class="tv-lt blue"><span class="tv-faces">${[m.b1,m.b2].map(id=>avatarHtml(id,34)).join('')}</span>${escHtml(_tvStrip(m.blueNames))}</div>
         </div>
         <div class="tv-live-games">G1 ${g1r}–${g1b}${g2on ? ` · G2 ${g2r}–${g2b}` : ''}</div>
       </div>`;
@@ -95,4 +96,53 @@ function renderTvPanel() {
 
   const dots = TV_PANELS.map((_, i) => `<span class="tv-dot ${i === _tvPanel ? 'on' : ''}"></span>`).join('');
   el.innerHTML = html + `<div class="tv-foot"><div class="tv-dots">${dots}</div><div class="tv-brand">Badminton Sports Day 2026</div></div>`;
+}
+
+// ── Fullscreen for TV / projector ──
+// TV mode hides the main nav, so this is the only way in. The button
+// fades out while nobody is touching the machine — a projector should
+// show the scoreboard, not a UI control — and comes back on any input.
+let _tvIdleTimer = null;
+
+function toggleTvFullscreen() {
+  const el = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!req) return showToast('เบราว์เซอร์นี้ไม่รองรับเต็มจอ — ใช้ปุ่มเต็มจอของเบราว์เซอร์แทน', 'error');
+    Promise.resolve(req.call(el)).catch(() => {
+      showToast('เข้าเต็มจอไม่ได้ — ลองกด F11 หรือใช้เมนูเบราว์เซอร์', 'error');
+    });
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+  }
+}
+
+function _tvSyncFsBtn() {
+  const btn = document.getElementById('tvFsBtn');
+  if (!btn) return;
+  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  btn.classList.toggle('is-on', on);
+  btn.title = on ? 'ออกจากเต็มจอ (กด F หรือ Esc)' : 'เต็มจอ (กด F)';
+  btn.setAttribute('aria-label', on ? 'ออกจากเต็มจอ' : 'เต็มจอ');
+}
+
+function _tvPokeIdle() {
+  const btn = document.getElementById('tvFsBtn');
+  if (!btn) return;
+  btn.classList.remove('idle');
+  clearTimeout(_tvIdleTimer);
+  _tvIdleTimer = setTimeout(() => btn.classList.add('idle'), 3000);
+}
+
+function _tvBindFsControls() {
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
+    document.addEventListener(ev, _tvSyncFsBtn));
+  ['mousemove', 'touchstart', 'keydown'].forEach(ev =>
+    document.addEventListener(ev, () => { if (_tvActive) _tvPokeIdle(); }, { passive: true }));
+  document.addEventListener('keydown', (e) => {
+    if (!_tvActive) return;
+    if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleTvFullscreen(); }
+  });
+  _tvSyncFsBtn();
+  _tvPokeIdle();
 }

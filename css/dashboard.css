@@ -69,3 +69,15 @@
 .db-recent-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
 .db-recent-tag { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); color: var(--muted); }
 
+
+/* inline legend inside a dashboard card title */
+.db-legend { display: inline-flex; gap: 12px; margin-left: auto; flex-shrink: 0; }
+/* flex + grid child needs min-width:0, or the title row forces the grid
+   track wider than the viewport on a phone */
+.db-card-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.db-grid-2 > *, .db-card { min-width: 0; }
+.db-legend-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted);
+}
+.db-legend-item i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }

@@ -19,3 +19,6 @@ dist/
 # Logs & temp
 *.log
 tmp/
+
+# Claude Code local tooling (dev-server launch config)
+.claude/

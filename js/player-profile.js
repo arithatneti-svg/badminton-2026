@@ -13,12 +13,23 @@ function openPlayerProfile(playerId) {
   const s = stats[playerId] || {};
   const isRed = p.team === 'Red';
   const teamColor = isRed ? 'var(--red)' : 'var(--blue)';
+  const canEdit = userRole === 'admin' || userRole === 'superadmin';
+  const hasPhoto = !!playerPhoto(p.id);
   document.getElementById('profileHeader').innerHTML = `
-    <div class="profile-avatar" style="background:${isRed?'rgba(255,59,92,0.12)':'rgba(59,142,255,0.12)'};border-color:${teamColor};color:${teamColor};">${p.id}</div>
+    <div class="pd-avatar-wrap">
+      ${avatarHtml(p, 112)}
+      ${canEdit ? `<button class="pd-avatar-btn" title="${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}" onclick="pickPlayerPhoto('${p.id}')">📷</button>` : ''}
+    </div>
     <div style="flex:1;min-width:0;">
       <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:var(--muted);margin-bottom:4px;">${p.id} · ${isRed?'🔴 RED':'🔵 BLUE'} · GROUP ${p.group}</div>
       <div class="profile-name" style="color:${teamColor};">${escHtml(p.name)}</div>
+      ${canEdit ? `<div class="pd-admin-row">
+        <button class="btn btn-outline btn-sm" onclick="pickPlayerPhoto('${p.id}')">📷 ${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}</button>
+        ${hasPhoto ? `<button class="btn btn-outline btn-sm" onclick="removePlayerPhoto('${p.id}')">🗑 ลบรูป</button>` : ''}
+        <button class="btn btn-outline btn-sm" onclick="closePlayerProfile();openPlayerEdit('${p.id}')">✏️ แก้ไขข้อมูล</button>
+      </div>` : ''}
     </div>`;
+
   const wrColor = s.winRate>=70?'var(--green)':s.winRate>=40?'var(--gold)':s.total>0?'var(--danger)':'var(--muted)';
   const pdColor = (s.pointDiff||0)>=0?'var(--green)':'var(--danger)';
   document.getElementById('profileStatBar').innerHTML = `
@@ -29,14 +40,13 @@ function openPlayerProfile(playerId) {
     <div class="profile-stat-cell"><div class="profile-stat-val">${s.matchesPlayed||0}</div><div class="profile-stat-label">Matches</div></div>
     <div class="profile-stat-cell"><div class="profile-stat-val" style="color:${wrColor}">${s.total>0?s.winRate+'%':'—'}</div><div class="profile-stat-label">Game Win%</div></div>
     <div class="profile-stat-cell"><div class="profile-stat-val" style="color:${pdColor}">${(s.pointDiff||0)>0?'+':''}${s.pointDiff||0}</div><div class="profile-stat-label">Point Diff</div></div>`;
-  renderPdPersonalView(prof);
-  // reset to personal tab
-  document.querySelectorAll('.pd-tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.pd-tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelector('.pd-tab-btn')?.classList.add('active');
-  document.getElementById('pdTabPersonal')?.classList.add('active');
-  document.getElementById('pdViewPersonal').style.display = 'block';
+  // one page — everything renders up front, no tabs to switch
+  renderPdIdentity(prof);
+  renderPdScoutNotes(prof);
+  renderPdMatchHistory(playerId);
+  renderPdH2H(playerId);
   overlay.classList.add('open');
+  overlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
 }
 
@@ -45,17 +55,40 @@ function closePlayerProfile() {
   if (overlay) overlay.classList.remove('open');
   document.body.style.overflow = '';
   _pdCurrentId = null;
-  // หมายเหตุ: Scout tab แสดงเฉพาะ admin/superadmin (แท็บถูกซ่อนสำหรับ guest)
 }
 
-function renderPdPersonalView(prof) {
-  const _pdFields = [
-    {label:'เพศ',      value:prof.gender   ||'—'},
-    {label:'มือถนัด',  value:prof.hand     ||'—'},
-    {label:'ตำแหน่ง',  value:prof.position ||'—'},
-  ];
-  document.getElementById('pdPersonalGrid').innerHTML = _pdFields
-    .map(it=>`<div class="profile-field"><label>${it.label}</label><div style="font-size:14px;font-weight:700;color:var(--text);padding:8px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">${escHtml(it.value)}</div></div>`).join('');
+// เพศ / มือถนัด / ตำแหน่ง — three short values, so they ride as inline
+// chips rather than a grid of boxed form fields
+function renderPdIdentity(prof) {
+  const el = document.getElementById('pdIdentityRow');
+  if (!el) return;
+  const chips = [
+    { icon:'⚧', label:'เพศ',     value: prof.gender },
+    { icon:'✋', label:'มือถนัด', value: prof.hand },
+    { icon:'📍', label:'ตำแหน่ง', value: prof.position },
+  ].filter(c => c.value);
+  el.innerHTML = chips.length
+    ? chips.map(c => `<span class="pd-chip"><span class="pd-chip-lbl">${c.icon} ${c.label}</span><b>${escHtml(c.value)}</b></span>`).join('')
+    : '';
+}
+
+// จุดแข็ง / จุดอ่อน / โน้ต — free text the desk wrote per player.
+// Text only: the radar / ability / base-score analytics stay removed.
+function renderPdScoutNotes(prof) {
+  const el = document.getElementById('pdScoutNotes');
+  if (!el) return;
+  const blocks = [
+    { cls:'good', icon:'💪', title:'จุดแข็ง',  text: prof.strengths },
+    { cls:'bad',  icon:'🎯', title:'จุดอ่อน',  text: prof.weakness },
+    { cls:'note', icon:'📝', title:'โน้ต',     text: prof.notes },
+  ].filter(b => b.text && String(b.text).trim());
+  if (!blocks.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="profile-section-title">🔍 สกาวต์</div>
+    <div class="pd-notes">${blocks.map(b => `
+      <div class="pd-note pd-note-${b.cls}">
+        <div class="pd-note-title">${b.icon} ${b.title}</div>
+        <div class="pd-note-text">${escHtml(String(b.text).trim())}</div>
+      </div>`).join('')}</div>`;
 }
 
 function renderPdMatchHistory(playerId) {
@@ -63,7 +96,7 @@ function renderPdMatchHistory(playerId) {
   if (!el) return;
   const matches = appState.matchHistory.filter(h=>[h.r1,h.r2,h.b1,h.b2].includes(playerId)).slice(-10).reverse();
   if (!matches.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="profile-section-title" style="margin-top:24px;">📋 ประวัติการแข่ง (10 ล่าสุด)</div>` +
+  el.innerHTML = `<div class="profile-section-title">📋 ประวัติการแข่ง (${matches.length} ล่าสุด)</div>` +
     matches.map(h => {
       const isRed=[h.r1,h.r2].includes(playerId);
       const stat=isRed?h.rStat:h.bStat;
@@ -107,7 +140,7 @@ function renderPdH2H(playerId) {
   });
   const entries = Object.entries(h2h).filter(([,r]) => r.w + r.l > 0);
   if (!entries.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="profile-section-title" style="margin-top:24px;">⚔️ Head-to-Head <span style="font-size:10px;font-weight:400;color:var(--muted);letter-spacing:1px;">(นับรายเกม)</span></div>` +
+  el.innerHTML = `<div class="profile-section-title">⚔️ Head-to-Head <span style="font-weight:400;letter-spacing:1px;">(นับรายเกม)</span></div>` +
     entries.sort((a,b) => b[1].w - a[1].w).map(([oId,rec]) => {
       const op = ( appState.players || [] ).find(x=>x.id===oId);
       if (!op) return '';
@@ -116,7 +149,8 @@ function renderPdH2H(playerId) {
       const wrc = wr>=60?'var(--green)':wr>=40?'var(--gold)':'var(--danger)';
       return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <div style="flex:1;font-size:14px;font-weight:700;">${escHtml(op.name)}</div>
+          ${avatarHtml(op, 26)}
+          <div style="flex:1;font-size:14px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(op.name)}</div>
           <div style="font-size:11px;font-weight:700;color:var(--green);">${rec.w}W</div>
           <div style="font-size:11px;color:var(--muted);">/</div>
           <div style="font-size:11px;font-weight:700;color:var(--danger);">${rec.l}L</div>

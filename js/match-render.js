@@ -163,8 +163,11 @@ function renderPublicOngoingMatches() {
       // ── Player names ──
       const redParts  = (m.redNames||'').split(' & ').map(n => stripGroup(n.trim()));
       const blueParts = (m.blueNames||'').split(' & ').map(n => stripGroup(n.trim()));
-      const redPlayersHtml  = redParts.map(n  => `<div class="court-player-name red">${escHtml(n)}</div>`).join('');
-      const bluePlayersHtml = blueParts.map(n => `<div class="court-player-name blue">${escHtml(n)}</div>`).join('');
+      // faces on the live card: this is the one place identification is
+      // time-critical — who is on court right now
+      const redIds  = [m.r1, m.r2], blueIds = [m.b1, m.b2];
+      const redPlayersHtml  = redParts.map((n, i)  => `<div class="court-player-name red">${avatarHtml(redIds[i], 24, {className:'court-pav'})}<span>${escHtml(n)}</span></div>`).join('');
+      const bluePlayersHtml = blueParts.map((n, i) => `<div class="court-player-name blue">${avatarHtml(blueIds[i], 24, {className:'court-pav'})}<span>${escHtml(n)}</span></div>`).join('');
 
       const predHtml = '';
 

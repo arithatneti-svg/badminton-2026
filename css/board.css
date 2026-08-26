@@ -41,3 +41,7 @@
   .mb-slots { gap: 8px; }
   .mb-team-title { font-size: 1em; letter-spacing: 2px; }
 }
+
+/* face on the pool chip — keeps the tap target the same, just anchors it */
+.mb-chip-pav { --pav-size: 22px; border-width: 1px; margin-right: 6px; }
+.mb-chip { display: inline-flex; align-items: center; }

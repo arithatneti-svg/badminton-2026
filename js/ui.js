@@ -62,7 +62,7 @@ function updateUI() {
 
   if (userRole === 'admin' || userRole === 'superadmin') {
     if (activeTab === 'admin')     { renderMatchBoard(); renderAdminOngoingMatches(); populateDropdowns(); renderPlayers(); }
-    if (activeTab === 'report')    { renderReportHero(); renderReports(); renderPerformance(); }
+    if (activeTab === 'report')    { renderReportHero(); renderReports(); renderMatchesPanel(); }
     if (activeTab === 'dashboard') renderDashboard();
   }
 }

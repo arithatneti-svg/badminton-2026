@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="css/ongoing-finished.css">
 <link rel="stylesheet" href="css/climax.css">
 <link rel="stylesheet" href="css/fullscreen.css">
-<link rel="stylesheet" href="css/ranking.css">
+<link rel="stylesheet" href="css/report.css">
 <link rel="stylesheet" href="css/trophy.css">
 <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/profile.css">
@@ -48,6 +48,7 @@
 <script defer src="js/auth.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/ui.js"></script>
+<script defer src="js/player-photo.js"></script>
 <script defer src="js/player-profile.js"></script>
 <script defer src="js/season.js"></script>
 <script defer src="js/export-import.js"></script>
@@ -429,7 +430,12 @@
   <div class="db-kpi-row" id="dbKpiRow"></div>
   <div class="db-grid-2" style="margin-top:20px;">
     <div class="db-card">
-      <div class="db-card-title">📈 Momentum — คะแนนสะสม</div>
+      <div class="db-card-title">📈 Momentum — คะแนนสะสม
+        <span class="db-legend">
+          <span class="db-legend-item"><i style="background:#ff3b3b"></i>RED</span>
+          <span class="db-legend-item"><i style="background:#3b8eff"></i>BLUE</span>
+        </span>
+      </div>
       <div style="position:relative;">
         <canvas id="momentumChart" height="200" style="width:100%;display:block;"></canvas>
         <div id="momentumEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-weight:600;">ยังไม่มีข้อมูลแมตช์</div>
@@ -580,23 +586,11 @@
       <select id="playersTabFilterGroup" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
         <option value="">ทุกกลุ่ม</option><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option>
       </select>
-      <select id="playersTabFilterStyle" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
-        <option value="">ทุก Style</option>
-        <option value="attacker">⚔️ Attacker</option>
-        <option value="defender">🛡️ Defender</option>
-        <option value="allround">🎯 All-Round</option>
-        <option value="controller">🧠 Controller</option>
-        <option value="speed">⚡ Speed Runner</option>
-        <option value="deceptive">🔮 Deceptive</option>
-        <option value="power">💪 Power Hitter</option>
-        <option value="netmaster">🕸️ Net Master</option>
-      </select>
       <select id="playersTabSortBy" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
         <option value="pts">↓ Points</option>
         <option value="winRate">↓ Win Rate</option>
         <option value="pointDiff">↓ Point Diff</option>
         <option value="name">A–Z Name</option>
-        <option value="style">Style</option>
       </select>
     </div>
   </div>
@@ -625,59 +619,61 @@
 <!-- REPORTS TAB (Admin) -->
 <div id="report" class="container admin-only">
 
-  <!-- ── HERO STATS ROW ── -->
-  <div class="rpt-hero-row" id="rptHeroRow">
-    <div class="rpt-hero-card">
-      <div class="rpt-hero-val" id="rptHeroMatches">—</div>
-      <div class="rpt-hero-lbl">MATCHES PLAYED</div>
+  <!-- ── HERO — one summary banner (red / draws / blue + win-share bar) ── -->
+  <div class="rp-hero" id="rptHeroRow">
+    <div class="rp-hero-top">
+      <div class="rp-hero-title">MATCH SUMMARY</div>
+      <div class="rp-hero-total"><b id="rptHeroMatches">—</b>แมตช์ที่จบแล้ว</div>
     </div>
-    <div class="rpt-hero-card" style="border-color:rgba(255,59,92,0.3);">
-      <div class="rpt-hero-val" style="color:var(--red);" id="rptHeroRedWins">—</div>
-      <div class="rpt-hero-lbl">🔴 RED WINS</div>
+    <div class="rp-hero-scores">
+      <div class="rp-hs rp-hs-red">
+        <div class="rp-hs-val" id="rptHeroRedWins">—</div>
+        <div class="rp-hs-lbl">🔴 RED WINS</div>
+      </div>
+      <div class="rp-hs rp-hs-draw">
+        <div class="rp-hs-val" id="rptHeroDraws">—</div>
+        <div class="rp-hs-lbl">🤝 DRAWS</div>
+      </div>
+      <div class="rp-hs rp-hs-blue">
+        <div class="rp-hs-val" id="rptHeroBlueWins">—</div>
+        <div class="rp-hs-lbl">🔵 BLUE WINS</div>
+      </div>
     </div>
-    <div class="rpt-hero-card" style="border-color:rgba(245,200,66,0.3);">
-      <div class="rpt-hero-val" style="color:var(--gold);" id="rptHeroDraws">—</div>
-      <div class="rpt-hero-lbl">🤝 DRAWS</div>
-    </div>
-    <div class="rpt-hero-card" style="border-color:rgba(59,142,255,0.3);">
-      <div class="rpt-hero-val" style="color:var(--blue);" id="rptHeroBlueWins">—</div>
-      <div class="rpt-hero-lbl">🔵 BLUE WINS</div>
-    </div>
+    <div class="rp-hero-bar" id="rptHeroBar"></div>
   </div>
 
   <!-- ── REPORT LEGEND BANNER ── -->
-  <details style="background:rgba(245,200,66,0.04);border:1px solid rgba(245,200,66,0.15);border-radius:10px;padding:10px 16px;margin-bottom:14px;">
-    <summary style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--gold);cursor:pointer;outline:none;list-style:none;">📖 ความหมายตัวชี้วัดใน Report ▾</summary>
-    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;">
-      <div style="flex:1;min-width:180px;">
-        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">คอลัมน์หลัก</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
-          <b style="color:var(--text);">PTS</b> = Match Points (ชนะ +3, เสมอ +1, แพ้ +0)<br>
-          <b style="color:var(--text);">±PD</b> = Point Differential (แต้มได้รวม − แต้มเสียรวม)<br>
-          <b style="color:var(--text);">GW/GL</b> = Game Wins/Losses (ระดับเกม)<br>
-          <b style="color:var(--text);">WR%</b> = Game Win Rate = GW ÷ (GW+GL) × 100<br>
-          <b style="color:var(--text);">M</b> = จำนวน Match · <b style="color:var(--text);">D</b> = Match Draw
-        </div>
+  <details class="rp-legend">
+    <summary>📖 ความหมายตัวชี้วัดใน Report</summary>
+    <div class="rp-legend-body">
+      <div class="rp-legend-col">
+        <h5>คอลัมน์ผู้เล่น</h5>
+        <p>
+          <b>PTS</b> = Match Points (ชนะ +3, เสมอ +1, แพ้ +0)<br>
+          <b>PERF</b> = คะแนนที่ปรับตามความยากของคู่แข่ง — ชนะคู่แกร่งได้เยอะกว่า<br>
+          <b>±PD</b> = แต้มได้รวม − แต้มเสียรวม (ใช้ตัดสินเมื่อ PTS เท่ากัน)<br>
+          <b>ผลแมตช์</b> = ชนะ / แพ้ / เสมอ ระดับแมตช์<br>
+          <b>WR%</b> = อัตราชนะระดับเกม (เกมที่ชนะ ÷ เกมที่เล่น)
+        </p>
       </div>
-      <div style="flex:1;min-width:180px;">
-        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">PERF Score</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
-          <b style="color:var(--text);">PERF</b> = Performance Score ปรับตามความยากคู่แข่ง (ยิ่งชนะคู่แกร่ง ยิ่งได้เยอะ)<br>
-          <b style="color:var(--gold);">⚡ Upset</b> = ชนะคู่แข่งที่ระดับ (tier) สูงกว่า
-        </div>
+      <div class="rp-legend-col">
+        <h5>แท็กพิเศษ</h5>
+        <p>
+          <b>🔥</b> Epic Comeback · <b>⚔️</b> The Gladiators<br>
+          <b>🏃</b> Marathon Match · <b>🎢</b> Rollercoaster<br>
+          <span style="color:var(--text2);">แตะแถวแมตช์ในแท็บ 📋 แมตช์ เพื่อดูการวิเคราะห์รายแมตช์</span>
+        </p>
       </div>
     </div>
   </details>
 
-  <!-- ── REPORT SUB-TABS ── -->
+  <!-- ── REPORT SUB-TABS ──
+       Two tabs, one per dataset: 54 players and 39 matches. Points chart,
+       PERF ranking, round summary, match analysis and umpire load are all
+       views of those two, so they live inside the tab they belong to. -->
   <div class="rpt-tab-bar">
-    <button class="rpt-tab active" id="rtab-players"  onclick="switchReportTab('players',this)">👥 Players</button>
-    <button class="rpt-tab"        id="rtab-ranking"  onclick="switchReportTab('ranking',this)">🏅 Ranking</button>
-    <button class="rpt-tab"        id="rtab-rounds"   onclick="switchReportTab('rounds',this)">🎯 Rounds</button>
-    <button class="rpt-tab"        id="rtab-matches"  onclick="switchReportTab('matches',this)">⚡ Matches</button>
-    <button class="rpt-tab"        id="rtab-history"  onclick="switchReportTab('history',this)">📋 History</button>
-    <button class="rpt-tab"        id="rtab-chart"    onclick="switchReportTab('chart',this)">📊 Chart</button>
-    <button class="rpt-tab"        id="rtab-umpire"   onclick="switchReportTab('umpire',this)">👔 Umpire</button>
+    <button class="rpt-tab active" id="rtab-players" onclick="switchReportTab('players',this)">👥 ผู้เล่น</button>
+    <button class="rpt-tab"        id="rtab-matches" onclick="switchReportTab('matches',this)">📋 แมตช์</button>
   </div>
 
   <!-- ─────────── TAB: PLAYERS ─────────── -->
@@ -695,27 +691,36 @@
         <button class="filter-pill" id="gp2" onclick="setGroupFilter('2')">G2</button>
         <button class="filter-pill" id="gp3" onclick="setGroupFilter('3')">G3</button>
       </div>
-      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-        <button class="btn btn-success btn-sm" onclick="exportReportToCSV()">📥 CSV</button>
-        <button class="btn btn-info btn-sm" onclick="printReport()">🖨 Print</button>
-        <button class="btn btn-outline btn-sm" onclick="exportSummaryPDF()">📄 Summary PDF</button>
-        <div style="display:flex;gap:5px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;">
-          <span style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:1px;white-space:nowrap;">👤 PDF:</span>
-          <select id="pdfFilterMode" class="rpt-select" style="padding:3px 6px;font-size:12px;min-width:80px;" onchange="renderPlayerPdfControls()">
-            <option value="all">ทั้งหมด</option>
-            <option value="player">ผู้เล่น</option>
-            <option value="group">กลุ่ม</option>
-            <option value="team">สี/ทีม</option>
-          </select>
-          <select id="pdfFilterValue" class="rpt-select" style="padding:3px 6px;font-size:12px;min-width:80px;display:none;"></select>
-          <button class="btn btn-primary btn-sm" onclick="exportPlayerPDF()" style="white-space:nowrap;padding:4px 10px;font-size:12px;">📄 Export</button>
+      <details class="rp-export">
+        <summary>⬇ Export</summary>
+        <div class="rp-export-menu">
+          <button class="btn btn-success btn-sm" onclick="exportReportToCSV()">📥 CSV</button>
+          <button class="btn btn-info btn-sm" onclick="printReport()">🖨 Print</button>
+          <button class="btn btn-outline btn-sm" onclick="exportSummaryPDF()">📄 Summary PDF</button>
+          <div class="rp-export-group">
+            <span class="rp-export-group-lbl">👤 Player PDF</span>
+            <div class="rp-export-row">
+              <select id="pdfFilterMode" class="rpt-select" onchange="renderPlayerPdfControls()">
+                <option value="all">ทั้งหมด</option>
+                <option value="player">ผู้เล่น</option>
+                <option value="group">กลุ่ม</option>
+                <option value="team">สี/ทีม</option>
+              </select>
+              <select id="pdfFilterValue" class="rpt-select" style="display:none;"></select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="exportPlayerPDF()">📄 Export PDF</button>
+          </div>
         </div>
-      </div>
+      </details>
     </div>
 
-    <!-- Stat card summary row above table -->
-    <div id="playerStatCards" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+    <!-- Stat card summary row above the list -->
+    <div id="playerStatCards" class="rp-metrics"></div>
 
+    <!-- Phone: card list. Laptop: the full sortable table. CSS picks one. -->
+    <div class="rp-plist" id="statsCardList"></div>
+
+    <div class="rp-ptable-wrap">
     <div class="table-wrap">
       <table id="playerStatsTable">
         <thead>
@@ -724,65 +729,45 @@
             <th class="sortable" onclick="sortPlayers('name')">ชื่อ <span class="sort-icon" data-col="name">⇅</span></th>
             <th class="sortable" onclick="sortPlayers('team')">ทีม <span class="sort-icon" data-col="team">⇅</span></th>
             <th class="sortable" onclick="sortPlayers('group')">กลุ่ม <span class="sort-icon" data-col="group">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('pts')" title="Match Points">PTS <span class="sort-icon" data-col="pts">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('pointDiff')" title="Point Differential">±PD <span class="sort-icon" data-col="pointDiff">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('w')" title="Game Wins">GW <span class="sort-icon" data-col="w">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('l')" title="Game Losses">GL <span class="sort-icon" data-col="l">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('matchDraw')" title="Match Draws">D <span class="sort-icon" data-col="matchDraw">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('matchesPlayed')" title="Matches Played">M <span class="sort-icon" data-col="matchesPlayed">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('winRate')" title="Game Win Rate">WR% <span class="sort-icon" data-col="winRate">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('epicTags')" title="Epic Comeback Count">🔥 <span class="sort-icon" data-col="epicTags">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('matchWin')" title="Match Wins / Losses">MW/ML <span class="sort-icon" data-col="matchWin">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('matchWinRate')" title="Match Win Rate">MWR% <span class="sort-icon" data-col="matchWinRate">⇅</span></th>
-            <th title="Streak ช่วง 5 แมตช์ล่าสุด">Form</th>
+            <th class="sortable" onclick="sortPlayers('pts')" title="Match Points — ชนะ +3 / เสมอ +1 / แพ้ 0">PTS <span class="sort-icon" data-col="pts">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('perf')" title="Performance Score — ปรับตามความยากของคู่แข่ง">PERF <span class="sort-icon" data-col="perf">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('pointDiff')" title="Point Differential — แต้มได้รวม − แต้มเสียรวม">±PD <span class="sort-icon" data-col="pointDiff">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('matchWin')" title="ผลระดับแมตช์ — ชนะ / แพ้ / เสมอ">ผลแมตช์ <span class="sort-icon" data-col="matchWin">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('winRate')" title="Game Win Rate — เกมที่ชนะ ÷ เกมที่เล่น">WR% <span class="sort-icon" data-col="winRate">⇅</span></th>
+            <th class="sortable" onclick="sortPlayers('epicTags')" title="แท็กพิเศษที่ได้รับ">แท็ก <span class="sort-icon" data-col="epicTags">⇅</span></th>
           </tr>
         </thead>
         <tbody id="statsTableBody"></tbody>
       </table>
     </div>
-  </div>
-
-  <!-- ─────────── TAB: ROUNDS ─────────── -->
-  <div class="rpt-panel" id="rpanel-rounds">
-    <div class="rpt-panel-toolbar">
-      <span style="font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px;">📊 สรุปผลการแข่งขันแต่ละรอบ</span>
-      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn btn-outline btn-sm" onclick="exportRoundsPDF()">📄 Export PDF</button>
-      </div>
     </div>
-    <div id="roundsReportContent" style="display:flex;flex-direction:column;gap:18px;margin-top:4px;"></div>
+
+    <!-- Points chart = the PTS column above, drawn. Folded so it does not
+         take a whole tab for one column of data. -->
+    <details class="rp-fold">
+      <summary>📊 กราฟคะแนน — 20 อันดับแรก</summary>
+      <div class="rp-fold-body">
+        <div class="chart-container">
+          <div class="chart-bars" id="statsChart"><div class="chart-axis"></div></div>
+        </div>
+      </div>
+    </details>
   </div>
 
-  <!-- ─────────── TAB: RANKING ─────────── -->
-  <div class="rpt-panel" id="rpanel-ranking">
-    <div class="perf-rank-section" id="perfRankSection">
-      <div class="rpt-panel-toolbar">
-        <span style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">VIEW:</span>
-        <button class="perf-rank-tab active" id="rankTabAll"  onclick="setRankView('all',this)">ทั้งหมด</button>
-        <button class="perf-rank-tab"        id="rankTabRed"  onclick="setRankView('red',this)">🔴 Red</button>
-        <button class="perf-rank-tab"        id="rankTabBlue" onclick="setRankView('blue',this)">🔵 Blue</button>
-      </div>
-      <div class="rank-legend" style="margin-bottom:16px;">
-        <div class="rank-legend-item"><div class="rank-legend-dot" style="background:var(--purple)"></div>Upset win</div>
-        <div class="rank-legend-item"><div class="rank-legend-dot" style="background:var(--green)"></div>Over-perform</div>
-        <div class="rank-legend-item"><div class="rank-legend-dot" style="background:var(--danger)"></div>Under-perform</div>
-        <div class="rank-legend-item" style="color:var(--muted);font-size:10px;">PERF = คะแนนปรับตามความยากของคู่แข่ง</div>
-      </div>
-      <div class="rank-grid" id="rankGrid"></div>
-    </div>
-  </div>
-
-  <!-- ─────────── TAB: MATCHES (Performance Cards) ─────────── -->
+  <!-- ─────────── TAB: MATCHES ───────────
+       Round summary, match list and per-match analysis merged: they were
+       three tabs over the same matchHistory rows. Tap a row for detail. -->
   <div class="rpt-panel" id="rpanel-matches">
     <div class="rpt-panel-toolbar">
-      <select id="perfFilterRound" onchange="renderPerformance()" class="rpt-select">
-        <option value="">ทุก Round</option>
+      <input type="text" id="matchSearch" class="rpt-search" placeholder="🔍 ค้นหา ID / ชื่อผู้เล่น..." oninput="renderMatchesPanel()">
+      <select id="perfFilterRound" class="rpt-select" onchange="renderMatchesPanel()">
+        <option value="">ทุกรอบ</option>
         <option value="1">Round 1</option>
         <option value="2">Round 2</option>
         <option value="3">Round 3</option>
       </select>
-      <select id="perfFilterStatus" onchange="renderPerformance()" class="rpt-select">
-        <option value="">ทุก Status</option>
+      <select id="perfFilterStatus" class="rpt-select" onchange="renderMatchesPanel()">
+        <option value="">ทุกลักษณะเกม</option>
         <option value="Evenly Matched">Evenly Matched</option>
         <option value="Competitive Edge">Competitive Edge</option>
         <option value="Superior">Superior</option>
@@ -791,47 +776,20 @@
         <option value="Close Encounter">Close Encounter</option>
         <option value="Deceptive Draw">Deceptive Draw</option>
       </select>
+      <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="exportRoundsPDF()">📄 PDF</button>
     </div>
-    <div id="perfTagFilterRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"></div>
-    <div id="perfCardsContainer"></div>
+
+    <div id="perfTagFilterRow" class="rp-tagfilter"></div>
+    <div id="matchesPanelContent" class="rp-rounds"></div>
+
+    <details class="rp-fold">
+      <summary>👔 ภาระงานกรรมการ</summary>
+      <div class="rp-fold-body">
+        <div class="rp-sec-sub" id="umpireWorkloadSub"></div>
+        <div id="umpireWorkloadContent"></div>
+      </div>
+    </details>
   </div>
-
-  <!-- ─────────── TAB: HISTORY ─────────── -->
-  <div class="rpt-panel" id="rpanel-history">
-    <div class="table-wrap">
-      <table id="matchDetailsTable">
-        <thead>
-          <tr>
-            <th class="sortable" onclick="sortMatches('id')">ID <span class="sort-icon" data-col="mid">⇅</span></th>
-            <th class="sortable" onclick="sortMatches('round')">Round <span class="sort-icon" data-col="round">⇅</span></th>
-            <th class="sortable" onclick="sortMatches('redNames')">🔴 Red Team <span class="sort-icon" data-col="redNames">⇅</span></th>
-            <th class="sortable" onclick="sortMatches('blueNames')">🔵 Blue Team <span class="sort-icon" data-col="blueNames">⇅</span></th>
-            <th>G1</th><th>G2</th>
-            <th class="sortable" onclick="sortMatches('result')">Result <span class="sort-icon" data-col="mresult">⇅</span></th>
-            <th>Umpire</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="historyTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ─────────── TAB: CHART ─────────── -->
-  <div class="rpt-panel" id="rpanel-chart">
-    <div class="chart-container">
-      <div class="chart-title">📊 Points by Player</div>
-      <div class="chart-bars" id="statsChart"><div class="chart-axis"></div></div>
-    </div>
-  </div>
-
-  <!-- ── UMPIRE WORKLOAD PANEL ── -->
-  <div class="rpt-panel" id="rpanel-umpire">
-    <div id="umpireWorkloadContent"></div>
-  </div>
-
-  <!-- ── UNDERRATE / OVERRATE PANEL ── -->
-
 </div>
 
 
@@ -1372,36 +1330,14 @@
     <!-- Stats bar -->
     <div class="profile-stats-bar" id="profileStatBar"></div>
     <!-- Body -->
+    <!-- Single page: identity chips → scout notes → match history → H2H.
+         (Career tab removed: seasons_archive is empty, so it only ever
+         repeated the stat bar above.) -->
     <div class="profile-body">
-      <!-- Tab Nav -->
-      <div class="pd-tabs">
-        <button class="pd-tab-btn active" onclick="switchPdTab('personal',this)">👤 ข้อมูล</button>
-        <button class="pd-tab-btn" onclick="switchPdTab('career',this)">📈 Career</button>
-        <button class="pd-tab-btn" onclick="switchPdTab('matches',this)">🏸 แมตช์</button>
-      </div>
-
-      <!-- TAB: Personal -->
-      <div id="pdTabPersonal" class="pd-tab-content active">
-      <div id="pdViewPersonal">
-        <div class="profile-section-title">👤 ข้อมูลส่วนตัว</div>
-        <div id="pdPersonalGrid" class="profile-field-grid"></div>
-      </div>
-      </div><!-- end pdTabPersonal -->
-
-      <!-- TAB: Career / All-Time Stats -->
-      <div id="pdTabCareer" class="pd-tab-content">
-        <div id="pdCareerContent" style="padding:4px 0;">
-          <div style="text-align:center;color:var(--muted);font-size:13px;padding:24px;">กำลังโหลดประวัติ...</div>
-        </div>
-      </div>
-
-      <!-- TAB: Match History + H2H -->
-      <div id="pdTabMatches" class="pd-tab-content">
-        <div id="pdMatchHistory" style="margin-bottom:16px;"></div>
-        <div id="pdH2H"></div>
-      </div>
-
-
+      <div id="pdIdentityRow" class="pd-identity"></div>
+      <div id="pdScoutNotes"></div>
+      <div id="pdMatchHistory"></div>
+      <div id="pdH2H"></div>
     </div>
   </div>
 </div>
@@ -1432,6 +1368,7 @@
 
 <!-- ── TV / PROJECTOR MODE (?view=tv) — big-screen auto-rotating display ── -->
 <div id="tvView"></div>
+<button id="tvFsBtn" class="tv-fs-btn" onclick="toggleTvFullscreen()" title="เต็มจอ (กด F)" aria-label="เต็มจอ">⛶</button>
 
 <!-- ── EDIT PLAYER MODAL (admin) ── -->
 <div id="playerEditModal" class="modal-overlay" onclick="if(event.target===this)closePlayerEdit()">

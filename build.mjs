@@ -17,13 +17,13 @@ const ASSETS = join(DIST, 'assets');
 
 // ---- load order (must match index.html / umpire.html) ----
 const CSS = ['base','login','nav','scoreboard','match-cards','tables-modals','dashboard','picker','board',
-  'notifications','ongoing-finished','climax','fullscreen','ranking','trophy',
+  'notifications','ongoing-finished','climax','fullscreen','report','trophy',
   'responsive','profile','components','backup','qr','tv'].map(n => `css/${n}.css`);
 
 const JS = [
   'shared/firebase-config.js',
   'js/utils.js','js/auth.js','js/core.js','js/ui.js',
-  'js/player-profile.js','js/season.js','js/export-import.js',
+  'js/player-photo.js','js/player-profile.js','js/season.js','js/export-import.js',
   'js/match-picker.js','js/match-render.js','js/result-entry.js','js/stats.js',
   'js/reports.js','js/pdf-export.js','js/dashboard.js','js/ranking.js',
   'js/effects.js','js/notifications.js','js/backup.js',

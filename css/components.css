@@ -316,3 +316,134 @@
 :-webkit-full-screen-ancestor .fs-trigger-zone { display: block; }
 :-webkit-full-screen-ancestor .container { padding-bottom: 72px !important; }
 
+
+/* ══════════════════════════════════════════
+   PLAYER AVATAR — one look everywhere a face appears
+   ══════════════════════════════════════════ */
+.pav {
+  --pav-size: 38px;
+  width: var(--pav-size);
+  height: var(--pav-size);
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid;
+  background: var(--surface2);
+  vertical-align: middle;
+  position: relative;
+}
+.pav img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pav-initials {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: calc(var(--pav-size) * 0.36);
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.pav-red   { border-color: var(--red);  color: var(--red);  background: rgba(255,59,92,0.1); }
+.pav-blue  { border-color: var(--blue); color: var(--blue); background: rgba(59,142,255,0.1); }
+/* inline in a sentence / table cell */
+.pav-inline { --pav-size: 22px; border-width: 1px; margin-right: 6px; }
+
+/* ══════════════════════════════════════════
+   PLAYER DIRECTORY CARD
+   One accent per card, not six: the photo is the anchor, PTS is the
+   only large number, and the secondary stats sit on one quiet line.
+   ══════════════════════════════════════════ */
+#playersTabGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+.pdir-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 13px;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, transform 0.14s;
+}
+.pdir-card:hover { background: var(--surface2); transform: translateY(-1px); }
+.pdir-card:active { transform: scale(0.995); }
+.pdir-card.is-red  { border-left-color: rgba(255,59,92,0.55); }
+.pdir-card.is-blue { border-left-color: rgba(59,142,255,0.55); }
+.pdir-card.is-red:hover  { border-color: rgba(255,59,92,0.35); }
+.pdir-card.is-blue:hover { border-color: rgba(59,142,255,0.35); }
+
+.pdir-rank {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15em;
+  color: var(--muted);
+  min-width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.pdir-rank.r1 { color: #FFD700; }
+.pdir-rank.r2 { color: #C0C0C0; }
+.pdir-rank.r3 { color: #CD7F32; }
+
+.pdir-body { flex: 1; min-width: 0; }
+.pdir-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pdir-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.pdir-meta .sep { color: var(--border2); }
+.pdir-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  background: var(--surface3);
+  color: var(--text2);
+}
+.pdir-hot { background: rgba(255,107,53,0.12); color: #ff6b35; }
+.pdir-cold { background: rgba(96,165,250,0.12); color: #60a5fa; }
+
+.pdir-pts { text-align: right; flex-shrink: 0; }
+.pdir-pts b {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.75em;
+  line-height: 0.9;
+  color: var(--gold);
+}
+.pdir-pts span {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+
+/* Row actions live on the card only for admins, and stay quiet until
+   the card is hovered/focused so 54 cards are not 108 loud buttons. */
+.pdir-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.16s;
+}
+.pdir-card:hover .pdir-actions,
+.pdir-card:focus-within .pdir-actions { opacity: 1; }
+@media (hover: none) { .pdir-actions { opacity: 0.55; } }
+.pdir-actions .btn { font-size: 11px; padding: 4px 7px; }
