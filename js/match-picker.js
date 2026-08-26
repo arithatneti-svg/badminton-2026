@@ -1,73 +1,5 @@
-function goPickerStep(step) {
-  if (step >= 3 && picker.red.length < 2) return showToast('Pick 2 Red players first', 'error');
-  if (step >= 4 && picker.blue.length < 2) return showToast('Pick 2 Blue players first', 'error');
-  [1,2,3,4].forEach(s => {
-    const panel = document.getElementById(`pickerStep${s}`);
-    const ind = document.getElementById(`step${s}Indicator`);
-    if(panel) panel.style.display = s === step ? 'block' : 'none';
-    if(ind) { ind.classList.toggle('active', s === step); ind.classList.toggle('done', s < step); }
-  });
-  if (step === 2) renderCardPicker('red');
-  if (step === 3) renderCardPicker('blue');
-  if (step === 4) renderConfirmPreview();
-}
-
-function renderCardPicker(team) {
-  const isRed = team === 'red';
-  const grid = document.getElementById(isRed ? 'redCardGrid' : 'blueCardGrid');
-  const searchInput = document.getElementById(isRed ? 'redCardSearch' : 'blueCardSearch');
-  const search = (searchInput?.value || '').toLowerCase();
-  const group = isRed ? picker.redGroup : picker.blueGroup;
-  const selected = isRed ? picker.red : picker.blue;
-  const otherSelected = isRed ? picker.blue : picker.red;
-  const activeIds = appState.ongoingMatches.flatMap(m => [m.r1,m.r2,m.b1,m.b2]);
-
-  const round = picker.round;
-  const players = appState.players.filter(p => p.team === (isRed?'Red':'Blue') && (!group || p.group === group) && (!search || p.name.toLowerCase().includes(search)));
-
-  grid.innerHTML = players.map(p => {
-    const isSelected = selected.includes(p.id);
-    const isInMatch = activeIds.includes(p.id);
-    const matchesInRound = getPlayerMatchCountInRound(p.id, round);
-    const isDisabled = (!isSelected && selected.length >= 2) || otherSelected.includes(p.id);
-    // isInMatch no longer disables the card — player can be queued while playing
-    let cls = 'player-card' + (isSelected ? (isRed?' red-selected':' blue-selected') : '') + ((isDisabled&&!isSelected) ? ' disabled' : '') + (isInMatch ? ' in-match-warn' : '');
-    const warnBadge = isInMatch ? `<span style="position:absolute;top:50%;right:12px;transform:translateY(-50%);font-size:9px;font-weight:700;color:var(--gold);letter-spacing:1px;background:rgba(245,200,66,0.12);padding:2px 6px;border-radius:6px;border:1px solid rgba(245,200,66,0.25);">⚡ LIVE</span>` : '';
-    return `<div class="${cls}" onclick="toggleCard('${p.id}','${team}')"><div class="card-radio"><div class="card-radio-inner"></div></div><div class="card-info"><div class="card-name">${escHtml(p.name)}</div><div class="card-sub">G${p.group} · R${round}: ${matchesInRound} match${isInMatch?' · กำลังแข่งอยู่':''}</div></div>${warnBadge}</div>`;
-  }).join('');
-
-  [0, 1].forEach(i => { 
-      const slot = document.getElementById(`${team}Slot${i+1}`); 
-      const pid = selected[i]; 
-      if (pid) { 
-          const pl = ( appState.players || [] ).find(p => p.id === pid); 
-          slot.className = `selected-slot ${isRed?'filled-red':'filled-blue'}`; 
-          slot.innerHTML = `<span class="slot-num">${i+1}</span><span class="slot-name">${escHtml(pl.name)}</span><span class="slot-remove" onclick="event.stopPropagation();removeCardSlot('${pid}','${team}')">✕</span>`; 
-      } else { 
-          slot.className = 'selected-slot'; 
-          slot.innerHTML = `<span class="slot-num">${i+1}</span><span style="color:var(--muted);font-size:13px;">Select Player ${i+1}</span>`; 
-      } 
-  });
-  
-  const countLabel = document.getElementById(`${team}CountLabel`);
-  if(countLabel) countLabel.textContent = `${selected.length} / 2`; 
-  
-  const nextBtn = document.getElementById(`${team}NextBtn`); 
-  if(nextBtn) {
-      nextBtn.disabled = selected.length !== 2; 
-      nextBtn.style.opacity = selected.length === 2 ? '1' : '0.4';
-  }
-}
-
-function toggleCard(id, team) { const sel = team==='red' ? picker.red : picker.blue; const idx = sel.indexOf(id); if (idx>=0) sel.splice(idx,1); else if (sel.length<2) sel.push(id); renderCardPicker(team); }
-function removeCardSlot(id, team) { const sel = team==='red' ? picker.red : picker.blue; const idx = sel.indexOf(id); if (idx>=0) sel.splice(idx,1); renderCardPicker(team); }
-
-function renderConfirmPreview() {
-  const getP = id => ( appState.players || [] ).find(p=>p.id===id); const [r1,r2] = picker.red.map(getP), [b1,b2] = picker.blue.map(getP);
-  document.getElementById('matchConfirmPreview').innerHTML = `<div class="confirm-team-box" style="background:rgba(255,59,59,0.08);border:1px solid rgba(255,59,59,0.2);"><div class="red-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.2em;letter-spacing:3px;margin-bottom:10px;">🔴 RED TEAM</div><div><span class="confirm-player-pill" style="background:rgba(255,59,59,0.12);color:var(--red);">${r1?.name}</span><span class="confirm-player-pill" style="background:rgba(255,59,59,0.12);color:var(--red);">${r2?.name}</span></div></div><div style="font-family:'Bebas Neue',sans-serif;font-size:2em;color:var(--muted);letter-spacing:4px;padding:0 10px;">VS</div><div class="confirm-team-box" style="background:rgba(59,142,255,0.08);border:1px solid rgba(59,142,255,0.2);"><div class="blue-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.2em;letter-spacing:3px;margin-bottom:10px;">🔵 BLUE TEAM</div><div><span class="confirm-player-pill" style="background:rgba(59,142,255,0.12);color:var(--blue);">${b1?.name}</span><span class="confirm-player-pill" style="background:rgba(59,142,255,0.12);color:var(--blue);">${b2?.name}</span></div></div>`;
-}
-
-function resetPicker() { picker.red=[]; picker.blue=[]; goPickerStep(1); }
+// ── MATCH BOARD (tap-first, single screen) ──
+const picker = { round: '1', red: [], blue: [], redGroup: '', blueGroup: '' };
 
 function getPlayerMatchCountInRound(playerId, round) {
   const inHistory = appState.matchHistory.filter(h => h.round === String(round) && [h.r1,h.r2,h.b1,h.b2].includes(playerId)).length;
@@ -75,61 +7,123 @@ function getPlayerMatchCountInRound(playerId, round) {
   return inHistory + inOngoing;
 }
 
-function createMatch() {
-  // BUG-FIX: guard picker length FIRST before destructuring — prevents undefined r1/r2/b1/b2
-  if (picker.red.length < 2 || picker.blue.length < 2) return showToast('❌ เลือกผู้เล่นให้ครบ 2 คนต่อทีมก่อน', 'error');
-  const r1 = picker.red[0], r2 = picker.red[1];
-  const b1 = picker.blue[0], b2 = picker.blue[1];
-  // guard: r1/r2/b1/b2 must all be non-null strings
-  if (!r1 || !r2 || !b1 || !b2) return showToast('❌ ข้อมูลผู้เล่นไม่ครบ กรุณาเลือกใหม่', 'error');
-  const getP = id => (appState.players || []).find(p => p.id === id);
-  const n = appState.matchCounter, mId = 'M' + (n < 10 ? '0' + n : n);
-  const round = picker.round;
-  // guard: player might be deleted between render and submit
-  const p_r1 = getP(r1), p_r2 = getP(r2), p_b1 = getP(b1), p_b2 = getP(b2);
-  if (!p_r1 || !p_r2 || !p_b1 || !p_b2) return showToast('❌ ไม่พบข้อมูลผู้เล่น กรุณาลองใหม่', 'error');
-  appState.ongoingMatches.push({ id: mId, round, r1, r2, b1, b2, redNames: `${p_r1.name} (G${p_r1.group}) & ${p_r2.name} (G${p_r2.group})`, blueNames: `${p_b1.name} (G${p_b1.group}) & ${p_b2.name} (G${p_b2.group})` });
-  appState.matchCounter++; resetPicker(); saveData(true); showToast(`✅ ${mId} (R${round}): ${p_r1.name} & ${p_r2.name}  vs  ${p_b1.name} & ${p_b2.name} → Queue`, 'success'); playSound('match');
+function renderMatchBoard() {
+  const board = document.getElementById('matchBoard');
+  if (!board) return;
+  const nameOf = id => { const p = (appState.players||[]).find(x=>x.id===id); return p ? p.name : '—'; };
+
+  // ── slots ──
+  [['red', picker.red], ['blue', picker.blue]].forEach(([team, arr]) => {
+    [0,1].forEach(i => {
+      const el = document.getElementById('mbSlot' + (team==='red'?'R':'B') + i);
+      if (!el) return;
+      const id = arr[i];
+      if (id) {
+        el.className = 'mb-slot filled ' + team;
+        el.innerHTML = `<span class="mb-slot-num">${i+1}</span><span class="mb-slot-name">${escHtml(nameOf(id))}</span><span class="mb-slot-x" aria-hidden="true">✕</span>`;
+      } else {
+        el.className = 'mb-slot ' + team;
+        el.innerHTML = `<span class="mb-slot-num">${i+1}</span><span class="mb-slot-hint">แตะเลือกคนที่ ${i+1}</span>`;
+      }
+    });
+  });
+
+  // ── pools ──
+  const activeIds = appState.ongoingMatches.flatMap(m => [m.r1,m.r2,m.b1,m.b2]);
+  const round = picker.round || '1';
+  const renderPool = (team) => {
+    const isRed = team === 'red';
+    const el = document.getElementById(isRed ? 'mbPoolRed' : 'mbPoolBlue');
+    if (!el) return;
+    const search = (document.getElementById(isRed ? 'mbSearchRed' : 'mbSearchBlue')?.value || '').toLowerCase();
+    const group = isRed ? picker.redGroup : picker.blueGroup;
+    const sel = isRed ? picker.red : picker.blue;
+    const players = (appState.players||[]).filter(p =>
+      p.team === (isRed?'Red':'Blue') && (!group || p.group === group) && (!search || p.name.toLowerCase().includes(search)));
+    if (!players.length) { el.innerHTML = `<div class="mb-empty">ไม่พบผู้เล่น</div>`; return; }
+    el.innerHTML = players.map(p => {
+      const picked  = sel.includes(p.id);
+      const inMatch = activeIds.includes(p.id);
+      const cnt = getPlayerMatchCountInRound(p.id, round);
+      const meta = inMatch ? 'กำลังแข่ง' : (cnt > 0 ? `R${round}·${cnt}` : '');
+      const cls = 'mb-chip ' + team + (picked ? ' picked' : '') + (inMatch ? ' live' : '');
+      return `<button class="${cls}" onclick="boardToggle('${p.id}','${team}')">${escHtml(p.name)}${meta ? `<span class="mb-chip-meta">${meta}</span>` : ''}</button>`;
+    }).join('');
+  };
+  renderPool('red'); renderPool('blue');
+
+  const n = picker.red.length + picker.blue.length;
+  const st = document.getElementById('mbStatus');
+  if (st) { st.textContent = n === 4 ? '✓ พร้อมสร้างแมตช์' : `เลือกแล้ว ${n}/4`; st.style.color = n === 4 ? 'var(--green)' : 'var(--muted)'; }
 }
 
-function createMockMatch() {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return;
+function boardToggle(id, team) {
+  const sel = team === 'red' ? picker.red : picker.blue;
+  const idx = sel.indexOf(id);
+  if (idx >= 0) sel.splice(idx, 1);
+  else if (sel.length < 2) sel.push(id);
+  else return showToast('ทีมนี้ครบ 2 คนแล้ว — แตะช่องเพื่อเอาออกก่อน', 'warning');
+  renderMatchBoard();
+}
 
-  const round = picker.round || 1;
-  const activeIds = appState.ongoingMatches.flatMap(m => [m.r1, m.r2, m.b1, m.b2]);
-  const freeOf = team => appState.players.filter(p => p.team === team && !activeIds.includes(p.id));
-  let reds = freeOf('Red'), blues = freeOf('Blue');
-  // ให้ความสำคัญกับคนที่ยังไม่เล่นรอบนี้ก่อน — แต่ถ้าไม่พอ ใช้ใครก็ได้ที่ว่าง (เล่นซ้ำรอบได้)
-  const rFresh = reds.filter(p => getPlayerMatchCountInRound(p.id, round) < 1);
-  const bFresh = blues.filter(p => getPlayerMatchCountInRound(p.id, round) < 1);
-  if (rFresh.length >= 2) reds = rFresh;
-  if (bFresh.length >= 2) blues = bFresh;
+function boardRemove(team, i) {
+  const sel = team === 'red' ? picker.red : picker.blue;
+  if (sel[i]) { sel.splice(i, 1); renderMatchBoard(); }
+}
 
-  if (reds.length < 2 || blues.length < 2) {
-    return showToast('ผู้เล่นที่ว่าง (ไม่ติดแมตช์สด) มีไม่พอ 2 คนต่อทีม', 'error');
-  }
+// สุ่มลงกระดาน (ให้แอดมินตรวจก่อนกดสร้าง)
+function boardFillRandom() {
+  const activeIds = appState.ongoingMatches.flatMap(m => [m.r1,m.r2,m.b1,m.b2]);
+  const round = picker.round || '1';
+  const free = teamName => appState.players.filter(p => p.team === teamName && !activeIds.includes(p.id));
+  const pick2 = list => {
+    const fresh = list.filter(p => getPlayerMatchCountInRound(p.id, round) < 1);
+    const pool = fresh.length >= 2 ? fresh : list;
+    return pool.slice().sort(() => Math.random() - 0.5).slice(0, 2).map(p => p.id);
+  };
+  const reds = free('Red'), blues = free('Blue');
+  if (reds.length < 2 || blues.length < 2) return showToast('ผู้เล่นที่ว่าง (ไม่ติดแมตช์สด) มีไม่พอ 2 คนต่อทีม', 'error');
+  picker.red = pick2(reds);
+  picker.blue = pick2(blues);
+  renderMatchBoard();
+}
 
-  reds.sort(() => 0.5 - Math.random());
-  blues.sort(() => 0.5 - Math.random());
-  const r1 = reds[0], r2 = reds[1], b1 = blues[0], b2 = blues[1];
+function selectRound(r) {
+  picker.round = String(r);
+  [1,2,3].forEach(n => document.getElementById('rpill'+n)?.classList.toggle('round-active', String(n) === String(r)));
+  renderMatchBoard();
+}
 
-  const n = appState.matchCounter;
-  const mId = 'M' + (n < 10 ? '0'+n : n);
+function setBoardGroup(team, g) {
+  if (team === 'red') picker.redGroup = g; else picker.blueGroup = g;
+  const wrap = document.getElementById(team === 'red' ? 'mbGroupRed' : 'mbGroupBlue');
+  if (wrap) wrap.querySelectorAll('.filter-pill').forEach((b,i) => b.classList.toggle('active', (i===0 && g==='') || (g===String(i))));
+  renderMatchBoard();
+}
+
+function resetPicker() { picker.red = []; picker.blue = []; renderMatchBoard(); }
+
+function createMatch() {
+  if (picker.red.length < 2 || picker.blue.length < 2) return showToast('❌ เลือกผู้เล่นให้ครบ 2 คนต่อทีมก่อน', 'error');
+  const r1 = picker.red[0], r2 = picker.red[1], b1 = picker.blue[0], b2 = picker.blue[1];
+  const getP = id => (appState.players || []).find(p => p.id === id);
+  const p_r1 = getP(r1), p_r2 = getP(r2), p_b1 = getP(b1), p_b2 = getP(b2);
+  if (!p_r1 || !p_r2 || !p_b1 || !p_b2) return showToast('❌ ไม่พบข้อมูลผู้เล่น กรุณาลองใหม่', 'error');
+  const n = appState.matchCounter, mId = 'M' + (n < 10 ? '0'+n : n), round = picker.round || '1';
   appState.ongoingMatches.push({
-    id: mId, round: String(round),
-    r1: r1.id, r2: r2.id, b1: b1.id, b2: b2.id,
-    redNames: `${r1.name} (G${r1.group}) & ${r2.name} (G${r2.group})`,
-    blueNames: `${b1.name} (G${b1.group}) & ${b2.name} (G${b2.group})`
+    id: mId, round, r1, r2, b1, b2,
+    redNames:  `${p_r1.name} (G${p_r1.group}) & ${p_r2.name} (G${p_r2.group})`,
+    blueNames: `${p_b1.name} (G${p_b1.group}) & ${p_b2.name} (G${p_b2.group})`
   });
   appState.matchCounter++;
+  resetPicker();
   saveData(true);
-  showToast(`⚡ สุ่มสร้างแมตช์ ${mId} (Round ${round}) สำเร็จ`, 'success');
+  showToast(`✅ ${mId} (R${round}): ${p_r1.name} & ${p_r2.name}  vs  ${p_b1.name} & ${p_b2.name} → คิว`, 'success');
   playSound('match');
 }
 
 function removeOngoingMatch(mId) {
   if (userRole !== 'admin' && userRole !== 'superadmin') return;
-  // BUG-FIX: if mId is literally 'undefined' (string) or falsy, allow purge of all corrupt entries
   if (!mId || mId === 'undefined') {
     showConfirmDialog('ลบแมตช์ที่ข้อมูลเสีย (undefined) ทั้งหมด?', function() {
       appState.ongoingMatches = appState.ongoingMatches.filter(m => m.id && m.id !== 'undefined' && m.r1 && m.r2 && m.b1 && m.b2);
@@ -144,4 +138,3 @@ function removeOngoingMatch(mId) {
     saveData(true);
   });
 }
-

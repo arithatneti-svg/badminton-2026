@@ -38,7 +38,7 @@ Badminton 2026/
 │   ├── match-cards.css     # การ์ดแมตช์ (live/finished) + G1 toast
 │   ├── tables-modals.css   # ตาราง/ชาร์ต + โครง modal
 │   ├── dashboard.css       # แท็บ Dashboard
-│   ├── picker.css          # ตัวเลือกสร้างแมตช์
+│   ├── picker.css          # (เดิม) — ยังใช้ round pill/filter pill
 │   ├── notifications.css    # ป็อปอัปแจ้งผลแมตช์ (slide-in)
 │   ├── ongoing-finished.css# แท็บ Ongoing/Finished + row card + score hero
 │   ├── climax.css          # การ์ด climax/deuce + live score display
@@ -50,6 +50,7 @@ Badminton 2026/
 │   ├── components.css      # toast, season, theme fixes, mobile fixes
 │   ├── backup.css          # UI ของ Backup & Restore
 │   ├── qr.css              # UI ของ QR modal (ผู้ชม / กรรมการ)
+│   ├── board.css           # Match board (tap-first) — สร้างแมตช์หน้าเดียว
 │   ├── tv.css              # TV/Projector mode (จอใหญ่หน้างาน)
 │   └── umpire.css          # สไตล์ทั้งหมดของ umpire.html
 │
@@ -61,7 +62,7 @@ Badminton 2026/
 │   ├── player-profile.js   # โมดัลโปรไฟล์ (ข้อมูล/Career/แมตช์ + H2H)
 │   ├── season.js           # season wizard/archive + Players tab
 │   ├── export-import.js    # export/import ข้อมูล
-│   ├── match-picker.js     # สร้างแมตช์ (queue) + mock match
+│   ├── match-picker.js     # ⭐ Match board (tap-first): แตะเลือก 2v2 + สุ่มจับคู่ + สร้างแมตช์
 │   ├── match-render.js     # timers + render ongoing/finished
 │   ├── result-entry.js     # กรอก/แก้ผล + auto-finalize จาก umpire + quick score
 │   ├── stats.js            # analyzeSkillGap, buildPlayerStats, player DB render

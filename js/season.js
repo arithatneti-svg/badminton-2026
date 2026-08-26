@@ -365,8 +365,9 @@ function renderPlayersTab() {
       ? `<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;background:${streak.bg};color:${streak.color};border:1px solid ${streak.border};">${streak.label}</span>`
       : '';
     // style badges (no form badge)
-    const delBtnHtml = userRole === 'superadmin'
-      ? `<button class="btn btn-danger btn-sm" style="font-size:11px;padding:4px 8px;flex-shrink:0;" title="ลบผู้เล่น" onclick="event.stopPropagation();deletePlayer('${p.id}')">🗑</button>`
+    const delBtnHtml = (userRole === 'admin' || userRole === 'superadmin')
+      ? `<button class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 7px;flex-shrink:0;" title="แก้ไขผู้เล่น" onclick="event.stopPropagation();openPlayerEdit('${p.id}')">✏️</button>
+         <button class="btn btn-danger btn-sm" style="font-size:11px;padding:4px 7px;flex-shrink:0;" title="ลบผู้เล่น" onclick="event.stopPropagation();deletePlayer('${p.id}')">🗑</button>`
       : '';
     return `<div class="match-card" style="cursor:pointer;border-top:2px solid ${tc};" onclick="openPlayerProfile('${p.id}')">
       <div class="match-card-inner">

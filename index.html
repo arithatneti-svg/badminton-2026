@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="css/tables-modals.css">
 <link rel="stylesheet" href="css/dashboard.css">
 <link rel="stylesheet" href="css/picker.css">
+<link rel="stylesheet" href="css/board.css">
 <link rel="stylesheet" href="css/notifications.css">
 <link rel="stylesheet" href="css/ongoing-finished.css">
 <link rel="stylesheet" href="css/climax.css">
@@ -490,7 +491,7 @@
     </summary>
     <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
       <div class="form-row">
-        <div class="field-group"><input type="text" id="newPlayerName" placeholder="Name" style="width:140px;"></div>
+        <div class="field-group"><input type="text" id="newPlayerName" placeholder="ชื่อผู้เล่น (Enter เพื่อเพิ่ม)" style="width:180px;" onkeydown="if(event.key==='Enter')addPlayer()"></div>
         <div class="field-group"><select id="newPlayerTeam"><option value="Red">🔴 Red Team</option><option value="Blue">🔵 Blue Team</option></select></div>
         <div class="field-group"><select id="newPlayerGroup"><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option></select></div>
         <div class="field-group"><button class="btn btn-primary" onclick="addPlayer()">+ Add</button></div>
@@ -503,79 +504,62 @@
   </details>
 
   <div class="section-title" style="margin-top: 0;">Create Match (Queue) <span class="count-chip" id="ongoingCount">0</span></div>
-  <div class="card" style="padding:0; overflow:hidden;">
-    <div class="picker-steps">
-      <div class="picker-step active" id="step1Indicator" onclick="goPickerStep(1)" style="cursor:pointer;"><span class="step-num">1</span> Round</div><div class="picker-step-arrow">›</div>
-      <div class="picker-step" id="step2Indicator" onclick="goPickerStep(2)" style="cursor:pointer;"><span class="step-num">2</span> Red Team</div><div class="picker-step-arrow">›</div>
-      <div class="picker-step" id="step3Indicator" onclick="goPickerStep(3)" style="cursor:pointer;"><span class="step-num">3</span> Blue Team</div><div class="picker-step-arrow">›</div>
-      <div class="picker-step" id="step4Indicator" onclick="goPickerStep(4)" style="cursor:pointer;"><span class="step-num">4</span> Confirm</div>
+
+  <div class="card mb-card" id="matchBoard">
+    <div class="mb-topbar">
+      <span class="mb-topbar-lbl">ROUND</span>
+      <button class="round-pill round-active" id="rpill1" onclick="selectRound('1')">1</button>
+      <button class="round-pill" id="rpill2" onclick="selectRound('2')">2</button>
+      <button class="round-pill" id="rpill3" onclick="selectRound('3')">3</button>
+      <span id="mbStatus" class="mb-status">เลือกแล้ว 0/4</span>
     </div>
-    <!-- Step 1 -->
-    <div class="picker-panel" id="pickerStep1">
-      <div style="padding:24px;">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <button class="round-pill round-active" id="rpill1" onclick="selectRound('1')">Round 1</button>
-          <button class="round-pill" id="rpill2" onclick="selectRound('2')">Round 2</button>
-          <button class="round-pill" id="rpill3" onclick="selectRound('3')">Round 3</button>
-        </div>
-        <button class="btn btn-primary" style="margin-top:20px;" onclick="goPickerStep(2)">Next → Pick Red Team</button>
+    <div class="mb-slots">
+      <div class="mb-team">
+        <div class="mb-team-title red-text">🔴 RED</div>
+        <div class="mb-slot red" id="mbSlotR0" onclick="boardRemove('red',0)"></div>
+        <div class="mb-slot red" id="mbSlotR1" onclick="boardRemove('red',1)"></div>
       </div>
-    </div>
-    <!-- Step 2 -->
-    <div class="picker-panel" id="pickerStep2" style="display:none;">
-      <div style="padding:16px 20px 10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--border);">
-        <div class="red-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:4px;">🔴 เลือกผู้เล่นทีมแดง <span style="color:var(--muted);font-size:0.65em;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;">เลือก 2 คน</span></div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="text" id="redCardSearch" placeholder="🔍 ค้นหา..." style="width:120px;font-size:13px;padding:6px 10px;" oninput="renderCardPicker('red')">
-          <div style="display:flex;gap:4px;" id="redGroupFilter"><button class="filter-pill active" onclick="setCardGroup('red','')">ทั้งหมด</button><button class="filter-pill" onclick="setCardGroup('red','1')">G1</button><button class="filter-pill" onclick="setCardGroup('red','2')">G2</button><button class="filter-pill" onclick="setCardGroup('red','3')">G3</button></div>
-        </div>
-      </div>
-      <div class="selected-slots" id="redSelectedSlots">
-        <div class="selected-slot" id="redSlot1"><span class="slot-num">1</span><span style="color:var(--muted);font-size:13px;">เลือกคนที่ 1</span></div>
-        <div class="selected-slot" id="redSlot2"><span class="slot-num">2</span><span style="color:var(--muted);font-size:13px;">เลือกคนที่ 2</span></div>
-      </div>
-      <div id="redCardGrid" class="player-card-grid"></div>
-      <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;">
-        <button class="btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);" onclick="goPickerStep(1)">← Back</button>
-        <button class="btn btn-primary" id="redNextBtn" onclick="goPickerStep(3)" disabled style="opacity:0.4;">ถัดไป → เลือกทีมน้ำเงิน</button>
-        <span id="redCountLabel" style="margin-left:auto;font-size:13px;color:var(--muted);font-weight:700;">0 / 2</span>
+      <div class="mb-vs">VS</div>
+      <div class="mb-team">
+        <div class="mb-team-title blue-text" style="text-align:right;">BLUE 🔵</div>
+        <div class="mb-slot blue" id="mbSlotB0" onclick="boardRemove('blue',0)"></div>
+        <div class="mb-slot blue" id="mbSlotB1" onclick="boardRemove('blue',1)"></div>
       </div>
     </div>
-    <!-- Step 3 -->
-    <div class="picker-panel" id="pickerStep3" style="display:none;">
-      <div style="padding:16px 20px 10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--border);">
-        <div class="blue-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:4px;">🔵 เลือกผู้เล่นทีมน้ำเงิน <span style="color:var(--muted);font-size:0.65em;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;">เลือก 2 คน</span></div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="text" id="blueCardSearch" placeholder="🔍 ค้นหา..." style="width:120px;font-size:13px;padding:6px 10px;" oninput="renderCardPicker('blue')">
-          <div style="display:flex;gap:4px;" id="blueGroupFilter"><button class="filter-pill active" onclick="setCardGroup('blue','')">ทั้งหมด</button><button class="filter-pill" onclick="setCardGroup('blue','1')">G1</button><button class="filter-pill" onclick="setCardGroup('blue','2')">G2</button><button class="filter-pill" onclick="setCardGroup('blue','3')">G3</button></div>
+    <div class="mb-pools">
+      <div class="mb-pool-col">
+        <div class="mb-pool-head">
+          <input type="text" id="mbSearchRed" placeholder="🔍 ค้นหาทีมแดง" oninput="renderMatchBoard()">
+          <div class="mb-groups" id="mbGroupRed">
+            <button class="filter-pill active" onclick="setBoardGroup('red','')">ทั้งหมด</button>
+            <button class="filter-pill" onclick="setBoardGroup('red','1')">G1</button>
+            <button class="filter-pill" onclick="setBoardGroup('red','2')">G2</button>
+            <button class="filter-pill" onclick="setBoardGroup('red','3')">G3</button>
+          </div>
         </div>
+        <div id="mbPoolRed" class="mb-pool"></div>
       </div>
-      <div class="selected-slots" id="blueSelectedSlots">
-        <div class="selected-slot" id="blueSlot1"><span class="slot-num">1</span><span style="color:var(--muted);font-size:13px;">เลือกคนที่ 1</span></div>
-        <div class="selected-slot" id="blueSlot2"><span class="slot-num">2</span><span style="color:var(--muted);font-size:13px;">เลือกคนที่ 2</span></div>
-      </div>
-      <div id="blueCardGrid" class="player-card-grid"></div>
-      <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;">
-        <button class="btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);" onclick="goPickerStep(2)">← Back</button>
-        <button class="btn btn-primary" id="blueNextBtn" onclick="goPickerStep(4)" disabled style="opacity:0.4;">ถัดไป → ยืนยัน</button>
-        <span id="blueCountLabel" style="margin-left:auto;font-size:13px;color:var(--muted);font-weight:700;">0 / 2</span>
+      <div class="mb-pool-col">
+        <div class="mb-pool-head">
+          <input type="text" id="mbSearchBlue" placeholder="🔍 ค้นหาทีมน้ำเงิน" oninput="renderMatchBoard()">
+          <div class="mb-groups" id="mbGroupBlue">
+            <button class="filter-pill active" onclick="setBoardGroup('blue','')">ทั้งหมด</button>
+            <button class="filter-pill" onclick="setBoardGroup('blue','1')">G1</button>
+            <button class="filter-pill" onclick="setBoardGroup('blue','2')">G2</button>
+            <button class="filter-pill" onclick="setBoardGroup('blue','3')">G3</button>
+          </div>
+        </div>
+        <div id="mbPoolBlue" class="mb-pool"></div>
       </div>
     </div>
-    <!-- Step 4 -->
-    <div class="picker-panel" id="pickerStep4" style="display:none;">
-      <div style="padding:24px;">
-        <div id="matchConfirmPreview" style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:24px;"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);" onclick="goPickerStep(3)">← Back</button>
-          <button class="btn btn-primary" style="font-size:16px;padding:12px 32px;" onclick="createMatch()">⚡ Create Match in Queue</button>
-          <button class="btn btn-danger btn-sm" onclick="resetPicker()" style="margin-left:auto;">✕ Reset</button>
-        </div>
-      </div>
+    <div class="mb-actions">
+      <button class="btn btn-info btn-sm" onclick="boardFillRandom()">🎲 สุ่มจับคู่</button>
+      <button class="btn btn-sm" onclick="resetPicker()" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);">✕ ล้าง</button>
+      <button class="btn btn-primary" onclick="createMatch()" style="margin-left:auto;">⚡ สร้างแมตช์</button>
     </div>
   </div>
-  
-  <div style="margin-top:20px; margin-bottom: 20px; display:flex; gap:10px;">
-    <button class="btn btn-info" onclick="createMockMatch()">⚡ สุ่มสร้างคิวแข่ง (Auto Random Match)</button>
+
+  <div style="margin:16px 0 20px; display:flex;">
     <button class="btn btn-primary" onclick="openEndGame()" style="margin-left:auto; font-size:16px; padding:12px 24px; box-shadow:0 0 15px rgba(245,200,66,0.3);">🏆 สรุปผลการแข่งขัน (Ceremony)</button>
   </div>
 
@@ -1448,6 +1432,33 @@
 
 <!-- ── TV / PROJECTOR MODE (?view=tv) — big-screen auto-rotating display ── -->
 <div id="tvView"></div>
+
+<!-- ── EDIT PLAYER MODAL (admin) ── -->
+<div id="playerEditModal" class="modal-overlay" onclick="if(event.target===this)closePlayerEdit()">
+  <div class="modal-box" style="max-width:380px;">
+    <div class="modal-title" style="font-size:1.4em;">✏️ แก้ไขผู้เล่น <span id="editPlayerIdLabel" style="color:var(--muted);font-size:0.7em;"></span></div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin:20px 0;text-align:left;">
+      <div>
+        <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">ชื่อ</label>
+        <input type="text" id="editPlayerName" style="width:100%;margin-top:4px;" onkeydown="if(event.key==='Enter')savePlayerEdit()">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;">
+          <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">ทีม</label>
+          <select id="editPlayerTeam" style="width:100%;margin-top:4px;"><option value="Red">🔴 Red</option><option value="Blue">🔵 Blue</option></select>
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">กลุ่ม</label>
+          <select id="editPlayerGroup" style="width:100%;margin-top:4px;"><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option></select>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline btn-sm" onclick="closePlayerEdit()" style="flex:1;">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="savePlayerEdit()" style="flex:1;">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── QR CODES MODAL (admin/superadmin) ── -->
 <div id="qrModal" class="modal-overlay" onclick="if(event.target===this)closeQrModal()">

@@ -9,6 +9,7 @@ function switchTab(tabId, btn) {
   if (tabId === 'dashboard') renderDashboard();
   if (tabId === 'report') { renderReportHero(); switchReportTab(_activeReportTab, document.getElementById('rtab-'+_activeReportTab)); }
   if (tabId === 'players') renderPlayersTab();
+  if (tabId === 'admin') { renderMatchBoard(); renderAdminOngoingMatches(); }
   if (tabId === 'finished') renderFinishedMatches();
   if (tabId === 'ongoing') renderPublicOngoingMatches();
 }
@@ -60,7 +61,7 @@ function updateUI() {
   if (activeTab === 'finished') renderFinishedMatches();
 
   if (userRole === 'admin' || userRole === 'superadmin') {
-    if (activeTab === 'admin')     { renderAdminOngoingMatches(); populateDropdowns(); renderPlayers(); }
+    if (activeTab === 'admin')     { renderMatchBoard(); renderAdminOngoingMatches(); populateDropdowns(); renderPlayers(); }
     if (activeTab === 'report')    { renderReportHero(); renderReports(); renderPerformance(); }
     if (activeTab === 'dashboard') renderDashboard();
   }

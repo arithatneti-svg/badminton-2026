@@ -16,7 +16,7 @@ const DIST = join(root, 'dist');
 const ASSETS = join(DIST, 'assets');
 
 // ---- load order (must match index.html / umpire.html) ----
-const CSS = ['base','login','nav','scoreboard','match-cards','tables-modals','dashboard','picker',
+const CSS = ['base','login','nav','scoreboard','match-cards','tables-modals','dashboard','picker','board',
   'notifications','ongoing-finished','climax','fullscreen','ranking','trophy',
   'responsive','profile','components','backup','qr','tv'].map(n => `css/${n}.css`);
 

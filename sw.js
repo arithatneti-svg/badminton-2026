@@ -26,6 +26,7 @@ const SHELL = [
     "css/notifications.css",
     "css/ongoing-finished.css",
     "css/picker.css",
+    "css/board.css",
     "css/profile.css",
     "css/qr.css",
     "css/tv.css",
