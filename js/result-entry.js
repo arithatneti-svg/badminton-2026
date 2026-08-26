@@ -42,15 +42,13 @@ function previewResult() {
   if ([g1R,g1B,g2R,g2B].some(s => s < 0 || s > 30)) return showToast('❌ คะแนนต้องอยู่ระหว่าง 0–30', 'error');
   
   if (document.getElementById('g1Red').value === '' || document.getElementById('g1Blue').value === '') return showToast('กรุณากรอกคะแนนให้ครบ', 'error');
-  
-  // Validate badminton score rules
-  const g1Err = scoreValidationMsg(g1R, g1B, 'Game 1');
-  if (g1Err) return showToast('❌ ' + g1Err, 'error');
+
+  // คะแนนไม่เข้ากติกา 21 แต้มมาตรฐาน (เกมสั้น/ยอมแพ้/exhibition) → เตือนแต่ให้บันทึกต่อได้ ไม่ block
   const hasG2 = document.getElementById('g2Red').value !== '' || document.getElementById('g2Blue').value !== '';
-  if (hasG2) {
-    const g2Err = scoreValidationMsg(g2R, g2B, 'Game 2');
-    if (g2Err) return showToast('❌ ' + g2Err, 'error');
-  }
+  const _scoreWarns = [
+    scoreValidationMsg(g1R, g1B, 'Game 1'),
+    hasG2 ? scoreValidationMsg(g2R, g2B, 'Game 2') : null,
+  ].filter(Boolean);
   // FIX-1: declare rWin/bWin locally (were undeclared → ReferenceError)
   let rWin = 0, bWin = 0;
   if (g1R > g1B) rWin++; else if (g1B > g1R) bWin++; else { rWin += 0.5; bWin += 0.5; }
@@ -73,7 +71,10 @@ function previewResult() {
   }
   if (!m) return showToast('❌ Match not found', 'error');
   _pendingResult = { mId, m, g1R, g1B, g2R, g2B, pRed, pBlue, rStat, bStat, resText };
-  document.getElementById('confirmText').innerHTML = resText + `<br><span style="color:var(--muted);font-size:16px;">${g1R}:${g1B} / ${g2R}:${g2B}</span>`; 
+  const _warnHtml = _scoreWarns.length
+    ? `<div style="margin-top:10px;color:var(--gold);font-size:12px;line-height:1.6;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.25);border-radius:8px;padding:8px 12px;">⚠️ คะแนนไม่เข้ากติกา 21 แต้มมาตรฐาน:<br>${_scoreWarns.join('<br>')}<br><b>กด Confirm เพื่อบันทึกตามนี้ได้เลย</b></div>`
+    : '';
+  document.getElementById('confirmText').innerHTML = resText + `<br><span style="color:var(--muted);font-size:16px;">${g1R}:${g1B} / ${g2R}:${g2B}</span>` + _warnHtml;
   document.getElementById('confirmModal').classList.add('open');
 }
 
@@ -117,15 +118,10 @@ function autoFinalizeMatchFromUmpire(cmd) {
   const g1r = Number(src.g1R || 0), g1b = Number(src.g1B || 0);
   const g2r = Number(src.g2R || 0), g2b = Number(src.g2B || 0);
 
-  // Validate scores before finalizing
-  if (!isValidBadmintonScore(g1r, g1b)) {
-    _finalizingMatches.delete(cmd.mId); // release lock on validation fail
-    showToast(`❌ Game 1 คะแนนไม่ถูกต้อง (${g1r}:${g1b}) — ไม่บันทึกผล`, 'error');
-    return;
-  }
-  if ((g2r > 0 || g2b > 0) && !isValidBadmintonScore(g2r, g2b)) {
-    _finalizingMatches.delete(cmd.mId); // release lock on validation fail
-    showToast(`❌ Game 2 คะแนนไม่ถูกต้อง (${g2r}:${g2b}) — ไม่บันทึกผล`, 'error');
+  // รับคะแนนไม่มาตรฐานได้ (กรรมการตัดสินว่าจบแล้ว) — block เฉพาะกรณีไม่มีคะแนนเลย
+  if (g1r === 0 && g1b === 0 && g2r === 0 && g2b === 0) {
+    _finalizingMatches.delete(cmd.mId);
+    showToast(`❌ ยังไม่มีคะแนน (${cmd.mId}) — ไม่บันทึกผล`, 'error');
     return;
   }
 
@@ -195,15 +191,9 @@ function submitEditResult() {
   const histId = document.getElementById('editMatchHistoryId').value; const idx = appState.matchHistory.findIndex(x => x.id === histId); if (idx < 0) return; const old = appState.matchHistory[idx];
   const g1R = parseInt(document.getElementById('eg1Red').value)||0, g1B = parseInt(document.getElementById('eg1Blue').value)||0; const g2R = parseInt(document.getElementById('eg2Red').value)||0, g2B = parseInt(document.getElementById('eg2Blue').value)||0;
   
-  if (document.getElementById('eg1Red').value === '' || document.getElementById('eg1Blue').value === '') return showToast('Enter valid scores', 'error');
-  
-  const g1ErrE = scoreValidationMsg(g1R, g1B, 'Game 1');
-  if (g1ErrE) return showToast('❌ ' + g1ErrE, 'error');
-  if (g2R > 0 || g2B > 0) {
-    const g2ErrE = scoreValidationMsg(g2R, g2B, 'Game 2');
-    if (g2ErrE) return showToast('❌ ' + g2ErrE, 'error');
-  }
-  
+  if (document.getElementById('eg1Red').value === '' || document.getElementById('eg1Blue').value === '') return showToast('กรุณากรอกคะแนน Game 1', 'error');
+  // คะแนนไม่มาตรฐานก็แก้ได้ (superadmin แก้ข้อมูลเอง) — ไม่ block
+
   // player reassignment
   const newR1 = document.getElementById('editR1').value || old.r1;
   const newR2 = document.getElementById('editR2').value || old.r2;

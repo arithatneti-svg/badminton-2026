@@ -94,40 +94,36 @@ function createMatch() {
 
 function createMockMatch() {
   if (userRole !== 'admin' && userRole !== 'superadmin') return;
-  
-  // หารอบที่ยังสร้างได้อยู่ (ผู้เล่นยังไม่ครบ 1 แมตช์)
-  let targetRound = null;
-  for (let r = 1; r <= 3; r++) {
-    const reds = appState.players.filter(p => p.team === 'Red' && getPlayerMatchCountInRound(p.id, r) < 1);
-    const blues = appState.players.filter(p => p.team === 'Blue' && getPlayerMatchCountInRound(p.id, r) < 1);
-    if (reds.length >= 2 && blues.length >= 2) { targetRound = r; break; }
-  }
-  if (targetRound === null) return showToast('❌ ทุกรอบผู้เล่นเล่นครบแล้ว ไม่สามารถสร้างแมตช์ได้', 'error');
 
+  const round = picker.round || 1;
   const activeIds = appState.ongoingMatches.flatMap(m => [m.r1, m.r2, m.b1, m.b2]);
-  let availableReds = appState.players.filter(p => p.team === 'Red' && !activeIds.includes(p.id) && getPlayerMatchCountInRound(p.id, targetRound) < 1);
-  let availableBlues = appState.players.filter(p => p.team === 'Blue' && !activeIds.includes(p.id) && getPlayerMatchCountInRound(p.id, targetRound) < 1);
+  const freeOf = team => appState.players.filter(p => p.team === team && !activeIds.includes(p.id));
+  let reds = freeOf('Red'), blues = freeOf('Blue');
+  // ให้ความสำคัญกับคนที่ยังไม่เล่นรอบนี้ก่อน — แต่ถ้าไม่พอ ใช้ใครก็ได้ที่ว่าง (เล่นซ้ำรอบได้)
+  const rFresh = reds.filter(p => getPlayerMatchCountInRound(p.id, round) < 1);
+  const bFresh = blues.filter(p => getPlayerMatchCountInRound(p.id, round) < 1);
+  if (rFresh.length >= 2) reds = rFresh;
+  if (bFresh.length >= 2) blues = bFresh;
 
-  if (availableReds.length < 2 || availableBlues.length < 2) {
-    return showToast("ผู้เล่นที่ว่างอยู่มีไม่พอสำหรับรอบนี้ครับ", "error");
+  if (reds.length < 2 || blues.length < 2) {
+    return showToast('ผู้เล่นที่ว่าง (ไม่ติดแมตช์สด) มีไม่พอ 2 คนต่อทีม', 'error');
   }
 
-  availableReds.sort(() => 0.5 - Math.random());
-  availableBlues.sort(() => 0.5 - Math.random());
-  const r1 = availableReds[0], r2 = availableReds[1];
-  const b1 = availableBlues[0], b2 = availableBlues[1];
+  reds.sort(() => 0.5 - Math.random());
+  blues.sort(() => 0.5 - Math.random());
+  const r1 = reds[0], r2 = reds[1], b1 = blues[0], b2 = blues[1];
 
   const n = appState.matchCounter;
   const mId = 'M' + (n < 10 ? '0'+n : n);
   appState.ongoingMatches.push({
-    id: mId, round: String(targetRound),
+    id: mId, round: String(round),
     r1: r1.id, r2: r2.id, b1: b1.id, b2: b2.id,
     redNames: `${r1.name} (G${r1.group}) & ${r2.name} (G${r2.group})`,
     blueNames: `${b1.name} (G${b1.group}) & ${b2.name} (G${b2.group})`
   });
   appState.matchCounter++;
   saveData(true);
-  showToast(`⚡ สุ่มสร้างแมตช์ ${mId} (Round ${targetRound}) สำเร็จ`, 'success');
+  showToast(`⚡ สุ่มสร้างแมตช์ ${mId} (Round ${round}) สำเร็จ`, 'success');
   playSound('match');
 }
 
