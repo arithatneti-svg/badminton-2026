@@ -195,6 +195,8 @@ dbRef.on('value', (snapshot) => {
 // friends exist, and the DOM (#dbDot) is ready too.
 const dbConnRef = firebase.database().ref('.info/connected');
 window.addEventListener('DOMContentLoaded', () => {
+  // career/compare views and pid allocation need the durable person records
+  if (typeof loadMasterPlayers === 'function') loadMasterPlayers();
   dbConnRef.on('value', snap => {
     const online = snap.val() === true;
     const dot = document.getElementById('dbDot');
@@ -250,7 +252,10 @@ function doResetFull() {
   showConfirmDialog('⚠️ Reset ทั้งหมด รวมถึง Player profiles, play style, base score? (ระบบจะ backup ตัวปัจจุบันไว้ให้ก่อน — กู้คืนได้จากปุ่ม Backup & Restore)', function() {
     backupState('pre-reset', 'ก่อน Reset ทั้งหมด'); // safety snapshot ก่อนล้าง
     const currentPlayers = appState.players || [];
-    appState = { globalScoreRed:0, globalScoreBlue:0, players:currentPlayers, playerProfiles:{}, ongoingMatches:[], matchHistory:[], matchCounter:1, redTeamName:'RED TEAM', blueTeamName:'BLUE TEAM' };
+    appState = { globalScoreRed:0, globalScoreBlue:0, players:currentPlayers, playerProfiles:{}, ongoingMatches:[], matchHistory:[], matchCounter:1, redTeamName:'RED TEAM', blueTeamName:'BLUE TEAM',
+      // keep the season identity: a reset clears results, it does not move
+      // the app back to a previous season
+      seasonName: appState.seasonName, seasonYear: appState.seasonYear };
     saveData(true); showToast('🗑 Reset ทั้งหมดเรียบร้อย', 'success');
   });
 }
@@ -273,6 +278,8 @@ function doResetMatchOnly() {
       matchCounter:    1,
       redTeamName:     appState.redTeamName  || 'RED TEAM',
       blueTeamName:    appState.blueTeamName || 'BLUE TEAM',
+      seasonName:      appState.seasonName,
+      seasonYear:      appState.seasonYear,
     };
     saveData(true);
     showToast('✅ Reset ผลแมตช์เรียบร้อย — Player profiles ยังอยู่ครบ', 'success');

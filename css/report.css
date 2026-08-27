@@ -842,3 +842,56 @@
 
 /* face + name in the reports table cell */
 #report .rp-name-cell { display: inline-flex; align-items: center; min-width: 0; }
+
+/* ══ 15. SEASON COMPARE ══════════════════════════════════════ */
+#report .cmp-seasons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+#report .cmp-season-card {
+  background: var(--rp-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+#report .cmp-season-card.is-current { border-color: rgba(245,200,66,0.32); }
+#report .cmp-season-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+#report .cmp-year {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.5em; letter-spacing: 3px; color: var(--gold);
+}
+#report .cmp-live {
+  font-size: 8.5px; font-weight: 800; letter-spacing: 1px;
+  padding: 2px 7px; border-radius: 10px;
+  background: rgba(0,230,118,0.12); color: var(--green);
+  border: 1px solid rgba(0,230,118,0.25);
+}
+#report .cmp-name { font-size: 11px; color: var(--muted); width: 100%; }
+#report .cmp-score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.4em; line-height: 1.1; letter-spacing: 2px;
+  margin-top: 8px; font-variant-numeric: tabular-nums;
+}
+#report .cmp-vs { color: var(--border2); margin: 0 6px; }
+#report .cmp-lead { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
+#report .cmp-meta { font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+#report .cmp-table th, #report .cmp-table td { white-space: nowrap; }
+#report .cmp-table td { font-variant-numeric: tabular-nums; }
+#report .cmp-pname { font-weight: 700; }
+#report .cmp-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  margin-right: 6px; vertical-align: middle;
+}
+#report .cmp-sub { font-size: 10.5px; color: var(--muted); margin-left: 6px; }
+#report .cmp-none { color: var(--border2); text-align: center; }
+#report .cmp-swap {
+  color: var(--purple); font-weight: 800; margin-left: 5px;
+  font-size: 13px; cursor: help;
+}
+#report .cmp-out {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
+  padding: 1px 6px; border-radius: 9px; margin-left: 6px;
+  background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
+}
+#report tr.cmp-gone { opacity: 0.6; }

@@ -23,7 +23,7 @@ const CSS = ['base','login','nav','scoreboard','match-cards','tables-modals','da
 const JS = [
   'shared/firebase-config.js',
   'js/utils.js','js/auth.js','js/core.js','js/ui.js',
-  'js/player-photo.js','js/player-profile.js','js/season.js','js/export-import.js',
+  'js/player-photo.js','js/player-profile.js','js/career.js','js/season.js','js/export-import.js',
   'js/match-picker.js','js/match-render.js','js/result-entry.js','js/stats.js',
   'js/reports.js','js/pdf-export.js','js/dashboard.js','js/ranking.js',
   'js/effects.js','js/notifications.js','js/backup.js',

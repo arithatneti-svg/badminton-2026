@@ -91,12 +91,11 @@ function addPlayer() {
   if (!name) { nameEl.focus(); return showToast('กรอกชื่อผู้เล่นก่อน', 'error'); }
   if (appState.players.some(p => p.name.toLowerCase() === name.toLowerCase() && p.team === team)) return showToast(`${name} มีอยู่แล้ว`, 'error');
 
-  const prefix = team === 'Red' ? 'R' : 'B';
-  let maxNum = 0;
-  appState.players.filter(p => p.team === team).forEach(p => { const n = parseInt(p.id.substring(1)); if (!isNaN(n) && n > maxNum) maxNum = n; });
-  const num = maxNum + 1;
-  const newId = prefix + (num < 10 ? '0' + num : num);
-  appState.players.push({ id: newId, name, team, group });
+  // nextJersey scans every player, not just this team: after a season
+  // rollover an R-numbered player can sit on Blue, and scanning one side
+  // could mint an id that already exists on the other.
+  const newId = nextJersey(team);
+  appState.players.push({ id: newId, pid: nextPid(), name, team, group });
   invalidateStatsCache();
   nameEl.value = ''; nameEl.focus(); // เคลียร์ + โฟกัสต่อ เพิ่มรัว ๆ ได้
   saveKeys(['players']);
@@ -161,10 +160,7 @@ function importCSV(input) {
       const [name, team, group] = line.split(',').map(s => s.trim().replace(/^"|"$/g, ''));
       if (!name || !['Red','Blue'].includes(team)) return;
       if (appState.players.some(p => p.name.toLowerCase() === name.toLowerCase() && p.team === team)) return;
-      const prefix = team === 'Red' ? 'R' : 'B';
-      let maxNum = 0;
-      appState.players.filter(p => p.team === team).forEach(p => { const n = parseInt(p.id.substring(1)); if (n > maxNum) maxNum = n; });
-      appState.players.push({ id: prefix + (maxNum + 1 < 10 ? '0'+(maxNum+1) : maxNum+1), name, team, group: group||'1' });
+      appState.players.push({ id: nextJersey(team), pid: nextPid(), name, team, group: group||'1' });
       added++;
     });
     input.value = ''; saveKeys(['players'], true); showToast(`Imported ${added} players`, 'success');

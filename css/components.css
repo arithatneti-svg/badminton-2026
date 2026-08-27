@@ -447,3 +447,41 @@
 .pdir-card:focus-within .pdir-actions { opacity: 1; }
 @media (hover: none) { .pdir-actions { opacity: 0.55; } }
 .pdir-actions .btn { font-size: 11px; padding: 4px 7px; }
+
+/* ══ SEASON WIZARD — step 3 (roster for the new season) ══ */
+.wz-keep-count { font-size: 11px; color: var(--muted); font-weight: 700; }
+.wz-keep-count b { color: var(--gold); font-size: 12.5px; }
+
+.reassign-card .wz-keep { display: flex; align-items: center; flex-shrink: 0; }
+.reassign-card .wz-keep input { accent-color: var(--green); width: 17px; height: 17px; cursor: pointer; }
+.reassign-card.wz-dropped { opacity: 0.42; }
+.reassign-card.wz-dropped .reassign-name { text-decoration: line-through; }
+.wz-pid {
+  font-size: 9px; font-weight: 800; letter-spacing: 1px;
+  color: var(--muted); margin-left: 7px;
+}
+
+.wz-newblock {
+  margin-top: 16px; padding: 13px 15px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.wz-newrow { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.wz-newrow input[type="text"] { flex: 1; min-width: 150px; font-size: 13px; padding: 8px 11px; }
+.wz-newrow select { font-size: 13px; padding: 8px 9px; }
+.wz-newlist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.wz-newchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700;
+  padding: 4px 6px 4px 11px; border-radius: 20px;
+  border: 1px solid var(--border2);
+}
+.wz-newchip.is-red  { background: rgba(255,59,92,0.1);  color: var(--red);  border-color: rgba(255,59,92,0.3); }
+.wz-newchip.is-blue { background: rgba(59,142,255,0.1); color: var(--blue); border-color: rgba(59,142,255,0.3); }
+.wz-newchip b { font-size: 10px; opacity: 0.75; }
+.wz-newchip button {
+  background: none; border: none; color: inherit; cursor: pointer;
+  opacity: 0.6; font-size: 12px; padding: 0 3px;
+}
+.wz-newchip button:hover { opacity: 1; }

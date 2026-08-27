@@ -46,6 +46,8 @@ function openPlayerProfile(playerId) {
   renderPdScoutNotes(prof);
   renderPdMatchHistory(playerId);
   renderPdH2H(playerId);
+  renderPdCareer(playerId);
+  renderPdPastMatches(playerId);
   const _rv = document.getElementById('pdReadView'), _ev = document.getElementById('pdEditView');
   if (_rv && _ev) { _rv.hidden = false; _ev.hidden = true; }
   overlay.classList.add('open');

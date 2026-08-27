@@ -35,6 +35,7 @@ function switchReportTab(tab, btn) {
   document.getElementById('rpanel-' + tab)?.classList.add('active');
   if (tab === 'players') { renderReportHero(); renderReports(); }
   if (tab === 'matches') renderMatchesPanel();
+  if (tab === 'compare') renderSeasonCompare();
 }
 
 // Export menu is a <details>; close it when the user taps anywhere else,
