@@ -390,3 +390,135 @@ async function renderSeasonCompare() {
           }).join('')}</tbody>
         </table></div>`}`;
 }
+
+// ══════════════════════════════════════════════════════════════
+// ONE-TIME MIGRATION — link history to a permanent person id
+//
+// The 2026 season was archived by the previous build, which keyed
+// masterPlayers by the jersey (B01) and stored only wins/losses/pts.
+// A jersey is season-scoped, so that linkage breaks the moment anyone
+// changes colour. This walks every archive, gives each person a pid,
+// stamps it onto the archived roster, and rebuilds masterPlayers keyed
+// by pid with the full rollup recomputed from the archived matches.
+//
+// Idempotent: running it twice changes nothing. Always dry-runs first.
+// ══════════════════════════════════════════════════════════════
+
+async function planIdentityMigration() {
+  const [archives, master] = await Promise.all([loadSeasonArchives(), loadMasterPlayers()]);
+  const live = appState.players || [];
+
+  const taken = new Set();
+  Object.keys(master || {}).forEach(k => { if (/^P\d{3}$/.test(k)) taken.add(k); });
+  live.forEach(p => { if (p.pid) taken.add(p.pid); });
+
+  const alloc = () => { const pid = nextPid(taken); taken.add(pid); return pid; };
+
+  // identity is anchored on the current roster; a person is matched to an
+  // archived entry by jersey+name first, then by name alone
+  const pidByLiveId = {};
+  const people = {};        // pid -> { pid, name, seasons:{} }
+  live.forEach(p => {
+    const pid = p.pid || alloc();
+    pidByLiveId[p.id] = pid;
+    people[pid] = { pid, name: p.name, seasons: {} };
+  });
+
+  const years = Object.keys(archives).sort();
+  const report = { years: [], newPids: 0, reusedPids: 0, orphans: 0, oldKeysToRemove: [] };
+
+  years.forEach(year => {
+    const a = archives[year];
+    const aPlayers = a.players || [];
+    const hist = a.matchHistory || [];
+    let matched = 0, orphan = 0;
+    aPlayers.forEach(ap => {
+      let pid = ap.pid;
+      if (!pid) {
+        const byBoth = live.find(l => l.id === ap.id && l.name === ap.name);
+        const byName = live.find(l => l.name === ap.name);
+        const hit = byBoth || byName;
+        if (hit) { pid = pidByLiveId[hit.id]; matched++; }
+        else     { pid = alloc(); orphan++; people[pid] = { pid, name: ap.name, seasons: {} }; }
+      }
+      ap._pid = pid;                       // staged, written only on apply
+      if (!people[pid]) people[pid] = { pid, name: ap.name, seasons: {} };
+      const st = seasonStatsFor(ap.id, hist);
+      people[pid].seasons[year] = {
+        jersey: ap.id, team: ap.team, group: ap.group,
+        pts: st.pts, w: st.w, l: st.l, d: st.d,
+        matches: st.matches, pointDiff: st.pointDiff,
+        matchWin: st.matchWin, matchLose: st.matchLose, matchDraw: st.matchDraw,
+        asRed: st.asRed, asBlue: st.asBlue,
+      };
+      const prof = (a.playerProfiles || {})[ap.id];
+      if (prof && !people[pid].profile) people[pid].profile = prof;
+    });
+    report.years.push({ year, players: aPlayers.length, matches: hist.length, matched, orphan });
+    report.orphans += orphan;
+  });
+
+  report.oldKeysToRemove = Object.keys(master || {}).filter(k => !/^P\d{3}$/.test(k));
+  report.livePlayers = live.length;
+  report.livePidsToStamp = live.filter(p => !p.pid).length;
+  report.peopleTotal = Object.keys(people).length;
+  report.alreadyMigrated = report.livePidsToStamp === 0 && report.oldKeysToRemove.length === 0;
+  return { report, people, archives, pidByLiveId };
+}
+
+async function runIdentityMigration() {
+  if (userRole !== 'superadmin') return showToast('⛔ Superadmin เท่านั้น', 'error');
+  showToast('⏳ กำลังตรวจข้อมูล...', 'info');
+  let plan;
+  try { plan = await planIdentityMigration(); }
+  catch (e) { return showToast('❌ อ่านข้อมูลไม่ได้: ' + e.message, 'error'); }
+
+  const r = plan.report;
+  if (r.alreadyMigrated) return showToast('✅ เชื่อมประวัติเรียบร้อยอยู่แล้ว ไม่ต้องทำซ้ำ', 'success');
+
+  const lines = [
+    `จะแปะรหัสถาวร (pid) ให้ผู้เล่น ${r.livePidsToStamp} คน`,
+    ...r.years.map(y => `Season ${y.year}: ${y.players} คน · ${y.matches} แมตช์` + (y.orphan ? ` (ไม่อยู่ในทีมแล้ว ${y.orphan} คน)` : '')),
+    `สร้างประวัติรูปแบบใหม่ ${r.peopleTotal} คน`,
+    r.oldKeysToRemove.length ? `ลบข้อมูลรูปแบบเก่า ${r.oldKeysToRemove.length} รายการ` : '',
+    '',
+    'ระบบจะ backup ให้ก่อนอัตโนมัติ',
+  ].filter(Boolean).join('\n');
+
+  showConfirmDialog('🔗 ซ่อมการเชื่อมประวัติ\n\n' + lines, async () => {
+    try {
+      backupState('pre-migration', 'ก่อนซ่อมการเชื่อมประวัติ');
+
+      // 1. stamp pids onto the live roster
+      (appState.players || []).forEach(p => { if (!p.pid) p.pid = plan.pidByLiveId[p.id]; });
+      saveKeys(['players'], true);
+
+      // 2. stamp pids onto each archived roster (the snapshot is the source
+      //    of truth for a finished season, so it has to carry them too)
+      for (const [year, a] of Object.entries(plan.archives)) {
+        const players = (a.players || []).map(ap => {
+          const { _pid, ...rest } = ap;
+          return { ...rest, pid: _pid || ap.pid };
+        });
+        await firebase.database().ref(`seasons_archive/${year}/players`).set(players);
+      }
+
+      // 3. write the rebuilt person records
+      const updates = {};
+      Object.values(plan.people).forEach(p => {
+        updates[p.pid] = { pid: p.pid, name: p.name, seasons: p.seasons, ...(p.profile ? { profile: p.profile } : {}) };
+      });
+      // 4. drop the old jersey-keyed records in the same write
+      plan.report.oldKeysToRemove.forEach(k => { updates[k] = null; });
+      await firebase.database().ref('masterPlayers').update(updates);
+
+      await loadMasterPlayers();
+      _cmpArchives = null;              // force the compare tab to refetch
+      invalidateStatsCache();
+      showToast(`✅ ซ่อมเรียบร้อย — เชื่อมประวัติ ${plan.report.peopleTotal} คนแล้ว`, 'success');
+      if (typeof updateUI === 'function') updateUI();
+    } catch (e) {
+      showToast('❌ ซ่อมไม่สำเร็จ: ' + e.message + ' (ข้อมูลเดิมยังอยู่ + มี backup)', 'error');
+    }
+  });
+}

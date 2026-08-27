@@ -62,6 +62,11 @@
 }
 button:focus:not(:focus-visible) { outline: none; }
 
+/* overflow-x on body alone does not clip: the html element keeps its own
+   scroll area, so the decorative flame canvases (504px inside a 360px ring)
+   still let the whole page be dragged sideways on the scoreboard. */
+html { overflow-x: hidden; }
+
 body {
   font-family: 'Space Grotesk', 'Rajdhani', sans-serif;
   background: var(--bg);

@@ -50,6 +50,7 @@
 <script defer src="js/ui.js"></script>
 <script defer src="js/player-photo.js"></script>
 <script defer src="js/player-profile.js"></script>
+<script defer src="js/me.js"></script>
 <script defer src="js/career.js"></script>
 <script defer src="js/season.js"></script>
 <script defer src="js/export-import.js"></script>
@@ -73,13 +74,25 @@
 <div id="loginOverlay">
   <h1 style="font-family:'Bebas Neue',sans-serif; color:var(--gold); font-size:clamp(3em, 8vw, 4em); letter-spacing:4px; margin-bottom:20px; text-shadow:0 0 20px rgba(245,200,66,0.3);">🏸 SPORTS DAY 2026</h1>
   <div class="login-card" style="position:relative; z-index:10000;">
-    <p style="color:var(--muted); margin-bottom:24px; font-weight:600; font-size:1.1em;">Select Your Access Level</p>
-    <button type="button" class="btn btn-info" style="width:100%; margin-bottom:12px; font-size:1.3em; padding:14px; justify-content:center;" onclick="loginGuest()">📱 GUEST VIEW (ดูคะแนนสด)</button>
-    <button type="button" class="btn btn-outline" style="width:100%; margin-bottom:12px; font-size:1.3em; padding:14px; justify-content:center;" onclick="loginAdmin()">⚙️ ADMIN (สร้างแมตช์ / จัดการผู้เล่น)</button>
-    <button type="button" class="btn" style="width:100%; font-size:1.3em; padding:14px; justify-content:center; background:rgba(245,200,66,0.12); color:var(--gold); border:1px solid rgba(245,200,66,0.3);" onclick="loginSuperAdmin()">👑 SUPER ADMIN (แก้ผล / คะแนน)</button>
+    <!-- Almost everyone opening this is a spectator or a player, so that is
+         the one big button. Staff sign-in is a quiet second row. -->
+    <p class="login-lead">เข้าดูคะแนนสดได้เลย ไม่ต้องใส่รหัส</p>
+    <button type="button" class="login-primary" onclick="loginGuest()">
+      <span class="login-primary-icon">🏸</span>
+      <span class="login-primary-main">เข้าดูคะแนนสด</span>
+      <span class="login-primary-sub">ผลแมตช์ · ตารางคะแนน · สถิติผู้เล่น</span>
+    </button>
+
+    <details class="login-staff">
+      <summary>🔑 เข้าสำหรับทีมงาน</summary>
+      <div class="login-staff-body">
+        <button type="button" class="btn btn-outline" onclick="loginAdmin()">⚙️ Admin — สร้างแมตช์ / จัดการผู้เล่น</button>
+        <button type="button" class="btn btn-outline" onclick="loginSuperAdmin()">👑 Super Admin — แก้ผล / คะแนน</button>
+      </div>
+    </details>
 
     <!-- ── THEME SELECTOR ── -->
-    <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.06);padding-top:20px;">
+    <div style="margin-top:22px;border-top:1px solid rgba(255,255,255,0.06);padding-top:18px;">
       <p style="color:var(--muted);font-size:11px;font-weight:700;letter-spacing:2px;text-align:center;margin-bottom:14px;">🎨 คุณเชียร์ทีมไหน?</p>
       <div style="display:flex;gap:8px;justify-content:center;">
         <button type="button" class="theme-pick-btn" id="themeBtnRed" onclick="selectLoginTheme('red')" style="--tc:#ff3b5c;--tc-dim:rgba(255,59,92,0.15);--tc-border:rgba(255,59,92,0.35);">
@@ -193,6 +206,26 @@
 </div>
 
 <!-- SCOREBOARD TAB -->
+<!-- ⭐ "me" bar — spectator/player shortcut, guest-visible -->
+<div id="meBar" class="me-bar"></div>
+
+<!-- ⭐ pick-your-name overlay -->
+<div id="mePickerOverlay" class="me-picker" onclick="if(event.target===this)closeMePicker()">
+  <div class="me-picker-box">
+    <div class="me-picker-head">
+      <div>
+        <div class="me-picker-title">⭐ คุณคือใคร?</div>
+        <div class="me-picker-sub">เลือกชื่อตัวเอง เพื่อดูแมตช์ของคุณได้เร็วขึ้น</div>
+      </div>
+      <button class="me-picker-close" onclick="closeMePicker()">✕</button>
+    </div>
+    <input type="text" id="meSearch" placeholder="🔍 พิมพ์ชื่อ..." oninput="renderMePickerList()">
+    <div id="mePickerList" class="me-picker-list"></div>
+    <button class="me-clear" onclick="setMe(null)">ล้างการเลือก</button>
+  </div>
+</div>
+
+
 <div id="scoreboard" class="container" style="padding: 0; max-width: 100%;">
   <div class="scoreboard-wrapper">
     <div class="team-panel red" id="redPanel">
@@ -357,6 +390,7 @@
         <option value="3">Round 3</option>
       </select>
       <div style="display:flex;gap:4px;align-items:center;">
+        <button class="me-filter-btn" onclick="toggleMeFilter(this)" title="ดูเฉพาะแมตช์ของฉัน">⭐ ของฉัน</button>
         <button class="filter-pill active" id="frAll"  onclick="setFinishedResultFilter('')">ทั้งหมด</button>
         <button class="filter-pill" id="frRed"  onclick="setFinishedResultFilter('red')"  style="--pill-active-bg:rgba(255,59,92,0.15);--pill-active-border:rgba(255,59,92,0.35);--pill-active-color:var(--red);">🔴 Red Win</button>
         <button class="filter-pill" id="frDraw" onclick="setFinishedResultFilter('draw')" style="--pill-active-bg:rgba(245,200,66,0.15);--pill-active-border:rgba(245,200,66,0.35);--pill-active-color:var(--gold);">🤝 Draw</button>
@@ -598,6 +632,7 @@
     <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">🛟 BACKUP</span>
     <button class="btn btn-outline btn-sm" onclick="manualBackup()">💾 Backup ตอนนี้</button>
     <button class="btn btn-primary btn-sm" onclick="openBackupModal()">🛟 Backup &amp; Restore</button>
+    <button class="btn btn-outline btn-sm" onclick="runIdentityMigration()" title="เชื่อมประวัติซีซั่นเก่าเข้ากับผู้เล่นปัจจุบัน (ทำครั้งเดียว)">🔗 ซ่อมการเชื่อมประวัติ</button>
   </div>
 
   <div id="playersTabGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>

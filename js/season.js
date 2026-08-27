@@ -361,7 +361,8 @@ function renderPlayersTab() {
            <button class="btn btn-danger btn-sm" title="ลบผู้เล่น" onclick="event.stopPropagation();deletePlayer('${p.id}')">🗑</button>
          </div>`
       : '';
-    return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
+    const mineCls = (typeof isMe === 'function' && isMe(p.id)) ? ' is-mine' : '';
+    return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}${mineCls}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
       <div class="pdir-rank ${rankCls}">${i + 1}</div>
       ${avatarHtml(p, 40)}
       <div class="pdir-body">

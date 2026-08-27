@@ -20,11 +20,78 @@
   box-shadow: 0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset;
 }
 
-/* ── ROLE-BASED VISIBILITY ── */
-body.guest-mode .admin-only { display: none !important; }
+/* ── ROLE-BASED VISIBILITY ──
+   Hide first, reveal per role. The old rules only hid .admin-only from
+   guests and .superadmin-only from admins, so anything tagged
+   superadmin-only alone stayed visible to guests — a spectator opening
+   Players landed on Export JSON / Backup & Restore, and the nav offered
+   New Season. */
+body.guest-mode .admin-only,
+body.guest-mode .superadmin-only { display: none !important; }
 body.guest-mode .team-name-edit { pointer-events: none; border-bottom: none; }
 body.admin-mode .superadmin-only { display: none !important; }
 /* superadmin เห็น UI เหมือน admin แต่ container (.container) คุมด้วย .active class เท่านั้น */
 body.superadmin-mode .admin-only:not(.container) { display: revert !important; }
 body.superadmin-mode .superadmin-only { display: revert !important; }
 
+
+/* ══ LOGIN — guest is the default path, staff is the exception ══ */
+.login-lead {
+  color: var(--text2);
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.login-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 18px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(245,200,66,0.35);
+  background: linear-gradient(135deg, rgba(245,200,66,0.16), rgba(255,160,64,0.08));
+  color: var(--gold);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+}
+.login-primary:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  box-shadow: 0 12px 30px rgba(245,200,66,0.18);
+}
+.login-primary:active { transform: scale(0.985); }
+.login-primary-icon { font-size: 26px; line-height: 1; }
+.login-primary-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9em;
+  letter-spacing: 3px;
+  line-height: 1.15;
+}
+.login-primary-sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.login-staff { margin-top: 14px; }
+.login-staff > summary {
+  list-style: none;
+  cursor: pointer;
+  outline: none;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--muted);
+  padding: 9px;
+  border-radius: 10px;
+  transition: color 0.18s, background 0.18s;
+}
+.login-staff > summary::-webkit-details-marker { display: none; }
+.login-staff > summary:hover { color: var(--text2); background: rgba(255,255,255,0.03); }
+.login-staff-body { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.login-staff-body .btn { width: 100%; justify-content: center; font-size: 13px; padding: 11px; }

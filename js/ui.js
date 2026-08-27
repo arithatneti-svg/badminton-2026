@@ -50,6 +50,8 @@ function updateUI() {
   else if (diff < 0) { bPanel.classList.add(Math.abs(diff) >= 6 ? 'dominant' : 'leading'); document.getElementById('blueLeadBadge').textContent = Math.abs(diff) >= 6 ? '🔥 DOMINANT' : '▲ LEADING'; document.getElementById('redLeadBadge').textContent = '▲ LEADING'; if (Math.abs(diff) >= 6) fireBlue.start(); else fireBlue.stop(); fireRed.stop(); }
   else { document.getElementById('redLeadBadge').textContent = '▲ LEADING'; document.getElementById('blueLeadBadge').textContent = '▲ LEADING'; fireRed.stop(); fireBlue.stop(); }
   
+  if (typeof renderMeBar === 'function') renderMeBar();
+
   // render only the active tab — ป้องกัน dashboard รั่วไปทุก tab
   const activeTab = document.querySelector('.container.active')?.id;
   if (activeTab === 'players') renderPlayersTab();

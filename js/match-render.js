@@ -171,8 +171,9 @@ function renderPublicOngoingMatches() {
 
       const predHtml = '';
 
+      const mineCls = (typeof matchHasMe === 'function' && matchHasMe(m)) ? ' is-mine' : '';
       liveContainer.innerHTML += `
-        <div class="court-card ${climaxClass}">
+        <div class="court-card ${climaxClass}${mineCls}">
           <div class="court-card-header">
             <span class="court-card-id">${m.id}</span>
             <span class="court-card-round">R${m.round}</span>
@@ -292,6 +293,8 @@ function renderFinishedMatches() {
   const search = (document.getElementById('finishedSearch')?.value||'').toLowerCase();
   const round  = document.getElementById('finishedFilterRound')?.value||'';
   const matches = appState.matchHistory.filter(m => {
+    // "only my matches" — a player should not scroll 39 rows to find themselves
+    if (typeof meFilterActive === 'function' && meFilterActive() && !matchHasMe(m)) return false;
     if (search && !m.redNames.toLowerCase().includes(search) && !m.blueNames.toLowerCase().includes(search) && !m.id.toLowerCase().includes(search)) return false;
     if (round && m.round !== round) return false;
     if (_finishedResultFilter === 'red'  && m.rStat !== 'W') return false;
@@ -364,7 +367,8 @@ function renderFinishedMatches() {
     // ── Winner class ──
     const winClass = isRedWin ? 'winner-red' : isBlueWin ? 'winner-blue' : 'draw-match';
 
-    return `<div class="frow ${winClass}">
+    const mineCls = (typeof matchHasMe === 'function' && matchHasMe(m)) ? ' is-mine' : '';
+    return `<div class="frow ${winClass}${mineCls}">
       <div class="frow-main">
         <div class="frow-id">
           <span class="frow-match-id">${m.id}</span>
