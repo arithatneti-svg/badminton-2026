@@ -17,7 +17,7 @@ function openPlayerProfile(playerId) {
   const hasPhoto = !!playerPhoto(p.id);
   document.getElementById('profileHeader').innerHTML = `
     <div class="pd-avatar-wrap">
-      ${avatarHtml(p, 112)}
+      ${avatarHtml(p, 140)}
       ${canEdit ? `<button class="pd-avatar-btn" title="${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}" onclick="pickPlayerPhoto('${p.id}')">📷</button>` : ''}
     </div>
     <div style="flex:1;min-width:0;">
@@ -90,7 +90,7 @@ function renderPdScoutNotes(prof) {
     { cls:'note', icon:'📝', title:'โน้ต',     text: prof.notes },
   ].filter(b => b.text && String(b.text).trim());
   if (!blocks.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="profile-section-title">🔍 สกาวต์</div>
+  el.innerHTML = `<div class="profile-section-title">📝 Note</div>
     <div class="pd-notes">${blocks.map(b => `
       <div class="pd-note pd-note-${b.cls}">
         <div class="pd-note-title">${b.icon} ${b.title}</div>

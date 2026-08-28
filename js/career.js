@@ -151,20 +151,25 @@ function renderPdCareer(playerId) {
   const cur = getPlayerStats()[playerId];
   const curP = (appState.players || []).find(p => p.id === playerId);
 
-  // current season row is built live; past ones come from the archive
-  const rows = years.filter(y => y !== curYear).map(y => ({ year: y, ...seasons[y] }));
-  if (cur && curP) {
-    rows.push({
+  // Show the career block whenever the player has any archived season —
+  // the stat bar only reflects the LIVE season, so archived history would
+  // otherwise be invisible (and it collides when seasonYear is unset and
+  // defaults to the same year the archive is keyed under).
+  if (years.length === 0) { el.innerHTML = ''; return; }
+  const liveMatches = cur ? (cur.matchesPlayed || 0) : 0;
+  const byYear = {};
+  years.forEach(y => { byYear[y] = { year: y, ...seasons[y] }; });
+  // the live row wins the collision only while it actually has matches
+  if (curP && (liveMatches > 0 || !byYear[curYear])) {
+    byYear[curYear] = {
       year: curYear, jersey: curP.id, team: curP.team, group: curP.group,
       pts: cur.pts || 0, w: cur.w || 0, l: cur.l || 0,
-      matches: cur.matchesPlayed || 0, pointDiff: cur.pointDiff || 0,
+      matches: liveMatches, pointDiff: cur.pointDiff || 0,
       matchWin: cur.matchWin || 0, matchLose: cur.matchLose || 0, matchDraw: cur.matchDraw || 0,
       isCurrent: true,
-    });
+    };
   }
-  if (rows.length <= 1) { el.innerHTML = ''; return; }   // one season = the stat bar already says it
-
-  rows.sort((a, b) => b.year.localeCompare(a.year));
+  const rows = Object.values(byYear).sort((a, b) => b.year.localeCompare(a.year));
   const tot = rows.reduce((a, r) => ({
     pts: a.pts + (r.pts || 0), matches: a.matches + (r.matches || 0),
     mw: a.mw + (r.matchWin || 0), ml: a.ml + (r.matchLose || 0), md: a.md + (r.matchDraw || 0),
@@ -211,7 +216,10 @@ async function renderPdPastMatches(playerId) {
   const rec = pid ? (_masterPlayers || {})[pid] : null;
   const seasons = rec?.seasons || {};
   const curYear = String(appState.seasonYear || new Date().getFullYear());
-  const past = Object.keys(seasons).filter(y => y !== curYear).sort().reverse();
+  const liveMatches = (getPlayerStats()[playerId] && getPlayerStats()[playerId].matchesPlayed) || 0;
+  // every archived season is history; only skip one that is also the live
+  // season currently in progress (its matches are on the live tabs already)
+  const past = Object.keys(seasons).filter(y => !(y === curYear && liveMatches > 0)).sort().reverse();
   if (!past.length) { el.innerHTML = ''; return; }
 
   el.innerHTML = `<div class="profile-section-title">📜 แมตช์ซีซั่นก่อน</div>

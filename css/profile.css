@@ -6,7 +6,7 @@
   backdrop-filter: blur(20px);
   z-index: 800;
   overflow-y: auto;
-  padding: 24px 16px 60px;
+  padding: 74px 16px 60px;
 }
 #playerProfileOverlay.open { display: block; }
 
@@ -211,6 +211,7 @@
 .player-row-clickable:hover td { background: rgba(245,200,66,0.04); }
 
 @media (max-width: 600px) {
+  #playerProfileOverlay { padding-top: 60px; }
   .profile-header { padding: 20px 16px 16px; gap: 14px; }
   .pd-avatar-wrap .pav { --pav-size: 84px !important; }
   .profile-body { padding: 18px 16px; }
@@ -375,4 +376,37 @@
 @media (max-width: 600px) {
   .pdc-stats { margin-left: 0; width: 100%; }
   .pd-career-row { gap: 8px; }
+}
+
+/* ── Back button (labeled, top-left) ── */
+.profile-back-btn {
+  position: fixed;
+  top: 20px; left: 20px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  border-radius: 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, transform 0.15s;
+}
+.profile-back-btn:hover { background: var(--surface3); color: var(--text); transform: translateX(-2px); }
+.profile-back-btn:active { transform: scale(0.96); }
+
+/* bigger photo sits taller than the id/name column on desktop; keep the
+   header aligned to the top so the name still starts at the same line */
+.pd-avatar-wrap .pav { --pav-size: 140px; }
+
+@media (max-width: 600px) {
+  .profile-back-btn { top: 12px; left: 12px; height: 36px; padding: 0 13px 0 10px; font-size: 13px; }
+  .pd-avatar-wrap .pav { --pav-size: 104px !important; }
 }
