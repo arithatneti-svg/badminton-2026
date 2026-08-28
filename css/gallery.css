@@ -1,0 +1,146 @@
+/* ══════════════════════════════════════════════════════════════
+   EVENT GALLERY — masonry grid + lightbox
+   Phone: 2 columns. Tablet/desktop: 3 columns. CSS columns give the
+   Pinterest-style masonry with no JS layout pass.
+   ══════════════════════════════════════════════════════════════ */
+
+.gal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.gal-admin-bar { display: flex; gap: 8px; }
+
+/* year pills */
+.gal-years { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.gal-years:empty { display: none; }
+.gal-year {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 15px; border-radius: 20px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); font-size: 13px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer; transition: all 0.16s;
+}
+.gal-year:hover { color: var(--text); border-color: var(--border2); }
+.gal-year.active {
+  background: linear-gradient(135deg, var(--gold), #ffb340);
+  color: #14140c; border-color: var(--gold);
+}
+.gal-year span {
+  font-size: 10px; font-weight: 800;
+  background: rgba(0,0,0,0.18); border-radius: 10px; padding: 1px 6px;
+}
+.gal-year:not(.active) span { background: var(--surface3); color: var(--muted); }
+
+/* masonry */
+.gal-grid { column-count: 2; column-gap: 10px; }
+@media (min-width: 700px)  { .gal-grid { column-count: 3; column-gap: 12px; } }
+@media (min-width: 1100px) { .gal-grid { column-count: 4; column-gap: 12px; } }
+
+.gal-item {
+  position: relative;
+  break-inside: avoid;
+  margin: 0 0 10px;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface2);
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.gal-item:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.4); }
+.gal-item:active { transform: scale(0.99); }
+.gal-item img { width: 100%; display: block; }
+.gal-item figcaption {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 20px 12px 9px;
+  font-size: 11px; font-weight: 600; color: #fff;
+  background: linear-gradient(transparent, rgba(0,0,0,0.72));
+  opacity: 0; transition: opacity 0.2s;
+}
+.gal-item:hover figcaption { opacity: 1; }
+.gal-del {
+  position: absolute; top: 8px; right: 8px;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: none; background: rgba(10,10,16,0.7); color: #fff;
+  font-size: 14px; cursor: pointer; opacity: 0; transition: opacity 0.16s, background 0.16s;
+  display: flex; align-items: center; justify-content: center;
+}
+.gal-item:hover .gal-del, .gal-item:focus-within .gal-del { opacity: 1; }
+.gal-del:hover { background: var(--danger); }
+@media (hover: none) { .gal-del { opacity: 0.85; } }
+
+/* empty state */
+.gal-empty {
+  text-align: center; padding: 60px 20px; color: var(--muted);
+  background: rgba(255,255,255,0.015); border: 1px dashed var(--border2);
+  border-radius: 16px; font-size: 14px; line-height: 1.8;
+}
+.gal-empty-icon { font-size: 40px; display: block; margin-bottom: 10px; opacity: 0.5; }
+.gal-empty-sub { font-size: 12px; color: var(--muted); }
+
+/* ── Lightbox ── */
+.gal-lightbox {
+  display: none;
+  position: fixed; inset: 0; z-index: 1000;
+  background: #0b0d13;
+  align-items: center; justify-content: center;
+}
+.gal-lightbox.open { display: flex; animation: fadeUp 0.2s ease both; }
+.gal-lb-stage {
+  max-width: 92vw; max-height: 82vh;
+  display: flex; align-items: center; justify-content: center;
+}
+.gal-lb-stage img {
+  max-width: 92vw; max-height: 82vh;
+  width: auto; height: auto;
+  object-fit: contain; border-radius: 6px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.gal-lb-close {
+  position: fixed; top: 20px; right: 22px;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: transparent; border: none; color: #fff;
+  font-size: 24px; cursor: pointer; opacity: 0.8; transition: opacity 0.15s, transform 0.15s;
+  display: flex; align-items: center; justify-content: center; z-index: 2;
+}
+.gal-lb-close:hover { opacity: 1; transform: scale(1.1); }
+.gal-lb-arrow {
+  position: fixed; bottom: 22px; z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+  color: #fff; font-size: 20px; cursor: pointer; opacity: 0.85;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, opacity 0.15s;
+}
+.gal-lb-arrow:hover { background: rgba(255,255,255,0.14); opacity: 1; }
+.gal-lb-prev { right: 76px; }
+.gal-lb-next { right: 24px; }
+/* on wider screens float the arrows to the sides, mid-height */
+@media (min-width: 760px) {
+  .gal-lb-arrow { top: 50%; transform: translateY(-50%); bottom: auto; }
+  .gal-lb-prev { left: 24px; right: auto; }
+  .gal-lb-next { right: 24px; }
+}
+.gal-lb-bar {
+  position: fixed; left: 0; right: 0; bottom: 22px;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  flex-wrap: wrap; padding: 0 90px; pointer-events: none;
+}
+.gal-lb-bar > * { pointer-events: auto; }
+.gal-lb-counter { font-size: 13px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.gal-lb-caption { font-size: 12px; color: rgba(255,255,255,0.6); max-width: 60vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gal-lb-del {
+  font-size: 11px; font-weight: 700; color: #fff;
+  background: rgba(255,69,96,0.15); border: 1px solid rgba(255,69,96,0.4);
+  border-radius: 20px; padding: 5px 12px; cursor: pointer;
+}
+.gal-lb-del:hover { background: rgba(255,69,96,0.3); }
+@media (max-width: 640px) {
+  .gal-lb-bar { padding: 0 16px; bottom: 74px; }
+  .gal-lb-caption { max-width: 90vw; }
+  .gal-lb-stage, .gal-lb-stage img { max-height: 74vh; }
+}

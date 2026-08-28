@@ -6,7 +6,7 @@
 // NOTE: Firebase Realtime DB traffic is WebSocket (not fetch),
 // so live data still needs a connection — this only caches the shell.
 // ============================================================
-const CACHE = 'bdm2026-shell-v8';
+const CACHE = 'bdm2026-shell-v9';
 
 const SHELL = [
     "./",
@@ -31,6 +31,7 @@ const SHELL = [
     "css/qr.css",
     "css/tv.css",
     "css/report.css",
+    "css/gallery.css",
     "css/responsive.css",
     "css/scoreboard.css",
     "css/tables-modals.css",
@@ -40,6 +41,7 @@ const SHELL = [
     "js/backup.js",
     "js/career.js",
     "js/me.js",
+    "js/gallery.js",
     "js/core.js",
     "js/dashboard.js",
     "js/effects.js",

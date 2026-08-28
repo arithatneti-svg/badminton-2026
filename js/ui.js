@@ -12,6 +12,7 @@ function switchTab(tabId, btn) {
   if (tabId === 'admin') { renderMatchBoard(); renderAdminOngoingMatches(); }
   if (tabId === 'finished') renderFinishedMatches();
   if (tabId === 'ongoing') renderPublicOngoingMatches();
+  if (tabId === 'gallery') renderGallery();
 }
 
 function updateUI() {
