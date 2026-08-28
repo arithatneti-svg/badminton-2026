@@ -1189,3 +1189,38 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .sit-red   { background: rgba(255,77,77,0.15);  color: var(--red);  border-top: 1px solid rgba(255,77,77,0.4);  border-bottom: 1px solid rgba(255,77,77,0.4); }
 .sit-blue  { background: rgba(77,159,255,0.15); color: var(--blue); border-top: 1px solid rgba(77,159,255,0.4); border-bottom: 1px solid rgba(77,159,255,0.4); }
 @keyframes sitPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+/* ══════════════════════════════════════════
+   PLAYER FACES (read-only, umpire panel)
+   ══════════════════════════════════════════ */
+.uavatar {
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid;
+  background: var(--surface2, #161625);
+  vertical-align: middle;
+}
+.uavatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.uavatar.ua-initials { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.5px; line-height: 1; }
+.uavatar.ua-red  { border-color: var(--red);  color: var(--red);  background: rgba(255,59,92,0.1); }
+.uavatar.ua-blue { border-color: var(--blue); color: var(--blue); background: rgba(77,159,255,0.1); }
+
+/* two overlapped faces for a doubles pair */
+.uface-pair { display: inline-flex; flex-shrink: 0; }
+.uface-pair .uavatar + .uavatar { margin-left: -9px; }
+
+/* on the match card the faces lead the name; keep the name from wrapping under them */
+.team-row .uface-pair { margin-right: 2px; }
+.team-row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* on the scoring panel the faces sit just above the pair name */
+.team-name-score .uface-scoring {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.team-name-score .uface-scoring .uavatar { width: 30px; height: 30px; border-width: 2px; }

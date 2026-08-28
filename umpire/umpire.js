@@ -126,8 +126,8 @@ function restoreSession() {
       document.getElementById('umpireNav').style.display = 'none';
       switchScreen('screen-scoring');
       document.getElementById('activeMatchInfo').textContent = `${m.id} | ${currentUmpire}`;
-      document.getElementById('redNames').innerHTML  = formatNames(m.redNames);
-      document.getElementById('blueNames').innerHTML = formatNames(m.blueNames);
+      document.getElementById('redNames').innerHTML  = scoringNamesHtml(m, 'red');
+      document.getElementById('blueNames').innerHTML = scoringNamesHtml(m, 'blue');
       renderGameUI();
       requestWakeLock();
       // Restore pause overlay if match is currently paused
@@ -150,6 +150,35 @@ function restoreSession() {
 
 function formatNames(names) {
   return names.replace(' & ', ' <span style="color:var(--muted);font-size:0.88em;font-weight:600;">&</span> ');
+}
+
+// ── Player faces (read-only) ──────────────────────────────────
+// The umpire bundle does not load player-photo.js, but its appState is the
+// whole sportsday_2026_data blob, so the photos ride along in
+// playerProfiles. A jersey with no photo falls back to its id.
+function umpirePhoto(id) {
+  return (appState && appState.playerProfiles && appState.playerProfiles[id] && appState.playerProfiles[id].photo) || null;
+}
+function umpirePlayer(id) {
+  return (appState && appState.players || []).find(p => p.id === id) || null;
+}
+function umpireAvatar(id, size) {
+  size = size || 30;
+  const p = umpirePlayer(id);
+  const photo = umpirePhoto(id);
+  const team = p && p.team === 'Blue' ? 'ua-blue' : 'ua-red';
+  const style = 'width:' + size + 'px;height:' + size + 'px;';
+  if (photo) return '<span class="uavatar ' + team + '" style="' + style + '"><img src="' + photo + '" alt="" loading="lazy"></span>';
+  return '<span class="uavatar ' + team + ' ua-initials" style="' + style + 'font-size:' + Math.round(size*0.36) + 'px;">' + (p ? p.id : '?') + '</span>';
+}
+// two faces for a doubles pair, overlapped slightly
+function scoringNamesHtml(m, side) {
+  const ids = side === "red" ? [m.r1, m.r2] : [m.b1, m.b2];
+  const names = side === "red" ? m.redNames : m.blueNames;
+  return '<span class="uface-pair uface-scoring">' + umpireAvatar(ids[0], 30) + umpireAvatar(ids[1], 30) + '</span>' + formatNames(names);
+}
+function umpirePairFaces(id1, id2, size) {
+  return '<span class="uface-pair">' + umpireAvatar(id1, size) + umpireAvatar(id2, size) + '</span>';
 }
 
 // ── LOGIN FILTER TOGGLES ──
@@ -421,8 +450,8 @@ function renderMatchList() {
               ? '<span class="badge badge-mine">▶ คุมต่อ</span>'
               : '<span class="badge" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,192,64,0.3);">✦ ว่างอยู่</span>'}
           </div>
-          <div class="team-row"><div class="team-dot red"></div><span style="color:var(--red);">${m.redNames}</span></div>
-          <div class="team-row"><div class="team-dot blue"></div><span style="color:var(--blue);">${m.blueNames}</span></div>
+          <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${m.redNames}</span></div>
+          <div class="team-row">${umpirePairFaces(m.b1, m.b2, 30)}<span style="color:var(--blue);">${m.blueNames}</span></div>
         </div>`;
     } else {
       list.innerHTML += `
@@ -532,8 +561,8 @@ function selectMatch(mId) {
 
   document.getElementById('umpireNav').style.display = 'none';
   document.getElementById('activeMatchInfo').textContent = `${m.id} | ${currentUmpire}`;
-  document.getElementById('redNames').innerHTML  = formatNames(m.redNames);
-  document.getElementById('blueNames').innerHTML = formatNames(m.blueNames);
+  document.getElementById('redNames').innerHTML  = scoringNamesHtml(m, 'red');
+  document.getElementById('blueNames').innerHTML = scoringNamesHtml(m, 'blue');
 
   isGame2 = m.live.g1Locked;
   _lastScoreUndo = null;
@@ -871,10 +900,15 @@ async function editGame1() {
 // สถานการณ์เกมปัจจุบัน: deuce / game point (แบด 21, cap 30)
 function gameSituation(a, b) {
   a = Number(a || 0); b = Number(b || 0);
-  if (a >= 20 && b >= 20 && Math.abs(a - b) < 2 && Math.max(a, b) < 30) return { type: 'deuce' };
+  // Game point wins the priority: a one-point lead at 20+ means the leader
+  // scores next to win, so it is game point, not deuce. The old order put
+  // the deuce test (|a-b| < 2) first, so 21-20 / 29-28 wrongly read DEUCE.
   const isGP = (s, o) => { const n = s + 1; return (n >= 21 && n - o >= 2) || n === 30; };
-  if (isGP(a, b)) return { type: 'gp', side: 'red' };
-  if (isGP(b, a)) return { type: 'gp', side: 'blue' };
+  const redGP = isGP(a, b), blueGP = isGP(b, a);
+  if (redGP && blueGP) return { type: 'deuce' };            // 29-29: either point wins
+  if (redGP)  return { type: 'gp', side: 'red' };
+  if (blueGP) return { type: 'gp', side: 'blue' };
+  if (a >= 20 && b >= 20 && a === b) return { type: 'deuce' }; // 20-20..28-28 level
   return null;
 }
 
