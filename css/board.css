@@ -45,3 +45,8 @@
 /* face on the pool chip — keeps the tap target the same, just anchors it */
 .mb-chip-pav { --pav-size: 22px; border-width: 1px; margin-right: 6px; }
 .mb-chip { display: inline-flex; align-items: center; }
+
+/* Create button: dim until both teams are full (createMatch still guards) */
+.mb-create { opacity: 0.4; filter: grayscale(0.4); transition: opacity 0.2s, filter 0.2s, transform 0.15s; }
+.mb-create.mb-create-ready { opacity: 1; filter: none; }
+.mb-create.mb-create-ready:active { transform: scale(0.97); }

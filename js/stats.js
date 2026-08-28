@@ -183,42 +183,6 @@ function buildPlayerStats() {
   });
   return stats;
 }
-
-// ── PLAYER DB SORT ──
-const playerDbSort = { col: 'id', dir: 'asc' };
-function sortPlayerDb(col) { if (playerDbSort.col === col) { playerDbSort.dir = playerDbSort.dir === 'asc' ? 'desc' : 'asc'; } else { playerDbSort.col = col; playerDbSort.dir = ['name','id','team'].includes(col) ? 'asc' : 'desc'; } renderPlayers(); }
-function updatePlayerDbSortIcons() { document.querySelectorAll('#playerDbTable thead th.sortable').forEach(th => { th.classList.remove('sort-asc','sort-desc'); const icon = th.querySelector('.sort-icon'); if (icon && icon.getAttribute('data-col') === playerDbSort.col) { th.classList.add(playerDbSort.dir === 'asc' ? 'sort-asc' : 'sort-desc'); } }); }
-function renderPlayers() {
-  const tb = document.getElementById('playerTableBody'); const search = (document.getElementById('playerSearch')?.value || '').toLowerCase(); const filterTeam = document.getElementById('playerFilterTeam')?.value || '';
-  const stats = {}; appState.players.forEach(p => { stats[p.id] = { w: 0, total: 0, pts: 0 }; });
-  appState.matchHistory.forEach(h => { [h.r1,h.r2].forEach(id => { if(stats[id]){ stats[id].total++; stats[id].pts += h.pRed; if(h.rStat==='W') stats[id].w++; }}); [h.b1,h.b2].forEach(id => { if(stats[id]){ stats[id].total++; stats[id].pts += h.pBlue; if(h.bStat==='W') stats[id].w++; }}); });
-  let players = appState.players.filter(p => (!search || p.name.toLowerCase().includes(search) || p.id.toLowerCase().includes(search)) && (!filterTeam || p.team === filterTeam)).map(p => { const s = stats[p.id] || { w:0, total:0, pts:0 }; const wr = s.total > 0 ? Math.round(s.w / s.total * 100) : -1; return { ...p, w: s.w, total: s.total, pts: s.pts, winRate: wr }; });
-  const { col, dir } = playerDbSort; players.sort((a, b) => { let av = a[col], bv = b[col]; if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); } if (av < bv) return dir === 'asc' ? -1 : 1; if (av > bv) return dir === 'asc' ? 1 : -1; return 0; });
-  tb.innerHTML = '';
-  tb.innerHTML = players.map(p => {
-    const wrDisplay = p.winRate >= 0 ? p.winRate + '%' : '—';
-    const wrColor = p.winRate >= 70 ? 'var(--green)' : p.winRate >= 40 ? 'var(--gold)' : p.winRate >= 0 ? 'var(--danger)' : 'var(--muted)';
-    const wrPct = p.winRate >= 0 ? p.winRate : 0;
-    const prof = p.profile || {};
-    const handIcon = prof.hand === 'left' ? '🤚' : prof.hand === 'both' ? '🙌' : '✋';
-    return `<tr class="player-row-clickable" onclick="openPlayerProfile('${p.id}')">
-      <td class="gold-text">${p.id}</td>
-      <td style="font-weight:700;">${escHtml(p.name)} ${prof.hand ? `<span style="font-size:12px;" title="${prof.hand} handed">${handIcon}</span>` : ''}</td>
-      <td class="${p.team === 'Red' ? 'red-text' : 'blue-text'}">${p.team}</td>
-      <td>G${p.group}</td>
-      <td><div style="display:flex;align-items:center;gap:8px;">
-        <div style="flex:1;height:5px;background:var(--surface2);border-radius:3px;min-width:50px;max-width:80px;"><div style="width:${wrPct}%;height:100%;background:${wrColor};border-radius:3px;"></div></div>
-        <span style="font-size:13px;font-weight:700;color:${wrColor};min-width:32px;">${wrDisplay}</span>
-      </div></td>
-      <td style="font-weight:700;color:var(--gold);">${p.pts}</td>
-      <td onclick="event.stopPropagation()">
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-info btn-sm" onclick="openPlayerProfile('${p.id}')">👤 Profile</button>
-          <button class="btn btn-danger btn-sm" onclick="deletePlayer('${p.id}')">Delete</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-  updatePlayerDbSortIcons();
-}
+// (Removed dead player-DB table renderer — the admin tab has no such table;
+//  the Players tab renders the .pdir-card grid via renderPlayersTab.)
 

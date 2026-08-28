@@ -63,7 +63,7 @@ function updateUI() {
   if (activeTab === 'finished') renderFinishedMatches();
 
   if (userRole === 'admin' || userRole === 'superadmin') {
-    if (activeTab === 'admin')     { renderMatchBoard(); renderAdminOngoingMatches(); populateDropdowns(); renderPlayers(); }
+    if (activeTab === 'admin')     { renderMatchBoard(); renderAdminOngoingMatches(); populateDropdowns(); }
     if (activeTab === 'report')    { renderReportHero(); renderReports(); renderMatchesPanel(); }
     if (activeTab === 'dashboard') renderDashboard();
   }

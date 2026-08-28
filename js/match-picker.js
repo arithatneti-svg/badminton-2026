@@ -55,6 +55,10 @@ function renderMatchBoard() {
   const n = picker.red.length + picker.blue.length;
   const st = document.getElementById('mbStatus');
   if (st) { st.textContent = n === 4 ? '✓ พร้อมสร้างแมตช์' : `เลือกแล้ว ${n}/4`; st.style.color = n === 4 ? 'var(--green)' : 'var(--muted)'; }
+  // dim the create button until both teams are full — it still guards on
+  // tap, but a lit button that cannot succeed reads as broken
+  const cb = document.getElementById('mbCreateBtn');
+  if (cb) cb.classList.toggle('mb-create-ready', n === 4);
 }
 
 function boardToggle(id, team) {
