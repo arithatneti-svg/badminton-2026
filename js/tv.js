@@ -20,6 +20,7 @@ function enterTvMode() {
   _tvPanel = 0; _tvSecs = 0;
   renderTvPanel();
   _tvBindFsControls();
+  requestTvWakeLock();
   clearInterval(_tvTimer);
   _tvTimer = setInterval(() => {
     _tvSecs++;
@@ -133,6 +134,30 @@ function _tvPokeIdle() {
   clearTimeout(_tvIdleTimer);
   _tvIdleTimer = setTimeout(() => btn.classList.add('idle'), 3000);
 }
+
+// ── Screen Wake Lock ──────────────────────────────────────────
+// A TV / projector display must never sleep. wakeLock keeps the screen on
+// while TV mode is active; the browser releases it on tab-hide, so a
+// visibility hook re-acquires it. Falls back silently where unsupported
+// (iOS Safari has no Wake Lock API — there the display setting has to
+// keep the screen awake).
+let _tvWakeLock = null;
+
+async function requestTvWakeLock() {
+  if (!_tvActive || !('wakeLock' in navigator)) return;
+  try {
+    _tvWakeLock = await navigator.wakeLock.request('screen');
+    _tvWakeLock.addEventListener('release', () => { _tvWakeLock = null; });
+  } catch (e) { /* denied or not allowed in this context */ }
+}
+
+function releaseTvWakeLock() {
+  if (_tvWakeLock) { try { _tvWakeLock.release(); } catch (e) {} _tvWakeLock = null; }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (_tvActive && document.visibilityState === 'visible' && !_tvWakeLock) requestTvWakeLock();
+});
 
 function _tvBindFsControls() {
   ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
