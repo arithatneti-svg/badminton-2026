@@ -1251,3 +1251,69 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   #screen-scoring.active .btn-action { padding: 16px; font-size: 1.7em; }
   #screen-scoring.active .scoring-actions { padding: 6px 12px; }
 }
+
+/* ══════════════════════════════════════════
+   ACTION BAND — hierarchy by importance
+   Panels are the primary surface, so the action band is one compact row.
+   'แก้ G1' is a small quiet secondary; LOCK / SUBMIT stay muted until the
+   game reads as a real finish so a 0-0 screen never invites a commit.
+   All still tappable when muted (retirements are warn-then-allow).
+   ══════════════════════════════════════════ */
+#screen-scoring.active .scoring-actions {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  padding: 8px 12px;
+}
+/* neutralise the base width:100% + stacked sizing inside the flex row */
+#screen-scoring.active .scoring-actions > .btn-action {
+  width: auto;
+  min-height: 0;
+  padding: 15px 12px;
+  font-size: 1.45em;
+}
+#screen-scoring.active .scoring-actions > .btn-lock,
+#screen-scoring.active .scoring-actions > .btn-submit { flex: 1 1 auto; }
+
+/* edit game 1 — compact quiet secondary, content width */
+#screen-scoring.active .scoring-actions > .btn-edit-g1 {
+  flex: 0 0 auto;
+  padding: 15px 18px;
+  font-size: 0.98rem;
+  letter-spacing: 1px;
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border2);
+  box-shadow: none;
+}
+#screen-scoring.active .scoring-actions > .btn-edit-g1:active { background: var(--surface2); color: var(--text2); }
+
+/* LOCK — quiet until game 1 is a valid finish */
+#screen-scoring.active .btn-lock {
+  background: var(--surface2);
+  color: rgba(255,107,107,0.65);
+  border: 1.5px solid rgba(255,77,77,0.3);
+  box-shadow: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+#screen-scoring.active .btn-lock.is-ready {
+  background: linear-gradient(135deg, #ff6b6b, #cc2222);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 6px 24px rgba(255,77,77,0.35);
+}
+
+/* SUBMIT — quiet until game 2 is a valid finish */
+#screen-scoring.active .btn-submit {
+  background: var(--surface2);
+  color: rgba(240,192,64,0.6);
+  border: 1.5px solid rgba(240,192,64,0.28);
+  box-shadow: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+#screen-scoring.active .btn-submit.is-ready {
+  background: linear-gradient(135deg, #f5c842, #d4a000);
+  color: #000;
+  border-color: transparent;
+  box-shadow: 0 6px 24px rgba(240,192,64,0.4);
+}

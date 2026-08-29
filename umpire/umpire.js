@@ -736,9 +736,18 @@ function renderGameUI() {
     if (liInd) liInd.textContent = 'GAME 1';
   }
 
-  // ปุ่ม "แก้เกม 1" — โชว์เฉพาะตอนอยู่เกม 2
+  // ปุ่ม "แก้ G1" — โชว์เฉพาะตอนอยู่เกม 2
   const btnEdit = document.getElementById('btnEditG1');
   if (btnEdit) btnEdit.style.display = isGame2 ? 'block' : 'none';
+
+  // LOCK / SUBMIT light up only when the current game reads as a real
+  // finish, so a 0-0 or mid-game screen never looks ready to commit
+  const g1r = Number(match.live.g1R||0), g1b = Number(match.live.g1B||0);
+  const g2r = Number(match.live.g2R||0), g2b = Number(match.live.g2B||0);
+  const lockBtn = document.getElementById('btnLockG1');
+  if (lockBtn) lockBtn.classList.toggle('is-ready', isValidBadmintonScore(g1r, g1b));
+  const submitBtn = document.getElementById('btnConfirmMatch');
+  if (submitBtn) submitBtn.classList.toggle('is-ready', isValidBadmintonScore(g2r, g2b));
 
   // ป้าย Deuce / Game Point ของเกมปัจจุบัน
   const badge = document.getElementById('situationBadge');
