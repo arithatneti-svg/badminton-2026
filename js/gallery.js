@@ -41,6 +41,24 @@ function galleryPhotos(year) {
     .sort((a, b) => (a.ts || 0) - (b.ts || 0));
 }
 
+const GAL_MAX_PER_YEAR = 60;   // soft cap — heavy albums load slowly on mobile
+function galleryCount(year) { return Object.keys(_gallery[year] || {}).length; }
+// a year usually has two events — early and late. Default the label by month.
+function defaultEvent() { return new Date().getMonth() < 6 ? 'ต้นปี' : 'ปลายปี'; }
+// group a year's photos by their event label, keeping each photo's flat index
+// so the lightbox (which walks the flat year list) stays in sync
+function galleryGroups(year) {
+  const flat = galleryPhotos(year);
+  const order = [];               // event labels in first-seen order
+  const byEvent = {};
+  flat.forEach((p, i) => {
+    const ev = (p.event || '').trim() || '—';
+    if (!byEvent[ev]) { byEvent[ev] = []; order.push(ev); }
+    byEvent[ev].push({ ...p, _i: i });
+  });
+  return order.map(ev => ({ event: ev, photos: byEvent[ev] }));
+}
+
 // ── Render ────────────────────────────────────────────────────
 function renderGallery() {
   const gridEl = document.getElementById('galleryGrid');
@@ -75,23 +93,42 @@ function paintGallery() {
 
   const admin = document.getElementById('galleryAdminBar');
   if (admin) admin.style.display = canEdit ? 'flex' : 'none';
+  // pre-fill the event label with a month-based default so an admin can just
+  // pick files, but can override it (ต้นปี / ปลายปี / custom)
+  const evIn = document.getElementById('galEventInput');
+  if (evIn && canEdit && !evIn.value) evIn.value = defaultEvent();
+
+  // a clear "which year" heading above everything
+  const titleEl = document.getElementById('galleryYearTitle');
+  const count = galleryCount(_galleryYear);
+  if (titleEl) titleEl.innerHTML = `ปี ${_galleryYear}${count ? ` <span>${count} รูป</span>` : ''}`;
 
   const photos = galleryPhotos(_galleryYear);
   if (!photos.length) {
     gridEl.innerHTML = `<div class="gal-empty">
       <span class="gal-empty-icon">🖼️</span>
       <div>ยังไม่มีรูปของปี ${_galleryYear}</div>
-      ${canEdit ? '<div class="gal-empty-sub">แตะ “เพิ่มรูป” เพื่ออัปโหลด</div>' : '<div class="gal-empty-sub">รูปบรรยากาศงานจะแสดงที่นี่</div>'}
+      ${canEdit ? '<div class="gal-empty-sub">พิมพ์ชื่องาน แล้วแตะ “เพิ่มรูป” เพื่ออัปโหลด</div>' : '<div class="gal-empty-sub">รูปบรรยากาศงานจะแสดงที่นี่</div>'}
     </div>`;
     return;
   }
 
-  gridEl.innerHTML = photos.map((p, i) => `
-    <figure class="gal-item" onclick="openLightbox(${i})">
-      <img src="${p.url}" alt="${escHtml(p.caption || '')}" loading="lazy">
-      ${p.caption ? `<figcaption>${escHtml(p.caption)}</figcaption>` : ''}
-      ${canEdit ? `<button class="gal-del" title="ลบรูป" onclick="event.stopPropagation();deleteGalleryPhoto('${_galleryYear}','${p.id}')">🗑</button>` : ''}
-    </figure>`).join('');
+  // one section per event (ต้นปี / ปลายปี / …), each with its own masonry
+  gridEl.innerHTML = galleryGroups(_galleryYear).map(group => `
+    <div class="gal-section">
+      <div class="gal-section-head">
+        <span class="gal-section-name">${group.event === '—' ? '📷 รูปงาน' : '📅 ' + escHtml(group.event)}</span>
+        <span class="gal-section-count">${group.photos.length} รูป</span>
+      </div>
+      <div class="gal-masonry">
+        ${group.photos.map(p => `
+          <figure class="gal-item" onclick="openLightbox(${p._i})">
+            <img src="${p.url}" alt="${escHtml(p.caption || '')}" loading="lazy">
+            ${p.caption ? `<figcaption>${escHtml(p.caption)}</figcaption>` : ''}
+            ${canEdit ? `<button class="gal-del" title="ลบรูป" onclick="event.stopPropagation();deleteGalleryPhoto('${_galleryYear}','${p.id}')">🗑</button>` : ''}
+          </figure>`).join('')}
+      </div>
+    </div>`).join('');
 }
 
 function setGalleryYear(y) { _galleryYear = String(y); renderGallery(); }
@@ -109,13 +146,19 @@ function pickGalleryPhotos() {
 async function uploadGalleryFiles(files) {
   if (!files.length) return;
   const year = _galleryYear || currentEventYear();
+  const event = (document.getElementById('galEventInput')?.value || '').trim() || defaultEvent();
+  // soft cap: a year's album loads in one go, so keep it light on mobile data
+  const already = galleryCount(year);
+  if (already + files.length > GAL_MAX_PER_YEAR) {
+    return showToast(`⚠️ ปี ${year} จะเกิน ${GAL_MAX_PER_YEAR} รูป (ตอนนี้ ${already}) — ลบรูปเก่าก่อน หรืออัปโหลดน้อยลง`, 'error');
+  }
   let ok = 0, fail = 0;
   showToast(`⏳ กำลังอัปโหลด ${files.length} รูป...`, 'info');
   for (const file of files) {
     if (!file.type.startsWith('image/')) { fail++; continue; }
     try {
       const url = await compressGalleryImage(file);
-      await galleryRef.child(year).push({ url, caption: '', ts: Date.now() });
+      await galleryRef.child(year).push({ url, caption: '', event, ts: Date.now() });
       ok++;
     } catch (e) { fail++; }
   }

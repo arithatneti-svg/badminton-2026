@@ -36,10 +36,49 @@
 }
 .gal-year:not(.active) span { background: var(--surface3); color: var(--muted); }
 
-/* masonry */
-.gal-grid { column-count: 2; column-gap: 10px; }
-@media (min-width: 700px)  { .gal-grid { column-count: 3; column-gap: 12px; } }
-@media (min-width: 1100px) { .gal-grid { column-count: 4; column-gap: 12px; } }
+/* prominent year heading */
+.gal-year-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.7em; letter-spacing: 3px; color: var(--gold);
+  margin-bottom: 14px; display: flex; align-items: baseline; gap: 10px;
+}
+.gal-year-title span {
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.42em;
+  letter-spacing: 1px; color: var(--muted); font-weight: 700;
+}
+.gal-year-title:empty { display: none; }
+
+/* admin event label input */
+.gal-event-input {
+  width: 180px; max-width: 46vw;
+  font-size: 13px; padding: 8px 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 9px; color: var(--text); outline: none;
+}
+.gal-event-input:focus { border-color: var(--gold); }
+
+/* one section per event */
+.gal-grid { display: flex; flex-direction: column; gap: 22px; }
+.gal-section-head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.gal-section-name {
+  font-size: 13px; font-weight: 800; letter-spacing: 1px; color: var(--text);
+}
+.gal-section-count {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 2px 9px; border-radius: 10px;
+}
+.gal-section-head::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+
+/* masonry within a section */
+.gal-masonry { column-count: 2; column-gap: 10px; }
+@media (min-width: 700px)  { .gal-masonry { column-count: 3; column-gap: 12px; } }
+@media (min-width: 1100px) { .gal-masonry { column-count: 4; column-gap: 12px; } }
 
 .gal-item {
   position: relative;

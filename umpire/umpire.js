@@ -173,9 +173,9 @@ function umpireAvatar(id, size) {
 }
 // two faces for a doubles pair, overlapped slightly
 function scoringNamesHtml(m, side) {
-  const ids = side === "red" ? [m.r1, m.r2] : [m.b1, m.b2];
-  const names = side === "red" ? m.redNames : m.blueNames;
-  return '<span class="uface-pair uface-scoring">' + umpireAvatar(ids[0], 30) + umpireAvatar(ids[1], 30) + '</span>' + formatNames(names);
+  // names only — faces are on the match card; the scoring screen is height-
+  // constrained and the extra row pushed the panels into the action buttons
+  return formatNames(side === 'red' ? m.redNames : m.blueNames);
 }
 function umpirePairFaces(id1, id2, size) {
   return '<span class="uface-pair">' + umpireAvatar(id1, size) + umpireAvatar(id2, size) + '</span>';

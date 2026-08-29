@@ -1224,3 +1224,30 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   margin-bottom: 4px;
 }
 .team-name-score .uface-scoring .uavatar { width: 30px; height: 30px; border-width: 2px; }
+
+/* ══════════════════════════════════════════
+   PORTRAIT SCORING FIX
+   The badge used to be a grid item, so when a deuce / game point appeared
+   it stole a 1fr row and the panels collapsed into the action buttons.
+   Float it over the red panel instead, and let the panels shrink so the
+   grid never overflows into the buttons.
+   ══════════════════════════════════════════ */
+#screen-scoring.active #situationBadge {
+  position: absolute;
+  top: calc(78px + var(--sat));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  border-radius: 22px;
+  border: 1px solid;
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+}
+#screen-scoring.active .score-panel,
+#screen-scoring.active .score-center-col { min-height: 0; }
+/* two action buttons (edit G1 + submit) must fit without pushing the blue
+   panel off-screen — trim the padding a touch on shorter phones */
+@media (max-height: 780px) {
+  #screen-scoring.active .btn-action { padding: 16px; font-size: 1.7em; }
+  #screen-scoring.active .scoring-actions { padding: 6px 12px; }
+}
