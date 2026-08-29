@@ -9,9 +9,36 @@
 // ══════════════════════════════════════════════════════════════
 
 const galleryRef = firebase.database().ref('gallery');
-let _gallery = {};            // { year: { pushId: {url, caption, ts} } }
+let _gallery = {};            // { year: { pushId: {url, caption, event, ts, key?} } }
 let _galleryYear = '';        // selected year
 let _galleryLoaded = false;
+
+// ── R2 photo storage (Cloudflare Pages Function) ──────────────
+// New uploads go to R2 and store a short "/img/…" url + the object key,
+// instead of a base64 data URL bloating RTDB. Must equal the Pages env
+// var PHOTO_UPLOAD_KEY. Client-side, so obscurity-level only — same
+// posture as the admin passcode. If R2 is not provisioned yet, uploads
+// transparently fall back to the old inline-base64 behaviour.
+const PHOTO_UPLOAD_KEY = 'bdm2026-r2-9f3a2c7e';
+async function uploadGalleryBlobToR2(blob, year) {
+  const res = await fetch(`/api/photo?year=${encodeURIComponent(year)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'image/jpeg', 'Authorization': 'Bearer ' + PHOTO_UPLOAD_KEY },
+    body: blob,
+  });
+  if (!res.ok) throw new Error('r2-upload-' + res.status);
+  return res.json();            // { key, url }
+}
+// best-effort: the RTDB node is the source of truth for the album, so a
+// failed object delete just leaves an orphan in the bucket, never a broken UI
+function deleteGalleryR2(key) {
+  if (!key) return;
+  fetch('/api/photo', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + PHOTO_UPLOAD_KEY },
+    body: JSON.stringify({ key }),
+  }).catch(() => {});
+}
 
 // Lazy: the gallery holds full-size photos, so it is fetched only when the
 // tab is opened — not downloaded on every app boot for users who never look
@@ -152,25 +179,37 @@ async function uploadGalleryFiles(files) {
   if (already + files.length > GAL_MAX_PER_YEAR) {
     return showToast(`⚠️ ปี ${year} จะเกิน ${GAL_MAX_PER_YEAR} รูป (ตอนนี้ ${already}) — ลบรูปเก่าก่อน หรืออัปโหลดน้อยลง`, 'error');
   }
-  let ok = 0, fail = 0;
+  let ok = 0, fail = 0, viaR2 = 0;
   showToast(`⏳ กำลังอัปโหลด ${files.length} รูป...`, 'info');
   for (const file of files) {
     if (!file.type.startsWith('image/')) { fail++; continue; }
     try {
-      const url = await compressGalleryImage(file);
-      await galleryRef.child(year).push({ url, caption: '', event, ts: Date.now() });
+      const blob = await compressGalleryBlob(file);
+      let rec;
+      try {
+        const { url, key } = await uploadGalleryBlobToR2(blob, year);
+        rec = { url, key, caption: '', event, ts: Date.now() };
+        viaR2++;
+      } catch (_) {
+        // R2 not provisioned (or offline) → keep the original behaviour: inline base64
+        rec = { url: await blobToDataURL(blob), caption: '', event, ts: Date.now() };
+      }
+      await galleryRef.child(year).push(rec);
       ok++;
     } catch (e) { fail++; }
   }
   await loadGallery(true); renderGallery();
-  showToast(`✅ อัปโหลด ${ok} รูป${fail ? ` · พลาด ${fail}` : ''} (ปี ${year})`, fail ? 'warning' : 'success');
+  const mode = ok && viaR2 === ok ? ' ☁️' : (viaR2 ? ` (☁️×${viaR2})` : '');
+  showToast(`✅ อัปโหลด ${ok} รูป${fail ? ` · พลาด ${fail}` : ''}${mode} (ปี ${year})`, fail ? 'warning' : 'success');
 }
 
-// keep aspect ratio, cap the long edge, step quality down under a size cap
+// keep aspect ratio, cap the long edge, step quality down under a size cap.
+// Produces a JPEG Blob — uploaded straight to R2, or turned into a data URL
+// by blobToDataURL() when R2 is unavailable and we fall back to inline base64.
 const GAL_MAX_EDGE = 1200;
 const GAL_QUALITY = 0.72;
 const GAL_MAX_KB = 300;
-function compressGalleryImage(file) {
+function compressGalleryBlob(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -184,20 +223,32 @@ function compressGalleryImage(file) {
       const ctx = c.getContext('2d');
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, w, h);
-      let q = GAL_QUALITY;
-      let out = c.toDataURL('image/jpeg', q);
-      while (out.length / 1024 > GAL_MAX_KB && q > 0.4) { q -= 0.1; out = c.toDataURL('image/jpeg', q); }
-      resolve(out);
+      const step = (q) => c.toBlob((blob) => {
+        if (!blob) return reject(new Error('encode failed'));
+        if (blob.size / 1024 > GAL_MAX_KB && q > 0.4) return step(+(q - 0.1).toFixed(2));
+        resolve(blob);
+      }, 'image/jpeg', q);
+      step(GAL_QUALITY);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
     img.src = url;
   });
 }
+function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error || new Error('read failed'));
+    r.readAsDataURL(blob);
+  });
+}
 
 function deleteGalleryPhoto(year, id) {
   if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  const key = _gallery[year]?.[id]?.key;
   showConfirmDialog('ลบรูปนี้?', () => {
     galleryRef.child(year).child(id).remove().then(() => {
+      deleteGalleryR2(key);   // no-op for old base64 photos (no key)
       if (_gallery[year]) delete _gallery[year][id];
       renderGallery();
       showToast('ลบรูปแล้ว', 'success');
@@ -243,9 +294,10 @@ function lightboxDelete() {
   const photos = galleryPhotos(_galleryYear);
   const p = photos[_lbIndex];
   if (!p) return;
-  const year = _galleryYear, id = p.id, wasLast = photos.length === 1;
+  const year = _galleryYear, id = p.id, key = p.key, wasLast = photos.length === 1;
   showConfirmDialog('ลบรูปนี้?', () => {
     galleryRef.child(year).child(id).remove().then(() => {
+      deleteGalleryR2(key);   // no-op for old base64 photos (no key)
       if (_gallery[year]) delete _gallery[year][id];
       showToast('ลบรูปแล้ว', 'success');
       if (wasLast) { closeLightbox(); renderGallery(); }

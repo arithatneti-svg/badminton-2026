@@ -94,9 +94,28 @@ Cloudflare Pages → โปรเจกต์ → **Custom domains** → Add →
 
 ---
 
-## 🔮 อนาคต: อัปโหลดรูปผ่าน Cloudflare
+## 📷 อัปโหลดรูป gallery ผ่าน R2 (เปิดใช้)
 
-เมื่ออยู่บน Cloudflare Pages แล้ว เพิ่มระบบอัปโหลดรูปผู้เล่นได้ในระบบนิเวศเดียวกัน:
-- **Pages Functions** (โฟลเดอร์ `/functions`) เป็น API endpoint
-- ผูกกับ **R2** (object storage) เก็บไฟล์รูป
-- ไม่ต้องตั้ง server แยก — deploy ไปพร้อม repo เดียวกัน
+โค้ดพร้อมแล้วในโฟลเดอร์ `/functions` — รูป gallery ที่อัปใหม่จะถูกเก็บใน **R2** แทน base64 ใน RTDB (เลิกติด cap 60 รูป, โหลดเร็วขึ้น, DB ไม่บวม) มีทั้ง endpoint อัปโหลด/ลบ (`/api/photo`) และ endpoint เสิร์ฟรูป (`/img/*`) deploy ไปพร้อม repo เดียวกัน ไม่ต้องตั้ง server แยก
+
+> **ยังไม่ต้อง provision ก็ได้** — ถ้ายังไม่ได้ผูก R2 โค้ดจะ fallback ไปเก็บ base64 แบบเดิมอัตโนมัติ แอปทำงานปกติ พอทำ 3 ขั้นล่างเสร็จ รูปใหม่จะเข้า R2 เอง (รูปเก่าที่เป็น base64 ยังแสดงได้ตามเดิม)
+
+### ① สร้าง R2 bucket
+Cloudflare dash → **R2** → **Create bucket** → ตั้งชื่อ เช่น `badminton-photos` → Create
+> ไม่ต้องเปิด Public access — รูปเสิร์ฟผ่าน `/img/*` (same-origin) ให้อยู่แล้ว
+
+### ② ผูก bucket + ตั้งค่า env เข้ากับ Pages
+Pages → โปรเจกต์ → **Settings → Functions** (หรือ **Bindings**):
+
+| สิ่งที่เพิ่ม | ค่า |
+|------|-----|
+| **R2 bucket binding** | Variable name = `PHOTOS` → เลือก bucket `badminton-photos` |
+| **Environment variable** | `PHOTO_UPLOAD_KEY` = `bdm2026-r2-9f3a2c7e` |
+
+> ⚠️ ค่า `PHOTO_UPLOAD_KEY` ต้อง **ตรงกับ** ค่าในโค้ด `js/gallery.js` (const `PHOTO_UPLOAD_KEY`) เป๊ะ ถ้าจะเปลี่ยนเป็นค่าอื่น ต้องแก้ทั้งสองที่ให้เหมือนกัน
+> นี่เป็น auth ระดับ obscurity (client ถือ key เดียวกัน) — ระดับเดียวกับ passcode ปัจจุบัน กัน scanner สุ่มยิงได้ ยังไม่ใช่ auth จริง อัปเกรดเป็น Firebase Auth ทีหลังได้
+
+### ③ Re-deploy
+push โค้ด หรือ **Retry deployment** → เสร็จแล้วลองอัปรูปใน gallery: toast จะขึ้น **☁️** เมื่อรูปเข้า R2 สำเร็จ
+
+> ทดสอบก่อน merge ได้: push branch อื่น → Cloudflare ให้ **preview URL** (แต่ binding/env ของ Pages ใช้ร่วมกับ production — ตั้งค่าตาม ② ก่อน preview ถึงจะเห็นผล)
