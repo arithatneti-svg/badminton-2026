@@ -8,9 +8,9 @@ let isFirstLoad = true;
 let selectedTeam = '';
 let selectedGroup = '';
 
-// Undo history: { matchIdx, gameKey, prevVal }
-let _lastScoreUndo = null;
-let _undoTimer = null;
+// which side scored the last point → drives the "just scored" glow.
+// In rally scoring the scorer serves next, so it also reads as the serve side.
+let _lastScored = null;   // 'red' | 'blue' | null
 
 // ── Local pause start timestamp (NOT stored in Firebase — avoids sync delay bug) ──
 // ทุกครั้งที่กด Pause ให้เก็บ timestamp นี้ใน memory แทนการพึ่ง pauseStartedAt จาก Firebase
@@ -565,7 +565,7 @@ function selectMatch(mId) {
   document.getElementById('blueNames').innerHTML = scoringNamesHtml(m, 'blue');
 
   isGame2 = m.live.g1Locked;
-  _lastScoreUndo = null;
+  _lastScored = null;
   renderGameUI();
   switchScreen('screen-scoring');
   requestWakeLock();
@@ -609,19 +609,9 @@ function updateScore(team, delta, event) {
   const btnEl = document.getElementById(btnId);
   if (btnEl) addRipple(btnEl, event);
 
-  // Save undo state (only for +1)
-  if (delta === 1) {
-    _lastScoreUndo = { matchIdx, gameKey, prevVal: Number(match.live[gameKey] || 0) };
-    showUndoButton(true);
-    clearTimeout(_undoTimer);
-    _undoTimer = setTimeout(() => {
-      _lastScoreUndo = null;
-      showUndoButton(false);
-    }, 6000);
-  } else {
-    _lastScoreUndo = null;
-    showUndoButton(false);
-  }
+  // remember who just scored → "just scored" glow + next server.
+  // a −1 correction leaves the last-scored read unchanged.
+  if (delta === 1) _lastScored = team;
 
   // Vibrate
   if (delta === 1) vibrateDevice([22]);
@@ -658,37 +648,8 @@ function updateScore(team, delta, event) {
   el.classList.add('pop');
 }
 
-// ── UNDO LAST SCORE ──
-function showUndoButton(show) {
-  const btn = document.getElementById('btnUndoBar');
-  if (!btn) return;
-  btn.style.display = show ? 'flex' : 'none';
-  if (show) btn.innerHTML = '↩ UNDO';
-}
-
-function undoLastScore() {
-  if (!_lastScoreUndo) return;
-  const { matchIdx, gameKey, prevVal } = _lastScoreUndo;
-  _lastScoreUndo = null;
-  clearTimeout(_undoTimer);
-  showUndoButton(false);
-
-  const match = appState.ongoingMatches[matchIdx];
-  if (!match) return;
-
-  match.live[gameKey] = prevVal;
-  renderGameUI();
-  vibrateDevice([20, 10, 20, 10, 40]);
-
-  firebase.database().ref(`sportsday_2026_data/ongoingMatches/${matchIdx}/live/${gameKey}`).set(prevVal);
-
-  // Show undo toast
-  const toast = document.getElementById('undoToast');
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 1800);
-}
-
-// Shake to undo removed
+// Undo removed — a −1 tap on the panel corrects a mis-score, and an admin
+// can fix a submitted result on the scoreboard.
 
 function checkEpicPossible(match) {
   if (!match.live) return;
@@ -721,49 +682,48 @@ function renderGameUI() {
   const liPause = document.getElementById('liPauseBtn');
   if (liPause) liPause.textContent = paused ? '▶ เล่น' : '⏸ พัก';
 
-  if (isGame2) {
-    document.getElementById('btnLockG1').style.display = 'none';
-    document.getElementById('btnConfirmMatch').style.display = 'block';
-    const g1Scores = `G1: <span style="color:var(--red)">${match.live.g1R||0}</span> — <span style="color:var(--blue)">${match.live.g1B||0}</span>`;
-    document.getElementById('gameIndicator').innerHTML = `GAME 2 <span class="g1-score">${g1Scores}</span>`;
-    const liInd = document.getElementById('liGameInd');
-    if (liInd) liInd.textContent = 'GAME 2';
-  } else {
-    document.getElementById('btnLockG1').style.display = 'block';
-    document.getElementById('btnConfirmMatch').style.display = 'none';
-    document.getElementById('gameIndicator').textContent = 'GAME 1';
-    const liInd = document.getElementById('liGameInd');
-    if (liInd) liInd.textContent = 'GAME 1';
-  }
-
-  // ปุ่ม "แก้ G1" — โชว์เฉพาะตอนอยู่เกม 2
-  const btnEdit = document.getElementById('btnEditG1');
-  if (btnEdit) btnEdit.style.display = isGame2 ? 'block' : 'none';
-
-  // LOCK / SUBMIT light up only when the current game reads as a real
-  // finish, so a 0-0 or mid-game screen never looks ready to commit
   const g1r = Number(match.live.g1R||0), g1b = Number(match.live.g1B||0);
   const g2r = Number(match.live.g2R||0), g2b = Number(match.live.g2B||0);
-  const lockBtn = document.getElementById('btnLockG1');
-  if (lockBtn) lockBtn.classList.toggle('is-ready', isValidBadmintonScore(g1r, g1b));
-  const submitBtn = document.getElementById('btnConfirmMatch');
-  if (submitBtn) submitBtn.classList.toggle('is-ready', isValidBadmintonScore(g2r, g2b));
+  const curR = isGame2 ? g2r : g1r, curB = isGame2 ? g2b : g1b;
 
-  // ป้าย Deuce / Game Point ของเกมปัจจุบัน
-  const badge = document.getElementById('situationBadge');
-  if (badge) {
-    const curR = isGame2 ? (match.live.g2R || 0) : (match.live.g1R || 0);
-    const curB = isGame2 ? (match.live.g2B || 0) : (match.live.g1B || 0);
+  // single SUBMIT button — label + ready state follow the current game.
+  // muted until the game reads as a valid finish (still tappable: warn-then-allow)
+  const submitBtn = document.getElementById('btnSubmitGame');
+  if (submitBtn) {
+    submitBtn.textContent = isGame2 ? 'SUBMIT GAME 2' : 'SUBMIT GAME 1';
+    submitBtn.classList.toggle('is-ready', isValidBadmintonScore(curR, curB));
+  }
+
+  // landscape game label
+  const liInd = document.getElementById('liGameInd');
+  if (liInd) liInd.textContent = isGame2 ? 'GAME 2' : 'GAME 1';
+
+  // Game 1 recap line, shown only during game 2
+  const g1Line = document.getElementById('g1Line');
+  if (g1Line) {
+    if (isGame2) { g1Line.style.display = 'block'; g1Line.textContent = `G1 · ${g1r}–${g1b}`; }
+    else g1Line.style.display = 'none';
+  }
+
+  // game chip carries the deuce / game-point read inline (no floating badge)
+  const chip = document.getElementById('gameIndicator');
+  if (chip) {
     const sit = gameSituation(curR, curB);
+    chip.classList.remove('gp-red', 'gp-blue', 'deuce');
     if (!sit) {
-      badge.style.display = 'none';
+      chip.textContent = isGame2 ? 'GAME 2' : 'GAME 1';
     } else if (sit.type === 'deuce') {
-      badge.style.display = 'block'; badge.className = 'sit-badge sit-deuce'; badge.textContent = 'DEUCE ⚡';
+      chip.textContent = 'DEUCE'; chip.classList.add('deuce');
     } else {
-      badge.style.display = 'block'; badge.className = 'sit-badge sit-' + sit.side;
-      badge.textContent = (sit.side === 'red' ? '🔴' : '🔵') + ' GAME POINT';
+      chip.textContent = (sit.side === 'red' ? '🔴' : '🔵') + ' GAME POINT';
+      chip.classList.add(sit.side === 'red' ? 'gp-red' : 'gp-blue');
     }
   }
+
+  // steady glow on the side that just scored (also = who serves next)
+  const rp = document.getElementById('redPanel'), bp = document.getElementById('bluePanel');
+  if (rp) rp.classList.toggle('scored', _lastScored === 'red');
+  if (bp) bp.classList.toggle('scored', _lastScored === 'blue');
 }
 
 // ==========================================
@@ -788,6 +748,13 @@ function scoreValidationMsg(a, b, label) {
   return null;
 }
 
+// Single SUBMIT button dispatches by game: Game 1 locks + advances,
+// Game 2 submits the match. Both confirm in a modal first.
+function submitGame() {
+  if (isGame2) confirmMatch();
+  else lockGame1();
+}
+
 async function lockGame1() {
   const match = appState.ongoingMatches.find(m => m.id === activeMatchId);
   if (!match || !match.live || match.live.isPaused) return;
@@ -810,18 +777,17 @@ async function lockGame1() {
       </div>
     </div>`;
 
-  const ok = await showConfirm('🔒', 'LOCK GAME 1?', warn ? `⚠️ ${warn}\nจะล็อกตามคะแนนนี้` : 'จะเริ่มนับ Game 2 ทันที', {
+  const ok = await showConfirm('🏁', 'SUBMIT GAME 1?', warn ? `⚠️ ${warn}\nจะบันทึกตามคะแนนนี้` : 'จะบันทึก Game 1 แล้วเริ่มนับ Game 2 ทันที', {
     scoreHtml,
-    confirmLabel: 'LOCK',
-    confirmClass: 'modal-btn-danger',
+    confirmLabel: 'SUBMIT GAME 1',
+    confirmClass: 'modal-btn-confirm',
     cancelLabel: 'ยกเลิก'
   });
 
   if (ok) {
     match.live.g1Locked = true;
     isGame2 = true;
-    _lastScoreUndo = null;
-    showUndoButton(false);
+    _lastScored = null;   // new game — no last point / server yet
     vibrateDevice([40, 30, 60]);
     renderGameUI();
     saveMatch(activeMatchId); // lock G1 → เขียนเฉพาะคอร์ทนี้
@@ -890,21 +856,8 @@ async function confirmExit() {
   if (ok) exitMatch();
 }
 
-// ปลดล็อก Game 1 กลับไปแก้คะแนน (Game 2 ยังอยู่)
-async function editGame1() {
-  const match = appState.ongoingMatches.find(m => m.id === activeMatchId);
-  if (!match || !match.live) return;
-  const ok = await showConfirm('✏️', 'แก้ Game 1?', 'จะกลับไปแก้คะแนน Game 1 (คะแนน Game 2 ที่กดไว้ยังอยู่)', {
-    confirmLabel: 'แก้เลย', cancelLabel: 'ยกเลิก'
-  });
-  if (!ok) return;
-  match.live.g1Locked = false;
-  isGame2 = false;
-  _lastScoreUndo = null; showUndoButton(false);
-  vibrateDevice([30]);
-  renderGameUI();
-  saveMatch(activeMatchId);
-}
+// (editGame1 removed — umpire confirms in the modal before submit; a wrong
+//  result is corrected by an admin on the scoreboard.)
 
 // สถานการณ์เกมปัจจุบัน: deuce / game point (แบด 21, cap 30)
 function gameSituation(a, b) {
@@ -971,7 +924,7 @@ async function confirmMatch() {
       </div>
     </div>`;
 
-  const ok = await showConfirm('🏁', 'SUBMIT MATCH?', _warns.length ? `⚠️ ${_warns.join(' · ')}\nจะส่งผลตามคะแนนนี้` : 'ผลจะส่งไปที่ Scoreboard ทันที', {
+  const ok = await showConfirm('🏁', 'SUBMIT GAME 2?', _warns.length ? `⚠️ ${_warns.join(' · ')}\nจะส่งผลตามคะแนนนี้` : 'ผลจะส่งไปที่ Scoreboard ทันที', {
     scoreHtml,
     confirmLabel: 'SUBMIT',
     confirmClass: 'modal-btn-confirm',

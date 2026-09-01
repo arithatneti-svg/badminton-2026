@@ -153,23 +153,22 @@
      ============================================================ -->
 <div id="screen-scoring" class="screen">
 
-  <!-- TOP BAR -->
+  <!-- TOP BAR — [←] center [⛶ small][⏸] -->
   <div class="scoring-topbar">
     <button class="topbar-btn danger" id="btnBack" onclick="confirmExit()">←</button>
-    <button class="topbar-btn" id="btnPause" onclick="togglePause()">⏸</button>
 
     <div class="scoring-center">
       <div class="match-info-text" id="activeMatchInfo">—</div>
-      <div class="timer-display" id="umpireTimerDisplay">0:00</div>
-      <div class="game-indicator" id="gameIndicator">GAME 1</div>
+      <div class="center-row">
+        <div class="timer-display" id="umpireTimerDisplay">0:00</div>
+        <div class="game-indicator" id="gameIndicator">GAME 1</div>
+      </div>
+      <div class="g1line" id="g1Line" style="display:none;"></div>
     </div>
 
-    <button class="topbar-btn" id="btnUndoBar" onclick="undoLastScore()" style="font-size:1rem; display:none; border-color:rgba(240,192,64,0.4); color:var(--gold);">↩</button>
-    <button class="topbar-btn" id="btnFs" onclick="toggleFullScreen()" style="font-size:1.15rem;">⛶</button>
+    <button class="topbar-btn" id="btnFs" onclick="toggleFullScreen()">⛶</button>
+    <button class="topbar-btn" id="btnPause" onclick="togglePause()">⏸</button>
   </div>
-
-  <!-- DEUCE / GAME POINT BADGE -->
-  <div id="situationBadge" class="sit-badge" style="display:none;"></div>
 
   <!-- RED PANEL -->
   <div class="score-panel red" id="redPanel">
@@ -181,11 +180,9 @@
     <button class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนน Red">−</button>
   </div>
 
-  <!-- LOCK / SUBMIT -->
+  <!-- SUBMIT — single button; label switches GAME 1 / GAME 2 -->
   <div class="scoring-actions">
-    <button class="btn-action btn-lock" id="btnLockG1" onclick="lockGame1()">🔒 LOCK GAME 1</button>
-    <button class="btn-action btn-edit-g1" id="btnEditG1" style="display:none;" onclick="editGame1()">✏️ แก้ G1</button>
-    <button class="btn-action btn-submit" id="btnConfirmMatch" style="display:none;" onclick="confirmMatch()">✅ SUBMIT MATCH</button>
+    <button class="btn-action btn-submit" id="btnSubmitGame" onclick="submitGame()">SUBMIT GAME 1</button>
   </div>
 
   <!-- BLUE PANEL -->

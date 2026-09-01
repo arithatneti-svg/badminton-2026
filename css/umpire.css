@@ -1317,3 +1317,69 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   border-color: transparent;
   box-shadow: 0 6px 24px rgba(240,192,64,0.4);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   REDESIGN 2026-09 — scoring screen polish
+   Goals (from the umpire, live app): one system-wide type scale,
+   fewer buttons (single SUBMIT), calm panels (glow only on the side
+   that just scored, not a constant pulse), a smaller fullscreen btn,
+   and the deuce/game-point read INSIDE the game chip (never floating
+   over the panel). Logic unchanged; these are visual + one merged btn.
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --fs-meta:.72rem; --fs-timer:1.9rem; --fs-game:.9rem;
+  --fs-name:1.3rem; --fs-btn:1.35rem;
+}
+
+/* ── top bar: 3 zones, small quiet fullscreen ── */
+#screen-scoring.active #btnFs{
+  width:40px; height:40px; font-size:1rem;
+  color:var(--muted); background:transparent; border-color:var(--border);
+}
+#screen-scoring.active .match-info-text{ font-size:var(--fs-meta); }
+#screen-scoring.active .center-row{
+  display:flex; align-items:center; justify-content:center; gap:9px; margin-top:2px;
+}
+#screen-scoring.active .timer-display{ font-size:var(--fs-timer); margin-top:0; }
+#screen-scoring.active .g1line{
+  font-size:var(--fs-meta); color:var(--muted2); font-weight:700;
+  letter-spacing:.5px; margin-top:3px;
+}
+
+/* game chip — also carries the deuce / game-point read (no floating badge) */
+#screen-scoring.active .game-indicator{
+  display:inline-block; font-family:'Bebas Neue',sans-serif;
+  font-size:var(--fs-game); letter-spacing:2px; line-height:1;
+  padding:4px 9px; border-radius:8px; margin-top:0;
+  background:var(--surface2); border:1px solid var(--border); color:var(--muted);
+}
+#screen-scoring.active .game-indicator.gp-red{ color:var(--red); border-color:rgba(255,77,77,.45); background:rgba(255,77,77,.12); }
+#screen-scoring.active .game-indicator.gp-blue{ color:var(--blue); border-color:rgba(77,159,255,.45); background:rgba(77,159,255,.12); }
+#screen-scoring.active .game-indicator.deuce{ color:var(--gold); border-color:rgba(240,192,64,.45); background:rgba(240,192,64,.12); }
+
+/* ── panels: calm (kill the constant pulse), steady glow only on the
+      side that just scored — reads "who to call / who serves next" ── */
+#screen-scoring.active .score-panel.red,
+#screen-scoring.active .score-panel.blue{ animation:none; }
+#screen-scoring.active .score-panel.red{
+  background:radial-gradient(ellipse 95% 75% at 50% 45%, rgba(255,77,77,.10), rgba(255,77,77,.015) 75%);
+  box-shadow:inset 0 0 60px rgba(255,77,77,.05);
+}
+#screen-scoring.active .score-panel.blue{
+  background:radial-gradient(ellipse 95% 75% at 50% 55%, rgba(77,159,255,.10), rgba(77,159,255,.015) 75%);
+  box-shadow:inset 0 0 60px rgba(77,159,255,.05);
+}
+#screen-scoring.active .score-panel.red.scored{ box-shadow:inset 0 4px 0 var(--red), inset 0 0 100px rgba(255,77,77,.26); }
+#screen-scoring.active .score-panel.blue.scored{ box-shadow:inset 0 4px 0 var(--blue), inset 0 0 100px rgba(77,159,255,.26); }
+#screen-scoring.active .score-panel.scored .score-number{ text-shadow:0 0 34px currentColor; }
+#screen-scoring.active .score-panel:not(.scored) .score-center-col{ opacity:.82; }
+@media (prefers-reduced-motion:reduce){
+  #screen-scoring.active .score-panel{ animation:none; }
+}
+
+/* ── action band: single SUBMIT button, full width ── */
+#screen-scoring.active .scoring-actions{ display:flex; padding:9px 12px; }
+#screen-scoring.active .scoring-actions > .btn-submit{ flex:1 1 auto; width:auto; }
+
+/* team names use the shared scale */
+#screen-scoring.active .team-name-score{ font-size:var(--fs-name); }
