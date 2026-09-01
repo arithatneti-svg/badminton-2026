@@ -1209,9 +1209,9 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .uavatar.ua-red  { border-color: var(--red);  color: var(--red);  background: rgba(255,59,92,0.1); }
 .uavatar.ua-blue { border-color: var(--blue); color: var(--blue); background: rgba(77,159,255,0.1); }
 
-/* two overlapped faces for a doubles pair */
-.uface-pair { display: inline-flex; flex-shrink: 0; }
-.uface-pair .uavatar + .uavatar { margin-left: -9px; }
+/* two faces for a doubles pair — a small gap, NOT overlapped, so the
+   jersey-id circles stay legible (overlap read as cramped for initials) */
+.uface-pair { display: inline-flex; flex-shrink: 0; gap: 5px; }
 
 /* on the match card the faces lead the name; keep the name from wrapping under them */
 .team-row .uface-pair { margin-right: 2px; }
