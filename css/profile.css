@@ -410,3 +410,39 @@
   .profile-back-btn { top: 12px; left: 12px; height: 36px; padding: 0 13px 0 10px; font-size: 13px; }
   .pd-avatar-wrap .pav { --pav-size: 104px !important; }
 }
+
+/* ══════════════════════════════════════════
+   AWARDS SHOWCASE — medals on the profile (gold SVG star, English labels)
+   ══════════════════════════════════════════ */
+#pdAwards:empty { display: none; }
+.award-star { display: block; }
+.pd-awards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.pd-medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(240,192,64,0.10), rgba(240,192,64,0.02));
+  border: 1px solid rgba(240,192,64,0.35);
+}
+.pd-medal-star { line-height: 0; filter: drop-shadow(0 3px 12px rgba(240,192,64,0.35)); }
+.pd-medal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem; letter-spacing: 1.5px; line-height: 1;
+  color: var(--gold); margin-top: 8px;
+}
+.pd-medal-sub { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-top: 4px; }
+
+/* small star badge on the avatar — top-right, clear of the camera button */
+.pd-avatar-star {
+  position: absolute; top: -2px; right: -2px; line-height: 0;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
+  pointer-events: none;
+}

@@ -3,6 +3,41 @@
 // ══════════════════════════════════════════
 let _pdCurrentId = null;
 
+// ══════════════════════════════════════════
+// AWARDS — a player's medals, shown in an "Awards" showcase on the profile.
+// Config list, easy to extend. Each award has an English title/subtitle and a
+// `criteria`: `team` (everyone on that team) or `ids` (specific players, e.g. a
+// future "Marathon Fighter"). Descriptions are English on purpose so the
+// showcase reads the same as future awards.
+// NOTE: `team` criteria follows the CURRENT team colour — if a later season
+// reshuffles teams, pin the winners with `ids` (or add a superadmin declare).
+// ══════════════════════════════════════════
+const AWARDS = [
+  { id: 'champion_2026_summer', title: 'Champion', subtitle: 'Team Blue · Summer 2026', criteria: { team: 'Blue' } },
+  // future example → { id:'marathon_x', title:'Marathon Fighter', subtitle:'Longest match', criteria:{ ids:['R08','B24'] } }
+];
+function playerHasAward(p, a) {
+  const c = a.criteria || {};
+  if (c.team && p.team === c.team) return true;
+  if (Array.isArray(c.ids) && c.ids.includes(p.id)) return true;
+  return false;
+}
+function playerAwards(p) { return p ? AWARDS.filter(a => playerHasAward(p, a)) : []; }
+
+// Reusable gold star (SVG, crisp at any size, no image asset). Unique gradient
+// id per call so multiple stars on the page never collide.
+let _awStarSeq = 0;
+function awardStarSvg(size) {
+  const g = 'awGold' + (++_awStarSeq);
+  return `<svg class="award-star" width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">`
+    + `<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1">`
+    + `<stop offset="0" stop-color="#ffe89a"/><stop offset=".48" stop-color="#f0c040"/><stop offset="1" stop-color="#c8901a"/>`
+    + `</linearGradient></defs>`
+    + `<path d="M50 6 L60.6 35.4 L91.8 36.4 L67.1 55.6 L75.9 85.6 L50 68 L24.1 85.6 L32.9 55.6 L8.2 36.4 L39.4 35.4 Z" `
+    + `fill="url(#${g})" stroke="#8a5e10" stroke-width="2" stroke-linejoin="round"/>`
+    + `<path d="M50 14 L58 34 L50 40 L42 34 Z" fill="rgba(255,255,255,.35)"/></svg>`;
+}
+
 function openPlayerProfile(playerId) {
   _pdCurrentId = playerId;
   const overlay = document.getElementById('playerProfileOverlay');
@@ -18,6 +53,7 @@ function openPlayerProfile(playerId) {
   document.getElementById('profileHeader').innerHTML = `
     <div class="pd-avatar-wrap">
       ${avatarHtml(p, 140)}
+      ${playerAwards(p).length ? `<span class="pd-avatar-star" title="Award winner">${awardStarSvg(36)}</span>` : ''}
       ${canEdit ? `<button class="pd-avatar-btn" title="${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}" onclick="pickPlayerPhoto('${p.id}')">📷</button>` : ''}
     </div>
     <div style="flex:1;min-width:0;">
@@ -42,6 +78,7 @@ function openPlayerProfile(playerId) {
     <div class="profile-stat-cell"><div class="profile-stat-val" style="color:${wrColor}">${s.total>0?s.winRate+'%':'—'}</div><div class="profile-stat-label">Game Win%</div></div>
     <div class="profile-stat-cell"><div class="profile-stat-val" style="color:${pdColor}">${(s.pointDiff||0)>0?'+':''}${s.pointDiff||0}</div><div class="profile-stat-label">Point Diff</div></div>`;
   // one page — everything renders up front, no tabs to switch
+  renderPdAwards(p);
   renderPdIdentity(prof);
   renderPdScoutNotes(prof);
   renderPdMatchHistory(playerId);
@@ -61,6 +98,22 @@ function closePlayerProfile() {
   document.body.style.overflow = '';
   togglePdEdit(false);
   _pdCurrentId = null;
+}
+
+// Awards showcase — the player's medals (gold star + English title/subtitle).
+// Hidden entirely when the player has no awards.
+function renderPdAwards(p) {
+  const el = document.getElementById('pdAwards');
+  if (!el) return;
+  const earned = playerAwards(p);
+  if (!earned.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="profile-section-title">🏅 Awards</div>
+    <div class="pd-awards-grid">${earned.map(a => `
+      <div class="pd-medal">
+        <span class="pd-medal-star">${awardStarSvg(56)}</span>
+        <div class="pd-medal-title">${escHtml(a.title)}</div>
+        <div class="pd-medal-sub">${escHtml(a.subtitle)}</div>
+      </div>`).join('')}</div>`;
 }
 
 // เพศ / มือถนัด / ตำแหน่ง — three short values, so they ride as inline
