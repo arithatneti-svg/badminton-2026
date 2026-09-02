@@ -292,17 +292,18 @@
    ONGOING TAB — Court Grid + Queue List
    ══════════════════════════════════════════ */
 
-/* Court grid: max 2 col desktop (larger cards), 1 col mobile */
+/* Court grid: cards keep a sensible max width and the row is centred, so a
+   lone live match sits in the middle instead of clinging to the left. auto-fit
+   collapses empty tracks and packs 1 / 2 / 3 cards across as the width allows
+   (1 col on phones), which also drops the old fixed 2- and 3-column rules. */
 .court-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 560px));
+  justify-content: center;
   gap: 20px;
 }
-@media (min-width: 1300px) {
-  .court-grid { grid-template-columns: repeat(3, 1fr); }
-}
 @media (max-width: 640px) {
-  .court-grid { grid-template-columns: 1fr; gap: 14px; }
+  .court-grid { gap: 14px; }
 }
 
 /* ── Court card ── */

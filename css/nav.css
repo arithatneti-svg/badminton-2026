@@ -23,6 +23,14 @@
 
 .nav-tabs { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
 
+/* Desktop: a superadmin's action bar is wide enough to crush the tab row down
+   to a couple of pixels, wrapping the 8 tabs into a tall vertical stack. Keep
+   the tabs on one line and let the action bar drop to its own line instead.
+   (Mobile < 900px keeps the original wrapping behaviour untouched.) */
+@media (min-width: 900px) {
+  .nav-tabs { flex-wrap: nowrap; min-width: 500px; }
+}
+
 .tab-btn {
   background: transparent;
   color: var(--muted);
