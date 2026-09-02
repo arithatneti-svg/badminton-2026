@@ -81,6 +81,7 @@ function renderTvPanel() {
       const g1r = lv.g1R || 0, g1b = lv.g1B || 0, g2r = lv.g2R || 0, g2b = lv.g2B || 0;
       const g2on = lv.g1Locked || g2r || g2b;
       const cr = g2on ? g2r : g1r, cb = g2on ? g2b : g1b;
+      const notStarted = !g2on && !cr && !cb;   // fresh court → intro feel
       html = `<div class="tv-panel tv-vs-panel">
         <div class="tv-vs-top">
           <span class="tv-vs-court">🟢 ${escHtml(m.id)}</span>
@@ -94,8 +95,10 @@ function renderTvPanel() {
           </div>
           <div class="tv-vs-mid">
             <div class="tv-vs-vs">VS</div>
-            <div class="tv-vs-score"><span class="red">${cr}</span><span class="sep">:</span><span class="blue">${cb}</span></div>
-            <div class="tv-vs-g1">${g2on ? `G1 · ${g1r}–${g1b}` : ''}</div>
+            ${notStarted
+              ? `<div class="tv-vs-nowplaying">NOW<br>PLAYING</div>`
+              : `<div class="tv-vs-score"><span class="red">${cr}</span><span class="sep">:</span><span class="blue">${cb}</span></div>`}
+            <div class="tv-vs-g1">${g2on ? `G1 · ${g1r}–${g1b}` : (notStarted ? 'พร้อมแข่ง' : '')}</div>
           </div>
           <div class="tv-vs-side blue">
             <div class="tv-vs-faces">${[m.b1,m.b2].map(id=>avatarHtml(id,160)).join('')}</div>

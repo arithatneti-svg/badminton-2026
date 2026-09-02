@@ -165,4 +165,11 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-vs-score .blue { color: var(--blue); }
 .tv-vs-score .sep  { color: var(--muted); margin: 0 0.1em; }
 .tv-vs-g1 { font-size: clamp(13px, 1.5vw, 26px); color: var(--muted); font-weight: 700; letter-spacing: 1px; }
+.tv-vs-nowplaying {
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(38px, 6.5vw, 120px); line-height: 0.9;
+  letter-spacing: 3px; text-align: center; color: var(--accent);
+  text-shadow: 0 0 40px var(--accent-glow); animation: tvNowPulse 1.6s ease infinite;
+}
+@keyframes tvNowPulse { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .tv-vs-nowplaying { animation: none; } }
 .tv-vs-count { text-align: center; color: var(--muted); font-size: clamp(12px, 1.3vw, 22px); font-weight: 600; letter-spacing: 1px; margin-top: clamp(10px, 2vh, 26px); }

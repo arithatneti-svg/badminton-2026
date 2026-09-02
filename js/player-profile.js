@@ -13,13 +13,27 @@ let _pdCurrentId = null;
 // reshuffles teams, pin the winners with `ids` (or add a superadmin declare).
 // ══════════════════════════════════════════
 const AWARDS = [
-  { id: 'champion_2026_summer', title: 'Champion', subtitle: 'Team Blue · Summer 2026', criteria: { team: 'Blue' } },
-  // future example → { id:'marathon_x', title:'Marathon Fighter', subtitle:'Longest match', criteria:{ ids:['R08','B24'] } }
+  { id: 'champion_2026_summer', title: 'Champion',        subtitle: 'Team Blue · Summer 2026', criteria: { team: 'Blue' } },
+  { id: 'marathon_fighter',     title: 'Marathon Fighter', subtitle: 'Most time on court',       criteria: { dynamic: 'marathon' } },
 ];
+// Player(s) with the most total time on court — sum of match durations across
+// matchHistory. Ties all win; nobody wins if no match carries a duration.
+function marathonWinnerIds() {
+  const total = {};
+  (appState.matchHistory || []).forEach(h => {
+    const d = Number(h.duration) || 0;
+    if (d <= 0) return;
+    [h.r1, h.r2, h.b1, h.b2].forEach(id => { if (id) total[id] = (total[id] || 0) + d; });
+  });
+  let max = 0;
+  Object.values(total).forEach(v => { if (v > max) max = v; });
+  return max > 0 ? Object.keys(total).filter(id => total[id] === max) : [];
+}
 function playerHasAward(p, a) {
   const c = a.criteria || {};
   if (c.team && p.team === c.team) return true;
   if (Array.isArray(c.ids) && c.ids.includes(p.id)) return true;
+  if (c.dynamic === 'marathon') return marathonWinnerIds().includes(p.id);
   return false;
 }
 function playerAwards(p) { return p ? AWARDS.filter(a => playerHasAward(p, a)) : []; }

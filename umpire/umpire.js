@@ -181,6 +181,27 @@ function umpirePairFaces(id1, id2, size) {
   return '<span class="uface-pair">' + umpireAvatar(id1, size) + umpireAvatar(id2, size) + '</span>';
 }
 
+// ── VS intro — a brief pair-vs-pair reveal when a fresh match is opened ──
+let _vsIntroTimer = null;
+function showVsIntro(m) {
+  const ov = document.getElementById('vsIntro');
+  if (!ov || !m) return;
+  document.getElementById('vsiCourt').textContent = `🟢 ${m.id}` + (m.round ? ` · ROUND ${m.round}` : '');
+  document.getElementById('vsiRedFaces').innerHTML  = umpirePairFaces(m.r1, m.r2, 96);
+  document.getElementById('vsiBlueFaces').innerHTML = umpirePairFaces(m.b1, m.b2, 96);
+  document.getElementById('vsiRedNames').innerHTML  = formatNames(m.redNames || '');
+  document.getElementById('vsiBlueNames').innerHTML = formatNames(m.blueNames || '');
+  ov.classList.add('show');
+  clearTimeout(_vsIntroTimer);
+  _vsIntroTimer = setTimeout(dismissVsIntro, 3000);
+}
+function dismissVsIntro() {
+  const ov = document.getElementById('vsIntro');
+  if (!ov) return;
+  clearTimeout(_vsIntroTimer);
+  ov.classList.remove('show');
+}
+
 // ── LOGIN FILTER TOGGLES ──
 function setTeamFilter(team) {
   selectedTeam = team;
@@ -566,9 +587,12 @@ function selectMatch(mId) {
 
   isGame2 = m.live.g1Locked;
   _lastScored = null;
+  // a brand-new match (no scores yet) gets a 3s VS intro; resuming one does not
+  const fresh = !(m.live.g1Locked || m.live.g1R || m.live.g1B || m.live.g2R || m.live.g2B);
   renderGameUI();
   switchScreen('screen-scoring');
   requestWakeLock();
+  if (fresh) showVsIntro(m);
   // Auto-request fullscreen when entering scoring
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     setTimeout(() => toggleFullScreen(), 400);
