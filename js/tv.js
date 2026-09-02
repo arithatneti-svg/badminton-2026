@@ -8,7 +8,8 @@ let _tvActive = false;
 let _tvPanel  = 0;
 let _tvSecs   = 0;
 let _tvTimer  = null;
-const TV_PANELS = ['battle', 'live', 'board'];
+let _tvVsIdx  = 0;   // which live match the VS panel features (advances each cycle)
+const TV_PANELS = ['battle', 'vs', 'board'];
 const TV_ROTATE_SEC = 14;
 
 function enterTvMode() {
@@ -24,7 +25,14 @@ function enterTvMode() {
   clearInterval(_tvTimer);
   _tvTimer = setInterval(() => {
     _tvSecs++;
-    if (_tvSecs >= TV_ROTATE_SEC) { _tvSecs = 0; _tvPanel = (_tvPanel + 1) % TV_PANELS.length; renderTvPanel(); }
+    if (_tvSecs >= TV_ROTATE_SEC) {
+      _tvSecs = 0;
+      const prev = TV_PANELS[_tvPanel];
+      _tvPanel = (_tvPanel + 1) % TV_PANELS.length;
+      // each time the VS panel comes around, feature the next live match
+      if (TV_PANELS[_tvPanel] === 'vs' && prev !== 'vs') _tvVsIdx++;
+      renderTvPanel();
+    }
   }, 1000);
 }
 
@@ -57,26 +65,46 @@ function renderTvPanel() {
         <div class="tv-team blue ${b > r ? 'lead' : ''}"><div class="tv-team-name">${escHtml(bn)}</div><div class="tv-team-score">${b}</div></div>
       </div>
     </div>`;
-  } else if (panel === 'live') {
-    const ms = (appState.ongoingMatches || []).filter(m => m && m.id);
-    const cards = ms.map(m => {
+  } else if (panel === 'vs') {
+    // Feature one live match at a time, big: the two pairs face off with
+    // large photos and the live score. Rotates through matches each cycle.
+    const live = (appState.ongoingMatches || []).filter(m => m && m.id);
+    if (!live.length) {
+      html = `<div class="tv-panel tv-vs-panel">
+        <div class="tv-heading">🟢 LIVE</div>
+        <div class="tv-empty">ยังไม่มีแมตช์กำลังแข่ง</div>
+      </div>`;
+    } else {
+      const i = ((_tvVsIdx % live.length) + live.length) % live.length;
+      const m = live[i];
       const lv = m.live || {};
       const g1r = lv.g1R || 0, g1b = lv.g1B || 0, g2r = lv.g2R || 0, g2b = lv.g2B || 0;
       const g2on = lv.g1Locked || g2r || g2b;
-      return `<div class="tv-live-card">
-        <div class="tv-live-id">🟢 ${escHtml(m.id)}</div>
-        <div class="tv-live-teams">
-          <div class="tv-lt red"><span class="tv-faces">${[m.r1,m.r2].map(id=>avatarHtml(id,34)).join('')}</span>${escHtml(_tvStrip(m.redNames))}</div>
-          <div class="tv-live-score"><span class="red">${g2on ? g2r : g1r}</span><span class="sep">:</span><span class="blue">${g2on ? g2b : g1b}</span></div>
-          <div class="tv-lt blue"><span class="tv-faces">${[m.b1,m.b2].map(id=>avatarHtml(id,34)).join('')}</span>${escHtml(_tvStrip(m.blueNames))}</div>
+      const cr = g2on ? g2r : g1r, cb = g2on ? g2b : g1b;
+      html = `<div class="tv-panel tv-vs-panel">
+        <div class="tv-vs-top">
+          <span class="tv-vs-court">🟢 ${escHtml(m.id)}</span>
+          ${m.round ? `<span class="tv-vs-round">ROUND ${escHtml(String(m.round))}</span>` : ''}
+          <span class="tv-vs-game">${g2on ? 'GAME 2' : 'GAME 1'}</span>
         </div>
-        <div class="tv-live-games">G1 ${g1r}–${g1b}${g2on ? ` · G2 ${g2r}–${g2b}` : ''}</div>
+        <div class="tv-vs-row">
+          <div class="tv-vs-side red">
+            <div class="tv-vs-faces">${[m.r1,m.r2].map(id=>avatarHtml(id,160)).join('')}</div>
+            <div class="tv-vs-names red">${escHtml(_tvStrip(m.redNames))}</div>
+          </div>
+          <div class="tv-vs-mid">
+            <div class="tv-vs-vs">VS</div>
+            <div class="tv-vs-score"><span class="red">${cr}</span><span class="sep">:</span><span class="blue">${cb}</span></div>
+            <div class="tv-vs-g1">${g2on ? `G1 · ${g1r}–${g1b}` : ''}</div>
+          </div>
+          <div class="tv-vs-side blue">
+            <div class="tv-vs-faces">${[m.b1,m.b2].map(id=>avatarHtml(id,160)).join('')}</div>
+            <div class="tv-vs-names blue">${escHtml(_tvStrip(m.blueNames))}</div>
+          </div>
+        </div>
+        ${live.length > 1 ? `<div class="tv-vs-count">${i + 1} / ${live.length} matches</div>` : ''}
       </div>`;
-    }).join('');
-    html = `<div class="tv-panel">
-      <div class="tv-heading">🟢 LIVE NOW</div>
-      <div class="tv-live-grid">${cards || '<div class="tv-empty">ยังไม่มีแมตช์กำลังแข่ง</div>'}</div>
-    </div>`;
+    }
   } else { // board
     const top = _tvTopPlayers();
     const medals = ['🥇', '🥈', '🥉'];
