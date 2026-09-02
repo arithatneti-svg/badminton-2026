@@ -638,6 +638,16 @@
     <button class="btn btn-outline btn-sm" onclick="runIdentityMigration()" title="เชื่อมประวัติซีซั่นเก่าเข้ากับผู้เล่นปัจจุบัน (ทำครั้งเดียว)">🔗 ซ่อมการเชื่อมประวัติ</button>
   </div>
 
+  <!-- Declare season champion (superadmin only) — gives the ⭐ Champion medal to every player on that team -->
+  <div class="export-import-bar superadmin-only">
+    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">🏆 CHAMPION</span>
+    <input type="text" id="champLabel" placeholder="เช่น Summer 2026" style="width:130px;font-size:13px;padding:6px 10px;">
+    <button class="btn btn-outline btn-sm" onclick="declareChampion('Red')" title="ให้ทีมแดงเป็นแชมป์">🔴 Red</button>
+    <button class="btn btn-outline btn-sm" onclick="declareChampion('Blue')" title="ให้ทีมน้ำเงินเป็นแชมป์">🔵 Blue</button>
+    <button class="btn btn-outline btn-sm" onclick="declareChampion('')" title="ล้างแชมป์">✖ ล้าง</button>
+    <span id="champStatus" style="font-size:11px;color:var(--gold);font-weight:700;"></span>
+  </div>
+
   <div id="playersTabGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
 </div>
 

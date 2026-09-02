@@ -12,10 +12,13 @@ let _pdCurrentId = null;
 // NOTE: `team` criteria follows the CURRENT team colour — if a later season
 // reshuffles teams, pin the winners with `ids` (or add a superadmin declare).
 // ══════════════════════════════════════════
+// Computed awards. Champion is handled separately (it is admin-declared via
+// currentChampion(), so its label is dynamic).
 const AWARDS = [
-  { id: 'champion_2026_summer', title: 'Champion',        subtitle: 'Team Blue · Summer 2026', criteria: { team: 'Blue' } },
-  { id: 'marathon_fighter',     title: 'Marathon Fighter', subtitle: 'Most time on court',       criteria: { dynamic: 'marathon' } },
+  { id: 'mvp',              title: 'MVP',              subtitle: 'Top points this season', criteria: { dynamic: 'mvp' } },
+  { id: 'marathon_fighter', title: 'Marathon Fighter', subtitle: 'Most time on court',      criteria: { dynamic: 'marathon' } },
 ];
+
 // Player(s) with the most total time on court — sum of match durations across
 // matchHistory. Ties all win; nobody wins if no match carries a duration.
 function marathonWinnerIds() {
@@ -29,14 +32,57 @@ function marathonWinnerIds() {
   Object.values(total).forEach(v => { if (v > max) max = v; });
   return max > 0 ? Object.keys(total).filter(id => total[id] === max) : [];
 }
+// Player(s) with the most points this season. Ties all win; none if all zero.
+function mvpWinnerIds() {
+  const stats = (typeof getPlayerStats === 'function') ? getPlayerStats() : {};
+  let max = 0;
+  Object.values(stats).forEach(s => { if ((s.pts || 0) > max) max = s.pts || 0; });
+  return max > 0 ? Object.keys(stats).filter(id => (stats[id].pts || 0) === max) : [];
+}
+
+// Champion is declared by a superadmin (stored on appState.champion). Until one
+// is ever declared it defaults to the season already live; clearing stores an
+// empty team so it persists as "no champion" (rather than reverting to default).
+function currentChampion() {
+  return (appState && appState.champion !== undefined) ? appState.champion : { team: 'Blue', label: 'Summer 2026' };
+}
+
 function playerHasAward(p, a) {
   const c = a.criteria || {};
   if (c.team && p.team === c.team) return true;
   if (Array.isArray(c.ids) && c.ids.includes(p.id)) return true;
   if (c.dynamic === 'marathon') return marathonWinnerIds().includes(p.id);
+  if (c.dynamic === 'mvp') return mvpWinnerIds().includes(p.id);
   return false;
 }
-function playerAwards(p) { return p ? AWARDS.filter(a => playerHasAward(p, a)) : []; }
+function playerAwards(p) {
+  if (!p) return [];
+  const out = AWARDS.filter(a => playerHasAward(p, a));
+  const ch = currentChampion();
+  if (ch && ch.team && p.team === ch.team) {
+    out.unshift({ title: 'Champion', subtitle: 'Team ' + ch.team + (ch.label ? ' · ' + ch.label : '') });
+  }
+  return out;
+}
+
+// ── Superadmin: declare the season champion (team + optional label) ──
+function declareChampion(team) {
+  if (userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Super Admin', 'error');
+  const label = (document.getElementById('champLabel')?.value || '').trim();
+  appState.champion = { team: team || '', label };   // team '' = cleared (persists)
+  saveKeys(['champion'], true);
+  updateChampControls();
+  if (typeof renderPlayersTab === 'function') renderPlayersTab();
+  if (_pdCurrentId) openPlayerProfile(_pdCurrentId);   // repaint an open profile
+  showToast(team ? `🏆 ประกาศแชมป์: ทีม${team === 'Red' ? 'แดง' : 'น้ำเงิน'}${label ? ' · ' + label : ''}` : '✖ ล้างแชมป์แล้ว', 'success');
+}
+function updateChampControls() {
+  const st = document.getElementById('champStatus');
+  const lbl = document.getElementById('champLabel');
+  const ch = currentChampion();
+  if (st) st.textContent = (ch && ch.team) ? `ปัจจุบัน: ${ch.team}${ch.label ? ' · ' + ch.label : ''}` : 'ยังไม่มีแชมป์';
+  if (lbl && ch && ch.label && !lbl.value) lbl.value = ch.label;
+}
 
 // Reusable gold star (SVG, crisp at any size, no image asset). Unique gradient
 // id per call so multiple stars on the page never collide.

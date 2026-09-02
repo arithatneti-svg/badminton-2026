@@ -314,6 +314,7 @@ async function wzLoadArchivePlayers(year) {
 function renderPlayersTab() {
   const grid = document.getElementById('playersTabGrid');
   if (!grid) return;
+  if (typeof updateChampControls === 'function') updateChampControls();
   const search = (document.getElementById('playersTabSearch')?.value || '').toLowerCase();
   const fTeam  = document.getElementById('playersTabFilterTeam')?.value || '';
   const fGroup = document.getElementById('playersTabFilterGroup')?.value || '';
