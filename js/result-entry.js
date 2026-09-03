@@ -21,13 +21,65 @@ function scoreValidationMsg(a, b, label) {
 }
 
 // ── MANUAL RESULT ENTRY (ADMIN FORCE RESULT) ──
-function openResultModal(mId) { 
-    const m = appState.ongoingMatches.find(x => x.id === mId); 
+// Shared result calculator so the live preview shows EXACTLY what will be saved.
+function _calcResult(g1R, g1B, g2R, g2B) {
+  let rWin = 0, bWin = 0;
+  if (g1R > g1B) rWin++; else if (g1B > g1R) bWin++; else { rWin += 0.5; bWin += 0.5; }
+  if (g2R > g2B) rWin++; else if (g2B > g2R) bWin++; else { rWin += 0.5; bWin += 0.5; }
+  let pRed = 0, pBlue = 0, rStat = '', bStat = '', resText = '';
+  if (rWin > bWin)      { pRed = 3;  rStat = 'W'; bStat = 'L'; resText = '🔴 Red Win 2–0 (+3pts)'; }
+  else if (bWin > rWin) { pBlue = 3; rStat = 'L'; bStat = 'W'; resText = '🔵 Blue Win 2–0 (+3pts)'; }
+  else if (rWin === 1 && bWin === 1) { pRed = 1; pBlue = 1; rStat = 'D'; bStat = 'D'; resText = '🤝 เสมอ 1–1 (+1pt each)'; }
+  else {
+    const pdRed = (g1R - g1B) + (g2R - g2B), pdBlue = -pdRed;
+    if (pdRed > 0)      { pRed = 3;  rStat = 'W'; bStat = 'L'; resText = `🔴 Red Win (Point Diff +${pdRed}) (+3pts)`; }
+    else if (pdBlue > 0){ pBlue = 3; rStat = 'L'; bStat = 'W'; resText = `🔵 Blue Win (Point Diff +${pdBlue}) (+3pts)`; }
+    else                { pRed = 1;  pBlue = 1;  rStat = 'D'; bStat = 'D'; resText = '🤝 Perfect Draw (+1pt each)'; }
+  }
+  return { pRed, pBlue, rStat, bStat, resText };
+}
+
+// Build the RED-vs-BLUE header with avatars for the Force Result modal.
+function _forceTeamsHtml(m) {
+  const names = s => (s || '').split(' & ').map(x => stripGroup(x.trim()));
+  const red = names(m.redNames), blue = names(m.blueNames);
+  const redIds = [m.r1, m.r2], blueIds = [m.b1, m.b2];
+  const row = (id, nm) => `<div class="fr-p">${avatarHtml(id, 26)}<span class="fr-pn">${escHtml(nm)}</span></div>`;
+  return `<div class="fr-team red"><span class="fr-tlabel">🔴 RED</span>${red.map((n, i) => row(redIds[i], n)).join('')}</div>
+    <span class="fr-vs">VS</span>
+    <div class="fr-team blue"><span class="fr-tlabel">BLUE 🔵</span>${blue.map((n, i) => row(blueIds[i], n)).join('')}</div>`;
+}
+
+// Live result preview — recomputed on every keystroke so there is no surprise
+// "Preview" step: the admin sees the outcome, then saves in one click.
+function updateForceLiveResult() {
+  const box = document.getElementById('forceLiveResult');
+  if (!box) return;
+  const g1Re = document.getElementById('g1Red').value, g1Bl = document.getElementById('g1Blue').value;
+  if (g1Re === '' || g1Bl === '') {
+    box.className = 'fr-live';
+    box.innerHTML = `<span class="lbl">ผลลัพธ์</span><span class="val">— กรอกคะแนน Game 1 —</span>`;
+    return;
+  }
+  const g1R = parseInt(g1Re) || 0, g1B = parseInt(g1Bl) || 0;
+  const g2R = parseInt(document.getElementById('g2Red').value) || 0, g2B = parseInt(document.getElementById('g2Blue').value) || 0;
+  const r = _calcResult(g1R, g1B, g2R, g2B);
+  const cls = r.rStat === 'W' ? 'red' : r.rStat === 'L' ? 'blue' : 'gold';
+  const label = r.resText.replace(/\s*\(\+.*?\)\s*$/, '').trim();  // drop the "(+3pts)" suffix
+  const pts = r.rStat === 'D' ? '+1 แต้ม/ทีม' : '+3 แต้ม';
+  box.className = 'fr-live ' + cls;
+  box.innerHTML = `<span class="lbl">ผลลัพธ์</span><span class="val">${label}</span><span class="pts">${pts}</span>`;
+}
+
+function openResultModal(mId) {
+    const m = appState.ongoingMatches.find(x => x.id === mId);
     if(!m) return;
-    document.getElementById('currentMatchId').value = mId; 
-    document.getElementById('modalMatchInfo').innerHTML = `<strong style="color:var(--text)">Match ${m.id} · Round ${m.round}</strong><br><br><span class="red-text">🔴 ${m.redNames}</span><br><span style="color:var(--muted)">vs</span><br><span class="blue-text">🔵 ${m.blueNames}</span>`; 
-    ['g1Red','g1Blue','g2Red','g2Blue'].forEach(id => document.getElementById(id).value = ''); 
-    document.getElementById('resultModal').classList.add('open'); 
+    document.getElementById('currentMatchId').value = mId;
+    document.getElementById('forceMatchSub').innerHTML = `Match <b>${escHtml(m.id)}</b> · Round <b>${escHtml(String(m.round))}</b>`;
+    document.getElementById('forceTeams').innerHTML = _forceTeamsHtml(m);
+    ['g1Red','g1Blue','g2Red','g2Blue'].forEach(id => document.getElementById(id).value = '');
+    updateForceLiveResult();
+    document.getElementById('resultModal').classList.add('open');
 }
 
 function closeModal() { document.getElementById('resultModal').classList.remove('open'); }
@@ -49,26 +101,7 @@ function previewResult() {
     scoreValidationMsg(g1R, g1B, 'Game 1'),
     hasG2 ? scoreValidationMsg(g2R, g2B, 'Game 2') : null,
   ].filter(Boolean);
-  // FIX-1: declare rWin/bWin locally (were undeclared → ReferenceError)
-  let rWin = 0, bWin = 0;
-  if (g1R > g1B) rWin++; else if (g1B > g1R) bWin++; else { rWin += 0.5; bWin += 0.5; }
-  if (g2R > g2B) rWin++; else if (g2B > g2R) bWin++; else { rWin += 0.5; bWin += 0.5; }
-  
-  let pRed = 0, pBlue = 0, rStat = '', bStat = '', resText = '';
-  if (rWin > bWin) { pRed = 3; rStat = 'W'; bStat = 'L'; resText = '🔴 Red Win 2–0 (+3pts)'; } 
-  else if (bWin > rWin){ pBlue = 3; rStat = 'L'; bStat = 'W'; resText = '🔵 Blue Win 2–0 (+3pts)'; } 
-  else {
-    // FIX: 1 game each (rWin=bWin=1) → always DRAW, pointDiff only for 0.5:0.5 tie
-    if (rWin === 1 && bWin === 1) {
-      pRed = 1; pBlue = 1; rStat = 'D'; bStat = 'D'; resText = '🤝 เสมอ 1–1 (+1pt each)';
-    } else {
-      const pdRed = (g1R - g1B) + (g2R - g2B);
-      const pdBlue = -pdRed;
-      if (pdRed > 0) { pRed = 3; rStat = 'W'; bStat = 'L'; resText = `🔴 Red Win (Point Diff +${pdRed}) (+3pts)`; }
-      else if (pdBlue > 0) { pBlue = 3; rStat = 'L'; bStat = 'W'; resText = `🔵 Blue Win (Point Diff +${pdBlue}) (+3pts)`; }
-      else { pRed = 1; pBlue = 1; rStat = 'D'; bStat = 'D'; resText = '🤝 Perfect Draw (+1pt each)'; }
-    }
-  }
+  const { pRed, pBlue, rStat, bStat, resText } = _calcResult(g1R, g1B, g2R, g2B);
   if (!m) return showToast('❌ Match not found', 'error');
   _pendingResult = { mId, m, g1R, g1B, g2R, g2B, pRed, pBlue, rStat, bStat, resText };
   const _warnHtml = _scoreWarns.length

@@ -852,27 +852,29 @@
 
 <!-- FORCE RESULT MODAL -->
 <div id="resultModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title" style="color:var(--blue);">⚡ Force Result</div>
-    <div class="modal-match-info" id="modalMatchInfo"></div>
+  <div class="modal-box fr-box">
+    <div class="fr-title">⚡ FORCE RESULT</div>
+    <div class="fr-sub" id="forceMatchSub"></div>
     <input type="hidden" id="currentMatchId">
-    <div class="score-inputs">
-      <div class="score-input-row">
-        <span class="game-label">Game 1</span>
-        <input type="number" id="g1Red" placeholder="R" min="0">
-        <span class="score-sep">—</span>
-        <input type="number" id="g1Blue" placeholder="B" min="0">
+    <div class="fr-teams" id="forceTeams"></div>
+    <div class="fr-scores">
+      <div class="fr-grow">
+        <span class="fr-glabel">GAME 1</span>
+        <input type="number" id="g1Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+        <span class="fr-colon">:</span>
+        <input type="number" id="g1Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
       </div>
-      <div class="score-input-row">
-        <span class="game-label">Game 2</span>
-        <input type="number" id="g2Red" placeholder="R" min="0">
-        <span class="score-sep">—</span>
-        <input type="number" id="g2Blue" placeholder="B" min="0">
+      <div class="fr-grow">
+        <span class="fr-glabel">GAME 2</span>
+        <input type="number" id="g2Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+        <span class="fr-colon">:</span>
+        <input type="number" id="g2Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
       </div>
     </div>
+    <div class="fr-live" id="forceLiveResult"></div>
     <div class="modal-actions">
-      <button class="btn btn-primary" onclick="previewResult()">✓ Preview</button>
-      <button class="btn btn-danger" onclick="closeModal()">✕ Cancel</button>
+      <button class="btn btn-primary fr-save" onclick="previewResult()">✓ บันทึกผล</button>
+      <button class="btn btn-danger" onclick="closeModal()">✕ ยกเลิก</button>
     </div>
   </div>
 </div>

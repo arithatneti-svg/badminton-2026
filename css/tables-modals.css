@@ -82,6 +82,63 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 .score-sep { font-family: 'Bebas Neue', sans-serif; font-size: 1.4em; color: var(--muted); flex: 1; text-align: center; }
 .modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
+/* ── Force Result modal (reworked: avatars, team-coloured inputs, live result) ── */
+.fr-box { padding: 0; text-align: left; width: min(440px, 94vw); overflow: hidden; }
+.fr-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.7em; letter-spacing: 3px;
+  color: var(--gold); text-align: center; padding: 20px 20px 4px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+}
+.fr-sub {
+  text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  color: var(--muted); padding: 0 20px 15px; border-bottom: 1px solid var(--border);
+}
+.fr-sub b { color: var(--text2); }
+.fr-teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 15px 18px 6px; }
+.fr-team { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fr-team.blue { align-items: flex-end; }
+.fr-tlabel { font-size: 9px; font-weight: 800; letter-spacing: 2px; }
+.fr-team.red  .fr-tlabel { color: var(--red); }
+.fr-team.blue .fr-tlabel { color: var(--blue); }
+.fr-p { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.fr-team.blue .fr-p { flex-direction: row-reverse; }
+.fr-pn { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-vs { font-family: 'Bebas Neue', sans-serif; font-size: 0.95em; color: var(--muted2); letter-spacing: 1px; }
+.fr-scores { display: flex; flex-direction: column; gap: 9px; padding: 8px 18px 4px; }
+.fr-grow {
+  display: grid; grid-template-columns: 58px 1fr auto 1fr; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 9px 12px;
+}
+.fr-glabel { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); }
+.fr-in {
+  width: 100%; height: 50px; text-align: center;
+  background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.9em; color: var(--text);
+  outline: none; transition: border-color 0.15s; -moz-appearance: textfield;
+}
+.fr-in::-webkit-outer-spin-button, .fr-in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.fr-in.red  { color: var(--red);  border-color: rgba(255,77,94,0.3); }
+.fr-in.blue { color: var(--blue); border-color: rgba(77,159,255,0.3); }
+.fr-in:focus { border-color: var(--gold); }
+.fr-colon { font-family: 'Bebas Neue', sans-serif; font-size: 1.3em; color: var(--muted2); text-align: center; }
+.fr-live {
+  margin: 12px 18px 4px; border-radius: 12px; padding: 11px 14px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+}
+.fr-live .lbl { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); }
+.fr-live .val { font-size: 15px; font-weight: 800; margin-left: auto; color: var(--muted); }
+.fr-live .pts { font-size: 11px; font-weight: 700; color: var(--muted); }
+.fr-live.gold { background: rgba(240,192,64,0.08); border-color: rgba(240,192,64,0.3); }
+.fr-live.gold .val { color: var(--gold); }
+.fr-live.red  { background: rgba(255,77,94,0.09);  border-color: rgba(255,77,94,0.32); }
+.fr-live.red  .val { color: var(--red); }
+.fr-live.blue { background: rgba(77,159,255,0.09); border-color: rgba(77,159,255,0.32); }
+.fr-live.blue .val { color: var(--blue); }
+.fr-box .modal-actions { padding: 14px 18px 18px; }
+.fr-box .modal-actions .btn { flex: 1; }
+.fr-box .modal-actions .fr-save { flex: 1.6; }
+
 /* Tag Editor */
 .tag-checkbox-list { display: flex; flex-direction: column; gap: 8px; text-align: left; margin-bottom: 20px; }
 .tag-checkbox-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.025); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; }
