@@ -356,6 +356,17 @@ function renderPlayersTab() {
        </div>`
     : '';
 
+  // The headline number on every card follows the active sort — switch to
+  // Win-Rate and win-rate becomes the big number (Points / PD likewise); the
+  // other two ride along as the small stats.
+  const metric = {
+    pts: s => ({ v: s.pts || 0,                          c: 'var(--gold)', dim: !s.pts,   big: 'PTS',  pill: 'PTS', unit: 'pts' }),
+    wr:  s => ({ v: s.total > 0 ? s.winRate + '%' : '—', c: wrColor(s),    dim: !s.total, big: 'WIN%', pill: 'WR',  unit: ''    }),
+    pd:  s => { const pd = s.pointDiff || 0; return { v: (pd > 0 ? '+' : '') + pd, c: pdColor(pd), dim: !s.total, big: 'PD', pill: 'PD', unit: 'pd' }; },
+  };
+  const heroKey   = sortBy === 'winRate' ? 'wr' : sortBy === 'pointDiff' ? 'pd' : 'pts';
+  const otherKeys = ['pts', 'wr', 'pd'].filter(k => k !== heroKey);
+
   // ── Podium: top 3 of the current ranking (skip when sorting A–Z,
   //    where "1st/2nd/3rd" would just mean "earliest alphabetically") ──
   const showPodium = players.length >= 3 && sortBy !== 'name';
@@ -363,18 +374,15 @@ function renderPlayersTab() {
   const podCard = (p, rank) => {
     const s = stats[p.id] || {};
     const isRed = p.team === 'Red';
-    const pd = s.pointDiff || 0;
+    const hero = metric[heroKey](s);
     return `<div class="pod p${rank + 1} ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
       <div class="pod-medal">${MEDAL[rank]}</div>
       ${actionsHtml(p)}
-      <div class="pod-av">${avatarHtml(p, rank === 0 ? 76 : 62)}</div>
+      <div class="pod-av">${avatarHtml(p, rank === 0 ? 88 : 72)}</div>
       <div class="pod-name">${escHtml(p.name)}${youTag(p)}</div>
       <div class="pod-sub"><span class="pod-tdot ${isRed ? 'red' : 'blue'}"></span>${isRed ? 'RED' : 'BLUE'} · G${p.group}</div>
-      <div class="pod-pts">${s.pts || 0}<small>POINTS</small></div>
-      <div class="pod-pills">
-        <span class="pill" style="color:${wrColor(s)}">${s.total > 0 ? s.winRate + '%' : '—'} WR</span>
-        <span class="pill" style="color:${pdColor(pd)}">${pd > 0 ? '+' : ''}${pd} PD</span>
-      </div>
+      <div class="pod-pts" style="color:${hero.dim ? 'var(--muted2)' : hero.c}">${hero.v}<small>${hero.big}</small></div>
+      <div class="pod-pills">${otherKeys.map(k => { const o = metric[k](s); return `<span class="pill" style="color:${o.c}">${o.v} ${o.pill}</span>`; }).join('')}</div>
     </div>`;
   };
 
@@ -382,19 +390,18 @@ function renderPlayersTab() {
   const listRow = (p, rank) => {
     const s = stats[p.id] || {};
     const isRed = p.team === 'Red';
-    const pd = s.pointDiff || 0;
+    const hero = metric[heroKey](s);
     const streak = getPlayerStreak(p.id);
     const streakHtml = streak
       ? `<span class="pdir-tag ${streak.type === 'hot' ? 'pdir-hot' : 'pdir-cold'}">${streak.label}</span>`
       : '';
     const rankCls = rank === 0 ? 'r1' : rank === 1 ? 'r2' : rank === 2 ? 'r3' : '';
     const statsHtml = s.total > 0
-      ? `<span class="pdir-stat" style="color:${wrColor(s)}">${s.winRate}%</span>
-         <span class="pdir-stat" style="color:${pdColor(pd)}">${pd > 0 ? '+' : ''}${pd}</span>`
+      ? otherKeys.map(k => { const o = metric[k](s); return `<span class="pdir-stat" style="color:${o.c}">${o.v}</span>${o.unit ? `<span class="pdir-unit">${o.unit}</span>` : ''}`; }).join('')
       : `<span class="pdir-wait">ยังไม่ลงแข่ง</span>`;
     return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
       <div class="pdir-rank ${rankCls}">${rank + 1}</div>
-      ${avatarHtml(p, 40)}
+      ${avatarHtml(p, 60)}
       <div class="pdir-body">
         <div class="pdir-name">${escHtml(p.name)}${youTag(p)}</div>
         <div class="pdir-meta">
@@ -403,7 +410,7 @@ function renderPlayersTab() {
         </div>
       </div>
       ${actionsHtml(p)}
-      <div class="pdir-pts${s.pts ? '' : ' zero'}"><b>${s.pts || 0}</b><span>PTS</span></div>
+      <div class="pdir-pts${hero.dim ? ' zero' : ''}"><b${hero.dim ? '' : ` style="color:${hero.c}"`}>${hero.v}</b><span>${hero.big}</span></div>
     </div>`;
   };
 
