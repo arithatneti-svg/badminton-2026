@@ -90,11 +90,17 @@ function finalizeResult() {
   appState.matchHistory.push({ id: m.id, round: m.round, r1: m.r1, r2: m.r2, b1: m.b1, b2: m.b2, redNames: m.redNames, blueNames: m.blueNames, game1: `${g1R}:${g1B}`, game2: `${g2R}:${g2B}`, result: resText, pRed, pBlue, rStat, bStat, duration: matchDuration, analysis: analysis, umpire: m.umpire || 'Admin (Force)' });
   
   appState.ongoingMatches = appState.ongoingMatches.filter(x => x.id !== mId);
-  _pendingResult = null; 
-  document.getElementById('confirmModal').classList.remove('open'); 
-  closeModal(); 
-  saveData(true); 
-  showToast(resText, 'success'); 
+  _pendingResult = null;
+  document.getElementById('confirmModal').classList.remove('open');
+  closeModal();
+  // Refresh the UI locally instead of waiting for the Firebase echo — otherwise
+  // a dropped/slow connection leaves the score looking un-updated even though the
+  // write is queued and will sync on reconnect. Mirrors autoFinalizeMatchFromUmpire.
+  invalidateStatsCache();
+  _adminJustFinalized = true;   // stop the eventual echo from re-showing the noti
+  saveData(true);
+  updateUI();
+  showToast(resText, 'success');
   playSound('point');
 
   // ── NOTIFICATION ──
