@@ -1,51 +1,11 @@
-// ── USER THEME (red / blue / normal) ──
-let userTheme = localStorage.getItem('userTheme') || 'normal';
-
-function selectLoginTheme(theme) {
-  userTheme = theme;
-  localStorage.setItem('userTheme', theme);
-
-  // apply data-theme to documentElement — consistent กับ head script ที่ set ก่อน render
-  document.documentElement.setAttribute('data-theme', theme === 'normal' ? '' : theme);
-
-  // sync login screen buttons
-  ['red','normal','blue'].forEach(t => {
-    const btn = document.getElementById('themeBtn' + t.charAt(0).toUpperCase() + t.slice(1));
-    if (btn) btn.classList.toggle('active', t === theme);
-  });
-
-  // sync navbar buttons
-  ['Red','Normal','Blue'].forEach(t => {
-    const btn = document.getElementById('navTheme' + t);
-    if (btn) btn.classList.toggle('active', t.toLowerCase() === theme);
-  });
-
-  // update login hint
-  const hints = {
-    red:    'เชียร์ทีมแดง — สีธีมจะเป็นสีแดง 🔴',
-    blue:   'เชียร์ทีมน้ำเงิน — สีธีมจะเป็นสีน้ำเงิน 🔵',
-    normal: 'เลือกทีมที่เชียร์เพื่อเปลี่ยนสีธีม 🎨',
-  };
-  const hint = document.getElementById('themeHint');
-  if (hint) hint.textContent = hints[theme] || hints.normal;
-}
-
-// init theme button state on load
-document.addEventListener('DOMContentLoaded', () => {
-  selectLoginTheme(userTheme); // จะ set data-theme และ sync buttons ทั้งหมด
-});
-
-// เลือก reaction (emoji + ข้อความ) ตามผลแมตช์ + แท็ก + ทีมที่ผู้ชมเชียร์
-function pickReaction({ tags, rStat, winnerSide }) {
+// เลือก reaction (emoji + ข้อความ) ตามผลแมตช์ + แท็ก — สกอร์บอร์ดเป็นกลาง
+// จึงมองจากฝั่งผู้ชนะเสมอ (ไม่มีธีมทีมที่ผู้ชมเชียร์แล้ว)
+function pickReaction({ tags, rStat }) {
   const tagIds = tags ? tags.map(t => t.id) : [];
   const hasEpic          = tagIds.some(t => t.includes('epic'));
   const hasBlowout       = tagIds.includes('blowout');
   const hasGladiators    = tagIds.includes('clutch');
   const hasRollercoaster = tagIds.includes('rollercoaster');
-  const hasEpicRed       = tagIds.some(t => t.includes('epic_red'));
-  const hasEpicBlue      = tagIds.some(t => t.includes('epic_blue'));
-  const themeIsRed  = userTheme === 'red';
-  const themeIsBlue = userTheme === 'blue';
 
   let key;
   if (rStat === 'D') {
@@ -53,20 +13,10 @@ function pickReaction({ tags, rStat, winnerSide }) {
     else if (hasGladiators) key = 'draw_bloody';
     else key = 'draw_normal';
   } else {
-    const themeLost = (themeIsRed && winnerSide === 'blue') || (themeIsBlue && winnerSide === 'red');
-    if (themeLost) {
-      // ผู้ชมเชียร์ทีมที่แพ้
-      const opponentComeback = themeIsRed ? hasEpicBlue : hasEpicRed;
-      if (opponentComeback) key = 'lose_comeback';
-      else if (hasBlowout)  key = 'lose_blowout';
-      else                  key = 'lose_normal';
-    } else {
-      // ผู้ชมเชียร์ทีมที่ชนะ หรือธีมกลาง → มุมมองฝั่งชนะ
-      if (hasBlowout)         key = 'win_blowout';
-      else if (hasEpic)       key = 'win_comeback';
-      else if (hasGladiators) key = 'win_hardfought';
-      else                    key = 'win_normal';
-    }
+    if (hasBlowout)         key = 'win_blowout';
+    else if (hasEpic)       key = 'win_comeback';
+    else if (hasGladiators) key = 'win_hardfought';
+    else                    key = 'win_normal';
   }
   return NOTI_REACTIONS[key] || NOTI_REACTIONS.win_normal;
 }

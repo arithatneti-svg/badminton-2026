@@ -8,8 +8,6 @@
 <!-- 🔴 Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-<!-- apply theme immediately to prevent gold→red/blue flash on load -->
-<script>(function(){var t=localStorage.getItem('userTheme');if(t&&t!=='normal')document.documentElement.setAttribute('data-theme',t);})();</script>
 <!-- Shared Firebase config + init. defer => runs in-order in one batch with app scripts, after parse. -->
 <script defer src="shared/firebase-config.js"></script>
 <!-- PWA: installable + offline-tolerant app shell -->
@@ -93,25 +91,6 @@
       </div>
     </details>
 
-    <!-- ── THEME SELECTOR ── -->
-    <div style="margin-top:22px;border-top:1px solid rgba(255,255,255,0.06);padding-top:18px;">
-      <p style="color:var(--muted);font-size:11px;font-weight:700;letter-spacing:2px;text-align:center;margin-bottom:14px;">🎨 คุณเชียร์ทีมไหน?</p>
-      <div style="display:flex;gap:8px;justify-content:center;">
-        <button type="button" class="theme-pick-btn" id="themeBtnRed" onclick="selectLoginTheme('red')" style="--tc:#ff3b5c;--tc-dim:rgba(255,59,92,0.15);--tc-border:rgba(255,59,92,0.35);">
-          <span style="font-size:20px;">🔴</span>
-          <span>ทีมแดง</span>
-        </button>
-        <button type="button" class="theme-pick-btn active" id="themeBtnNormal" onclick="selectLoginTheme('normal')" style="--tc:var(--gold);--tc-dim:rgba(245,200,66,0.12);--tc-border:rgba(245,200,66,0.35);">
-          <span style="font-size:20px;">⚫</span>
-          <span>ปกติ</span>
-        </button>
-        <button type="button" class="theme-pick-btn" id="themeBtnBlue" onclick="selectLoginTheme('blue')" style="--tc:#3b8eff;--tc-dim:rgba(59,142,255,0.15);--tc-border:rgba(59,142,255,0.35);">
-          <span style="font-size:20px;">🔵</span>
-          <span>ทีมน้ำเงิน</span>
-        </button>
-      </div>
-      <p id="themeHint" style="text-align:center;font-size:10px;color:var(--muted);margin-top:10px;letter-spacing:0.5px;">ถ้าทีมที่เลือกแพ้ จะได้เห็น GIF พิเศษ 😢</p>
-    </div>
   </div>
 </div>
 
@@ -193,13 +172,6 @@
     <span id="seasonBadge" class="season-badge superadmin-only" onclick="openSeasonArchive()" title="ดู Season Archive">📅 2026</span>
     <button class="btn btn-outline btn-sm superadmin-only" onclick="openSeasonWizard()" style="font-size:10px;letter-spacing:1px;" title="เริ่ม Season ใหม่">🔄 New Season</button>
     <button class="btn btn-outline btn-sm admin-only" onclick="openQrModal()" style="font-size:10px;letter-spacing:1px;" title="QR สำหรับผู้ชม / กรรมการ">📱 QR</button>
-
-    <!-- ── THEME TOGGLE ── -->
-    <div id="navThemePicker" style="display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:2px;">
-      <button id="navThemeRed"    onclick="selectLoginTheme('red')"    title="เชียร์ทีมแดง"    class="nav-theme-btn" style="--ntc:var(--red);">🔴</button>
-      <button id="navThemeNormal" onclick="selectLoginTheme('normal')" title="ปกติ"             class="nav-theme-btn active" style="--ntc:var(--gold);">⚫</button>
-      <button id="navThemeBlue"   onclick="selectLoginTheme('blue')"   title="เชียร์ทีมน้ำเงิน" class="nav-theme-btn" style="--ntc:var(--blue);">🔵</button>
-    </div>
 
     <button class="btn-fs" onclick="toggleFullScreen()">⛶ Full</button>
     <button class="btn-reset admin-only superadmin-only" onclick="clearData()">↺ Reset</button>

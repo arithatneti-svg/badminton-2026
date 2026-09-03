@@ -24,22 +24,6 @@
   --accent-grad:  linear-gradient(135deg, #f5c842 0%, #ffa040 100%);
 }
 
-/* ── RED THEME ── */
-[data-theme="red"] {
-  --accent:      #ff3b5c;
-  --accent-dim:  rgba(255,59,92,0.12);
-  --accent-glow: rgba(255,59,92,0.4);
-  --accent-grad: linear-gradient(135deg, #ff3b5c 0%, #ff6b35 100%);
-}
-
-/* ── BLUE THEME ── */
-[data-theme="blue"] {
-  --accent:      #3b8eff;
-  --accent-dim:  rgba(59,142,255,0.12);
-  --accent-glow: rgba(59,142,255,0.4);
-  --accent-grad: linear-gradient(135deg, #3b8eff 0%, #00c6ff 100%);
-}
-
 :root {
   --green: #00e676;
   --green-dim: rgba(0,230,118,0.1);

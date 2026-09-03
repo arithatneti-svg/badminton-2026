@@ -147,72 +147,6 @@
   margin-bottom:16px;
 }
 
-/* ── NAV THEME TOGGLE ── */
-.nav-theme-btn {
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 7px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.15s;
-  line-height: 1;
-}
-.nav-theme-btn:hover { background: rgba(255,255,255,0.07); }
-.nav-theme-btn.active {
-  background: rgba(255,255,255,0.1);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-
-/* ── THEME: player cards glow for cheered team ── */
-/* Red theme → Red player cards get subtle accent border */
-[data-theme="red"]  .match-card.team-red  { border-color: rgba(255,59,92,0.4); box-shadow: 0 0 0 1px rgba(255,59,92,0.15); }
-[data-theme="blue"] .match-card.team-blue { border-color: rgba(59,142,255,0.4); box-shadow: 0 0 0 1px rgba(59,142,255,0.15); }
-
-/* ── THEME: section titles use accent ── */
-[data-theme="red"]  .section-title  { color: var(--accent); }
-[data-theme="blue"] .section-title  { color: var(--accent); }
-
-/* ── THEME: ongoing hero live count ── */
-[data-theme="red"]  .ongoing-live-count { color: var(--accent); }
-[data-theme="blue"] .ongoing-live-count { color: var(--accent); }
-
-/* ── THEME: pd-tab active ── */
-[data-theme="red"]  .pd-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-[data-theme="blue"] .pd-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-/* ── LOGIN THEME PICKER ── */
-.theme-pick-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  padding: 12px 20px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex: 1;
-}
-.theme-pick-btn:hover {
-  background: var(--tc-dim);
-  border-color: var(--tc-border);
-  color: var(--tc);
-}
-.theme-pick-btn.active {
-  background: var(--tc-dim);
-  border-color: var(--tc-border);
-  border-width: 2px;
-  color: var(--tc);
-  box-shadow: 0 0 12px var(--tc-dim);
-}
-
 /* ══════════════════════════════════════════════════
    MOBILE UX FIXES — CSS only, no JS touched
    ══════════════════════════════════════════════════
@@ -293,8 +227,6 @@
 @media (max-width: 480px) {
   /* Hide season badge and New Season button — admin-only anyway */
   #seasonBadge { display: none !important; }
-  /* Shrink theme picker labels */
-  .nav-theme-btn { padding: 3px 5px !important; font-size: 12px !important; }
   /* Reduce nav-actions gap */
   .nav-actions { gap: 3px !important; }
   /* Shrink Full / Exit buttons */
