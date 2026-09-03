@@ -61,27 +61,35 @@
   color: var(--text2);
 }
 
-/* Stats bar */
+/* Stats bar — win-rate hero + a compact tile grid for the rest */
 .profile-stats-bar {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  display: block;
+  padding: 16px;
   background: var(--surface2);
   border: 1px solid var(--border);
   border-top: none; border-bottom: none;
 }
-.profile-stat-cell {
-  padding: 16px 14px;
-  text-align: center;
-  border-right: 1px solid var(--border);
+.pd-statbar { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: stretch; }
+.pd-stat-hero {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  min-width: 116px; padding: 10px 22px; border-radius: 14px;
+  background: linear-gradient(160deg, rgba(240,192,64,0.14), rgba(240,192,64,0.03));
+  border: 1px solid rgba(240,192,64,0.3);
 }
-.profile-stat-cell:last-child { border-right: none; }
-.profile-stat-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2em; letter-spacing: 1px; line-height: 1;
+.pd-stat-hero .v { font-family: 'Bebas Neue', sans-serif; font-size: 3.1em; line-height: 0.82; letter-spacing: 1px; }
+.pd-stat-hero .l { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-top: 6px; }
+.pd-stat-hero .sub { font-size: 9px; color: var(--muted2); margin-top: 2px; letter-spacing: 0.5px; }
+.pd-stat-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pd-stat-tile {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 9px 6px; text-align: center;
+  display: flex; flex-direction: column; justify-content: center;
 }
-.profile-stat-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 2px;
-  color: var(--muted); text-transform: uppercase; margin-top: 4px;
+.pd-stat-tile .v { font-family: 'Bebas Neue', sans-serif; font-size: 1.55em; line-height: 1; letter-spacing: 0.5px; }
+.pd-stat-tile .l { font-size: 8.5px; font-weight: 800; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-top: 3px; }
+@media (max-width: 520px) {
+  .pd-statbar { grid-template-columns: 1fr; }
+  .pd-stat-hero { padding: 12px; }
 }
 
 /* Body */
@@ -416,33 +424,16 @@
    ══════════════════════════════════════════ */
 #pdAwards:empty { display: none; }
 .award-star { display: block; }
-.pd-awards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  margin-bottom: 4px;
+/* compact horizontal medal chips (was big square cards + an oversized
+   corner star on the avatar, both now gone) */
+.pd-awards-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.pd-award-chip {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 13px 8px 10px; border-radius: 12px;
+  background: linear-gradient(150deg, rgba(240,192,64,0.12), rgba(240,192,64,0.02));
+  border: 1px solid rgba(240,192,64,0.32);
 }
-.pd-medal {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 16px 12px 14px;
-  border-radius: 14px;
-  background: linear-gradient(160deg, rgba(240,192,64,0.10), rgba(240,192,64,0.02));
-  border: 1px solid rgba(240,192,64,0.35);
-}
-.pd-medal-star { line-height: 0; filter: drop-shadow(0 3px 12px rgba(240,192,64,0.35)); }
-.pd-medal-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.15rem; letter-spacing: 1.5px; line-height: 1;
-  color: var(--gold); margin-top: 8px;
-}
-.pd-medal-sub { font-size: 0.72rem; color: var(--muted); font-weight: 600; margin-top: 4px; }
-
-/* small star badge on the avatar — top-right, clear of the camera button */
-.pd-avatar-star {
-  position: absolute; top: -2px; right: -2px; line-height: 0;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
-  pointer-events: none;
-}
+.pd-award-star { line-height: 0; flex-shrink: 0; filter: drop-shadow(0 2px 6px rgba(240,192,64,0.35)); }
+.pd-award-txt { display: flex; flex-direction: column; line-height: 1.15; }
+.pd-award-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--gold); }
+.pd-award-sub { font-size: 0.64rem; color: var(--muted); font-weight: 600; }

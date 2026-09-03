@@ -110,15 +110,24 @@ function openPlayerProfile(playerId) {
   const teamColor = isRed ? 'var(--red)' : 'var(--blue)';
   const canEdit = userRole === 'admin' || userRole === 'superadmin';
   const hasPhoto = !!playerPhoto(p.id);
-  document.getElementById('profileHeader').innerHTML = `
+  const teamChipBorder = isRed ? 'rgba(255,77,94,0.42)' : 'rgba(77,159,255,0.42)';
+  const hdr = document.getElementById('profileHeader');
+  // subtle team-colour wash behind the header (no corner award star)
+  hdr.style.background = isRed
+    ? 'linear-gradient(135deg, rgba(255,77,94,0.13), rgba(255,77,94,0.01) 62%), var(--surface)'
+    : 'linear-gradient(135deg, rgba(77,159,255,0.15), rgba(77,159,255,0.01) 62%), var(--surface)';
+  hdr.innerHTML = `
     <div class="pd-avatar-wrap">
       ${avatarHtml(p, 140)}
-      ${playerAwards(p).length ? `<span class="pd-avatar-star" title="Award winner">${awardStarSvg(36)}</span>` : ''}
       ${canEdit ? `<button class="pd-avatar-btn" title="${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}" onclick="pickPlayerPhoto('${p.id}')">📷</button>` : ''}
     </div>
     <div style="flex:1;min-width:0;">
-      <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:var(--muted);margin-bottom:4px;">${p.id} · ${isRed?'🔴 RED':'🔵 BLUE'} · GROUP ${p.group}</div>
       <div class="profile-name" style="color:${teamColor};">${escHtml(p.name)}</div>
+      <div class="profile-meta-chips">
+        <span class="profile-meta-chip">${p.id}</span>
+        <span class="profile-meta-chip" style="color:${teamColor};border-color:${teamChipBorder};">${isRed?'🔴 RED':'🔵 BLUE'}</span>
+        <span class="profile-meta-chip">GROUP ${p.group}</span>
+      </div>
       ${canEdit ? `<div class="pd-admin-row">
         <button class="btn btn-outline btn-sm" onclick="pickPlayerPhoto('${p.id}')">📷 ${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}</button>
         ${hasPhoto ? `<button class="btn btn-outline btn-sm" onclick="removePlayerPhoto('${p.id}')">🗑 ลบรูป</button>` : ''}
@@ -127,16 +136,26 @@ function openPlayerProfile(playerId) {
       </div>` : ''}
     </div>`;
 
+  // Hero = win rate across every match; the rest ride as compact tiles.
   const wrColor = s.winRate>=70?'var(--green)':s.winRate>=40?'var(--gold)':s.total>0?'var(--danger)':'var(--muted)';
-  const pdColor = (s.pointDiff||0)>=0?'var(--green)':'var(--danger)';
+  const pdVal = s.pointDiff||0;
+  const pdColor = pdVal>0?'var(--green)':pdVal<0?'var(--danger)':'var(--muted)';
   document.getElementById('profileStatBar').innerHTML = `
-    <div class="profile-stat-cell"><div class="profile-stat-val" style="color:var(--gold)">${s.pts||0}</div><div class="profile-stat-label">Points</div></div>
-    <div class="profile-stat-cell"><div class="profile-stat-val" style="color:var(--green)">${s.w||0}</div><div class="profile-stat-label">Game Win</div></div>
-    <div class="profile-stat-cell"><div class="profile-stat-val" style="color:var(--danger)">${s.l||0}</div><div class="profile-stat-label">Game Lose</div></div>
-    <div class="profile-stat-cell"><div class="profile-stat-val" style="color:var(--gold)">${s.matchDraw||0}</div><div class="profile-stat-label">Match Draw</div></div>
-    <div class="profile-stat-cell"><div class="profile-stat-val">${s.matchesPlayed||0}</div><div class="profile-stat-label">Matches</div></div>
-    <div class="profile-stat-cell"><div class="profile-stat-val" style="color:${wrColor}">${s.total>0?s.winRate+'%':'—'}</div><div class="profile-stat-label">Game Win%</div></div>
-    <div class="profile-stat-cell"><div class="profile-stat-val" style="color:${pdColor}">${(s.pointDiff||0)>0?'+':''}${s.pointDiff||0}</div><div class="profile-stat-label">Point Diff</div></div>`;
+    <div class="pd-statbar">
+      <div class="pd-stat-hero">
+        <div class="v" style="color:${wrColor}">${s.total>0?s.winRate+'%':'—'}</div>
+        <div class="l">Win Rate</div>
+        <div class="sub">จากทุกแมตช์</div>
+      </div>
+      <div class="pd-stat-tiles">
+        <div class="pd-stat-tile"><div class="v" style="color:var(--gold)">${s.pts||0}</div><div class="l">Points</div></div>
+        <div class="pd-stat-tile"><div class="v" style="color:var(--green)">${s.w||0}</div><div class="l">Game Win</div></div>
+        <div class="pd-stat-tile"><div class="v" style="color:var(--danger)">${s.l||0}</div><div class="l">Game Lose</div></div>
+        <div class="pd-stat-tile"><div class="v">${s.matchesPlayed||0}</div><div class="l">Matches</div></div>
+        <div class="pd-stat-tile"><div class="v" style="color:var(--gold)">${s.matchDraw||0}</div><div class="l">Match Draw</div></div>
+        <div class="pd-stat-tile"><div class="v" style="color:${pdColor}">${pdVal>0?'+':''}${pdVal}</div><div class="l">Point Diff</div></div>
+      </div>
+    </div>`;
   // one page — everything renders up front, no tabs to switch
   renderPdAwards(p);
   renderPdIdentity(prof);
@@ -168,11 +187,13 @@ function renderPdAwards(p) {
   const earned = playerAwards(p);
   if (!earned.length) { el.innerHTML = ''; return; }
   el.innerHTML = `<div class="profile-section-title">🏅 Awards</div>
-    <div class="pd-awards-grid">${earned.map(a => `
-      <div class="pd-medal">
-        <span class="pd-medal-star">${awardStarSvg(56)}</span>
-        <div class="pd-medal-title">${escHtml(a.title)}</div>
-        <div class="pd-medal-sub">${escHtml(a.subtitle)}</div>
+    <div class="pd-awards-row">${earned.map(a => `
+      <div class="pd-award-chip">
+        <span class="pd-award-star">${awardStarSvg(24)}</span>
+        <div class="pd-award-txt">
+          <span class="pd-award-title">${escHtml(a.title)}</span>
+          <span class="pd-award-sub">${escHtml(a.subtitle)}</span>
+        </div>
       </div>`).join('')}</div>`;
 }
 

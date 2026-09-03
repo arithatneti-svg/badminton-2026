@@ -341,45 +341,83 @@ function renderPlayersTab() {
   }
 
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
-  grid.innerHTML = players.map((p, i) => {
+
+  // colour only carries meaning where it changes: win rate and +/- PD.
+  const wrColor = s => s.winRate >= 70 ? 'var(--green)'
+                     : s.winRate >= 40 ? 'var(--text2)'
+                     : s.total > 0     ? 'var(--danger)' : 'var(--muted)';
+  const pdColor = pd => pd > 0 ? 'var(--green)' : pd < 0 ? 'var(--danger)' : 'var(--muted)';
+  const mine    = p => (typeof isMe === 'function' && isMe(p.id));
+  const youTag  = p => mine(p) ? `<span class="pdir-you">YOU</span>` : '';
+  const actionsHtml = p => isAdmin
+    ? `<div class="pdir-actions">
+         <button class="btn btn-outline btn-sm" title="แก้ไขผู้เล่น" onclick="event.stopPropagation();openPlayerEdit('${p.id}')">✏️</button>
+         <button class="btn btn-danger btn-sm" title="ลบผู้เล่น" onclick="event.stopPropagation();deletePlayer('${p.id}')">🗑</button>
+       </div>`
+    : '';
+
+  // ── Podium: top 3 of the current ranking (skip when sorting A–Z,
+  //    where "1st/2nd/3rd" would just mean "earliest alphabetically") ──
+  const showPodium = players.length >= 3 && sortBy !== 'name';
+  const MEDAL = ['🥇', '🥈', '🥉'];
+  const podCard = (p, rank) => {
     const s = stats[p.id] || {};
     const isRed = p.team === 'Red';
-    // colour only carries meaning where it changes: win rate and +/- PD.
-    // Everything else stays neutral so the grid reads as a list, not a mosaic.
-    const wrc = s.winRate >= 70 ? 'var(--green)'
-              : s.winRate >= 40 ? 'var(--text2)'
-              : s.total > 0     ? 'var(--danger)' : 'var(--muted)';
-    const pd  = s.pointDiff || 0;
-    const pdc = pd > 0 ? 'var(--green)' : pd < 0 ? 'var(--danger)' : 'var(--muted)';
+    const pd = s.pointDiff || 0;
+    return `<div class="pod p${rank + 1} ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
+      <div class="pod-medal">${MEDAL[rank]}</div>
+      ${actionsHtml(p)}
+      <div class="pod-av">${avatarHtml(p, rank === 0 ? 76 : 62)}</div>
+      <div class="pod-name">${escHtml(p.name)}${youTag(p)}</div>
+      <div class="pod-sub"><span class="pod-tdot ${isRed ? 'red' : 'blue'}"></span>${isRed ? 'RED' : 'BLUE'} · G${p.group}</div>
+      <div class="pod-pts">${s.pts || 0}<small>POINTS</small></div>
+      <div class="pod-pills">
+        <span class="pill" style="color:${wrColor(s)}">${s.total > 0 ? s.winRate + '%' : '—'} WR</span>
+        <span class="pill" style="color:${pdColor(pd)}">${pd > 0 ? '+' : ''}${pd} PD</span>
+      </div>
+    </div>`;
+  };
+
+  // ── List row (rank 4+, or everyone when there is no podium) ──
+  const listRow = (p, rank) => {
+    const s = stats[p.id] || {};
+    const isRed = p.team === 'Red';
+    const pd = s.pointDiff || 0;
     const streak = getPlayerStreak(p.id);
     const streakHtml = streak
       ? `<span class="pdir-tag ${streak.type === 'hot' ? 'pdir-hot' : 'pdir-cold'}">${streak.label}</span>`
       : '';
-    const rankCls = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
-    const actions = isAdmin
-      ? `<div class="pdir-actions">
-           <button class="btn btn-outline btn-sm" title="แก้ไขผู้เล่น" onclick="event.stopPropagation();openPlayerEdit('${p.id}')">✏️</button>
-           <button class="btn btn-danger btn-sm" title="ลบผู้เล่น" onclick="event.stopPropagation();deletePlayer('${p.id}')">🗑</button>
-         </div>`
-      : '';
-    const mineCls = (typeof isMe === 'function' && isMe(p.id)) ? ' is-mine' : '';
-    return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}${mineCls}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
-      <div class="pdir-rank ${rankCls}">${i + 1}</div>
+    const rankCls = rank === 0 ? 'r1' : rank === 1 ? 'r2' : rank === 2 ? 'r3' : '';
+    const statsHtml = s.total > 0
+      ? `<span class="pdir-stat" style="color:${wrColor(s)}">${s.winRate}%</span>
+         <span class="pdir-stat" style="color:${pdColor(pd)}">${pd > 0 ? '+' : ''}${pd}</span>`
+      : `<span class="pdir-wait">ยังไม่ลงแข่ง</span>`;
+    return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
+      <div class="pdir-rank ${rankCls}">${rank + 1}</div>
       ${avatarHtml(p, 40)}
       <div class="pdir-body">
-        <div class="pdir-name">${escHtml(p.name)}</div>
+        <div class="pdir-name">${escHtml(p.name)}${youTag(p)}</div>
         <div class="pdir-meta">
           <span class="pdir-tag">${p.id} · G${p.group}</span>
-          ${streakHtml}
-          <span class="sep">·</span>
-          <span style="color:${wrc};font-weight:700;">${s.total > 0 ? s.winRate + '%' : '—'}</span>
-          <span class="sep">·</span>
-          <span style="color:${pdc};font-weight:700;">${pd > 0 ? '+' : ''}${pd}</span>
+          ${streakHtml}${statsHtml}
         </div>
       </div>
-      ${actions}
-      <div class="pdir-pts"><b>${s.pts || 0}</b><span>PTS</span></div>
+      ${actionsHtml(p)}
+      <div class="pdir-pts${s.pts ? '' : ' zero'}"><b>${s.pts || 0}</b><span>PTS</span></div>
     </div>`;
-  }).join('');
+  };
+
+  let html = '';
+  if (showPodium) {
+    const top = players.slice(0, 3);
+    // centre the champion: display order is 2nd · 1st · 3rd
+    html += `<div class="pdir-podium">${podCard(top[1], 1)}${podCard(top[0], 0)}${podCard(top[2], 2)}</div>`;
+  }
+  const rest = showPodium ? players.slice(3) : players;
+  if (rest.length) {
+    html += `<div class="pdir-list-h">${showPodium ? 'อันดับ 4 ขึ้นไป' : `ผู้เล่นทั้งหมด · ${players.length} คน`}</div>`;
+    html += `<div class="pdir-list">${rest.map((p, j) => listRow(p, (showPodium ? 3 : 0) + j)).join('')}</div>`;
+  }
+  grid.innerHTML = html;
 }
 

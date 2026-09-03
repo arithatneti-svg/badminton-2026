@@ -284,11 +284,69 @@
    One accent per card, not six: the photo is the anchor, PTS is the
    only large number, and the secondary stats sit on one quiet line.
    ══════════════════════════════════════════ */
-#playersTabGrid {
+#playersTabGrid { display: block; }
+
+/* ── Podium: top 3 of the current ranking ── */
+.pdir-podium {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 10px;
+  grid-template-columns: 1fr 1.12fr 1fr;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 18px;
 }
+.pod {
+  position: relative;
+  border-radius: 16px;
+  padding: 18px 14px 15px;
+  text-align: center;
+  overflow: hidden;
+  cursor: pointer;
+  background: linear-gradient(170deg, var(--surface2), var(--surface));
+  border: 1px solid var(--border);
+  transition: transform 0.14s, border-color 0.18s;
+}
+.pod:hover { transform: translateY(-2px); }
+.pod::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; }
+.pod.p1 { padding-top: 24px; border-color: rgba(255,213,74,0.4);
+  background: linear-gradient(170deg, rgba(255,213,74,0.1), var(--surface));
+  box-shadow: 0 0 40px -12px rgba(255,213,74,0.4); }
+.pod.p1::before { background: linear-gradient(90deg, transparent, #ffd54a, transparent); }
+.pod.p2::before { background: linear-gradient(90deg, transparent, #cfd3dc, transparent); }
+.pod.p3::before { background: linear-gradient(90deg, transparent, #d98a4b, transparent); }
+.pod-medal { font-size: 1.5em; line-height: 1; margin-bottom: 6px; }
+.pod-av { margin-bottom: 9px; }
+.pod-av .pav { border-width: 2.5px; }
+.pod.is-red  .pod-av .pav { box-shadow: 0 0 20px rgba(255,59,92,0.28); }
+.pod.is-blue .pod-av .pav { box-shadow: 0 0 20px rgba(59,142,255,0.28); }
+.pod-name { font-size: 1.15em; font-weight: 800; line-height: 1.1; }
+.pod.p1 .pod-name { font-size: 1.35em; }
+.pod-sub { display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; margin-top: 4px; }
+.pod-tdot { width: 7px; height: 7px; border-radius: 50%; }
+.pod-tdot.red { background: var(--red); } .pod-tdot.blue { background: var(--blue); }
+.pod-pts { font-family: 'Bebas Neue', sans-serif; font-size: 2.6em; line-height: 0.85;
+  color: var(--gold); margin: 10px 0 8px; }
+.pod.p1 .pod-pts { font-size: 3.2em; }
+.pod-pts small { display: block; font-size: 8px; font-weight: 800; letter-spacing: 2px;
+  color: var(--muted); margin-top: 3px; }
+.pod-pills { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.pod-pills .pill { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+  background: var(--surface3); border: 1px solid var(--border); }
+.pod .pdir-actions { position: absolute; top: 8px; right: 8px; }
+
+/* list of ranks 4+ */
+.pdir-list-h {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10.5px; font-weight: 800; letter-spacing: 2.5px;
+  color: var(--muted); text-transform: uppercase;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+}
+.pdir-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 8px;
+}
+@media (max-width: 640px) { .pdir-podium { grid-template-columns: 1fr; align-items: stretch; } }
 .pdir-card {
   display: flex;
   align-items: center;
@@ -350,6 +408,16 @@
 }
 .pdir-hot { background: rgba(255,107,53,0.12); color: #ff6b35; }
 .pdir-cold { background: rgba(96,165,250,0.12); color: #60a5fa; }
+.pdir-stat { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pdir-wait { font-size: 10.5px; color: var(--muted2); font-style: italic; }
+.pdir-you {
+  display: inline-block; vertical-align: middle;
+  font-size: 8.5px; font-weight: 800; letter-spacing: 1px;
+  color: #14140c; background: var(--gold);
+  border-radius: 5px; padding: 1px 6px; margin-left: 6px;
+}
+/* YOU pill already marks "me" here, so drop the global ⭐ badge */
+.pdir-card.is-mine::after, .pod.is-mine::after { content: none; }
 
 .pdir-pts { text-align: right; flex-shrink: 0; }
 .pdir-pts b {
@@ -359,6 +427,7 @@
   line-height: 0.9;
   color: var(--gold);
 }
+.pdir-pts.zero b { color: var(--muted2); }
 .pdir-pts span {
   font-size: 8.5px;
   font-weight: 800;
