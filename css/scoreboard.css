@@ -199,49 +199,55 @@ select option { background: #161625; }
    LIVE ARENA — glanceable big-screen match display (shown on the scoreboard
    tab while a court is being scored; team-battle totals show when idle)
    ══════════════════════════════════════════ */
-.lv-wrap { position: relative; padding: 22px 24px 40px; }
+.lv-wrap { position: relative; padding: 20px 16px 32px; }
 .lv-rotate {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-  font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted);
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  font-size: 12px; font-weight: 700; letter-spacing: 1px; color: var(--text2);
 }
-.lv-arena { display: grid; grid-template-columns: 40fr 20fr 40fr; align-items: center; gap: 10px; min-height: min(56vh, 520px); }
-.lv-team { display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 0; }
+.lv-arena { display: grid; grid-template-columns: 42fr 18fr 42fr; align-items: center; gap: 14px; min-height: min(64vh, 620px); }
+.lv-team { display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 0; }
 .lv-thead { text-align: center; }
-.lv-tlabel { display: block; font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.5em, 3vw, 2.2em); letter-spacing: 3px; line-height: 1; }
+.lv-tlabel { display: block; font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.7em, 3.4vw, 2.5em); letter-spacing: 3px; line-height: 1; }
 .lv-team.red  .lv-tlabel { color: var(--red); }
 .lv-team.blue .lv-tlabel { color: var(--blue); }
-.lv-players { display: block; text-align: center; font-size: clamp(18px, 2.2vw, 27px); font-weight: 700; color: var(--text); margin-top: 7px; letter-spacing: 0.5px; }
-.lv-players i { color: var(--muted); font-style: normal; padding: 0 3px; font-weight: 500; }
+.lv-players { display: block; text-align: center; font-size: clamp(18px, 2vw, 24px); font-weight: 600; color: #fff; margin-top: 8px; letter-spacing: 0.5px; }
+.lv-players i { color: rgba(255,255,255,.4); font-style: normal; padding: 0 4px; font-weight: 500; }
 .lv-scard {
-  position: relative; width: min(340px, 92%); aspect-ratio: 1 / .82; border-radius: 32px;
+  position: relative; width: min(440px, 96%); aspect-ratio: 1 / .8; border-radius: 24px;
   display: flex; align-items: center; justify-content: center; border: 2px solid; background: #131722;
 }
 .lv-team.red .lv-scard {
-  border-color: rgba(239,68,68,.5);
-  background: radial-gradient(ellipse 90% 90% at 50% 12%, rgba(255,77,77,.16), rgba(19,23,34,.35) 70%), #131722;
-  box-shadow: 0 0 45px -8px rgba(255,77,77,.4), inset 0 0 40px -20px rgba(255,77,77,.6);
+  border-color: rgba(239,68,68,.55);
+  background: linear-gradient(to bottom, rgba(239,68,68,.1), rgba(0,0,0,.4)), #131722;
+  box-shadow: 0 0 55px -8px rgba(255,77,77,.42), inset 0 0 55px -24px rgba(255,77,77,.65);
 }
 .lv-team.blue .lv-scard {
-  border-color: rgba(59,130,246,.5);
-  background: radial-gradient(ellipse 90% 90% at 50% 12%, rgba(56,189,248,.16), rgba(19,23,34,.35) 70%), #131722;
-  box-shadow: 0 0 45px -8px rgba(56,189,248,.4), inset 0 0 40px -20px rgba(56,189,248,.6);
+  border-color: rgba(59,130,246,.55);
+  background: linear-gradient(to bottom, rgba(59,130,246,.1), rgba(0,0,0,.4)), #131722;
+  box-shadow: 0 0 55px -8px rgba(56,189,248,.42), inset 0 0 55px -24px rgba(56,189,248,.65);
 }
-.lv-snum { font-family: 'Bebas Neue', sans-serif; font-size: clamp(84px, 14vw, 150px); line-height: .78; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
-.lv-team.red  .lv-snum { color: #FF4D4D; text-shadow: 0 0 34px rgba(255,77,77,.45); }
-.lv-team.blue .lv-snum { color: #38BDF8; text-shadow: 0 0 34px rgba(56,189,248,.45); }
-.lv-hub { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.lv-snum { font-family: 'Bebas Neue', sans-serif; font-size: clamp(104px, 17vw, 200px); line-height: .78; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
+.lv-team.red  .lv-snum { color: #FF4D4D; text-shadow: 0 0 38px rgba(255,77,77,.5); }
+.lv-team.blue .lv-snum { color: #38BDF8; text-shadow: 0 0 38px rgba(56,189,248,.5); }
+
+/* Center hub is a raised card so it stops sinking into the black background */
+.lv-hub {
+  display: flex; flex-direction: column; align-items: center; gap: 13px; text-align: center;
+  background: rgba(20,24,38,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+  padding: 24px 18px; box-shadow: 0 12px 40px -18px rgba(0,0,0,.6);
+}
 .lv-gamechip {
-  font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; color: var(--gold);
-  background: rgba(245,200,66,.1); border: 1px solid rgba(245,200,66,.3); border-radius: 10px; padding: 6px 18px;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 3px; color: #FBBF24;
+  background: rgba(245,158,11,.15); border: 1.5px solid #F59E0B; border-radius: 20px; padding: 6px 18px;
 }
-.lv-set { display: flex; align-items: center; gap: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 38px; line-height: 1; font-variant-numeric: tabular-nums; }
-.lv-set .g.r { color: var(--red); } .lv-set .g.b { color: var(--blue); } .lv-set .d { color: var(--muted); }
-.lv-setlbl { font-size: 9px; font-weight: 800; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: -10px; }
-.lv-meta { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .3px; max-width: 190px; line-height: 1.5; }
+.lv-set { display: flex; align-items: baseline; gap: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; }
+.lv-set .g.r { color: #F87171; } .lv-set .g.b { color: #60A5FA; } .lv-set .d { color: rgba(255,255,255,.3); }
+.lv-setlbl { font-size: 12px; font-weight: 800; letter-spacing: 3px; color: rgba(255,255,255,.5); text-transform: uppercase; margin-top: -4px; }
+.lv-meta { font-size: 14px; font-weight: 500; color: #CBD5E1; letter-spacing: .3px; max-width: 220px; line-height: 1.5; }
 @media (max-width: 760px) {
-  .lv-arena { grid-template-columns: 1fr; gap: 22px; min-height: 0; }
+  .lv-arena { grid-template-columns: 1fr; gap: 20px; min-height: 0; }
   .lv-hub { order: -1; }
-  .lv-snum { font-size: 96px; }
-  .lv-wrap { padding: 30px 16px 30px; }
+  .lv-snum { font-size: 108px; }
+  .lv-wrap { padding: 26px 14px 28px; }
 }
 

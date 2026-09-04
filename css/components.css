@@ -507,16 +507,16 @@ body.tv-mode .me-bar { display: none; }
 
 .me-cta {
   display: inline-flex; align-items: center; gap: 7px;
-  padding: 7px 15px;
+  padding: 6px 13px;
   border-radius: 20px;
-  border: 1px solid rgba(245,200,66,0.35);
-  background: rgba(245,200,66,0.08);
-  color: var(--gold);
-  font-size: 12.5px; font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: var(--text2);
+  font-size: 12px; font-weight: 600;
   cursor: pointer;
   transition: background 0.18s, border-color 0.18s;
 }
-.me-cta:hover { background: rgba(245,200,66,0.14); border-color: rgba(245,200,66,0.5); }
+.me-cta:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.28); color: var(--text); }
 .me-cta-sub { display: none; }   /* keep the chip compact — no long tagline */
 
 .me-chip {
