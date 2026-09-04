@@ -198,6 +198,32 @@
   </div>
 </div>
 
+<!-- ⭐ Photo lightbox — click any real photo to view it full-size -->
+<div id="photoLightbox" class="plb" onclick="if(event.target===this)closePhotoLightbox()">
+  <button class="plb-close" onclick="closePhotoLightbox()" title="ปิด">✕</button>
+  <div class="plb-box">
+    <img class="plb-img" src="" alt="">
+    <div class="plb-cap"><div class="plb-name"></div><div class="plb-meta"></div></div>
+  </div>
+</div>
+
+<!-- ⭐ Photo focal-point adjuster (admin) -->
+<div id="photoAdjustModal" class="modal-overlay">
+  <div class="modal-box" style="width:min(340px,92vw);">
+    <div class="modal-title" style="font-size:1.3em;">🎯 จัดตำแหน่งรูป</div>
+    <div style="font-size:12px;color:var(--muted);margin:6px 0 16px;">ลากรูปเพื่อเลือกส่วนที่จะโชว์ในวงกลม</div>
+    <div class="padj-frame"
+         onmousedown="photoAdjustStart(event)" onmousemove="photoAdjustMove(event)" onmouseup="photoAdjustEnd()" onmouseleave="photoAdjustEnd()"
+         ontouchstart="photoAdjustStart(event)" ontouchmove="photoAdjustMove(event)" ontouchend="photoAdjustEnd()">
+      <img class="padj-img" src="" alt="" draggable="false">
+    </div>
+    <div class="modal-actions" style="margin-top:18px;">
+      <button class="btn btn-primary" onclick="savePhotoAdjust()">💾 บันทึก</button>
+      <button class="btn btn-outline" onclick="closePhotoAdjust()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
 
 <div id="scoreboard" class="container" style="padding: 0; max-width: 100%;">
   <!-- Live-match arena — shown while a court is being scored; falls back to the

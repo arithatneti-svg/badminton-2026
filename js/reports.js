@@ -200,7 +200,7 @@ function renderPlayerTable(playerArr, medalMap) {
         : '—';
       return `<tr>
         <td class="gold-text">${s.id}</td>
-        <td><span class="rp-name-cell">${avatarHtml(s.id, 24, {className:'pav-inline'})}<span class="rp-name-link" onclick="openPlayerProfile('${s.id}')" title="ดู Player Profile">${medal}${escHtml(s.name)}</span></span></td>
+        <td><span class="rp-name-cell"><span class="rp-name-link" onclick="openPlayerProfile('${s.id}')" title="ดู Player Profile">${medal}${escHtml(s.name)}</span></span></td>
         <td><span class="rp-badge ${s.team==='Red'?'b-red':'b-blue'}">${s.team}</span></td>
         <td>G${s.group}</td>
         <td style="font-size:1.1em;font-weight:700;color:var(--gold);">${s.pts}</td>

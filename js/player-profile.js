@@ -118,8 +118,8 @@ function openPlayerProfile(playerId) {
     : 'linear-gradient(135deg, rgba(77,159,255,0.15), rgba(77,159,255,0.01) 62%), var(--surface)';
   hdr.innerHTML = `
     <div class="pd-avatar-wrap">
-      ${avatarHtml(p, 140)}
-      ${canEdit ? `<button class="pd-avatar-btn" title="${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}" onclick="pickPlayerPhoto('${p.id}')">📷</button>` : ''}
+      <div class="pd-avatar-click${hasPhoto ? ' zoomable' : ''}" ${hasPhoto ? `onclick="openPhotoLightbox('${p.id}')" title="ดูรูปเต็ม"` : ''}>${avatarHtml(p, 170)}</div>
+      ${canEdit ? `<button class="pd-avatar-btn" title="${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}" onclick="event.stopPropagation();pickPlayerPhoto('${p.id}')">📷</button>` : ''}
     </div>
     <div style="flex:1;min-width:0;">
       <div class="profile-name" style="color:${teamColor};">${escHtml(p.name)}</div>
@@ -130,6 +130,7 @@ function openPlayerProfile(playerId) {
       </div>
       ${canEdit ? `<div class="pd-admin-row">
         <button class="btn btn-outline btn-sm" onclick="pickPlayerPhoto('${p.id}')">📷 ${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}</button>
+        ${hasPhoto ? `<button class="btn btn-outline btn-sm" onclick="openPhotoAdjust('${p.id}')">🎯 จัดตำแหน่ง</button>` : ''}
         ${hasPhoto ? `<button class="btn btn-outline btn-sm" onclick="removePlayerPhoto('${p.id}')">🗑 ลบรูป</button>` : ''}
         <button class="btn btn-outline btn-sm" onclick="togglePdEdit(true)">📝 แก้ไขโปรไฟล์</button>
         <button class="btn btn-outline btn-sm" onclick="closePlayerProfile();openPlayerEdit('${p.id}')">✏️ ชื่อ/ทีม/กลุ่ม</button>
@@ -257,7 +258,6 @@ function renderPdMatchHistory(playerId) {
         <div class="profile-match-pair">
           <div class="pmr-line">
             <span class="pmr-lbl">คู่กับ</span>
-            ${mateId ? avatarHtml(mateId, 20, {className:'pav-inline'}) : ''}
             <b style="color:${sideColor};">${escHtml(mateId ? nameOf(mateId) : '—')}</b>
           </div>
           <div class="pmr-line">

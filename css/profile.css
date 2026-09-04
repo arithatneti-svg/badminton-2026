@@ -412,11 +412,52 @@
 
 /* bigger photo sits taller than the id/name column on desktop; keep the
    header aligned to the top so the name still starts at the same line */
-.pd-avatar-wrap .pav { --pav-size: 140px; }
+.pd-avatar-wrap .pav { --pav-size: 170px; }
+.pd-avatar-click { line-height: 0; border-radius: 50%; }
+.pd-avatar-click.zoomable { cursor: zoom-in; }
+.pd-avatar-click.zoomable:hover .pav { border-color: var(--gold); }
 
 @media (max-width: 600px) {
   .profile-back-btn { top: 12px; left: 12px; height: 36px; padding: 0 13px 0 10px; font-size: 13px; }
-  .pd-avatar-wrap .pav { --pav-size: 104px !important; }
+  .pd-avatar-wrap .pav { --pav-size: 124px !important; }
+}
+
+/* ══════════════════════════════════════════
+   PHOTO LIGHTBOX + FOCAL-POINT ADJUSTER
+   ══════════════════════════════════════════ */
+.plb {
+  display: none; position: fixed; inset: 0; z-index: 1200;
+  background: rgba(4,4,12,0.93); backdrop-filter: blur(16px);
+  align-items: center; justify-content: center; padding: 40px 20px;
+}
+.plb.open { display: flex; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.plb-close {
+  position: fixed; top: 20px; right: 20px; width: 42px; height: 42px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border2); color: var(--text2);
+  font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.plb-close:hover { background: var(--surface3); color: var(--text); }
+.plb-box { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 100%; }
+.plb-img {
+  max-width: min(540px, 90vw); max-height: 72vh; border-radius: 18px; object-fit: contain;
+  border: 1px solid var(--border2); box-shadow: 0 30px 80px rgba(0,0,0,.7);
+}
+.plb-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8em; letter-spacing: 2px; color: var(--text); text-align: center; }
+.plb-meta { font-size: 12px; font-weight: 600; letter-spacing: 1px; color: var(--muted); margin-top: 2px; text-align: center; }
+
+/* adjuster sits above the open profile overlay (z 800) */
+#photoAdjustModal { z-index: 1100; }
+.padj-frame {
+  width: 220px; height: 220px; margin: 4px auto 0; border-radius: 50%; overflow: hidden;
+  border: 3px solid var(--gold); position: relative; cursor: grab;
+  box-shadow: 0 0 0 6px rgba(245,200,66,0.08); touch-action: none; user-select: none;
+}
+.padj-frame:active { cursor: grabbing; }
+.padj-img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.padj-frame::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
 }
 
 /* ══════════════════════════════════════════
