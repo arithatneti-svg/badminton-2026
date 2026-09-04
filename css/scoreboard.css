@@ -195,3 +195,61 @@ select option { background: #161625; }
 .team-name-edit.red { color: var(--red); }
 .team-name-edit.blue { color: var(--blue); }
 
+/* ══════════════════════════════════════════
+   LIVE ARENA — glanceable big-screen match display (shown on the scoreboard
+   tab while a court is being scored; team-battle totals show when idle)
+   ══════════════════════════════════════════ */
+.lv-wrap { position: relative; padding: 22px 24px 40px; }
+.lv-rotate {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted);
+}
+.lv-arena { display: grid; grid-template-columns: 40fr 20fr 40fr; align-items: center; gap: 10px; min-height: min(56vh, 520px); }
+.lv-team { display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 0; }
+.lv-thead { text-align: center; }
+.lv-tlabel { display: block; font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.5em, 3vw, 2.2em); letter-spacing: 3px; line-height: 1; }
+.lv-team.red  .lv-tlabel { color: var(--red); }
+.lv-team.blue .lv-tlabel { color: var(--blue); }
+.lv-players { display: block; font-size: clamp(13px, 1.5vw, 16px); font-weight: 600; color: var(--text); margin-top: 5px; }
+.lv-players i { color: var(--muted); font-style: normal; }
+.lv-scard {
+  position: relative; width: min(340px, 92%); aspect-ratio: 1 / .82; border-radius: 32px;
+  display: flex; align-items: center; justify-content: center; border: 2px solid; background: #131722;
+}
+.lv-team.red .lv-scard {
+  border-color: rgba(239,68,68,.5);
+  background: radial-gradient(ellipse 90% 90% at 50% 12%, rgba(255,77,77,.16), rgba(19,23,34,.35) 70%), #131722;
+  box-shadow: 0 0 45px -8px rgba(255,77,77,.4), inset 0 0 40px -20px rgba(255,77,77,.6);
+}
+.lv-team.blue .lv-scard {
+  border-color: rgba(59,130,246,.5);
+  background: radial-gradient(ellipse 90% 90% at 50% 12%, rgba(56,189,248,.16), rgba(19,23,34,.35) 70%), #131722;
+  box-shadow: 0 0 45px -8px rgba(56,189,248,.4), inset 0 0 40px -20px rgba(56,189,248,.6);
+}
+.lv-snum { font-family: 'Bebas Neue', sans-serif; font-size: clamp(84px, 14vw, 150px); line-height: .78; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
+.lv-team.red  .lv-snum { color: #FF4D4D; text-shadow: 0 0 34px rgba(255,77,77,.45); }
+.lv-team.blue .lv-snum { color: #38BDF8; text-shadow: 0 0 34px rgba(56,189,248,.45); }
+.lv-serve {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--green);
+  background: rgba(0,230,118,.12); border: 1px solid rgba(0,230,118,.4); border-radius: 20px; padding: 5px 14px;
+  box-shadow: 0 0 16px -3px rgba(0,230,118,.5);
+}
+.lv-serve-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: mePulse 1.2s infinite; }
+.lv-serve-ph { height: 29px; }
+.lv-hub { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.lv-gamechip {
+  font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; color: var(--gold);
+  background: rgba(245,200,66,.1); border: 1px solid rgba(245,200,66,.3); border-radius: 10px; padding: 6px 18px;
+}
+.lv-set { display: flex; align-items: center; gap: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 38px; line-height: 1; font-variant-numeric: tabular-nums; }
+.lv-set .g.r { color: var(--red); } .lv-set .g.b { color: var(--blue); } .lv-set .d { color: var(--muted); }
+.lv-setlbl { font-size: 9px; font-weight: 800; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: -10px; }
+.lv-meta { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .3px; max-width: 190px; line-height: 1.5; }
+@media (max-width: 760px) {
+  .lv-arena { grid-template-columns: 1fr; gap: 22px; min-height: 0; }
+  .lv-hub { order: -1; }
+  .lv-snum { font-size: 96px; }
+  .lv-wrap { padding: 30px 16px 30px; }
+}
+

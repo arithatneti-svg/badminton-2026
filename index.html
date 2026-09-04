@@ -200,6 +200,9 @@
 
 
 <div id="scoreboard" class="container" style="padding: 0; max-width: 100%;">
+  <!-- Live-match arena — shown while a court is being scored; falls back to the
+       team-battle totals below when nothing is live (rendered by renderLiveArena) -->
+  <div id="liveArena" style="display:none;"></div>
   <div class="scoreboard-wrapper">
     <div class="team-panel red" id="redPanel">
       <input class="team-name-edit red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()">

@@ -31,6 +31,7 @@
   --text: #e8e8f0;
   --text2: #b0b0c8;
   --muted: #5a5a78;
+  --muted2: #454560;   /* dimmer than --muted; used by directory/profile/arena */
   --danger: #ff4560;
   --radius: 14px;
   --radius-sm: 8px;
