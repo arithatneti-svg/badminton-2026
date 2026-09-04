@@ -635,11 +635,7 @@ function updateScore(team, delta, event) {
 
   // remember who just scored → "just scored" glow + next server.
   // a −1 correction leaves the last-scored read unchanged.
-  // Also sync it to live.lastScored so the public scoreboard can show 🏸 SERVING.
-  if (delta === 1) {
-    _lastScored = team;
-    firebase.database().ref(`sportsday_2026_data/ongoingMatches/${matchIdx}/live/lastScored`).set(team);
-  }
+  if (delta === 1) _lastScored = team;
 
   // Vibrate
   if (delta === 1) vibrateDevice([22]);

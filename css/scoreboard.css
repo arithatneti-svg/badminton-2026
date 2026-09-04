@@ -210,8 +210,8 @@ select option { background: #161625; }
 .lv-tlabel { display: block; font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.5em, 3vw, 2.2em); letter-spacing: 3px; line-height: 1; }
 .lv-team.red  .lv-tlabel { color: var(--red); }
 .lv-team.blue .lv-tlabel { color: var(--blue); }
-.lv-players { display: block; font-size: clamp(13px, 1.5vw, 16px); font-weight: 600; color: var(--text); margin-top: 5px; }
-.lv-players i { color: var(--muted); font-style: normal; }
+.lv-players { display: block; text-align: center; font-size: clamp(18px, 2.2vw, 27px); font-weight: 700; color: var(--text); margin-top: 7px; letter-spacing: 0.5px; }
+.lv-players i { color: var(--muted); font-style: normal; padding: 0 3px; font-weight: 500; }
 .lv-scard {
   position: relative; width: min(340px, 92%); aspect-ratio: 1 / .82; border-radius: 32px;
   display: flex; align-items: center; justify-content: center; border: 2px solid; background: #131722;
@@ -229,14 +229,6 @@ select option { background: #161625; }
 .lv-snum { font-family: 'Bebas Neue', sans-serif; font-size: clamp(84px, 14vw, 150px); line-height: .78; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
 .lv-team.red  .lv-snum { color: #FF4D4D; text-shadow: 0 0 34px rgba(255,77,77,.45); }
 .lv-team.blue .lv-snum { color: #38BDF8; text-shadow: 0 0 34px rgba(56,189,248,.45); }
-.lv-serve {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--green);
-  background: rgba(0,230,118,.12); border: 1px solid rgba(0,230,118,.4); border-radius: 20px; padding: 5px 14px;
-  box-shadow: 0 0 16px -3px rgba(0,230,118,.5);
-}
-.lv-serve-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: mePulse 1.2s infinite; }
-.lv-serve-ph { height: 29px; }
 .lv-hub { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
 .lv-gamechip {
   font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; color: var(--gold);

@@ -128,20 +128,14 @@ function _liveArenaHtml(m, idx, total) {
 
   const strip = s => (s || '').split(' & ').map(n => (typeof stripGroup === 'function' ? stripGroup(n.trim()) : n.trim()));
   const redP  = strip(m.redNames), blueP = strip(m.blueNames);
-  const serving = L.lastScored;   // 'red' | 'blue' | undefined (written by umpire)
 
-  const servePill = side => serving === side
-    ? `<span class="lv-serve"><span class="lv-serve-dot"></span>🏸 SERVING</span>`
-    : `<span class="lv-serve-ph"></span>`;
-
-  const teamCol = (cls, label, players, score, side) => `
+  const teamCol = (cls, label, players, score) => `
     <div class="lv-team ${cls}">
       <div class="lv-thead">
         <span class="lv-tlabel">${label}</span>
         <span class="lv-players">${players.map(escHtml).join(' <i>·</i> ')}</span>
       </div>
       <div class="lv-scard"><span class="lv-snum">${score}</span></div>
-      ${servePill(side)}
     </div>`;
 
   const rn = (appState.redTeamName  || 'RED');
