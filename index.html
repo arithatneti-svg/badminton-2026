@@ -853,29 +853,36 @@
 <!-- FORCE RESULT MODAL -->
 <div id="resultModal" class="modal-overlay">
   <div class="modal-box fr-box">
-    <div class="fr-title">⚡ FORCE RESULT</div>
-    <div class="fr-sub" id="forceMatchSub"></div>
+    <div class="fr-head">
+      <div class="fr-title">⚡ FORCE RESULT</div>
+      <span class="fr-chip" id="forceMatchSub"></span>
+    </div>
     <input type="hidden" id="currentMatchId">
     <div class="fr-teams" id="forceTeams"></div>
     <div class="fr-scores">
       <div class="fr-grow">
         <span class="fr-glabel">GAME 1</span>
-        <input type="number" id="g1Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
-        <span class="fr-colon">:</span>
-        <input type="number" id="g1Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+        <div class="fr-ins">
+          <input type="number" id="g1Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+          <span class="fr-dash">–</span>
+          <input type="number" id="g1Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+        </div>
       </div>
       <div class="fr-grow">
         <span class="fr-glabel">GAME 2</span>
-        <input type="number" id="g2Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
-        <span class="fr-colon">:</span>
-        <input type="number" id="g2Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+        <div class="fr-ins">
+          <input type="number" id="g2Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+          <span class="fr-dash">–</span>
+          <input type="number" id="g2Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+        </div>
       </div>
     </div>
     <div class="fr-live" id="forceLiveResult"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary fr-save" onclick="previewResult()">✓ บันทึกผล</button>
-      <button class="btn btn-danger" onclick="closeModal()">✕ ยกเลิก</button>
+    <div class="fr-btns">
+      <button class="fr-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="fr-save" onclick="previewResult()">✓ บันทึกผล</button>
     </div>
+    <div class="fr-help">พิมพ์คะแนน → แสดงผลคำนวณอัตโนมัติ → กดบันทึกผลเพื่อยืนยัน</div>
   </div>
 </div>
 

@@ -58,7 +58,7 @@ function updateForceLiveResult() {
   const g1Re = document.getElementById('g1Red').value, g1Bl = document.getElementById('g1Blue').value;
   if (g1Re === '' || g1Bl === '') {
     box.className = 'fr-live';
-    box.innerHTML = `<span class="lbl">ผลลัพธ์</span><span class="val">— กรอกคะแนน Game 1 —</span>`;
+    box.innerHTML = `<span class="lbl">ผลลัพธ์การแข่ง</span><span class="val">— กรอกคะแนน Game 1 —</span>`;
     return;
   }
   const g1R = parseInt(g1Re) || 0, g1B = parseInt(g1Bl) || 0;
@@ -68,7 +68,7 @@ function updateForceLiveResult() {
   const label = r.resText.replace(/\s*\(\+.*?\)\s*$/, '').trim();  // drop the "(+3pts)" suffix
   const pts = r.rStat === 'D' ? '+1 แต้ม/ทีม' : '+3 แต้ม';
   box.className = 'fr-live ' + cls;
-  box.innerHTML = `<span class="lbl">ผลลัพธ์</span><span class="val">${label}</span><span class="pts">${pts}</span>`;
+  box.innerHTML = `<span class="lbl">ผลลัพธ์การแข่ง</span><span class="val">${label}</span><span class="pts">${pts}</span>`;
 }
 
 function openResultModal(mId) {
