@@ -152,6 +152,10 @@
 <!-- NAVIGATION -->
 <div class="nav" id="mainNav">
   <span class="nav-title">🏸 <span id="seasonNavTitle">SPORTS DAY 2026</span></span>
+  <span id="dbStatusDot" class="nav-live" title="สถานะการเชื่อมต่อ Firebase">
+    <span id="dbDot"></span>
+    <span id="dbDotLabel">...</span>
+  </span>
   <div class="nav-tabs">
     <button class="tab-btn" id="tab-scoreboard" onclick="switchTab('scoreboard', this)">Scoreboard</button>
     <button class="tab-btn" id="tab-ongoing" onclick="switchTab('ongoing', this)">🟢 Ongoing <span id="navOngoingBadge" style="display:none;background:var(--green);color:#000;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
@@ -164,19 +168,13 @@
     <button class="tab-btn admin-only" id="tab-report" onclick="switchTab('report', this)">📈 Reports</button>
   </div>
   <div class="nav-actions">
-    <span id="dbStatusDot" title="Firebase connection" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);padding:5px 8px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);">
-      <span id="dbDot" style="width:7px;height:7px;border-radius:50%;background:var(--muted);transition:background 0.4s;flex-shrink:0;"></span>
-      <span id="dbDotLabel">...</span>
-    </span>
-    <!-- Season badge + archive viewer -->
     <span id="seasonBadge" class="season-badge superadmin-only" onclick="openSeasonArchive()" title="ดู Season Archive">📅 2026</span>
-    <button class="btn btn-outline btn-sm superadmin-only" onclick="openSeasonWizard()" style="font-size:10px;letter-spacing:1px;" title="เริ่ม Season ใหม่">🔄 New Season</button>
-    <button class="btn btn-outline btn-sm admin-only" onclick="openQrModal()" style="font-size:10px;letter-spacing:1px;" title="QR สำหรับผู้ชม / กรรมการ">📱 QR</button>
-
-    <button class="btn-fs" onclick="toggleFullScreen()">⛶ Full</button>
-    <button class="btn-reset admin-only superadmin-only" onclick="clearData()">↺ Reset</button>
-    <span id="roleBadge" style="display:none; font-size:0.75rem; font-weight:800; letter-spacing:1px; padding:5px 10px; border-radius:6px; white-space:nowrap;"></span>
-    <button class="btn-fs" onclick="logout()">🚪 Exit</button>
+    <span id="roleBadge" style="display:none; font-size:0.7rem; font-weight:800; letter-spacing:1px; padding:5px 9px; border-radius:6px; white-space:nowrap;"></span>
+    <button class="nav-ic superadmin-only" onclick="openSeasonWizard()" title="เริ่ม Season ใหม่">🔄</button>
+    <button class="nav-ic admin-only" onclick="openQrModal()" title="QR สำหรับผู้ชม / กรรมการ">📱</button>
+    <button class="nav-ic" onclick="toggleFullScreen()" title="เต็มจอ (F)">⛶</button>
+    <button class="nav-ic reset admin-only superadmin-only" onclick="clearData()" title="Reset การแข่งขัน">↺</button>
+    <button class="nav-ic exit" onclick="logout()" title="ออกจากระบบ">🚪</button>
   </div>
 </div>
 

@@ -4,9 +4,17 @@
   background: rgba(8,8,16,0.95);
   backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border);
-  padding: 10px 20px;
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 9px 18px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: nowrap;
 }
+
+/* live/connection badge, left of the tabs */
+.nav-live {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted);
+  padding: 5px 10px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border);
+}
+.nav-live #dbDot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: background 0.4s; flex-shrink: 0; }
 
 .nav-title {
   font-family: 'Bebas Neue', sans-serif;
@@ -21,15 +29,13 @@
   transition: background 0.4s;
 }
 
-.nav-tabs { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
-
-/* Desktop: a superadmin's action bar is wide enough to crush the tab row down
-   to a couple of pixels, wrapping the 8 tabs into a tall vertical stack. Keep
-   the tabs on one line and let the action bar drop to its own line instead.
-   (Mobile < 900px keeps the original wrapping behaviour untouched.) */
-@media (min-width: 900px) {
-  .nav-tabs { flex-wrap: nowrap; min-width: 500px; }
+/* Tabs live in the middle and scroll sideways if they run out of room, so the
+   brand (left) and action icons (right) never collide with them. */
+.nav-tabs {
+  display: flex; gap: 3px; flex: 1 1 auto; min-width: 0;
+  flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
 }
+.nav-tabs::-webkit-scrollbar { display: none; }
 
 .tab-btn {
   background: transparent;
@@ -64,11 +70,25 @@
 
 .nav-actions {
   display: flex; gap: 6px;
-  margin-left: auto;
-  flex-wrap: wrap;
+  flex-shrink: 0; flex-wrap: nowrap;
   justify-content: flex-end;
   align-items: center;
 }
+
+/* Compact icon buttons — Full / Reset / QR / New Season / Exit collapse to
+   icons + tooltip so the action bar stops overflowing into the tabs. */
+.nav-ic {
+  width: 36px; height: 36px; flex-shrink: 0; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; line-height: 1; cursor: pointer;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 9px;
+  color: var(--text2); transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.1s;
+}
+.nav-ic:hover { background: var(--surface3); border-color: var(--border2); color: var(--text); }
+.nav-ic:active { transform: scale(0.92); }
+.nav-ic.reset { color: var(--danger); border-color: rgba(255,69,96,0.25); }
+.nav-ic.reset:hover { background: rgba(255,69,96,0.1); }
+.nav-ic.exit:hover { background: rgba(255,159,64,0.1); border-color: rgba(255,159,64,0.3); }
 
 /* BUTTONS */
 .btn {

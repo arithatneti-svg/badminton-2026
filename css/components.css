@@ -494,30 +494,30 @@
 .me-bar {
   max-width: 1340px;
   margin: 0 auto;
-  padding: 8px 24px 0;
+  padding: 10px 24px 0;
   display: flex;
   align-items: center;
+  justify-content: flex-end;   /* compact chip, top-right — not a full-width bar */
   gap: 8px;
   flex-wrap: wrap;
   position: relative;
-  z-index: 2;
+  z-index: 6;
 }
 body.tv-mode .me-bar { display: none; }
 
 .me-cta {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px dashed rgba(245,200,66,0.3);
-  background: rgba(245,200,66,0.05);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 15px;
+  border-radius: 20px;
+  border: 1px solid rgba(245,200,66,0.35);
+  background: rgba(245,200,66,0.08);
   color: var(--gold);
-  font-size: 13.5px; font-weight: 700;
+  font-size: 12.5px; font-weight: 700;
   cursor: pointer;
   transition: background 0.18s, border-color 0.18s;
 }
-.me-cta:hover { background: rgba(245,200,66,0.1); border-color: rgba(245,200,66,0.5); }
-.me-cta-sub { font-size: 11px; font-weight: 600; color: var(--muted); margin-left: auto; }
+.me-cta:hover { background: rgba(245,200,66,0.14); border-color: rgba(245,200,66,0.5); }
+.me-cta-sub { display: none; }   /* keep the chip compact — no long tagline */
 
 .me-chip {
   display: flex; align-items: center; gap: 9px;
