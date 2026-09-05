@@ -19,7 +19,10 @@ function updateUI() {
   if (!userRole) return;
 
   // TV/projector mode: render the big-screen panel and skip normal tab UI
-  if (typeof _tvActive !== 'undefined' && _tvActive) { renderTvPanel(); return; }
+  if (typeof _tvActive !== 'undefined' && _tvActive) {
+    if (typeof tvOnDataChange === 'function') tvOnDataChange(); else renderTvPanel();
+    return;
+  }
 
   // Role badge
   const badge = document.getElementById('roleBadge');
