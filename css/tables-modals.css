@@ -58,6 +58,10 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
   align-items: center;
 }
 .modal-overlay.open { display: flex; }
+/* the confirm step opens over the Force-Result modal, so it must sit above it
+   (both are .modal-overlay at z-index 500 → equal z + later DOM would bury the
+   confirm's button behind the result modal and it could not be clicked) */
+#confirmModal { z-index: 900; }
 
 .modal-box {
   background: var(--surface);
