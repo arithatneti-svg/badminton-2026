@@ -1,8 +1,9 @@
 /* ── ONGOING TAB — Enhanced ── */
 .ongoing-hero {
-  background: linear-gradient(135deg, rgba(255,59,92,0.06) 0%, rgba(59,142,255,0.06) 100%);
-  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(255,59,92,0.08) 0%, rgba(59,142,255,0.08) 100%), var(--surface);
+  border: 1px solid rgba(255,255,255,0.13);
   border-radius: 16px;
+  box-shadow: 0 12px 32px -22px rgba(0,0,0,0.8);
   padding: 20px 24px;
   margin-bottom: 24px;
   display: flex;

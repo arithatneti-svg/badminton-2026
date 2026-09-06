@@ -34,6 +34,19 @@
   100% { background-position: 0% 50%; }
 }
 
+/* ── Base live-court card ──
+   Previously only the climax/deuce states had any frame, so a normal card
+   was transparent + border-less and vanished into the black page. Give it a
+   raised surface with a clearly visible edge and shadow. */
+.court-card {
+  position: relative;
+  background: linear-gradient(165deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px -22px rgba(0,0,0,0.9);
+  overflow: hidden;
+}
+
 /* ── Climax card (18-18 / 19-17 / close) ── */
 .court-card.climax {
   border: 2px solid rgba(245,200,66,0.6);
