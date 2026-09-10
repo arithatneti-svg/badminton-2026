@@ -167,18 +167,41 @@ function openPlayerProfile(playerId) {
   renderPdPastMatches(playerId);
   const _rv = document.getElementById('pdReadView'), _ev = document.getElementById('pdEditView');
   if (_rv && _ev) { _rv.hidden = false; _ev.hidden = true; }
+  const wasOpen = overlay.classList.contains('open');
   overlay.classList.add('open');
   overlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
+  // Push a history entry the first time we open, so the phone/browser Back
+  // button closes the profile instead of leaving the app (which dumped the
+  // user back on the Scoreboard). A re-render of an already-open profile
+  // (refreshPlayerVisuals) must not stack more entries.
+  if (!wasOpen) { try { history.pushState({ pdOpen: true }, ''); } catch (e) {} }
 }
 
-function closePlayerProfile() {
+// Hide the overlay only — no history changes (used by the popstate handler).
+function _pdCloseUI() {
   const overlay = document.getElementById('playerProfileOverlay');
   if (overlay) overlay.classList.remove('open');
   document.body.style.overflow = '';
   togglePdEdit(false);
   _pdCurrentId = null;
 }
+function closePlayerProfile() {
+  const overlay = document.getElementById('playerProfileOverlay');
+  const wasOpen = overlay && overlay.classList.contains('open');
+  _pdCloseUI();
+  // balance the entry we pushed on open so Back state stays consistent
+  if (wasOpen && history.state && history.state.pdOpen) { try { history.back(); } catch (e) {} }
+}
+
+// Back button (browser / phone / gesture): close an open overlay instead of
+// navigating away. The state was already popped, so just close the UI.
+window.addEventListener('popstate', () => {
+  const pf = document.getElementById('playerProfileOverlay');
+  if (pf && pf.classList.contains('open')) { _pdCloseUI(); return; }
+  const lb = document.getElementById('galleryLightbox');
+  if (lb && lb.classList.contains('open') && typeof _lbCloseUI === 'function') { _lbCloseUI(); return; }
+});
 
 // Awards showcase — the player's medals (gold star + English title/subtitle).
 // Hidden entirely when the player has no awards.

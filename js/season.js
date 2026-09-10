@@ -378,7 +378,7 @@ function renderPlayersTab() {
     return `<div class="pod p${rank + 1} ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
       <div class="pod-medal">${MEDAL[rank]}</div>
       ${actionsHtml(p)}
-      <div class="pod-av">${avatarHtml(p, rank === 0 ? 88 : 72)}</div>
+      <div class="pod-av">${avatarHtml(p, rank === 0 ? 124 : 104)}</div>
       <div class="pod-name">${escHtml(p.name)}${youTag(p)}</div>
       <div class="pod-sub"><span class="pod-tdot ${isRed ? 'red' : 'blue'}"></span>${isRed ? 'RED' : 'BLUE'} · G${p.group}</div>
       <div class="pod-pts" style="color:${hero.dim ? 'var(--muted2)' : hero.c}">${hero.v}<small>${hero.big}</small></div>
@@ -401,7 +401,7 @@ function renderPlayersTab() {
       : `<span class="pdir-wait">ยังไม่ลงแข่ง</span>`;
     return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
       <div class="pdir-rank ${rankCls}">${rank + 1}</div>
-      ${avatarHtml(p, 60)}
+      ${avatarHtml(p, 96)}
       <div class="pdir-body">
         <div class="pdir-name">${escHtml(p.name)}${youTag(p)}</div>
         <div class="pdir-meta">

@@ -261,15 +261,26 @@ let _lbIndex = -1;
 function openLightbox(i) {
   const photos = galleryPhotos(_galleryYear);
   if (!photos.length) return;
+  const lb = document.getElementById('galleryLightbox');
+  const wasOpen = lb.classList.contains('open');
   _lbIndex = Math.max(0, Math.min(i, photos.length - 1));
-  document.getElementById('galleryLightbox').classList.add('open');
+  lb.classList.add('open');
   document.body.style.overflow = 'hidden';
   paintLightbox();
+  // history entry so Back closes the lightbox instead of leaving the app
+  if (!wasOpen) { try { history.pushState({ lbOpen: true }, ''); } catch (e) {} }
 }
-function closeLightbox() {
+// close UI only — no history change (called by the popstate handler)
+function _lbCloseUI() {
   document.getElementById('galleryLightbox').classList.remove('open');
   document.body.style.overflow = '';
   _lbIndex = -1;
+}
+function closeLightbox() {
+  const lb = document.getElementById('galleryLightbox');
+  const wasOpen = lb && lb.classList.contains('open');
+  _lbCloseUI();
+  if (wasOpen && history.state && history.state.lbOpen) { try { history.back(); } catch (e) {} }
 }
 function lightboxNav(dir) {
   const photos = galleryPhotos(_galleryYear);
