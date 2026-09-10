@@ -1,7 +1,11 @@
 /* ── CONTAINERS ── */
-.container { display: none; padding: 28px 24px; max-width: 1340px; margin: 0 auto; position: relative; z-index: 1; animation: fadeUp 0.32s ease; }
-.container.active { display: block; }
+.container { display: none; padding: 28px 24px; max-width: 1340px; margin: 0 auto; position: relative; z-index: 1; }
+/* Tab switch = a quick opacity-only fade. The old fadeUp also slid the whole
+   tab up 12px every switch, which read as a flicker/jump; drop the translate. */
+.container.active { display: block; animation: tabFade 0.15s ease; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes tabFade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .container.active { animation: none; } }
 
 /* ── SCOREBOARD ── */
 .scoreboard-wrapper {

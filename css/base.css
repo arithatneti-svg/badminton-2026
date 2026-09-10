@@ -50,7 +50,13 @@ button:focus:not(:focus-visible) { outline: none; }
 /* overflow-x on body alone does not clip: the html element keeps its own
    scroll area, so the decorative flame canvases (504px inside a 360px ring)
    still let the whole page be dragged sideways on the scoreboard. */
-html { overflow-x: hidden; }
+/* Reserve the vertical scrollbar's space at all times so switching between a
+   tall tab (scrollbar) and a short one (no scrollbar) never changes the content
+   width — that width jump was the "layout shifts briefly on tab switch". */
+html { overflow-x: hidden; scrollbar-gutter: stable; }
+/* TV / projector fills the screen with a fixed overlay — no page scroll, so
+   drop the reserved gutter to avoid a sliver on the right. */
+html:has(body.tv-mode) { scrollbar-gutter: auto; }
 
 body {
   font-family: 'Space Grotesk', 'Rajdhani', sans-serif;
