@@ -68,7 +68,7 @@ function galleryPhotos(year) {
     .sort((a, b) => (a.ts || 0) - (b.ts || 0));
 }
 
-const GAL_MAX_PER_YEAR = 60;   // soft cap — heavy albums load slowly on mobile
+const GAL_MAX_PER_YEAR = 200;  // soft cap (photos are R2-served + lazy-loaded)
 function galleryCount(year) { return Object.keys(_gallery[year] || {}).length; }
 // a year usually has two events — early and late. Default the label by month.
 function defaultEvent() { return new Date().getMonth() < 6 ? 'ต้นปี' : 'ปลายปี'; }
@@ -140,25 +140,153 @@ function paintGallery() {
     return;
   }
 
-  // one section per event (ต้นปี / ปลายปี / …), each with its own masonry
-  gridEl.innerHTML = galleryGroups(_galleryYear).map(group => `
+  // one section per event (ต้นปี / ปลายปี / …), each with its own masonry.
+  // In select mode a photo toggles selection instead of opening the lightbox;
+  // admins can also drag a photo onto an album header to move it (desktop).
+  const sel = _galSelectMode;
+  gridEl.classList.toggle('sel-mode', sel);
+  gridEl.innerHTML = galleryGroups(_galleryYear).map(group => {
+    const evAttr = (group.event === '—' ? '' : group.event).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const drop = canEdit
+      ? `ondragover="event.preventDefault();this.classList.add('drop-hot')" ondragleave="this.classList.remove('drop-hot')" ondrop="this.classList.remove('drop-hot');galDropOnEvent(event,'${evAttr}')"`
+      : '';
+    return `
     <div class="gal-section">
-      <div class="gal-section-head">
+      <div class="gal-section-head" ${drop}>
         <span class="gal-section-name">${group.event === '—' ? '📷 รูปงาน' : '📅 ' + escHtml(group.event)}</span>
         <span class="gal-section-count">${group.photos.length} รูป</span>
       </div>
       <div class="gal-masonry">
         ${group.photos.map(p => `
-          <figure class="gal-item" onclick="openLightbox(${p._i})">
+          <figure class="gal-item${_galSel.has(p.id) ? ' selected' : ''}" data-id="${p.id}"
+                  ${canEdit ? `draggable="true" ondragstart="galDragStart(event,'${p.id}')"` : ''}
+                  onclick="galItemClick(event,'${p.id}',${p._i})">
             <img src="${p.url}" alt="${escHtml(p.caption || '')}" loading="lazy">
+            ${sel ? '<span class="gal-check"></span>' : ''}
             ${p.caption ? `<figcaption>${escHtml(p.caption)}</figcaption>` : ''}
-            ${canEdit ? `<button class="gal-del" title="ลบรูป" onclick="event.stopPropagation();deleteGalleryPhoto('${_galleryYear}','${p.id}')">🗑</button>` : ''}
+            ${canEdit && !sel ? `<button class="gal-del" title="ลบรูป" onclick="event.stopPropagation();deleteGalleryPhoto('${_galleryYear}','${p.id}')">🗑</button>` : ''}
           </figure>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  _galUpdateSelBar();
 }
 
 function setGalleryYear(y) { _galleryYear = String(y); renderGallery(); }
+
+// ══ Multi-select + move-to-album (admin) ══════════════════════
+let _galSelectMode = false;
+let _galSel = new Set();
+let _galDragId = null;
+
+function _galIsAdmin() { return userRole === 'admin' || userRole === 'superadmin'; }
+
+function toggleGalSelect() {
+  if (!_galIsAdmin()) return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  _galSelectMode = !_galSelectMode;
+  _galSel.clear();
+  paintGallery();
+}
+function galItemClick(e, id, flatIndex) {
+  if (_galSelectMode) { e.stopPropagation(); galToggleSel(id); }
+  else openLightbox(flatIndex);
+}
+function galToggleSel(id) {
+  if (_galSel.has(id)) _galSel.delete(id); else _galSel.add(id);
+  document.querySelectorAll(`.gal-item[data-id="${id}"]`).forEach(el => el.classList.toggle('selected', _galSel.has(id)));
+  _galUpdateSelBar();
+}
+function _galUpdateSelBar() {
+  const bar = document.getElementById('galSelectBar');
+  const cnt = document.getElementById('galSelCount');
+  if (cnt) cnt.textContent = _galSel.size;
+  if (bar) bar.style.display = _galSelectMode ? 'flex' : 'none';
+}
+
+function openGalMove() {
+  if (!_galSel.size) return showToast('ยังไม่ได้เลือกรูป', 'error');
+  const el = document.getElementById('galMoveTargets');
+  const targets = [];
+  galleryYears().forEach(y => {
+    [...new Set(galleryPhotos(y).map(p => (p.event || '').trim() || '—'))]
+      .forEach(ev => targets.push({ y, ev }));
+  });
+  el.innerHTML = targets.map(t =>
+    `<button class="gal-move-btn" onclick="galMoveTo('${t.y}','${(t.ev === '—' ? '' : t.ev).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+       <b>${t.ev === '—' ? '📷 รูปงาน' : '📅 ' + escHtml(t.ev)}</b><span>ปี ${t.y}</span>
+     </button>`).join('') || '<div class="gal-move-empty">ยังไม่มีอัลบั้มอื่น — พิมพ์ชื่อด้านล่างเพื่อสร้างใหม่</div>';
+  const nn = document.getElementById('galMoveNewName'); if (nn) nn.value = '';
+  document.getElementById('galMoveModal').classList.add('open');
+}
+function closeGalMove() { document.getElementById('galMoveModal').classList.remove('open'); }
+function galMoveToNew() {
+  const name = (document.getElementById('galMoveNewName').value || '').trim();
+  if (!name) return showToast('พิมพ์ชื่ออัลบั้มก่อน', 'error');
+  galMoveTo(_galleryYear, name);
+}
+async function galMoveTo(targetYear, targetEvent) {
+  if (!_galIsAdmin()) return;
+  const ids = [..._galSel];
+  if (!ids.length) return closeGalMove();
+  const srcYear = _galleryYear;
+  closeGalMove();
+  showToast(`⏳ กำลังย้าย ${ids.length} รูป...`, 'info');
+  let moved = 0;
+  for (const id of ids) {
+    const rec = _gallery[srcYear] && _gallery[srcYear][id];
+    if (!rec) continue;
+    try {
+      if (String(targetYear) === String(srcYear)) {
+        await galleryRef.child(srcYear).child(id).update({ event: targetEvent });
+      } else {
+        await galleryRef.child(String(targetYear)).push({ ...rec, event: targetEvent });
+        await galleryRef.child(srcYear).child(id).remove();
+      }
+      moved++;
+    } catch (e) { /* skip */ }
+  }
+  await loadGallery(true);
+  _galSel.clear(); _galSelectMode = false;
+  renderGallery();
+  showToast(`✅ ย้าย ${moved} รูปแล้ว`, 'success');
+}
+function galDeleteSelected() {
+  if (!_galIsAdmin()) return;
+  const ids = [..._galSel];
+  if (!ids.length) return;
+  showConfirmDialog(`ลบ ${ids.length} รูปที่เลือก?`, async () => {
+    const y = _galleryYear;
+    let done = 0;
+    for (const id of ids) {
+      const key = _gallery[y] && _gallery[y][id] && _gallery[y][id].key;
+      try { await galleryRef.child(y).child(id).remove(); deleteGalleryR2(key); if (_gallery[y]) delete _gallery[y][id]; done++; } catch (e) {}
+    }
+    _galSel.clear(); _galSelectMode = false;
+    renderGallery();
+    showToast(`ลบ ${done} รูปแล้ว`, 'success');
+  });
+}
+
+// ── Drag-and-drop (desktop): drag a photo onto an album header ──
+function galDragStart(e, id) {
+  if (!_galIsAdmin()) return;
+  _galDragId = id;
+  try { e.dataTransfer.setData('text/plain', id); e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
+}
+function galDropOnEvent(e, targetEvent) {
+  e.preventDefault();
+  const id = _galDragId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+  _galDragId = null;
+  if (!id || !_galIsAdmin()) return;
+  const y = _galleryYear;
+  const rec = _gallery[y] && _gallery[y][id];
+  if (!rec) return;
+  if (((rec.event || '').trim()) === targetEvent) return;   // already in this album
+  galleryRef.child(y).child(id).update({ event: targetEvent }).then(async () => {
+    await loadGallery(true); renderGallery();
+    showToast('✅ ย้ายรูปแล้ว', 'success');
+  }).catch(() => showToast('ย้ายไม่สำเร็จ', 'error'));
+}
 
 // ── Upload ────────────────────────────────────────────────────
 function pickGalleryPhotos() {

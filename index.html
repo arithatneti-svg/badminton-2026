@@ -657,11 +657,34 @@
     <div id="galleryAdminBar" class="gal-admin-bar" style="display:none;">
       <input type="text" id="galEventInput" class="gal-event-input" placeholder="ชื่องาน (เช่น ต้นปี / ปลายปี)" maxlength="40">
       <button class="btn btn-primary btn-sm" onclick="pickGalleryPhotos()">⬆ เพิ่มรูป</button>
+      <button class="btn btn-outline btn-sm" id="galSelectToggle" onclick="toggleGalSelect()">☑️ เลือก/ย้าย</button>
     </div>
   </div>
   <div id="galleryYears" class="gal-years"></div>
   <div id="galleryYearTitle" class="gal-year-title"></div>
   <div id="galleryGrid" class="gal-grid"></div>
+</div>
+
+<!-- gallery multi-select action bar (floating) -->
+<div id="galSelectBar" class="gal-selbar" style="display:none;">
+  <span class="gal-sel-count">เลือก <b id="galSelCount">0</b> รูป</span>
+  <span class="gal-sel-hint">แตะรูปเพื่อเลือก · ลากรูปไปหัวอัลบั้มก็ได้ (บนคอม)</span>
+  <button class="btn btn-primary btn-sm" onclick="openGalMove()">📁 ย้ายไปอัลบั้ม</button>
+  <button class="btn btn-danger btn-sm" onclick="galDeleteSelected()">🗑 ลบ</button>
+  <button class="btn btn-outline btn-sm" onclick="toggleGalSelect()">✕ เสร็จ</button>
+</div>
+
+<!-- move-to-album picker -->
+<div id="galMoveModal" class="modal-overlay">
+  <div class="modal-box" style="width:min(440px,93vw);text-align:left;">
+    <div class="modal-title" style="font-size:1.3em;text-align:center;">📁 ย้ายไปอัลบั้ม</div>
+    <div id="galMoveTargets" class="gal-move-targets"></div>
+    <div class="gal-move-new">
+      <input type="text" id="galMoveNewName" class="gal-event-input" placeholder="อัลบั้มใหม่ (ชื่องาน)" maxlength="40">
+      <button class="btn btn-primary btn-sm" onclick="galMoveToNew()">＋ สร้าง &amp; ย้าย</button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;"><button class="btn btn-outline" onclick="closeGalMove()">ยกเลิก</button></div>
+  </div>
 </div>
 
 <!-- ── GALLERY LIGHTBOX ── -->
