@@ -23,11 +23,16 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .nav { flex-direction: column; align-items: stretch; padding: 8px; }
-  .nav-title { text-align: center; margin-bottom: 8px; margin-right: 0; }
-  .nav-tabs { flex-wrap: wrap; justify-content: center; }
-  .tab-btn { flex: 1 1 30%; font-size: 12px; padding: 8px 8px; }
-  .nav-actions { justify-content: center; margin-left: 0; margin-top: 6px; }
+  /* Compact 2-row nav: brand + status dot + action icons on top, the tab
+     strip scrolls sideways underneath — instead of a 4-row 193px stack. */
+  .nav { flex-wrap: wrap; align-items: center; padding: 8px 12px; gap: 7px 8px; }
+  .nav-title { display: inline-flex; font-size: 1.1em; letter-spacing: 2px; margin: 0; }
+  .nav-live { padding: 5px 8px; }
+  .nav-live #dbDotLabel { display: none; }         /* dot only on phones */
+  .nav-actions { margin-left: auto; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+  #roleBadge { display: none !important; }          /* status text — reclaim the row */
+  .nav-tabs { order: 5; flex-basis: 100%; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; gap: 4px; }
+  .tab-btn { flex: 0 0 auto; font-size: 12.5px; padding: 7px 13px; }
   .scoreboard-wrapper { grid-template-columns: 1fr; padding: 20px 0; gap: 10px; }
   .score-vs { flex-direction: row; padding: 0 10px; min-width: unset; width: 100%; justify-content: center; }
   .vs-line { width: 30px; height: 1px; }

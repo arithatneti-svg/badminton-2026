@@ -23,8 +23,8 @@
 }
 
 @media (max-width: 400px) {
-  .nav-title { display: none; }
-  .tab-btn { padding: 5px 8px; font-size: 11px; }
+  .nav-title { font-size: 1em; letter-spacing: 1px; }
+  .tab-btn { padding: 6px 11px; font-size: 12px; }
 }
 
 /* Ensure match-grid for ongoing is max 2 cols on tablet */
