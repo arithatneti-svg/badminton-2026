@@ -351,7 +351,16 @@
   grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
   gap: 10px;
 }
-@media (max-width: 640px) { .pdir-podium { grid-template-columns: 1fr; align-items: stretch; } }
+@media (max-width: 640px) {
+  .pdir-podium { grid-template-columns: 1fr; align-items: stretch; }
+  /* Desktop shows big faces, but a phone lists ~54 players — shrink the
+     avatars so it isn't an endless scroll, and drop the row edit/delete
+     controls (edit a player from their profile instead). */
+  #playersTabGrid .pdir-list .pav { --pav-size: 56px !important; }
+  #playersTabGrid .pod-av .pav { --pav-size: 84px !important; }
+  .pdir-card { padding: 12px 14px; gap: 12px; }
+  #playersTabGrid .pdir-actions { display: none !important; }
+}
 .pdir-card {
   display: flex;
   align-items: center;
