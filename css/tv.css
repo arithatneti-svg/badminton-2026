@@ -72,11 +72,19 @@ body.tv-mode #tvView {
 /* ── Leaderboard ── */
 .tv-board { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: clamp(8px, 1.4vh, 20px); max-width: 1100px; margin: 0 auto; width: 100%; }
 .tv-board-row {
-  display: grid; grid-template-columns: clamp(48px,6vw,96px) 1fr auto auto; align-items: center; gap: clamp(12px, 2vw, 32px);
+  display: grid; grid-template-columns: clamp(48px,6vw,96px) auto 1fr auto auto; align-items: center; gap: clamp(10px, 1.8vw, 28px);
   background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px;
-  padding: clamp(8px, 1.4vh, 18px) clamp(16px, 2.5vw, 36px);
+  padding: clamp(6px, 1.1vh, 14px) clamp(16px, 2.5vw, 36px);
 }
 .tv-rank { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 3.6vw, 60px); text-align: center; }
+/* player photo on the leaderboard — the one standings list that lacked it */
+.tv-board-face { display: flex; align-items: center; }
+.tv-board-face .pav { --pav-size: clamp(40px, 4.4vw, 76px) !important; border-width: 2px; }
+/* page indicator — the board scrolls through every rank, this says where we are */
+.tv-board-page {
+  text-align: center; color: var(--muted); font-weight: 700; letter-spacing: 2px;
+  font-size: clamp(12px, 1.4vw, 24px); margin-top: clamp(-6px, -0.6vh, -2px); margin-bottom: clamp(10px, 1.8vh, 26px);
+}
 .tv-pname { font-size: clamp(20px, 2.6vw, 46px); font-weight: 700; }
 .tv-pname.red { color: var(--red); } .tv-pname.blue { color: var(--blue); }
 .tv-pmeta { color: var(--muted); font-size: clamp(12px, 1.3vw, 22px); font-weight: 600; white-space: nowrap; }
@@ -93,11 +101,17 @@ body.tv-mode #tvView {
 .tv-brand { color: var(--muted); font-size: clamp(12px, 1.3vw, 22px); letter-spacing: 2px; font-weight: 600; }
 
 /* faces on the TV live card — the audience screen is where a face
-   earns the most, so these are larger and overlap slightly */
-.tv-faces { display: inline-flex; margin-bottom: 4px; }
-.tv-faces .pav { --pav-size: 34px; border-width: 2px; }
+   earns the most, so these scale with the viewport and overlap slightly */
+.tv-faces { display: inline-flex; margin-bottom: clamp(4px, 0.8vh, 10px); }
+.tv-live-card .tv-faces .pav { --pav-size: clamp(32px, 3.4vw, 64px) !important; border-width: 2px; }
 .tv-faces .pav + .pav { margin-left: -8px; }
 .tv-lt { display: flex; flex-direction: column; align-items: center; }
+
+/* a hot court stands out even inside the grid, so the eye finds the drama */
+.tv-live-card.is-climax { border-color: rgba(255,107,53,0.55); box-shadow: inset 0 0 90px -50px rgba(255,107,53,0.5); }
+.tv-live-card.is-deuce  { border-color: rgba(245,200,66,0.6);  box-shadow: inset 0 0 90px -50px rgba(245,200,66,0.55); }
+.tv-live-card.is-climax .tv-live-id { color: #FF8A4C; }
+.tv-live-card.is-deuce  .tv-live-id { color: var(--gold); }
 
 /* ── Fullscreen button (TV mode only) ── */
 .tv-fs-btn { display: none; }
