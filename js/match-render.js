@@ -308,81 +308,55 @@ function renderFinishedMatches() {
     return;
   }
 
+  // Head-to-head result card: RED · score · BLUE, winner highlighted and the
+  // loser dimmed, so the outcome reads at a glance (replaces the old wide row
+  // whose content clustered in the middle with dead space on both sides).
+  const teamCol = (namesStr, ids, isWin, side) => {
+    return (namesStr || '').split(' & ').map((n, i) => {
+      const nm = stripGroup(n.trim());
+      const cls = isWin ? (side === 'red' ? 'win-r' : 'win-b') : 'lose';
+      return `<div class="fmatch-p">${avatarHtml(ids[i], 30, { className: isWin ? '' : 'fmatch-av-dim' })}<span class="fmatch-name ${cls}">${escHtml(nm)}</span></div>`;
+    }).join('');
+  };
+
   container.innerHTML = matches.map(m => {
-    const isRedWin = m.rStat==='W', isBlueWin = m.bStat==='W';
-    const resultBadgeClass = isRedWin?'win-red':isBlueWin?'win-blue':'draw';
-    const resultLabel = isRedWin?'🔴 RED WINS':isBlueWin?'🔵 BLUE WINS':'🤝 DRAW';
-    const [g1r,g1b] = (m.game1||'0:0').split(':').map(Number);
-    const [g2r,g2b] = (m.game2||'0:0').split(':').map(Number);
+    const isRedWin = m.rStat === 'W', isBlueWin = m.bStat === 'W';
+    const cls = isRedWin ? 'red' : isBlueWin ? 'blue' : 'draw';
+    const badge = isRedWin ? '🔴 RED WINS' : isBlueWin ? '🔵 BLUE WINS' : '🤝 DRAW';
+    const [g1r, g1b] = (m.game1 || '0:0').split(':').map(Number);
+    const [g2r, g2b] = (m.game2 || '0:0').split(':').map(Number);
     const g2played = g2r > 0 || g2b > 0;
-    // ── ชื่อผู้เล่น (ไม่มี G1/G2/G3, winner bold/สี, loser dim) ──
-    const makePlayerDiv = (namesStr, isWinner, side) => {
-      return (namesStr||'').split(' & ').map(n => {
-        const cls = isWinner ? 'frow-player winner' : 'frow-player loser';
-        return `<div class="${cls}">${escHtml(stripGroup(n.trim()))}</div>`;
-      }).join('');
-    };
-    const redPlayers  = makePlayerDiv(m.redNames,  isRedWin,  'left');
-    const bluePlayers = makePlayerDiv(m.blueNames, isBlueWin, 'right');
+    const redDim = isBlueWin, blueDim = isRedWin;   // dim the losing side's numbers
+    const gRow = (label, r, b) => `<div class="fmatch-g"><span class="gl">${label}</span><span class="r${redDim ? ' dim' : ''}">${r}</span><span class="sep">:</span><span class="b${blueDim ? ' dim' : ''}">${b}</span></div>`;
+    const scoreHtml = `<div class="fmatch-score">${gRow('G1', g1r, g1b)}${g2played ? gRow('G2', g2r, g2b) : ''}</div>`;
 
-    // ── Score hero ──
-    const scoreRow = (glabelCls, glabelTxt, r, b) => `
-      <div class="frow-score-row">
-        <span class="frow-glabel ${glabelCls}">${glabelTxt}</span>
-        <span class="frow-snum red">${r}</span>
-        <span class="frow-ssep">:</span>
-        <span class="frow-snum blue">${b}</span>
-      </div>`;
-
-    const scoreHero = `
-      <div class="frow-score-hero">
-        ${scoreRow('', 'G1', g1r, g1b)}
-        ${g2played ? scoreRow('g2-label', 'G2', g2r, g2b) : `<div style="font-size:9px;color:rgba(255,255,255,0.15);letter-spacing:1px;font-weight:700;">— G2 —</div>`}
-      </div>`;
-
-    // ── Tags ── compact, max 3 shown
-    const tags = m.analysis?.tags || [];
-    const tagHtml = tags.slice(0,4).map(t =>
-      `<span class="frow-tag-icon ${t.class||'tag-normal'}">${t.label}</span>`
-    ).join('');
-
-    // ── Umpire ──
-    const umpireHtml = m.umpire
-      ? `<span class="frow-umpire">👔 ${escHtml(m.umpire)}</span>` : '';
-
-    // ── Admin controls ──
-    let adminHtml = '';
-    if (userRole==='admin'||userRole==='superadmin') {
-      const tagsBtn = `<button class="frow-admin-btn" onclick="openEditTagsModal('${m.id}')">🏷 Tags</button>`;
-      const editBtn = userRole==='superadmin' ? `<button class="frow-admin-btn edit" onclick="openEditResult('${m.id}')">✏️ Edit</button>` : '';
-      const delBtn  = userRole==='superadmin' ? `<button class="frow-admin-btn del" onclick="deleteFinishedMatch('${m.id}')">🗑</button>` : '';
-      adminHtml = `<div class="frow-admin">${tagsBtn}${editBtn}${delBtn}</div>`;
+    const tags = (m.analysis?.tags || []).slice(0, 3)
+      .map(t => `<span class="frow-tag-icon ${t.class || 'tag-normal'}">${t.label || t.id}</span>`).join('');
+    const umpire = m.umpire ? `<span class="fmatch-ump">👔 ${escHtml(m.umpire)}</span>` : '';
+    let admin = '';
+    if (userRole === 'admin' || userRole === 'superadmin') {
+      const tagsBtn = `<button class="frow-admin-btn" onclick="openEditTagsModal('${m.id}')" title="แก้ Tags">🏷</button>`;
+      const editBtn = userRole === 'superadmin' ? `<button class="frow-admin-btn edit" onclick="openEditResult('${m.id}')" title="แก้ผล">✏️</button>` : '';
+      const delBtn  = userRole === 'superadmin' ? `<button class="frow-admin-btn del" onclick="deleteFinishedMatch('${m.id}')" title="ลบ">🗑</button>` : '';
+      admin = `<div class="fmatch-admin">${tagsBtn}${editBtn}${delBtn}</div>`;
     }
-
-    // ── Footer only if something to show ──
-    const hasFooter = tagHtml || umpireHtml || adminHtml;
-    const footerHtml = hasFooter
-      ? `<div class="frow-footer">${tagHtml}${umpireHtml}${adminHtml}</div>` : '';
-
-    // ── Winner class ──
-    const winClass = isRedWin ? 'winner-red' : isBlueWin ? 'winner-blue' : 'draw-match';
+    const foot = (tags || umpire || admin)
+      ? `<div class="fmatch-foot">${tags || '<span></span>'}<span class="fmatch-foot-r">${umpire}${admin}</span></div>` : '';
 
     const mineCls = (typeof matchHasMe === 'function' && matchHasMe(m)) ? ' is-mine' : '';
-    return `<div class="frow ${winClass}${mineCls}">
-      <div class="frow-main">
-        <div class="frow-id">
-          <span class="frow-match-id">${m.id}</span>
-          <span class="round-badge">R${m.round}</span>
-        </div>
-        <div class="frow-team frow-team-left">${redPlayers}</div>
-        ${scoreHero}
-        <div class="frow-team frow-team-right">${bluePlayers}</div>
-        <span class="result-badge ${resultBadgeClass}">${resultLabel}</span>
+    return `<div class="fmatch ${cls}${mineCls}">
+      <div class="fmatch-head">
+        <span class="fmatch-id">${m.id}</span>
+        <span class="fmatch-round">R${m.round}</span>
+        <span class="fmatch-badge ${cls}">${badge}</span>
       </div>
-      ${footerHtml}
+      <div class="fmatch-body">
+        <div class="fmatch-team left">${teamCol(m.redNames, [m.r1, m.r2], isRedWin, 'red')}</div>
+        ${scoreHtml}
+        <div class="fmatch-team right">${teamCol(m.blueNames, [m.b1, m.b2], isBlueWin, 'blue')}</div>
+      </div>
+      ${foot}
     </div>`;
-
-
   }).join('');
 }
 
