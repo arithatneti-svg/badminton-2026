@@ -417,36 +417,36 @@
 
 <!-- DASHBOARD TAB (Admin) -->
 <div id="dashboard" class="container admin-only">
-  <!-- ── DASHBOARD LEGEND ── -->
-  <details style="background:rgba(245,200,66,0.04);border:1px solid rgba(245,200,66,0.15);border-radius:10px;padding:10px 16px;margin-bottom:16px;">
-    <summary style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--gold);cursor:pointer;outline:none;list-style:none;">📖 ความหมายของตัวชี้วัดใน Dashboard ▾</summary>
-    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;">
-      <div style="flex:1;min-width:180px;">
-        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">KPI CARDS</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
-          <b style="color:var(--text);">Total Matches</b> = จำนวนแมตช์ที่จบแล้ว<br>
-          <b style="color:var(--text);">Avg Score/Match</b> = แต้มรวมเฉลี่ยต่อแมตช์<br>
-          <b style="color:var(--text);">Deuce Rate</b> = % เกมที่เข้าดิวซ์ (≥21 แต้ม)<br>
-          <b style="color:var(--text);">Epic Comebacks</b> = จำนวนครั้งที่พลิกแพ้จากตาม 4+ แต้ม
-        </div>
+  <!-- ── DASHBOARD LEGEND ── (shared .rp-legend explainer component) -->
+  <details class="rp-legend">
+    <summary>📖 ความหมายของตัวชี้วัดใน Dashboard</summary>
+    <div class="rp-legend-body">
+      <div class="rp-legend-col">
+        <h5>KPI Cards</h5>
+        <p>
+          <b>Total Matches</b> = จำนวนแมตช์ที่จบแล้ว<br>
+          <b>Avg Score/Match</b> = แต้มรวมเฉลี่ยต่อแมตช์<br>
+          <b>Deuce Rate</b> = % เกมที่เข้าดิวซ์ (≥21 แต้ม)<br>
+          <b>Epic Comebacks</b> = จำนวนครั้งที่พลิกแพ้จากตาม 4+ แต้ม
+        </p>
       </div>
-      <div style="flex:1;min-width:180px;">
-        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">MATCH QUALITY</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
-          <b style="color:var(--text);">Evenly Matched</b> = ผล WL ใกล้เคียง ไม่มีทีมครอง<br>
-          <b style="color:var(--text);">Competitive Edge</b> = ทีมนึงเหนือกว่าเล็กน้อย<br>
-          <b style="color:var(--text);">Superior</b> = ทีมนึงเหนือกว่าชัดเจน<br>
-          <b style="color:var(--text);">Outclassed</b> = ห่างกันมาก ไม่สูสีเลย<br>
-          <b style="color:var(--text);">True Tie / Close Encounter / Deceptive Draw</b> = ประเภทการเสมอ
-        </div>
+      <div class="rp-legend-col">
+        <h5>Match Quality</h5>
+        <p>
+          <b>Evenly Matched</b> = ผล WL ใกล้เคียง ไม่มีทีมครอง<br>
+          <b>Competitive Edge</b> = ทีมนึงเหนือกว่าเล็กน้อย<br>
+          <b>Superior</b> = ทีมนึงเหนือกว่าชัดเจน<br>
+          <b>Outclassed</b> = ห่างกันมาก ไม่สูสีเลย<br>
+          <b>True Tie / Close Encounter / Deceptive Draw</b> = ประเภทการเสมอ
+        </p>
       </div>
-      <div style="flex:1;min-width:180px;">
-        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;">MOMENTUM CHART</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+      <div class="rp-legend-col">
+        <h5>Momentum Chart</h5>
+        <p>
           กราฟแสดง <b style="color:var(--red);">คะแนนทีมแดง</b> vs <b style="color:var(--blue);">คะแนนทีมน้ำเงิน</b> สะสมรายแมตช์<br>
           เส้นที่พุ่งขึ้นแรง = ทีมนั้นมีแมตช์ชนะติดต่อกัน<br>
           จุดที่เส้นตัดกัน = ทีมพลิกขึ้นมานำ
-        </div>
+        </p>
       </div>
     </div>
   </details>
@@ -513,12 +513,9 @@
 <!-- ADMIN TAB (Admin) -->
 <div id="admin" class="container admin-only">
   
-  <details style="margin-bottom: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-    <summary style="font-family: 'Bebas Neue', sans-serif; font-size: 1.4em; letter-spacing: 2px; color: var(--muted); cursor: pointer; outline: none; display: flex; justify-content: space-between; align-items: center;">
-      <span>👤 Player Management (Add/Import)</span>
-      <span style="font-size: 12px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;">Click to expand</span>
-    </summary>
-    <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+  <details class="adm-collapse">
+    <summary>👤 Player Management (Add/Import)</summary>
+    <div class="adm-collapse-body">
       <div class="form-row">
         <div class="field-group"><input type="text" id="newPlayerName" placeholder="ชื่อผู้เล่น (Enter เพื่อเพิ่ม)" style="width:180px;" onkeydown="if(event.key==='Enter')addPlayer()"></div>
         <div class="field-group"><select id="newPlayerTeam"><option value="Red">🔴 Red Team</option><option value="Blue">🔵 Blue Team</option></select></div>

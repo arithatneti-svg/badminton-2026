@@ -166,13 +166,13 @@
 #report .rp-hb-blue { background: linear-gradient(90deg, #6bb0ff, #3b8eff); }
 
 /* ══ 2. LEGEND — slim, collapsed by default ════════════════ */
-#report .rp-legend {
+.rp-legend {
   background: rgba(245,200,66,0.035);
   border: 1px solid rgba(245,200,66,0.14);
   border-radius: 10px;
   margin-bottom: 14px;
 }
-#report .rp-legend > summary {
+.rp-legend > summary {
   list-style: none;
   cursor: pointer;
   outline: none;
@@ -185,15 +185,15 @@
   align-items: center;
   gap: 8px;
 }
-#report .rp-legend > summary::-webkit-details-marker { display: none; }
-#report .rp-legend > summary::after {
+.rp-legend > summary::-webkit-details-marker { display: none; }
+.rp-legend > summary::after {
   content: '▾';
   margin-left: auto;
   transition: transform 0.2s;
   font-size: 13px;
 }
-#report .rp-legend[open] > summary::after { transform: rotate(180deg); }
-#report .rp-legend-body {
+.rp-legend[open] > summary::after { transform: rotate(180deg); }
+.rp-legend-body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 6px 20px;
@@ -202,7 +202,7 @@
   margin-top: 2px;
   padding-top: 12px;
 }
-#report .rp-legend-col h5 {
+.rp-legend-col h5 {
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 1.5px;
@@ -210,12 +210,12 @@
   text-transform: uppercase;
   margin-bottom: 6px;
 }
-#report .rp-legend-col p {
+.rp-legend-col p {
   font-size: 11.5px;
   color: var(--muted);
   line-height: 1.85;
 }
-#report .rp-legend-col b { color: var(--text); }
+.rp-legend-col b { color: var(--text); }
 
 /* ══ 3. SUB-TABS ═══════════════════════════════════════════ */
 .rpt-tab-bar {
@@ -527,6 +527,22 @@
 }
 #report .rp-prow-foot .sep { color: var(--border2); }
 #report .rp-prow-tags { margin-left: auto; display: flex; gap: 5px; font-size: 11.5px; }
+
+/* Special-tag chips — icon + count as a colour-coded pill, so a run of tags
+   reads as separate badges instead of a squashed "🔥2⚔️1" token. Shared by
+   the player table cell and the phone card foot. */
+#report .rp-spec-cell { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+#report .rp-spec {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  padding: 3px 8px; border-radius: 20px;
+  border: 1px solid transparent; white-space: nowrap;
+}
+#report .rp-spec b { font-weight: 800; }
+#report .sp-epic   { background: rgba(255,60,60,0.12);  border-color: rgba(255,60,60,0.32);  color: #ff6b6b; }
+#report .sp-clutch { background: rgba(245,200,66,0.12); border-color: rgba(245,200,66,0.32); color: var(--gold); }
+#report .sp-mara   { background: rgba(80,180,255,0.12); border-color: rgba(80,180,255,0.32); color: #5cb3ff; }
+#report .sp-roll   { background: rgba(168,85,247,0.14); border-color: rgba(168,85,247,0.36); color: #c48bff; }
 
 /* table variant */
 #report .rp-ptable-wrap .table-wrap { max-height: 68vh; overflow: auto; }

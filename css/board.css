@@ -1,3 +1,29 @@
+/* ── Collapsible admin section — folds like the report legend, but reads as a
+      gold section header so it sits consistently above "Create Match (Queue)". ── */
+.adm-collapse {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+}
+.adm-collapse > summary {
+  list-style: none; cursor: pointer; outline: none;
+  padding: 15px 18px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3em; letter-spacing: 3px; color: var(--gold);
+  display: flex; align-items: center; gap: 10px;
+}
+.adm-collapse > summary::-webkit-details-marker { display: none; }
+.adm-collapse > summary::after {
+  content: '▾'; margin-left: auto; font-size: 15px; color: var(--muted);
+  transition: transform 0.2s;
+}
+.adm-collapse[open] > summary::after { transform: rotate(180deg); }
+.adm-collapse-body {
+  padding: 4px 18px 18px;
+  border-top: 1px solid var(--border);
+}
+
 /* ── MATCH BOARD (tap-first, single screen) ── */
 .mb-card { padding: 16px 18px; }
 .mb-topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }

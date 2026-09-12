@@ -133,13 +133,16 @@ function pdColorOf(s)   { return s.pointDiff>0?'var(--green)':s.pointDiff<0?'var
 function perfColorOf(s) { return s.perf>0.3?'var(--green)':s.perf<-0.3?'var(--danger)':'var(--text2)'; }
 // one decimal: a 2–4 match sample does not support two
 function perfText(s)    { return (s.perf > 0 ? '+' : '') + s.perf.toFixed(1); }
+// Each special tag rides as a colour-coded chip (icon + count) instead of a
+// bare "🔥2⚔️1" run that squashed together and read as one cryptic token.
+// Colours mirror the tag legend at the top of the Reports tab.
 function specTagsOf(s) {
-  let t = '';
-  if (s.epicTags>0)     t += `<span title="Epic Comeback">🔥${s.epicTags}</span>`;
-  if (s.clutchTags>0)   t += `<span title="The Gladiators">⚔️${s.clutchTags}</span>`;
-  if (s.marathonTags>0) t += `<span title="Marathon Match">🏃${s.marathonTags}</span>`;
-  if (s.rollerTags>0)   t += `<span title="Rollercoaster">🎢${s.rollerTags}</span>`;
-  return t;
+  const chips = [];
+  if (s.epicTags>0)     chips.push(`<span class="rp-spec sp-epic"   title="Epic Comeback ×${s.epicTags}">🔥<b>${s.epicTags}</b></span>`);
+  if (s.clutchTags>0)   chips.push(`<span class="rp-spec sp-clutch" title="The Gladiators ×${s.clutchTags}">⚔️<b>${s.clutchTags}</b></span>`);
+  if (s.marathonTags>0) chips.push(`<span class="rp-spec sp-mara"   title="Marathon Match ×${s.marathonTags}">🏃<b>${s.marathonTags}</b></span>`);
+  if (s.rollerTags>0)   chips.push(`<span class="rp-spec sp-roll"   title="Rollercoaster ×${s.rollerTags}">🎢<b>${s.rollerTags}</b></span>`);
+  return chips.join('');
 }
 
 // Phone view — CSS decides card vs table, so both render from one array
@@ -212,7 +215,7 @@ function renderPlayerTable(playerArr, medalMap) {
           ${s.matchDraw ? `<span class="stat-pill pill-draw">${s.matchDraw}D</span>` : ''}
         </td>
         <td style="min-width:110px;">${wrCell}</td>
-        <td style="font-size:12px;white-space:nowrap;">${specTagsOf(s) || '<span style="color:var(--muted);">—</span>'}</td>
+        <td>${specTagsOf(s) ? `<div class="rp-spec-cell">${specTagsOf(s)}</div>` : '<span style="color:var(--muted);">—</span>'}</td>
       </tr>`;
     }).join('');
   updateSortIcons('playerStatsTable', sortState.players);
