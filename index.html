@@ -381,7 +381,7 @@
 
 <!-- FINISHED MATCH TAB -->
 <div id="finished" class="container">
-  <div class="report-header" style="margin-bottom:20px;">
+  <div class="report-header tab-toolbar">
     <div class="section-title" style="margin:0;">🏁 Finished Matches</div>
     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
       <input type="text" id="finishedSearch" placeholder="🔍 Search match..." style="width:150px; font-size:13px; padding:6px 12px;" oninput="debounce(renderFinishedMatches,220)()">
@@ -599,7 +599,7 @@
 
 <!-- ── PLAYERS TAB ── -->
 <div id="players" class="container" style="max-width:1340px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+  <div class="tab-toolbar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
     <div class="section-title" style="margin:0;">👤 Player Directory</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <input type="text" id="playersTabSearch" placeholder="🔍 ค้นหาชื่อ..." style="width:140px;font-size:13px;padding:7px 12px;" oninput="renderPlayersTab()">

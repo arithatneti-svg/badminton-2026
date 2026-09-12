@@ -7,6 +7,18 @@
 @keyframes tabFade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .container.active { animation: none; } }
 
+/* Sticky search/filter bar for the long Players & Finished lists — parks just
+   under the top nav so you can search without scrolling back up. Static on
+   phones, where the nav is already tall. */
+.tab-toolbar {
+  position: sticky; top: var(--nav-h, 56px); z-index: 40;
+  background: var(--bg); margin-bottom: 12px; padding: 8px 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+@media (max-width: 640px) {
+  .tab-toolbar { position: static; z-index: auto; border-bottom: none; padding-bottom: 0; }
+}
+
 /* ── SCOREBOARD ── */
 .scoreboard-wrapper {
   min-height: calc(100vh - 120px);

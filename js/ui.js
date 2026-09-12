@@ -14,6 +14,19 @@ document.addEventListener('keydown', (e) => {
   t.click();
 });
 
+// Keep --nav-h in sync with the sticky top bar's real height so sticky tab
+// toolbars (search/filter) park exactly beneath it at any breakpoint.
+function _syncNavHeight() {
+  const nav = document.getElementById('mainNav');
+  if (nav) document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
+}
+window.addEventListener('DOMContentLoaded', () => {
+  _syncNavHeight();
+  const nav = document.getElementById('mainNav');
+  if (nav && window.ResizeObserver) new ResizeObserver(_syncNavHeight).observe(nav);
+  else window.addEventListener('resize', _syncNavHeight);
+});
+
 function switchTab(tabId, btn) {
   document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));

@@ -55,7 +55,11 @@ button:focus:not(:focus-visible) { outline: none; }
 /* Reserve the vertical scrollbar's space at all times so switching between a
    tall tab (scrollbar) and a short one (no scrollbar) never changes the content
    width — that width jump was the "layout shifts briefly on tab switch". */
-html { overflow-x: hidden; scrollbar-gutter: stable; }
+/* overflow-x: clip (not hidden) — still blocks the sideways drag from the
+   decorative flame canvases, but does NOT turn html into a scroll container,
+   which would break position:sticky (tab toolbars) and it keeps overflow-y
+   visible so scrollbar-gutter works. */
+html { overflow-x: clip; scrollbar-gutter: stable; }
 /* TV / projector fills the screen with a fixed overlay — no page scroll, so
    drop the reserved gutter to avoid a sliver on the right. */
 html:has(body.tv-mode) { scrollbar-gutter: auto; }
@@ -65,7 +69,7 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   padding-bottom: 60px;
 }
 
