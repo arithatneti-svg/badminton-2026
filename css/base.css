@@ -30,8 +30,10 @@
   --purple: #a855f7;
   --text: #e8e8f0;
   --text2: #b0b0c8;
-  --muted: #5a5a78;
-  --muted2: #454560;   /* dimmer than --muted; used by directory/profile/arena */
+  /* Lightened to meet WCAG AA contrast on the dark surfaces (were #5a5a78 =
+     3.01 and #454560 = 2.07, both failing 4.5). Still read as "quiet" greys. */
+  --muted: #8a8aa2;
+  --muted2: #7c7c94;   /* dimmer than --muted; used by directory/profile/arena */
   --danger: #ff4560;
   --radius: 14px;
   --radius-sm: 8px;
