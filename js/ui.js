@@ -1,6 +1,19 @@
 // ==========================================
 // 3. UI UPDATES
 // ==========================================
+
+// Keyboard access for card-style controls (player cards, gallery photos, …)
+// that are <div>/<figure> with an onclick: when tagged role="button"+tabindex
+// they now activate on Enter / Space like a real button.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const t = e.target;
+  if (!t || !t.matches || !t.matches('[role="button"][tabindex]')) return;
+  if (['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
+  e.preventDefault();
+  t.click();
+});
+
 function switchTab(tabId, btn) {
   document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));

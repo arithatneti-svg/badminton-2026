@@ -91,7 +91,7 @@ function renderMeBar() {
   const live = (appState.ongoingMatches || []).some(matchHasMe);
   const next = (appState.ongoingMatches || []).filter(matchHasMe).length;
   el.innerHTML = `
-    <div class="me-chip" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์ของคุณ">
+    <div class="me-chip" onclick="openPlayerProfile('${p.id}')" tabindex="0" role="button" aria-label="ดูโปรไฟล์ของคุณ" title="ดูโปรไฟล์ของคุณ">
       ${avatarHtml(p, 34)}
       <div class="me-chip-txt">
         <b>${escHtml(p.name)}</b>

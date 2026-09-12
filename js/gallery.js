@@ -159,6 +159,7 @@ function paintGallery() {
       <div class="gal-masonry">
         ${group.photos.map(p => `
           <figure class="gal-item${_galSel.has(p.id) ? ' selected' : ''}" data-id="${p.id}"
+                  tabindex="0" role="button" aria-label="ดูรูป${p.caption ? ' ' + escHtml(p.caption) : ''}"
                   ${canEdit ? `draggable="true" ondragstart="galDragStart(event,'${p.id}')"` : ''}
                   onclick="galItemClick(event,'${p.id}',${p._i})">
             <img src="${p.url}" alt="${escHtml(p.caption || '')}" loading="lazy">

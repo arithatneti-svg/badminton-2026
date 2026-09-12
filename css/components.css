@@ -30,7 +30,10 @@
   .nav-live { padding: 5px 8px; }
   .nav-live #dbDotLabel { display: none; }         /* dot only on phones */
   .nav-actions { margin-left: auto; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
-  #roleBadge { display: none !important; }          /* status text — reclaim the row */
+  /* status + rare setup icons — reclaim the row on phones. The .nav-hide-mobile
+     one needs body.*-mode specificity to beat `.superadmin-only { display:revert }`. */
+  #roleBadge, #seasonBadge,
+  body.admin-mode .nav-hide-mobile, body.superadmin-mode .nav-hide-mobile { display: none !important; }
   .nav-tabs { order: 5; flex-basis: 100%; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; gap: 4px; }
   .tab-btn { flex: 0 0 auto; font-size: 12.5px; padding: 7px 13px; }
   .scoreboard-wrapper { grid-template-columns: 1fr; padding: 20px 0; gap: 10px; }
@@ -348,7 +351,9 @@
 }
 .pdir-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
+  /* 340px min → 2 columns on a tablet (~700-1000px) instead of one very wide,
+     sparse card per row; still 3 across on desktop and 1 on a phone. */
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: 10px;
 }
 @media (max-width: 640px) {

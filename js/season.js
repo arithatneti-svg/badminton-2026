@@ -375,7 +375,7 @@ function renderPlayersTab() {
     const s = stats[p.id] || {};
     const isRed = p.team === 'Red';
     const hero = metric[heroKey](s);
-    return `<div class="pod p${rank + 1} ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
+    return `<div class="pod p${rank + 1} ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" tabindex="0" role="button" aria-label="ดูโปรไฟล์ ${escHtml(p.name)}" title="ดูโปรไฟล์">
       <div class="pod-medal">${MEDAL[rank]}</div>
       ${actionsHtml(p)}
       <div class="pod-av">${avatarHtml(p, rank === 0 ? 124 : 104)}</div>
@@ -399,7 +399,7 @@ function renderPlayersTab() {
     const statsHtml = s.total > 0
       ? otherKeys.map(k => { const o = metric[k](s); return `<span class="pdir-stat" style="color:${o.c}">${o.v}</span>${o.unit ? `<span class="pdir-unit">${o.unit}</span>` : ''}`; }).join('')
       : `<span class="pdir-wait">ยังไม่ลงแข่ง</span>`;
-    return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" title="ดูโปรไฟล์">
+    return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" tabindex="0" role="button" aria-label="ดูโปรไฟล์ ${escHtml(p.name)}" title="ดูโปรไฟล์">
       <div class="pdir-rank ${rankCls}">${rank + 1}</div>
       ${avatarHtml(p, 96)}
       <div class="pdir-body">

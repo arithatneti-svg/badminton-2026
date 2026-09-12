@@ -118,7 +118,7 @@ function openPlayerProfile(playerId) {
     : 'linear-gradient(135deg, rgba(77,159,255,0.15), rgba(77,159,255,0.01) 62%), var(--surface)';
   hdr.innerHTML = `
     <div class="pd-avatar-wrap">
-      <div class="pd-avatar-click${hasPhoto ? ' zoomable' : ''}" ${hasPhoto ? `onclick="openPhotoLightbox('${p.id}')" title="ดูรูปเต็ม"` : ''}>${avatarHtml(p, 170)}</div>
+      <div class="pd-avatar-click${hasPhoto ? ' zoomable' : ''}" ${hasPhoto ? `onclick="openPhotoLightbox('${p.id}')" tabindex="0" role="button" aria-label="ดูรูปเต็ม" title="ดูรูปเต็ม"` : ''}>${avatarHtml(p, 170)}</div>
       ${canEdit ? `<button class="pd-avatar-btn" title="${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}" onclick="event.stopPropagation();pickPlayerPhoto('${p.id}')">📷</button>` : ''}
     </div>
     <div style="flex:1;min-width:0;">
