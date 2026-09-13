@@ -90,6 +90,20 @@
 .nav-ic.reset:hover { background: rgba(255,69,96,0.1); }
 .nav-ic.exit:hover { background: rgba(255,159,64,0.1); border-color: rgba(255,159,64,0.3); }
 
+/* ── Tabs get their own full-width row when the bar is tight ──
+   A superadmin has 8 tabs plus a wide action cluster (season badge, role,
+   5 icons); on a single row the tab strip is flex-crushed to a sliver and the
+   last tabs (Admin / Reports) fall off the right edge — unreachable on a TV or
+   any non-touch screen that can't scroll the hidden strip. Dropping the strip
+   onto its own row keeps every tab visible. The single-row layout stays only on
+   very wide screens where the whole bar genuinely fits. (Phones ≤768px already
+   do this, and additionally hide the badges — see components.css.) */
+@media (max-width: 1600px) {
+  .nav { flex-wrap: wrap; row-gap: 8px; }
+  .nav-actions { margin-left: auto; }
+  .nav-tabs { order: 5; flex-basis: 100%; justify-content: flex-start; }
+}
+
 /* BUTTONS */
 .btn {
   font-family: 'Space Grotesk', sans-serif;
