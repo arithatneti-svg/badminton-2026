@@ -107,6 +107,7 @@ function updateUI() {
 // ══════════════════════════════════════════
 let _arenaIdx = 0;
 let _arenaTimer = null;
+let _arenaKey = '';   // signature of what the arena is showing → patch vs rebuild
 const ARENA_ROTATE_MS = 9000;
 
 function _liveMatches() {
@@ -120,7 +121,7 @@ function renderLiveArena() {
   const live = _liveMatches();
 
   if (!live.length) {                 // nothing on court → team-battle totals
-    if (arena.style.display !== 'none') { arena.style.display = 'none'; arena.innerHTML = ''; }
+    if (arena.style.display !== 'none') { arena.style.display = 'none'; arena.innerHTML = ''; _arenaKey = ''; }
     wrap.style.display = '';
     if (_arenaTimer) { clearInterval(_arenaTimer); _arenaTimer = null; }
     return;
@@ -129,7 +130,7 @@ function renderLiveArena() {
   wrap.style.display = 'none';
   arena.style.display = '';
   if (_arenaIdx >= live.length) _arenaIdx = 0;
-  arena.innerHTML = _liveArenaHtml(live[_arenaIdx], _arenaIdx, live.length);
+  _arenaShow(arena, live[_arenaIdx], _arenaIdx, live.length);
 
   // rotate through courts when more than one is live
   if (_arenaTimer) { clearInterval(_arenaTimer); _arenaTimer = null; }
@@ -139,51 +140,75 @@ function renderLiveArena() {
       const a = document.getElementById('liveArena');
       if (!a || a.style.display === 'none' || l.length <= 1) { clearInterval(_arenaTimer); _arenaTimer = null; return; }
       _arenaIdx = (_arenaIdx + 1) % l.length;
-      a.innerHTML = _liveArenaHtml(l[_arenaIdx], _arenaIdx, l.length);
+      _arenaShow(a, l[_arenaIdx], _arenaIdx, l.length);
     }, ARENA_ROTATE_MS);
   }
 }
 
-function _liveArenaHtml(m, idx, total) {
+// Rebuild only when the match / game / pairing changes; otherwise patch the
+// live numbers in place so photos don't reload and nothing flashes per point.
+function _arenaShow(arena, m, idx, total) {
+  const onGame2 = !!(m.live && m.live.g1Locked);
+  const key = `${m.id}|${onGame2 ? 2 : 1}|${m.r1}-${m.r2}-${m.b1}-${m.b2}|${total}|${idx}`;
+  if (key === _arenaKey && arena.querySelector('.lv-arena')) { _arenaPatch(arena, m); return; }
+  _arenaKey = key;
+  arena.innerHTML = _liveArenaHtml(m, idx, total);
+}
+
+function _arenaScores(m) {
   const L = m.live || {};
   const g1r = Number(L.g1R || 0), g1b = Number(L.g1B || 0);
   const g2r = Number(L.g2R || 0), g2b = Number(L.g2B || 0);
   const onGame2 = !!L.g1Locked;
-  const curR = onGame2 ? g2r : g1r;
-  const curB = onGame2 ? g2b : g1b;
-  const gameNo = onGame2 ? 2 : 1;
-  const redGames  = onGame2 && g1r > g1b ? 1 : 0;
-  const blueGames = onGame2 && g1b > g1r ? 1 : 0;
+  return {
+    curR: onGame2 ? g2r : g1r, curB: onGame2 ? g2b : g1b, gameNo: onGame2 ? 2 : 1,
+    redGames: onGame2 && g1r > g1b ? 1 : 0, blueGames: onGame2 && g1b > g1r ? 1 : 0,
+  };
+}
 
-  const strip = s => (s || '').split(' & ').map(n => (typeof stripGroup === 'function' ? stripGroup(n.trim()) : n.trim()));
+function _arenaPatch(arena, m) {
+  const s = _arenaScores(m);
+  const set = (sel, v) => { const el = arena.querySelector(sel); if (el) el.textContent = v; };
+  set('.lv-team.red .lv-snum',  s.curR);
+  set('.lv-team.blue .lv-snum', s.curB);
+  set('.lv-set .g.r', s.redGames);
+  set('.lv-set .g.b', s.blueGames);
+  const lead = s.curR > s.curB ? 'red' : s.curB > s.curR ? 'blue' : '';
+  arena.querySelector('.lv-team.red') ?.classList.toggle('lead', lead === 'red');
+  arena.querySelector('.lv-team.blue')?.classList.toggle('lead', lead === 'blue');
+}
+
+function _liveArenaHtml(m, idx, total) {
+  const s = _arenaScores(m);
+  const strip = str => (str || '').split(' & ').map(n => (typeof stripGroup === 'function' ? stripGroup(n.trim()) : n.trim()));
   const redP  = strip(m.redNames), blueP = strip(m.blueNames);
+  const rn = (appState.redTeamName || 'RED'), bn = (appState.blueTeamName || 'BLUE');
+  const lead = s.curR > s.curB ? 'red' : s.curB > s.curR ? 'blue' : '';
 
-  const teamCol = (cls, label, players, score) => `
-    <div class="lv-team ${cls}">
-      <div class="lv-thead">
-        <span class="lv-tlabel">${label}</span>
-        <span class="lv-players">${players.map(escHtml).join(' <i>·</i> ')}</span>
-      </div>
-      <div class="lv-scard"><span class="lv-snum">${score}</span></div>
+  const teamCol = (cls, label, ids, players, score) => `
+    <div class="lv-team ${cls}${lead === cls ? ' lead' : ''}">
+      <div class="lv-tname">${label}</div>
+      <div class="lv-faces">${ids.map(id => avatarHtml(id, 104)).join('')}</div>
+      <div class="lv-players">${players.map(escHtml).join(' <i>·</i> ')}</div>
+      <div class="lv-score"><span class="lv-snum">${score}</span></div>
     </div>`;
-
-  const rn = (appState.redTeamName  || 'RED');
-  const bn = (appState.blueTeamName || 'BLUE');
-  const courtLine = total > 1 ? `Court ${idx + 1} of ${total}` : `Match ${escHtml(m.id)}`;
-  const meta = `${escHtml(m.id)} · Round ${escHtml(String(m.round))}${m.umpire ? ' · 👔 ' + escHtml(m.umpire) : ''}`;
 
   return `
     <div class="lv-wrap">
-      ${total > 1 ? `<div class="lv-rotate">🔴 ${idx + 1} / ${total} courts</div>` : ''}
+      <div class="lv-top">
+        <span class="lv-live"><i></i> LIVE</span>
+        <span class="lv-match">${escHtml(m.id)} · Round ${escHtml(String(m.round))}</span>
+        ${m.umpire ? `<span class="lv-sep">·</span><span class="lv-ump">👔 ${escHtml(m.umpire)}</span>` : ''}
+        ${total > 1 ? `<span class="lv-sep">·</span><span class="lv-court">Court ${idx + 1} / ${total}</span>` : ''}
+      </div>
       <div class="lv-arena">
-        ${teamCol('red',  '🔴 ' + escHtml(rn), redP, curR, 'red')}
+        ${teamCol('red',  escHtml(rn), [m.r1, m.r2], redP, s.curR)}
         <div class="lv-hub">
-          <span class="lv-gamechip">GAME ${gameNo}</span>
-          <div class="lv-set"><span class="g r">${redGames}</span><span class="d">–</span><span class="g b">${blueGames}</span></div>
-          <span class="lv-setlbl">Games</span>
-          <div class="lv-meta">${meta}</div>
+          <span class="lv-gamechip">GAME ${s.gameNo}</span>
+          <div class="lv-set"><span class="g r">${s.redGames}</span><span class="d">–</span><span class="g b">${s.blueGames}</span></div>
+          <span class="lv-setlbl">Games won</span>
         </div>
-        ${teamCol('blue', '🔵 ' + escHtml(bn), blueP, curB, 'blue')}
+        ${teamCol('blue', escHtml(bn), [m.b1, m.b2], blueP, s.curB)}
       </div>
     </div>`;
 }
