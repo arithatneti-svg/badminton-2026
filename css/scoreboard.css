@@ -241,10 +241,11 @@ select option { background: #161625; }
 .lv-team.red  .lv-tname { color: var(--red); }
 .lv-team.blue .lv-tname { color: var(--blue); }
 
-/* pair photos — big and slightly overlapping, like the broadcast/TV panels */
+/* pair photos — the players are the story at a sports day, so these are big
+   and slightly overlapping, like the broadcast/TV panels */
 .lv-faces { display: flex; justify-content: center; }
-.lv-faces .pav { --pav-size: clamp(52px, 6.6vw, 108px) !important; border-width: 3px; }
-.lv-faces .pav + .pav { margin-left: clamp(-16px, -1.2vw, -8px); }
+.lv-faces .pav { --pav-size: clamp(66px, 9vw, 152px) !important; border-width: 3px; }
+.lv-faces .pav + .pav { margin-left: clamp(-18px, -1.4vw, -10px); }
 
 .lv-players { font-size: clamp(15px, 1.7vw, 25px); font-weight: 700; color: #fff; letter-spacing: 0.3px; line-height: 1.2; }
 .lv-players i { color: rgba(255,255,255,.35); font-style: normal; padding: 0 5px; font-weight: 500; }
@@ -288,7 +289,7 @@ select option { background: #161625; }
   .lv-arena { grid-template-columns: 1fr 1fr; gap: 10px 8px; }
   .lv-hub { grid-column: 1 / -1; order: -1; flex-direction: row; gap: 12px; padding: 8px 14px; }
   .lv-hub .lv-setlbl { display: none; }
-  .lv-faces .pav { --pav-size: 46px !important; }
+  .lv-faces .pav { --pav-size: clamp(58px, 17vw, 72px) !important; }
   .lv-snum { font-size: clamp(60px, 20vw, 92px); }
   .lv-tname { font-size: 17px; letter-spacing: 2px; }
   .lv-players { font-size: 14px; }
