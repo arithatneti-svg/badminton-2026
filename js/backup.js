@@ -76,6 +76,7 @@ function openBackupModal() {
     return showToast('⛔ ต้องใช้สิทธิ์ Super Admin', 'error');
   document.getElementById('backupModal').classList.add('open');
   renderBackupList();
+  if (typeof renderPhotoMigrationStatus === 'function') renderPhotoMigrationStatus();
 }
 function closeBackupModal() {
   document.getElementById('backupModal').classList.remove('open');

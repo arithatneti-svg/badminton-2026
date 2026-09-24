@@ -443,8 +443,7 @@ function savePdProfile() {
 
   if (!appState.playerProfiles) appState.playerProfiles = {};
   const prev = appState.playerProfiles[id] || {};
-  appState.playerProfiles[id] = {
-    ...prev,                       // keep fields this form does not edit
+  const fields = {
     gender:       v('pdfGender'),
     hand:         v('pdfHand'),
     position:     v('pdfPosition'),
@@ -454,7 +453,10 @@ function savePdProfile() {
     weakness:     v('pdfWeakness'),
     notes:        v('pdfNotes'),
   };
-  saveKeys(['playerProfiles'], true);
+  appState.playerProfiles[id] = { ...prev, ...fields };   // keep fields this form does not edit
+  // write just this player's edited fields — saveKeys(['playerProfiles'])
+  // re-uploaded every profile (and every legacy photo) for one edit
+  dbRef.child(`playerProfiles/${id}`).update(fields);
   togglePdEdit(false);
   openPlayerProfile(id);          // repaint the read view with the new values
   showToast('✅ บันทึกโปรไฟล์แล้ว', 'success');

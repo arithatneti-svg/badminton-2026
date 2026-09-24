@@ -1,9 +1,18 @@
 // ── EXPORT / IMPORT ──
-function exportPlayerProfiles() {
+async function exportPlayerProfiles() {
+  // photos live outside the live blob now — fold them back in so the export
+  // file stays a complete, self-contained copy (same shape as before)
+  const profiles = JSON.parse(JSON.stringify(appState.playerProfiles || {}));
+  try {
+    const photos = (await photosRef.once('value')).val() || {};
+    Object.entries(photos).forEach(([id, v]) => {
+      if (v && v.photo) profiles[id] = { ...(profiles[id] || {}), photo: v.photo };
+    });
+  } catch (e) { /* photos path unreadable → export whatever the blob still has */ }
   const data = {
     exportedAt: new Date().toISOString(),
     players: appState.players,
-    playerProfiles: appState.playerProfiles || {},
+    playerProfiles: profiles,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -39,14 +48,26 @@ function importPlayerProfiles(input) {
     try {
       const data = JSON.parse(e.target.result);
       let imported = 0;
+      const photos = {};
       if (data.playerProfiles) {
         if (!appState.playerProfiles) appState.playerProfiles = {};
         Object.entries(data.playerProfiles).forEach(([id, prof]) => {
-          appState.playerProfiles[id] = { ...(appState.playerProfiles[id]||{}), ...prof };
+          // photos go to their own path, never back into the live blob
+          const { photo, ...rest } = prof || {};
+          if (photo) photos[id] = { photo, t: Date.now() };
+          appState.playerProfiles[id] = { ...(appState.playerProfiles[id]||{}), ...rest };
           imported++;
         });
       }
       saveKeys(['playerProfiles'], true);
+      if (Object.keys(photos).length) {
+        photosRef.update(photos)
+          .then(() => Object.keys(photos).forEach(id => { _photos[id] = photos[id].photo; _paintAvatars(id); }))
+          .catch(() => {   // new path refused → keep the old behaviour
+            Object.entries(photos).forEach(([id, v]) => { appState.playerProfiles[id].photo = v.photo; });
+            saveKeys(['playerProfiles'], true);
+          });
+      }
       renderPlayersTab();
       showToast(`📥 Import สำเร็จ ${imported} ผู้เล่น`, 'success');
     } catch(err) {

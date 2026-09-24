@@ -153,11 +153,38 @@ function formatNames(names) {
 }
 
 // ── Player faces (read-only) ──────────────────────────────────
-// The umpire bundle does not load player-photo.js, but its appState is the
-// whole sportsday_2026_data blob, so the photos ride along in
-// playerProfiles. A jersey with no photo falls back to its id.
+// The umpire bundle does not load player-photo.js. Photos live at
+// sportsday_2026_photos/{id} (outside the live blob), fetched on demand for
+// the faces actually shown; the legacy playerProfiles[id].photo is the
+// fallback until the migration runs. A jersey with no photo shows its id.
+const umpPhotosRef = firebase.database().ref('sportsday_2026_photos');
+const _uPhotos = {};
+const _uPhotoReq = new Set();
 function umpirePhoto(id) {
-  return (appState && appState.playerProfiles && appState.playerProfiles[id] && appState.playerProfiles[id].photo) || null;
+  if (!id) return null;
+  if (!_uPhotoReq.has(id)) {
+    _uPhotoReq.add(id);
+    umpPhotosRef.child(id).on('value',
+      snap => { const v = snap.val(); _uPhotos[id] = (v && v.photo) || null; _uPaintFaces(id); },
+      ()   => { _uPhotos[id] = null; });
+  }
+  const legacy = appState && appState.playerProfiles && appState.playerProfiles[id] && appState.playerProfiles[id].photo;
+  return _uPhotos[id] || legacy || null;
+}
+// a face that arrives after render upgrades the avatars already on screen
+function _uPaintFaces(id) {
+  const photo = umpirePhoto(id);
+  document.querySelectorAll('.uavatar[data-pid="' + CSS.escape(id) + '"]').forEach(function (el) {
+    const img = el.querySelector('img');
+    if (photo) {
+      if (img) { if (img.getAttribute('src') !== photo) img.src = photo; return; }
+      const im = document.createElement('img'); im.src = photo; im.alt = ''; im.loading = 'lazy';
+      el.classList.remove('ua-initials'); el.style.fontSize = ''; el.replaceChildren(im);
+    } else if (img) {
+      el.classList.add('ua-initials'); el.textContent = id;
+      el.style.fontSize = Math.round(el.offsetWidth * 0.36) + 'px';
+    }
+  });
 }
 function umpirePlayer(id) {
   return (appState && appState.players || []).find(p => p.id === id) || null;
@@ -168,8 +195,9 @@ function umpireAvatar(id, size) {
   const photo = umpirePhoto(id);
   const team = p && p.team === 'Blue' ? 'ua-blue' : 'ua-red';
   const style = 'width:' + size + 'px;height:' + size + 'px;';
-  if (photo) return '<span class="uavatar ' + team + '" style="' + style + '"><img src="' + photo + '" alt="" loading="lazy"></span>';
-  return '<span class="uavatar ' + team + ' ua-initials" style="' + style + 'font-size:' + Math.round(size*0.36) + 'px;">' + (p ? p.id : '?') + '</span>';
+  const pid = p ? ' data-pid="' + p.id + '"' : '';
+  if (photo) return '<span class="uavatar ' + team + '"' + pid + ' style="' + style + '"><img src="' + photo + '" alt="" loading="lazy"></span>';
+  return '<span class="uavatar ' + team + ' ua-initials"' + pid + ' style="' + style + 'font-size:' + Math.round(size*0.36) + 'px;">' + (p ? p.id : '?') + '</span>';
 }
 // two faces for a doubles pair, overlapped slightly
 function scoringNamesHtml(m, side) {
