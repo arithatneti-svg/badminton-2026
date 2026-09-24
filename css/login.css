@@ -8,6 +8,9 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 #loginOverlay.modal-open { pointer-events: none; }
+/* set by the pre-paint script in index.html for returning roles / TV / QR links;
+   logout() sets an inline display:flex, which still wins over this */
+html.skip-login #loginOverlay { display: none; }
 
 .login-card {
   background: rgba(14,14,26,0.9);

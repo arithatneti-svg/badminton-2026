@@ -39,6 +39,38 @@ function switchTab(tabId, btn) {
   if (tabId === 'finished') renderFinishedMatches();
   if (tabId === 'ongoing') renderPublicOngoingMatches();
   if (tabId === 'gallery') renderGallery();
+  _syncFire();
+}
+
+// ── Fire effect: run only while it can actually be seen ──
+// It used to keep drawing radial-gradient particles at 60fps whenever a team led
+// by 6+, even behind the live arena or on another tab — burning CPU/battery on
+// phones and the TV box for most of the event.
+let _fireWant = { red: false, blue: false };
+function _syncFire() {
+  if (typeof fireRed === 'undefined' || !fireRed || !fireBlue) return;
+  const c = document.getElementById('fireCanvasRed');
+  const visible = !document.hidden && !!c && c.getClientRects().length > 0;
+  if (visible && _fireWant.red)  fireRed.start();  else fireRed.stop();
+  if (visible && _fireWant.blue) fireBlue.start(); else fireBlue.stop();
+}
+document.addEventListener('visibilitychange', _syncFire);
+
+// Players / Finished don't show live scores, yet they were rebuilt in full (54
+// cards, ~80 photos) on every point from every court. Signature of everything
+// they could depend on EXCEPT the live scoring churn → rebuild only on change.
+const _tabSig = { players: null, finished: null };
+function _staticDataSig() {
+  try {
+    return JSON.stringify(appState, (k, v) => {
+      if (k === 'ongoingMatches' && Array.isArray(v)) return v.map(m => m && [m.id, m.round, m.r1, m.r2, m.b1, m.b2]);
+      if (k === 'photo' && typeof v === 'string') return v.length + ':' + v.slice(-16);  // don't serialise the base64
+      if (k === 'remoteCommand') return undefined;
+      return v;
+    }) + '|' + userRole + '|' + (typeof getMe === 'function' ? getMe() : '');
+  } catch (e) {
+    return 'err' + Date.now();   // never skip a render because the signature failed
+  }
 }
 
 function updateUI() {
@@ -76,22 +108,24 @@ function updateUI() {
   
   rPanel.classList.remove('leading','dominant'); bPanel.classList.remove('leading','dominant');
   const diff = newRed - newBlue;
-  if (diff > 0) { rPanel.classList.add(diff >= 6 ? 'dominant' : 'leading'); document.getElementById('redLeadBadge').textContent = diff >= 6 ? '🔥 DOMINANT' : '▲ LEADING'; document.getElementById('blueLeadBadge').textContent = '▲ LEADING'; if (diff >= 6) fireRed.start(); else fireRed.stop(); fireBlue.stop(); }
-  else if (diff < 0) { bPanel.classList.add(Math.abs(diff) >= 6 ? 'dominant' : 'leading'); document.getElementById('blueLeadBadge').textContent = Math.abs(diff) >= 6 ? '🔥 DOMINANT' : '▲ LEADING'; document.getElementById('redLeadBadge').textContent = '▲ LEADING'; if (Math.abs(diff) >= 6) fireBlue.start(); else fireBlue.stop(); fireRed.stop(); }
-  else { document.getElementById('redLeadBadge').textContent = '▲ LEADING'; document.getElementById('blueLeadBadge').textContent = '▲ LEADING'; fireRed.stop(); fireBlue.stop(); }
-  
+  if (diff > 0) { rPanel.classList.add(diff >= 6 ? 'dominant' : 'leading'); document.getElementById('redLeadBadge').textContent = diff >= 6 ? '🔥 DOMINANT' : '▲ LEADING'; document.getElementById('blueLeadBadge').textContent = '▲ LEADING'; _fireWant = { red: diff >= 6, blue: false }; }
+  else if (diff < 0) { bPanel.classList.add(Math.abs(diff) >= 6 ? 'dominant' : 'leading'); document.getElementById('blueLeadBadge').textContent = Math.abs(diff) >= 6 ? '🔥 DOMINANT' : '▲ LEADING'; document.getElementById('redLeadBadge').textContent = '▲ LEADING'; _fireWant = { red: false, blue: Math.abs(diff) >= 6 }; }
+  else { document.getElementById('redLeadBadge').textContent = '▲ LEADING'; document.getElementById('blueLeadBadge').textContent = '▲ LEADING'; _fireWant = { red: false, blue: false }; }
+
   if (typeof renderMeBar === 'function') renderMeBar();
   if (typeof renderLiveArena === 'function') renderLiveArena();
+  _syncFire();   // after the arena decided whether the team-battle rings are visible
 
   // render only the active tab — ป้องกัน dashboard รั่วไปทุก tab
   const activeTab = document.querySelector('.container.active')?.id;
-  if (activeTab === 'players') renderPlayersTab();
+  const sig = (activeTab === 'players' || activeTab === 'finished') ? _staticDataSig() : '';
+  if (activeTab === 'players' && sig !== _tabSig.players) { renderPlayersTab(); _tabSig.players = sig; }
   // FIX-SHAKE: always update badge counts cheaply (no DOM rebuild);
   // only do the full innerHTML rebuild when the ongoing tab is actually
   // visible — this prevents scroll-position jumps / shaking on mobile.
   updateOngoingBadges();
   if (activeTab === 'ongoing') renderPublicOngoingMatches();
-  if (activeTab === 'finished') renderFinishedMatches();
+  if (activeTab === 'finished' && sig !== _tabSig.finished) { renderFinishedMatches(); _tabSig.finished = sig; }
 
   if (userRole === 'admin' || userRole === 'superadmin') {
     if (activeTab === 'admin')     { renderMatchBoard(); renderAdminOngoingMatches(); populateDropdowns(); }
@@ -103,15 +137,38 @@ function updateUI() {
 // ══════════════════════════════════════════
 // LIVE ARENA — the scoreboard tab shows a big glanceable match display while a
 // court is being scored, and falls back to the team-battle totals when idle.
-// Multiple live courts auto-rotate.
+// Several live courts: the viewer can pick one (court chips). Default is the
+// viewer's own match if they've set "me", otherwise auto-rotate.
 // ══════════════════════════════════════════
 let _arenaIdx = 0;
 let _arenaTimer = null;
-let _arenaKey = '';   // signature of what the arena is showing → patch vs rebuild
+let _arenaKey = '';      // signature of what the arena is showing → patch vs rebuild
+let _arenaChoice = null; // null = default (my match, else auto) · 'auto' · a match id
 const ARENA_ROTATE_MS = 9000;
 
 function _liveMatches() {
   return (appState.ongoingMatches || []).filter(m => m && m.live);
+}
+
+// Which court to show, and why: 'pin' (viewer tapped it), 'me' (their match), 'auto'.
+function _arenaResolve(live) {
+  if (_arenaChoice && _arenaChoice !== 'auto') {
+    const i = live.findIndex(x => x.id === _arenaChoice);
+    if (i >= 0) return { idx: i, mode: 'pin' };
+    _arenaChoice = null;              // that match finished → back to the default
+  }
+  if (!_arenaChoice && typeof matchHasMe === 'function') {
+    const i = live.findIndex(matchHasMe);
+    if (i >= 0) return { idx: i, mode: 'me' };
+  }
+  if (_arenaIdx >= live.length) _arenaIdx = 0;
+  return { idx: _arenaIdx, mode: 'auto' };
+}
+
+function arenaPick(choice) {
+  _arenaChoice = choice;              // 'auto' or a match id
+  _arenaKey = '';                     // rebuild so the chips reflect the choice
+  renderLiveArena();
 }
 
 function renderLiveArena() {
@@ -129,30 +186,38 @@ function renderLiveArena() {
 
   wrap.style.display = 'none';
   arena.style.display = '';
-  if (_arenaIdx >= live.length) _arenaIdx = 0;
-  _arenaShow(arena, live[_arenaIdx], _arenaIdx, live.length);
+  const r = _arenaResolve(live);
+  _arenaShow(arena, live, r.idx, r.mode);
 
-  // rotate through courts when more than one is live
-  if (_arenaTimer) { clearInterval(_arenaTimer); _arenaTimer = null; }
-  if (live.length > 1) {
-    _arenaTimer = setInterval(() => {
-      const l = _liveMatches();
-      const a = document.getElementById('liveArena');
-      if (!a || a.style.display === 'none' || l.length <= 1) { clearInterval(_arenaTimer); _arenaTimer = null; return; }
-      _arenaIdx = (_arenaIdx + 1) % l.length;
-      _arenaShow(a, l[_arenaIdx], _arenaIdx, l.length);
-    }, ARENA_ROTATE_MS);
-  }
+  // Keep ONE rotation timer running while in auto mode. This used to be
+  // cleared and re-created on every data update, so during busy play (a point
+  // somewhere every few seconds) the 9s rotation kept resetting and never moved.
+  const wantTimer = r.mode === 'auto' && live.length > 1;
+  if (wantTimer && !_arenaTimer) _arenaTimer = setInterval(_arenaTick, ARENA_ROTATE_MS);
+  if (!wantTimer && _arenaTimer) { clearInterval(_arenaTimer); _arenaTimer = null; }
 }
 
-// Rebuild only when the match / game / pairing changes; otherwise patch the
-// live numbers in place so photos don't reload and nothing flashes per point.
-function _arenaShow(arena, m, idx, total) {
+function _arenaTick() {
+  const l = _liveMatches();
+  const a = document.getElementById('liveArena');
+  if (!a || a.style.display === 'none' || l.length <= 1 || _arenaResolve(l).mode !== 'auto') {
+    clearInterval(_arenaTimer); _arenaTimer = null;
+    renderLiveArena();                // settle into whatever mode applies now
+    return;
+  }
+  _arenaIdx = (_arenaIdx + 1) % l.length;
+  _arenaShow(a, l, _arenaIdx, 'auto');
+}
+
+// Rebuild only when the court / game / pairing / court list changes; otherwise
+// patch the live numbers in place so photos don't reload and nothing flashes.
+function _arenaShow(arena, live, idx, mode) {
+  const m = live[idx];
   const onGame2 = !!(m.live && m.live.g1Locked);
-  const key = `${m.id}|${onGame2 ? 2 : 1}|${m.r1}-${m.r2}-${m.b1}-${m.b2}|${total}|${idx}`;
-  if (key === _arenaKey && arena.querySelector('.lv-arena')) { _arenaPatch(arena, m); return; }
+  const key = [mode, live.map(x => x.id).join(','), m.id, onGame2 ? 2 : 1, `${m.r1}-${m.r2}-${m.b1}-${m.b2}`].join('|');
+  if (key === _arenaKey && arena.querySelector('.lv-arena')) { _arenaPatch(arena, m, live); return; }
   _arenaKey = key;
-  arena.innerHTML = _liveArenaHtml(m, idx, total);
+  arena.innerHTML = _liveArenaHtml(m, live, mode);
 }
 
 function _arenaScores(m) {
@@ -166,7 +231,7 @@ function _arenaScores(m) {
   };
 }
 
-function _arenaPatch(arena, m) {
+function _arenaPatch(arena, m, live) {
   const s = _arenaScores(m);
   const set = (sel, v) => { const el = arena.querySelector(sel); if (el) el.textContent = v; };
   set('.lv-team.red .lv-snum',  s.curR);
@@ -176,9 +241,31 @@ function _arenaPatch(arena, m) {
   const lead = s.curR > s.curB ? 'red' : s.curB > s.curR ? 'blue' : '';
   arena.querySelector('.lv-team.red') ?.classList.toggle('lead', lead === 'red');
   arena.querySelector('.lv-team.blue')?.classList.toggle('lead', lead === 'blue');
+  // every court chip carries its own live score
+  (live || []).forEach(x => {
+    const b = arena.querySelector(`.lv-cchip[data-mid="${x.id}"] b`);
+    if (b) { const xs = _arenaScores(x); b.textContent = `${xs.curR}–${xs.curB}`; }
+  });
 }
 
-function _liveArenaHtml(m, idx, total) {
+// Court chips: see every court's score at a glance, tap one to stay on it.
+function _arenaChipsHtml(m, live, mode) {
+  if (live.length < 2) return '';
+  const mine = x => typeof matchHasMe === 'function' && matchHasMe(x);
+  const chips = live.map(x => {
+    const xs = _arenaScores(x);
+    const shown = x.id === m.id;
+    const cls = shown ? (mode === 'auto' ? ' cur' : ' on') : '';
+    return `<button type="button" class="lv-cchip${cls}" data-mid="${escHtml(x.id)}" aria-pressed="${shown && mode !== 'auto'}"
+      onclick="arenaPick('${escHtml(x.id)}')" title="ดูคอร์ตนี้ค้างไว้">${mine(x) ? '⭐ ' : ''}${escHtml(x.id)} <b>${xs.curR}–${xs.curB}</b></button>`;
+  }).join('');
+  return `<div class="lv-courts" role="group" aria-label="เลือกคอร์ต">
+    <button type="button" class="lv-cchip auto${mode === 'auto' ? ' on' : ''}" aria-pressed="${mode === 'auto'}"
+      onclick="arenaPick('auto')" title="สลับทุกคอร์ตอัตโนมัติ">🔄 อัตโนมัติ</button>${chips}
+  </div>`;
+}
+
+function _liveArenaHtml(m, live, mode) {
   const s = _arenaScores(m);
   const strip = str => (str || '').split(' & ').map(n => (typeof stripGroup === 'function' ? stripGroup(n.trim()) : n.trim()));
   const redP  = strip(m.redNames), blueP = strip(m.blueNames);
@@ -199,8 +286,9 @@ function _liveArenaHtml(m, idx, total) {
         <span class="lv-live"><i></i> LIVE</span>
         <span class="lv-match">${escHtml(m.id)} · Round ${escHtml(String(m.round))}</span>
         ${m.umpire ? `<span class="lv-sep">·</span><span class="lv-ump">👔 ${escHtml(m.umpire)}</span>` : ''}
-        ${total > 1 ? `<span class="lv-sep">·</span><span class="lv-court">Court ${idx + 1} / ${total}</span>` : ''}
+        ${mode === 'me' ? `<span class="lv-sep">·</span><span class="lv-court">⭐ แมตช์ของคุณ</span>` : ''}
       </div>
+      ${_arenaChipsHtml(m, live, mode)}
       <div class="lv-arena">
         ${teamCol('red',  escHtml(rn), [m.r1, m.r2], redP, s.curR)}
         <div class="lv-hub">

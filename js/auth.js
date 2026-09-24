@@ -5,7 +5,9 @@ let userRole = null;
 let prevRed = 0, prevBlue = 0; 
 let _pendingLoginRole = null; // 'admin' or 'superadmin' — which button was clicked
 
-window.onload = () => {
+// DOMContentLoaded (not window load): every deferred script has run by then, and
+// the data request no longer waits for fonts/images to finish downloading.
+document.addEventListener('DOMContentLoaded', () => {
   // TV / projector mode (?view=tv) — big-screen auto-rotating public display
   const _params = new URLSearchParams(location.search);
   if (_params.get('view') === 'tv') {
@@ -40,7 +42,7 @@ window.onload = () => {
     switchTab('ongoing', document.getElementById('tab-ongoing'));
   }
   loadData();
-};
+});
 
 // Read-only live view for spectators — opened via QR link (?view=live).
 // เหมือน guest แต่ไม่ต้องใส่รหัส และไม่ persist (ผูกกับลิงก์ ไม่ค้างในเครื่อง)

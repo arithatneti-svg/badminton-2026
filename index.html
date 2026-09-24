@@ -4,10 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Badminton Sports Day 2026 - Scoreboard</title>
-<!-- Fonts loaded via @import in <style> -->
-<!-- 🔴 Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+<!-- Returning viewers / TV / QR links never see the login screen: decide before
+     first paint instead of waiting for window load (which flashed the login). -->
+<script>
+try {
+  var _v = new URLSearchParams(location.search).get('view');
+  var _r = localStorage.getItem('bdm_scoreboard_role');
+  if (_v === 'tv' || _v === 'live' || _r === 'guest' || _r === 'admin' || _r === 'superadmin')
+    document.documentElement.classList.add('skip-login');
+} catch (e) {}
+</script>
+<!-- Fonts: linked from <head> (was an @import chained inside base.css, which
+     blocked rendering until base.css → fonts CSS → font files had all arrived) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<!-- 🔴 Firebase SDK — deferred: still runs before the app scripts (document
+     order), but no longer blocks the first paint while it downloads -->
+<script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <!-- Shared Firebase config + init. defer => runs in-order in one batch with app scripts, after parse. -->
 <script defer src="shared/firebase-config.js"></script>
 <!-- PWA: installable + offline-tolerant app shell -->
