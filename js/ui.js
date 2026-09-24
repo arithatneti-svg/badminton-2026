@@ -177,10 +177,11 @@ function renderLiveArena() {
   if (!arena || !wrap) return;
   const live = _liveMatches();
 
-  if (!live.length) {                 // nothing on court → team-battle totals
+  if (!live.length) {                 // nothing being scored → idle board
     if (arena.style.display !== 'none') { arena.style.display = 'none'; arena.innerHTML = ''; _arenaKey = ''; }
     wrap.style.display = '';
     if (_arenaTimer) { clearInterval(_arenaTimer); _arenaTimer = null; }
+    renderIdleBoard();
     return;
   }
 
@@ -195,6 +196,91 @@ function renderLiveArena() {
   const wantTimer = r.mode === 'auto' && live.length > 1;
   if (wantTimer && !_arenaTimer) _arenaTimer = setInterval(_arenaTick, ARENA_ROTATE_MS);
   if (!wantTimer && _arenaTimer) { clearInterval(_arenaTimer); _arenaTimer = null; }
+}
+
+// ══════════════════════════════════════════
+// IDLE BOARD — between matches the scoreboard shows the team totals and what
+// is coming next: the court that is about to start (umpire in place, no score
+// yet), then the queue (no umpire yet) — same order as the Ongoing tab.
+// ══════════════════════════════════════════
+let _idleKey = '';
+const IDLE_QUEUE_SHOWN = 4;          // rows under the "next up" card
+
+function _idlePairHtml(ids, names, size) {
+  const faces = ids.map(id => avatarHtml(id, size)).join('');
+  const list = (names || '').split(' & ').map(n => escHtml(typeof stripGroup === 'function' ? stripGroup(n.trim()) : n.trim()));
+  return { faces, names: list.join(' <i>·</i> ') };
+}
+
+function renderIdleBoard() {
+  const box = document.getElementById('idleNext');
+  if (!box) return;
+  const ong  = (appState.ongoingMatches || []).filter(m => m && m.id);
+  const onCourt = ong.filter(m => m.umpire && !m.live);   // umpire in place, not started
+  const queue   = ong.filter(m => !m.umpire);
+  const next = [...onCourt, ...queue];
+  const hist = appState.matchHistory || [];
+  const r = appState.globalScoreRed || 0, b = appState.globalScoreBlue || 0;
+
+  // cheap text bits — always current
+  const sum = document.getElementById('idleSummary');
+  if (sum) sum.textContent = `${hist.length} แมตช์จบแล้ว · ${next.length ? next.length + ' แมตช์รอแข่ง' : 'ไม่มีคิว'}`;
+  const gap = document.getElementById('idleGap');
+  if (gap) gap.textContent = r === b ? 'เสมอ' : `ห่าง ${Math.abs(r - b)}`;
+
+  // the cards only rebuild when the line-up changes
+  const me = typeof getMe === 'function' ? getMe() : '';
+  const key = next.map(m => [m.id, m.round, m.umpire || '', m.r1, m.r2, m.b1, m.b2].join(':')).join('|') + '|' + me + '|' + hist.length;
+  if (key === _idleKey && box.firstChild) return;
+  _idleKey = key;
+
+  if (!next.length) {
+    const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+    box.innerHTML = `<div class="idl-empty">
+      <b>${hist.length ? '🏁 ไม่มีแมตช์ในคิวตอนนี้' : '📋 ยังไม่มีแมตช์'}</b>
+      ${isAdmin ? 'สร้างแมตช์ใหม่ได้ที่แท็บ ⚙️ Admin' : 'รอแอดมินจัดคิวแมตช์ถัดไป'}
+    </div>`;
+    return;
+  }
+
+  const mine = m => typeof matchHasMe === 'function' && matchHasMe(m);
+  const m = next[0];
+  const red = _idlePairHtml([m.r1, m.r2], m.redNames, 96), blue = _idlePairHtml([m.b1, m.b2], m.blueNames, 96);
+  const state = m.umpire
+    ? `<span class="idl-next-state on">🟢 ลงสนามแล้ว · 👔 ${escHtml(m.umpire)}</span>`
+    : `<span class="idl-next-state">⏳ รอเรียกลงสนาม</span>`;
+  const hero = `<div class="idl-next${mine(m) ? ' me' : ''}">
+    <div class="idl-next-head">
+      <span class="idl-next-tag">⏭ แมตช์ถัดไป</span>
+      <span class="idl-next-id">${escHtml(m.id)} · Round ${escHtml(String(m.round || '?'))}</span>
+      ${state}
+    </div>
+    <div class="idl-next-row">
+      <div class="idl-side red"><div class="idl-faces">${red.faces}</div><div class="idl-names">${red.names}</div></div>
+      <div class="idl-next-vs">VS</div>
+      <div class="idl-side blue"><div class="idl-faces">${blue.faces}</div><div class="idl-names">${blue.names}</div></div>
+    </div>
+    ${mine(m) ? `<div class="idl-me">⭐ แมตช์ของคุณ — เตรียมตัวได้เลย!</div>` : ''}
+  </div>`;
+
+  const rest = next.slice(1, 1 + IDLE_QUEUE_SHOWN);
+  const more = next.length - 1 - rest.length;
+  const rows = rest.map((x, i) => {
+    const xr = _idlePairHtml([x.r1, x.r2], x.redNames, 28), xb = _idlePairHtml([x.b1, x.b2], x.blueNames, 28);
+    return `<div class="idl-q${mine(x) ? ' me' : ''}">
+      <span class="idl-q-no">#${i + 2}</span>
+      <span class="idl-q-id">${escHtml(x.id)}</span>
+      <span class="idl-q-team red">${xr.faces}<span>${xr.names}</span></span>
+      <span class="idl-q-vs">vs</span>
+      <span class="idl-q-team blue"><span>${xb.names}</span>${xb.faces}</span>
+    </div>`;
+  }).join('');
+  const queueHtml = rest.length ? `<div class="idl-queue">
+      <div class="idl-queue-h">ต่อจากนั้น</div>${rows}
+      ${more > 0 ? `<div class="idl-q-more">และอีก ${more} แมตช์ — ดูทั้งหมดที่แท็บ Ongoing</div>` : ''}
+    </div>` : '';
+
+  box.innerHTML = hero + queueHtml;
 }
 
 function _arenaTick() {

@@ -244,122 +244,32 @@ try {
   <!-- Live-match arena — shown while a court is being scored; falls back to the
        team-battle totals below when nothing is live (rendered by renderLiveArena) -->
   <div id="liveArena" style="display:none;"></div>
-  <div class="scoreboard-wrapper">
-    <div class="team-panel red" id="redPanel">
-      <input class="team-name-edit red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()">
-      <div class="score-ring"><div class="glow-disc"></div><div class="arc-ring"></div><canvas class="fire-canvas" id="fireCanvasRed" width="500" height="400"></canvas><div class="score-digit red-text" id="displayRedScore">0</div></div>
-      <div class="score-pts-badge red-text">POINTS</div>
-      <div class="lead-indicator" id="redLeadBadge">▲ LEADING</div>
+  <!-- Between matches: team totals + what's coming next. #idleNext is filled by
+       renderIdleBoard(); the ids updateUI writes to (redPanel, displayRedScore,
+       redTeamName, redLeadBadge …) are kept so nothing else had to change. -->
+  <div class="scoreboard-wrapper idle-board">
+    <div class="idl-top">
+      <span class="idl-pill">⏸ พักระหว่างแมตช์</span>
+      <span class="idl-sum" id="idleSummary"></span>
     </div>
-    <div class="score-vs">
-      <div class="vs-line"></div>
-
-      <!-- ── EVENT TITLE BANNER ── -->
-      <div id="eventTitleBanner" style="
-        display: flex; flex-direction: column; align-items: center;
-        gap: 0; padding: 10px 4px; position: relative; z-index: 5;
-      ">
-        <!-- Shuttlecock icon -->
-        <div style="font-size: clamp(1.4em, 3.5vw, 2.2em); margin-bottom: 2px; filter: drop-shadow(0 0 10px rgba(245,200,66,0.6)); animation: shuttle-spin 6s ease-in-out infinite;">🏸</div>
-
-        <!-- RED split text -->
-        <div style="
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(1.6em, 4.5vw, 3em);
-          letter-spacing: clamp(4px, 1.5vw, 10px);
-          color: var(--red);
-          text-shadow: 0 0 20px rgba(255,59,59,0.5), 0 0 40px rgba(255,59,59,0.25);
-          line-height: 1;
-          white-space: nowrap;
-          animation: title-glow-red 3s ease-in-out infinite alternate;
-        ">RED</div>
-
-        <!-- VS divider -->
-        <div style="
-          display: flex; align-items: center; gap: 6px;
-          margin: 2px 0; width: 100%;
-        ">
-          <div style="flex:1; height:1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.15));"></div>
-          <span style="
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: clamp(0.7em, 2vw, 1em);
-            letter-spacing: 4px; color: var(--muted);
-          ">VS</span>
-          <div style="flex:1; height:1px; background: linear-gradient(to left, transparent, rgba(255,255,255,0.15));"></div>
-        </div>
-
-        <!-- BLUE split text -->
-        <div style="
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(1.6em, 4.5vw, 3em);
-          letter-spacing: clamp(4px, 1.5vw, 10px);
-          color: var(--blue);
-          text-shadow: 0 0 20px rgba(59,142,255,0.5), 0 0 40px rgba(59,142,255,0.25);
-          line-height: 1;
-          white-space: nowrap;
-          animation: title-glow-blue 3s ease-in-out infinite alternate;
-        ">BLUE</div>
-
-        <!-- Subtitle line -->
-        <div style="
-          margin-top: 8px;
-          font-family: 'Rajdhani', sans-serif;
-          font-size: clamp(0.55em, 1.4vw, 0.8em);
-          font-weight: 700;
-          letter-spacing: clamp(2px, 0.8vw, 5px);
-          color: var(--muted);
-          text-transform: uppercase;
-          text-align: center;
-          white-space: nowrap;
-          line-height: 1.4;
-        ">
-          <span style="color: var(--gold); opacity: 0.8;">BADMINTON</span>
-          <span style="color: rgba(255,255,255,0.25); margin: 0 4px;">·</span>
-          <span>SPORTS DAY</span>
-          <span style="color: rgba(255,255,255,0.25); margin: 0 4px;">·</span>
-          <span style="color: var(--gold); opacity: 0.8;">2026</span>
-        </div>
-
-        <!-- Decorative line bottom -->
-        <div style="
-          margin-top: 8px; width: 60%;
-          height: 1px;
-          background: linear-gradient(to right, transparent, var(--gold), transparent);
-          opacity: 0.4;
-        "></div>
+    <div class="idl-totals">
+      <div class="idl-team red" id="redPanel">
+        <input class="team-name-edit idl-tname red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมแดง">
+        <div class="idl-score" id="displayRedScore">0</div>
+        <div class="idl-lead" id="redLeadBadge">▲ LEADING</div>
       </div>
-
-      <div class="vs-line"></div>
+      <div class="idl-mid">
+        <div class="idl-vs">VS</div>
+        <div class="idl-gap" id="idleGap"></div>
+        <div class="idl-ptslbl">คะแนนรวมทีม</div>
+      </div>
+      <div class="idl-team blue" id="bluePanel">
+        <input class="team-name-edit idl-tname blue" id="blueTeamName" value="BLUE TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมน้ำเงิน">
+        <div class="idl-score" id="displayBlueScore">0</div>
+        <div class="idl-lead" id="blueLeadBadge">▲ LEADING</div>
+      </div>
     </div>
-
-<style>
-@keyframes shuttle-spin {
-  0%, 100% { transform: rotate(-8deg) scale(1); }
-  50% { transform: rotate(8deg) scale(1.15); }
-}
-@keyframes title-glow-red {
-  from { text-shadow: 0 0 12px rgba(255,59,59,0.4), 0 0 30px rgba(255,59,59,0.15); }
-  to   { text-shadow: 0 0 22px rgba(255,59,59,0.7), 0 0 50px rgba(255,59,59,0.35), 0 2px 0 rgba(255,59,59,0.2); }
-}
-@keyframes title-glow-blue {
-  from { text-shadow: 0 0 12px rgba(59,142,255,0.4), 0 0 30px rgba(59,142,255,0.15); }
-  to   { text-shadow: 0 0 22px rgba(59,142,255,0.7), 0 0 50px rgba(59,142,255,0.35), 0 2px 0 rgba(59,142,255,0.2); }
-}
-/* Mobile: ย้าย banner ออกจาก score-vs ไปแสดงข้างบน */
-@media (max-width: 768px) {
-  #eventTitleBanner {
-    padding: 6px 2px;
-    gap: 0;
-  }
-  #eventTitleBanner > div:first-child { font-size: 1.4em; }
-}
-</style>
-    <div class="team-panel blue" id="bluePanel">
-      <input class="team-name-edit blue" id="blueTeamName" value="BLUE TEAM" maxlength="16" onchange="saveTeamNames()">
-      <div class="score-ring"><div class="glow-disc"></div><div class="arc-ring"></div><canvas class="fire-canvas" id="fireCanvasBlue" width="500" height="400"></canvas><div class="score-digit blue-text" id="displayBlueScore">0</div></div>
-      <div class="score-pts-badge blue-text">POINTS</div>
-      <div class="lead-indicator" id="blueLeadBadge">▲ LEADING</div>
-    </div>
+    <div id="idleNext"></div>
   </div>
   
   <div class="admin-only superadmin-only" style="text-align:center; padding:6px 10px; background:rgba(255,255,255,0.015); border-top:1px solid var(--border);">

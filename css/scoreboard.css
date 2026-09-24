@@ -313,3 +313,94 @@ select option { background: #161625; }
   .lv-wrap { padding: 18px 12px 24px; }
 }
 
+/* ══════════════════════════════════════════
+   IDLE BOARD — between matches: team totals + next up + queue.
+   Same visual language as the live arena (it replaced the old fire rings).
+   ══════════════════════════════════════════ */
+.scoreboard-wrapper.idle-board {
+  display: block; max-width: 1100px; margin: 0 auto;
+  padding: clamp(14px, 2.5vh, 30px) clamp(12px, 3vw, 44px) clamp(20px, 3vh, 40px);
+}
+.idl-top {
+  display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px 12px;
+  margin-bottom: clamp(14px, 2.5vh, 28px); font-size: clamp(12px, 1.3vw, 15px); font-weight: 700;
+}
+.idl-pill { color: var(--gold); background: rgba(245,200,66,.1); border: 1px solid rgba(245,200,66,.35); border-radius: 20px; padding: 4px 13px; letter-spacing: 1px; }
+.idl-sum  { color: var(--muted); }
+
+/* team totals */
+.idl-totals { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: clamp(10px, 3vw, 48px); margin-bottom: clamp(18px, 3.5vh, 40px); }
+.idl-team { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.idl-tname {
+  width: 100%; max-width: 320px; text-align: center; background: transparent; outline: none;
+  border: none; border-bottom: 1px dashed transparent; padding: 2px 4px;
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px, 2.2vw, 34px); letter-spacing: 3px; line-height: 1.1;
+}
+body.admin-mode .idl-tname:hover, body.admin-mode .idl-tname:focus { border-bottom-color: var(--border2); }
+.idl-tname.red  { color: var(--red); }
+.idl-tname.blue { color: var(--blue); }
+.idl-score { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 11vw, 150px); line-height: .9; font-variant-numeric: tabular-nums; }
+.idl-team.red  .idl-score { color: #FF4D4D; text-shadow: 0 0 40px rgba(255,77,77,.4); }
+.idl-team.blue .idl-score { color: #38BDF8; text-shadow: 0 0 40px rgba(56,189,248,.4); }
+.idl-lead { font-size: 11px; font-weight: 800; letter-spacing: 2px; padding: 3px 10px; border-radius: 20px; visibility: hidden; }
+.idl-team.leading .idl-lead, .idl-team.dominant .idl-lead { visibility: visible; }
+.idl-team.red  .idl-lead { color: var(--red);  background: rgba(255,59,92,.1);  border: 1px solid rgba(255,59,92,.3); }
+.idl-team.blue .idl-lead { color: var(--blue); background: rgba(59,142,255,.1); border: 1px solid rgba(59,142,255,.3); }
+.idl-mid { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.idl-vs { font-family: 'Bebas Neue', sans-serif; font-size: clamp(22px, 2.4vw, 36px); color: var(--muted); letter-spacing: 3px; }
+.idl-gap { font-weight: 800; color: var(--text2); font-size: clamp(12px, 1.3vw, 15px); }
+.idl-ptslbl { font-size: 10px; font-weight: 800; letter-spacing: 2px; color: var(--muted); }
+
+/* next up */
+.idl-next {
+  background: rgba(20,24,38,.55); border: 1px solid rgba(255,255,255,.09); border-radius: 20px;
+  padding: clamp(14px, 2.4vh, 26px) clamp(14px, 2.4vw, 32px); box-shadow: 0 14px 44px -20px rgba(0,0,0,.6);
+}
+.idl-next.me { border-color: rgba(245,200,66,.55); box-shadow: 0 0 0 1px rgba(245,200,66,.2), 0 14px 44px -20px rgba(0,0,0,.6); }
+.idl-next-head { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 12px; margin-bottom: clamp(12px, 2vh, 22px); font-size: clamp(12px, 1.3vw, 15px); font-weight: 700; }
+.idl-next-tag   { color: #FBBF24; font-weight: 800; letter-spacing: 2px; }
+.idl-next-id    { color: var(--text2); }
+.idl-next-state { color: var(--muted); }
+.idl-next-state.on { color: var(--green); }
+.idl-next-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: clamp(10px, 3vw, 40px); }
+.idl-side { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; text-align: center; }
+.idl-faces { display: flex; gap: clamp(6px, .8vw, 12px); }
+.idl-faces .pav { --pav-size: clamp(56px, 7vw, 110px) !important; border-width: 3px; }
+.idl-names { font-size: clamp(15px, 1.8vw, 24px); font-weight: 700; color: #fff; line-height: 1.2; }
+.idl-names i { color: rgba(255,255,255,.35); font-style: normal; padding: 0 5px; }
+.idl-next-vs { font-family: 'Bebas Neue', sans-serif; font-size: clamp(22px, 2.6vw, 40px); color: var(--muted); letter-spacing: 3px; }
+.idl-me { margin-top: clamp(10px, 1.8vh, 18px); text-align: center; color: var(--gold); font-weight: 800; font-size: clamp(13px, 1.4vw, 16px); }
+
+/* rest of the queue */
+.idl-queue { margin-top: clamp(14px, 2.4vh, 26px); }
+.idl-queue-h { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--muted); margin: 0 4px 8px; }
+.idl-q {
+  display: grid; grid-template-columns: auto auto 1fr auto 1fr; align-items: center; gap: 10px;
+  padding: 9px 14px; margin-bottom: 6px; border-radius: 12px; font-size: 14px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.idl-q.me { border-color: rgba(245,200,66,.45); }
+.idl-q-no { color: var(--muted); font-weight: 800; }
+.idl-q-id { font-family: 'Bebas Neue', sans-serif; font-size: 1.15em; letter-spacing: 1px; color: var(--gold); }
+.idl-q-team { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 700; }
+.idl-q-team > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.idl-q-team.red  { color: var(--red); }
+.idl-q-team.blue { color: var(--blue); justify-content: flex-end; text-align: right; }
+.idl-q-team i { color: var(--muted); font-style: normal; padding: 0 3px; }
+.idl-q-team .pav { --pav-size: 28px !important; flex-shrink: 0; }
+.idl-q-vs { color: var(--muted); font-size: 12px; font-weight: 700; }
+.idl-q-more { text-align: center; color: var(--muted); font-size: 12px; font-weight: 700; margin-top: 4px; }
+.idl-empty { text-align: center; color: var(--muted); padding: clamp(20px, 4vh, 40px) 12px; border: 1px dashed var(--border2); border-radius: 16px; font-weight: 600; }
+.idl-empty b { display: block; color: var(--text2); font-size: 1.1em; margin-bottom: 6px; }
+
+@media (max-width: 760px) {
+  .idl-totals { gap: 6px; }
+  .idl-score { font-size: clamp(56px, 18vw, 80px); }
+  .idl-tname { font-size: 18px; letter-spacing: 2px; }
+  .idl-next-row { gap: 6px; }
+  .idl-faces .pav { --pav-size: 54px !important; }
+  .idl-names { font-size: 14px; }
+  .idl-q { grid-template-columns: auto 1fr auto 1fr; gap: 6px; padding: 8px 10px; font-size: 12.5px; }
+  .idl-q-no, .idl-q-team .pav { display: none; }
+}
+
