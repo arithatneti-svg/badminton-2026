@@ -114,19 +114,35 @@ function setBoardGroup(team, g) {
 
 function resetPicker() { picker.red = []; picker.blue = []; renderMatchBoard(); }
 
-function createMatch() {
+let _creatingMatch = false;
+async function createMatch() {
+  if (_creatingMatch) return;
   if (picker.red.length < 2 || picker.blue.length < 2) return showToast('❌ เลือกผู้เล่นให้ครบ 2 คนต่อทีมก่อน', 'error');
   const r1 = picker.red[0], r2 = picker.red[1], b1 = picker.blue[0], b2 = picker.blue[1];
   const getP = id => (appState.players || []).find(p => p.id === id);
   const p_r1 = getP(r1), p_r2 = getP(r2), p_b1 = getP(b1), p_b2 = getP(b2);
   if (!p_r1 || !p_r2 || !p_b1 || !p_b2) return showToast('❌ ไม่พบข้อมูลผู้เล่น กรุณาลองใหม่', 'error');
-  const n = appState.matchCounter, mId = 'M' + (n < 10 ? '0'+n : n), round = picker.round || '1';
+  const round = picker.round || '1';
+
+  // Reserve the match number atomically: two admins creating at the same
+  // moment used to read the same counter and both make e.g. "M07".
+  _creatingMatch = true;
+  const btn = document.getElementById('mbCreateBtn'); if (btn) btn.disabled = true;
+  let n = null;
+  try {
+    const res = await dbRef.child('matchCounter').transaction(c => (Number(c) || 1) + 1);
+    if (res.committed) n = Number(res.snapshot.val()) - 1;
+  } catch (e) { console.error('matchCounter reserve failed:', e); }
+  _creatingMatch = false; if (btn) btn.disabled = false;
+  if (n === null) return showToast('❌ สร้างแมตช์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อแล้วลองใหม่', 'error');
+
+  const mId = 'M' + (n < 10 ? '0'+n : n);
   appState.ongoingMatches.push({
     id: mId, round, r1, r2, b1, b2,
     redNames:  `${p_r1.name} (G${p_r1.group}) & ${p_r2.name} (G${p_r2.group})`,
     blueNames: `${p_b1.name} (G${p_b1.group}) & ${p_b2.name} (G${p_b2.group})`
   });
-  appState.matchCounter++;
+  appState.matchCounter = Math.max(Number(appState.matchCounter) || 0, n + 1);
   resetPicker();
   saveData(true);
   showToast(`✅ ${mId} (R${round}): ${p_r1.name} & ${p_r2.name}  vs  ${p_b1.name} & ${p_b2.name} → คิว`, 'success');

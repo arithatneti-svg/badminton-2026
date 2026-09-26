@@ -21,8 +21,9 @@ let _localPauseStart = null;
 // ==========================================
 dbRef.on('value', (snapshot) => {
   appState = snapshot.val() || {};
-  if (!appState.ongoingMatches) appState.ongoingMatches = [];
-  if (!appState.matchHistory)   appState.matchHistory = [];
+  _uIndexOngoing(appState.ongoingMatches);                    // id → slot, before normalising
+  appState.ongoingMatches = smToArr(appState.ongoingMatches);  // Firebase may hand back a sparse object
+  appState.matchHistory   = smToArr(appState.matchHistory);
   if (!appState.players)        appState.players = [];
 
   if (isFirstLoad) {
@@ -33,15 +34,129 @@ dbRef.on('value', (snapshot) => {
   }
 });
 
-function saveData() { dbRef.set(appState); }
-
-// เขียนเฉพาะคอร์ทที่ระบุ (child path) แทนการ set ทั้งก้อน
-// → ไม่ทับข้อมูลฝั่ง admin (players/history) และไม่ทับคอร์ทอื่นที่กรรมการคนอื่นคุมอยู่
-function saveMatch(mId) {
-  const idx = appState.ongoingMatches.findIndex(x => x.id === mId);
-  if (idx < 0) { saveData(); return; } // fallback ถ้าหาคอร์ทไม่เจอ
-  firebase.database().ref('sportsday_2026_data/ongoingMatches/' + idx).set(appState.ongoingMatches[idx]);
+// ==========================================
+// SAFE WRITES — by match ID, never by a possibly-stale array position
+// ==========================================
+// Matches live in an array, so a court's slot (ongoingMatches/2) shifts when
+// an admin creates or finalizes another match. Writing by position could put
+// a point on the WRONG match, or create a broken id-less "ghost" row at a slot
+// that no longer exists. Every write below is a transaction on the match's
+// current slot that first checks the id, and re-resolves the slot and retries
+// if it moved. (This page used to rewrite the whole database on Submit, which
+// reverted other courts' points and could drop another match's result.)
+let _uKeys = {};   // match id → its key in ongoingMatches, from the latest snapshot
+function _uIndexOngoing(raw) {
+  _uKeys = {};
+  if (!raw || typeof raw !== 'object') return;
+  Object.keys(raw).forEach(k => {
+    const m = raw[k];
+    if (m && m.id !== undefined && m.id !== null && !(m.id in _uKeys)) _uKeys[m.id] = k;
+  });
 }
+
+// mutate(cur) edits the server's copy of the match in place; returning false
+// refuses the write (e.g. someone else already claimed it).
+async function _umpMutate(mId, mutate, tries = 0) {
+  const key = _uKeys[mId];
+  if (key === undefined) return { ok: false, reason: 'missing' };
+  let reason = '';
+  _uPendingAdd(1);
+  try {
+    const res = await firebase.database().ref(`sportsday_2026_data/ongoingMatches/${key}`).transaction(cur => {
+      if (!cur || cur.id !== mId) { reason = 'moved'; return; }
+      if (mutate(cur) === false) { reason = 'refused'; return; }
+      reason = '';
+      return cur;
+    });
+    if (res.committed) return { ok: true };
+  } catch (e) {
+    console.error('umpire write failed:', e);
+    reason = reason || 'error';
+  } finally {
+    _uPendingAdd(-1);
+  }
+  if (reason === 'moved' && tries < 4) {
+    // the slot changed under us — refresh the id→slot map and try the new slot
+    const snap = await firebase.database().ref('sportsday_2026_data/ongoingMatches').once('value');
+    _uIndexOngoing(snap.val());
+    return _umpMutate(mId, mutate, tries + 1);
+  }
+  return { ok: false, reason: reason === 'moved' ? 'missing' : (reason || 'error') };
+}
+
+// Submit Game 2: history + team scores + removal from the court list, as ONE
+// atomic transaction on the server's current data. Safe to retry: a result that
+// is already recorded is never counted twice.
+async function _umpFinalize(entry, pRed, pBlue, tries = 0) {
+  let reason = '', existing = null;
+  _uPendingAdd(1);
+  try {
+    const res = await dbRef.transaction(root => {
+      if (!root) { reason = 'no-snapshot'; return; }        // never write from an empty cache
+      const ong = smToArr(root.ongoingMatches), hist = smToArr(root.matchHistory);
+      existing = hist.find(h => h && h.id === entry.id) || null;
+      if (existing) { reason = 'already'; return; }          // recorded already — don't count twice
+      if (!ong.some(m => m && m.id === entry.id)) { reason = 'missing'; return; }
+      reason = '';
+      root.globalScoreRed  = (Number(root.globalScoreRed)  || 0) + pRed;
+      root.globalScoreBlue = (Number(root.globalScoreBlue) || 0) + pBlue;
+      root.matchHistory    = [...hist, entry];
+      root.ongoingMatches  = ong.filter(m => m && m.id !== undefined && m.id !== entry.id);
+      return root;
+    });
+    if (res.committed) return { ok: true };
+  } catch (e) {
+    console.error('finalize failed:', e);
+    reason = reason || 'error';
+  } finally {
+    _uPendingAdd(-1);
+  }
+  if (reason === 'no-snapshot' && tries < 2) {
+    await dbRef.once('value');
+    return _umpFinalize(entry, pRed, pBlue, tries + 1);
+  }
+  return { ok: false, reason: reason || 'error', existing };
+}
+
+// "This match is gone" — shown once, however many writes notice it.
+let _uClosedShown = false;
+function _uMatchClosed() {
+  if (_uClosedShown || _isConfirming) return;
+  _uClosedShown = true;
+  showAlert('⚠️', 'แมตช์ถูกปิดแล้ว', 'แมตช์นี้ถูกปิดหรือดึงผลไปแล้วครับ').then(() => exitMatch());
+}
+function _uWriteFailed(reason) {
+  if (reason === 'refused') return;                  // e.g. paused on the server — nothing to do
+  if (reason === 'missing') return _uMatchClosed();
+  showAlert('⚠️', 'ส่งคะแนนไม่สำเร็จ', 'ลองกดอีกครั้ง — ถ้ายังไม่ได้ให้แจ้งแอดมิน');
+}
+
+// ==========================================
+// CONNECTION — say so when offline, count writes still waiting to reach the server
+// ==========================================
+// Firebase queues writes while offline and sends them when the signal returns
+// — but only while this page stays open. So the umpire must know.
+const _uLoadedAt = Date.now();
+let _uOnline = false, _uEverOnline = false, _uPending = 0;
+function _uPendingAdd(d) { _uPending = Math.max(0, _uPending + d); _uRenderNet(); }
+function _uRenderNet() {
+  const offline = !_uOnline && (_uEverOnline || Date.now() - _uLoadedAt > 3000);
+  document.body.classList.toggle('is-offline', offline);
+  const txt = offline
+    ? `📶 ออฟไลน์ — แต้มที่กดจะส่งเองเมื่อสัญญาณกลับ · อย่าปิดหรือรีเฟรชหน้านี้${_uPending ? ` · รอส่ง ${_uPending}` : ''}`
+    : '';
+  document.querySelectorAll('.net-banner').forEach(el => { el.textContent = txt; });
+  // on the scoring screen the banner floats just under the top bar
+  const sb = document.querySelector('#screen-scoring > .net-banner');
+  const tb = document.querySelector('.scoring-topbar');
+  if (sb) sb.style.top = (tb && tb.offsetParent ? tb.offsetHeight : 0) + 'px';
+}
+firebase.database().ref('.info/connected').on('value', s => {
+  _uOnline = s.val() === true;
+  if (_uOnline) _uEverOnline = true;
+  _uRenderNet();
+});
+setTimeout(_uRenderNet, 3500);   // never connected after a few seconds → say so
 
 // ==========================================
 // FULLSCREEN
@@ -65,7 +180,7 @@ document.addEventListener('webkitfullscreenchange', onFsChange);
 function onFsChange() {
   const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
   // Update all FS buttons
-  document.querySelectorAll('.topbar-btn#btnFs, #liFsBtn').forEach(btn => {
+  document.querySelectorAll('.topbar-btn#btnFs, #liFsBtn, #navFsBtn').forEach(btn => {
     btn.classList.toggle('fs-active', isFs);
     btn.textContent = isFs ? '⤢' : '⛶';
   });
@@ -148,8 +263,15 @@ function restoreSession() {
   }
 }
 
+function _uEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+// "ก้อง (G2) & มิ้น (G2)" → "ก้อง & มิ้น": the group suffix is noise on a phone
+// (the scoreboard app strips it too); names are escaped, the "&" is styled.
 function formatNames(names) {
-  return names.replace(' & ', ' <span style="color:var(--muted);font-size:0.88em;font-weight:600;">&</span> ');
+  return String(names || '').split(' & ')
+    .map(n => _uEsc(n.replace(/\s*\(G\d\)/g, '').trim()))
+    .join(' <span style="color:var(--muted);font-size:0.88em;font-weight:600;">&amp;</span> ');
 }
 
 // ── Player faces (read-only) ──────────────────────────────────
@@ -276,7 +398,9 @@ async function logoutUmpire() {
     releaseWakeLock();
     currentUmpire = '';
     activeMatchId = '';
-    localStorage.clear();
+    // only this page's keys — clear() also wiped the scoreboard app's role and
+    // "me" choice for anyone using the same phone for both
+    ['bdm_umpire_name', 'bdm_umpire_match', 'bdm_umpire_tab'].forEach(k => localStorage.removeItem(k));
     document.getElementById('umpireNav').style.display = 'none';
     switchScreen('screen-login');
     renderUmpireList();
@@ -291,6 +415,7 @@ function switchScreen(id) {
   document.body.className = '';
   if (id === 'screen-login')   document.body.classList.add('is-login');
   if (id === 'screen-scoring') document.body.classList.add('is-scoring');
+  _uRenderNet();   // className reset above drops is-offline — put it back
 }
 
 function goToTab(tabName) {
@@ -311,9 +436,7 @@ function updateCurrentScreen() {
   if (s('screen-finished')) renderFinishedList();
   if (s('screen-scoring')) {
     if (activeMatchId && !appState.ongoingMatches.find(m => m.id === activeMatchId)) {
-      if (!_isConfirming) { // ถ้า confirmMatch กำลัง handle อยู่ → skip modal ซ้ำ
-        showAlert('⚠️', 'แมตช์ถูกปิดแล้ว', 'แมตช์นี้ถูกปิดหรือดึงผลไปแล้วครับ').then(() => exitMatch());
-      }
+      _uMatchClosed();   // once only; skipped while confirmMatch is handling it
     } else {
       renderGameUI();
     }
@@ -499,8 +622,8 @@ function renderMatchList() {
               ? '<span class="badge badge-mine">▶ คุมต่อ</span>'
               : '<span class="badge" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,192,64,0.3);">✦ ว่างอยู่</span>'}
           </div>
-          <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${m.redNames}</span></div>
-          <div class="team-row">${umpirePairFaces(m.b1, m.b2, 30)}<span style="color:var(--blue);">${m.blueNames}</span></div>
+          <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${formatNames(m.redNames)}</span></div>
+          <div class="team-row">${umpirePairFaces(m.b1, m.b2, 30)}<span style="color:var(--blue);">${formatNames(m.blueNames)}</span></div>
         </div>`;
     } else {
       list.innerHTML += `
@@ -551,11 +674,14 @@ function renderFinishedList() {
     const resultColor = rWon ? 'var(--red)' : bWon ? 'var(--blue)' : 'var(--gold)';
     const [g1r, g1b] = (m.game1 || '0:0').split(':');
     const [g2r, g2b] = (m.game2 || '0:0').split(':');
-    const [rP1, rP2] = m.redNames.split(' & ');
-    const [bP1, bP2] = m.blueNames.split(' & ');
+    // cleaned + escaped, like formatNames: no "(G2)" suffixes on a phone
+    const _nm = s => String(s || '').split(' & ').map(n => _uEsc(n.replace(/\s*\(G\d\)/g, '').trim()));
+    const [rP1, rP2] = _nm(m.redNames);
+    const [bP1, bP2] = _nm(m.blueNames);
     const rScoreColor = rWon ? 'var(--red)'  : bWon ? 'rgba(255,77,77,0.4)'  : 'var(--red)';
     const bScoreColor = bWon ? 'var(--blue)' : rWon ? 'rgba(77,159,255,0.4)' : 'var(--blue)';
-    const resultLabel = m.result.replace(/[🔴🔵🤝]/g, '').trim();
+    // one malformed history row must not take down the whole list
+    const resultLabel = _uEsc(String(m.result || '').replace(/[🔴🔵🤝]/g, '').trim());
 
     list.innerHTML += `
       <div class="finished-card" style="border-color:${resultColor}22;">
@@ -599,14 +725,38 @@ function renderFinishedList() {
 // 7. SCORING SYSTEM
 // ==========================================
 function selectMatch(mId) {
+  const m = appState.ongoingMatches.find(x => x.id === mId);
+  if (!m) return;
+  if (m.umpire && m.umpire !== currentUmpire) {
+    showAlert('🔒', 'แมตช์นี้มีกรรมการแล้ว', `${m.umpire} กำลังคุมแมตช์นี้อยู่`);
+    return;
+  }
   activeMatchId = mId;
   localStorage.setItem('bdm_umpire_match', mId);
+  _uClosedShown = false;
 
-  const m = appState.ongoingMatches.find(x => x.id === mId);
+  // Claim it. Shown right away; the transaction refuses if another umpire
+  // claimed it first (two phones tapping the same free match used to both win).
+  const blankLive = { g1R:0, g1B:0, g2R:0, g2B:0, g1Locked:false, isPaused:false, elapsedMs:0 };
   m.umpire = currentUmpire;
-  if (!m.live) m.live = { g1R:0, g1B:0, g2R:0, g2B:0, g1Locked:false, isPaused:false, elapsedMs:0 };
+  if (!m.live) m.live = { ...blankLive };
   if (!m.timerStartedAt) m.timerStartedAt = Date.now();
-  saveMatch(mId); // เขียนเฉพาะคอร์ทนี้
+  const startedAt = m.timerStartedAt;
+  let takenBy = '';
+  _umpMutate(mId, cur => {
+    if (cur.umpire && cur.umpire !== currentUmpire) { takenBy = cur.umpire; return false; }
+    takenBy = '';
+    cur.umpire = currentUmpire;
+    if (!cur.live) cur.live = { ...blankLive };
+    if (!cur.timerStartedAt) cur.timerStartedAt = startedAt;
+  }).then(r => {
+    if (r.ok) return;
+    if (r.reason === 'refused' && takenBy) {
+      showAlert('🔒', 'มีกรรมการรับแมตช์นี้ไปแล้ว', `${takenBy} กดรับแมตช์นี้ก่อนคุณเล็กน้อย`).then(() => exitMatch());
+    } else {
+      _uWriteFailed(r.reason);
+    }
+  });
 
   document.getElementById('umpireNav').style.display = 'none';
   document.getElementById('activeMatchInfo').textContent = `${m.id} | ${currentUmpire}`;
@@ -627,7 +777,10 @@ function selectMatch(mId) {
   }
 }
 
-let _scoreLocked = false;
+// Only a finger bounce (two fires within ~90ms) is ignored. Taps used to be
+// blocked until the server answered the previous one, so a quick double-tap
+// counted once and, with no signal, every tap after the first did nothing.
+const _tapAt = {};
 
 function addRipple(el, e) {
   const rect = el.getBoundingClientRect();
@@ -642,17 +795,19 @@ function addRipple(el, e) {
 }
 
 function updateScore(team, delta, event) {
-  if (_scoreLocked) return;
+  const now = Date.now(), tapKey = team + delta;
+  if (now - (_tapAt[tapKey] || 0) < 90) return;
+  _tapAt[tapKey] = now;
 
+  if (_isConfirming) return;              // result is being submitted
   const match = appState.ongoingMatches.find(m => m.id === activeMatchId);
-  if (!match || (match.live && match.live.isPaused)) return;
+  if (!match || !match.live || match.live.isPaused) return;
 
   const gameKey = !isGame2
     ? (team === 'red' ? 'g1R' : 'g1B')
     : (team === 'red' ? 'g2R' : 'g2B');
-
-  const matchIdx = appState.ongoingMatches.findIndex(m => m.id === activeMatchId);
-  if (matchIdx === -1) return;
+  const curVal = Number(match.live[gameKey] || 0);
+  if (delta < 0 && curVal <= 0) return;   // nothing to take back
 
   // Ripple on button
   const btnId = delta > 0
@@ -669,28 +824,18 @@ function updateScore(team, delta, event) {
   if (delta === 1) vibrateDevice([22]);
   else vibrateDevice([12, 8, 12]);
 
-  _scoreLocked = true;
-
-  const scoreRef = firebase.database().ref(`sportsday_2026_data/ongoingMatches/${matchIdx}/live/${gameKey}`);
-  scoreRef.transaction((currentVal) => {
-    const cur  = currentVal === null ? 0 : Number(currentVal);
-    const next = cur + delta;
-    return next < 0 ? 0 : next;
-  }, (error, committed, snapshot) => {
-    _scoreLocked = false;
-    if (error || !committed) return;
-    if (appState.ongoingMatches[matchIdx]) {
-      appState.ongoingMatches[matchIdx].live[gameKey] = snapshot.val();
-      checkEpicPossible(appState.ongoingMatches[matchIdx]);
-      firebase.database().ref(`sportsday_2026_data/ongoingMatches/${matchIdx}/potFlags`)
-        .set(appState.ongoingMatches[matchIdx].potFlags || {});
-    }
-  });
-
-  // Optimistic UI
-  const curLocal = Number(match.live[gameKey] || 0);
-  match.live[gameKey] = Math.max(0, curLocal + delta);
+  // Optimistic UI — shown now; the transaction below is the source of truth
+  match.live[gameKey] = Math.max(0, curVal + delta);
+  checkEpicPossible(match);
   renderGameUI();
+
+  // one transaction on this match (point + comeback flags together), found by id
+  _umpMutate(activeMatchId, cur => {
+    cur.live = cur.live || {};
+    if (cur.live.isPaused) return false;
+    cur.live[gameKey] = Math.max(0, Number(cur.live[gameKey] || 0) + delta);
+    checkEpicPossible(cur);
+  }).then(r => { if (!r.ok) _uWriteFailed(r.reason); });
 
   // Score pop animation
   const elId = team === 'red' ? 'scoreRed' : 'scoreBlue';
@@ -742,9 +887,14 @@ function renderGameUI() {
   // muted until the game reads as a valid finish (still tappable: warn-then-allow)
   const submitBtn = document.getElementById('btnSubmitGame');
   if (submitBtn) {
-    submitBtn.textContent = isGame2 ? 'SUBMIT GAME 2' : 'SUBMIT GAME 1';
-    submitBtn.classList.toggle('is-ready', isValidBadmintonScore(curR, curB));
+    submitBtn.disabled = _isConfirming;
+    submitBtn.textContent = _isConfirming ? '⏳ กำลังส่งผล…' : (isGame2 ? 'SUBMIT GAME 2' : 'SUBMIT GAME 1');
+    submitBtn.classList.toggle('is-ready', !_isConfirming && isValidBadmintonScore(curR, curB));
   }
+
+  // the whole half-screen is the +1 button — say so, but only at 0–0
+  const scr = document.getElementById('screen-scoring');
+  if (scr) scr.classList.toggle('fresh-game', curR === 0 && curB === 0);
 
   // landscape game label
   const liInd = document.getElementById('liGameInd');
@@ -842,7 +992,8 @@ async function lockGame1() {
     _lastScored = null;   // new game — no last point / server yet
     vibrateDevice([40, 30, 60]);
     renderGameUI();
-    saveMatch(activeMatchId); // lock G1 → เขียนเฉพาะคอร์ทนี้
+    _umpMutate(activeMatchId, cur => { cur.live = cur.live || {}; cur.live.g1Locked = true; })
+      .then(r => { if (!r.ok) _uWriteFailed(r.reason); });
   }
 }
 
@@ -884,7 +1035,14 @@ function togglePause() {
     document.getElementById('pauseOverlay').classList.add('show');
   }
 
-  saveMatch(activeMatchId); // pause/resume → เขียนเฉพาะคอร์ทนี้
+  // write just the pause fields, on this match (found by id)
+  const pausePatch = {
+    isPaused:       !!match.live.isPaused,
+    pauseStartedAt: match.live.pauseStartedAt || null,
+    totalPauseMs:   match.live.totalPauseMs || 0,
+  };
+  _umpMutate(activeMatchId, cur => { cur.live = cur.live || {}; Object.assign(cur.live, pausePatch); })
+    .then(r => { if (!r.ok) _uWriteFailed(r.reason); });
   renderGameUI();
 }
 
@@ -984,7 +1142,14 @@ async function confirmMatch() {
   });
 
   if (ok) {
+    // Finalizing needs the server: a queued offline result would be lost if the
+    // phone is locked or the page closed before the signal returns.
+    if (!_uOnline) {
+      await showAlert('📶', 'ยังส่งผลไม่ได้', 'ตอนนี้ไม่มีสัญญาณ — รอสัญญาณกลับมาแล้วกด SUBMIT อีกครั้ง\nคะแนนยังอยู่ครบในเครื่องนี้');
+      return;
+    }
     _isConfirming = true; // ป้องกัน updateCurrentScreen แสดง modal ซ้ำ
+    renderGameUI();       // → "กำลังส่งผล…" on the submit button
     let rWin=0, bWin=0;
     if(g1r>g1b)rWin++;else if(g1b>g1r)bWin++;else{rWin+=0.5;bWin+=0.5;}
     if(g2r>g2b)rWin++;else if(g2b>g2r)bWin++;else{rWin+=0.5;bWin+=0.5;}
@@ -1005,26 +1170,33 @@ async function confirmMatch() {
 
     let matchDuration = m.timerStartedAt ? Date.now() - m.timerStartedAt : 0;
 
-    appState.globalScoreRed  = (appState.globalScoreRed||0)  + pRed;
-    appState.globalScoreBlue = (appState.globalScoreBlue||0) + pBlue;
-
     const analysis = analyzeSkillGap(g1r, g1b, g2r, g2b, rStat, m.potFlags||{});
-
-    appState.matchHistory.push({
+    const entry = JSON.parse(JSON.stringify({
       id:m.id, round:m.round, r1:m.r1, r2:m.r2, b1:m.b1, b2:m.b2,
       redNames:m.redNames, blueNames:m.blueNames,
       game1:`${g1r}:${g1b}`, game2:`${g2r}:${g2b}`,
       result:resText, pRed, pBlue, rStat, bStat, duration:matchDuration,
       analysis:{...analysis, potFlags:m.potFlags||{}},
       umpire:currentUmpire
-    });
+    }));
 
-    appState.ongoingMatches = appState.ongoingMatches.filter(x => x.id !== m.id);
-    saveData();
-    vibrateDevice([60, 40, 60, 40, 120]);
+    // history + team scores + court list, atomically, on the server's current data
+    const r = await _umpFinalize(entry, pRed, pBlue);
+    const sameResult = r.existing && r.existing.game1 === entry.game1 && r.existing.game2 === entry.game2;
 
-    await showAlert('✅', 'ส่งผลแล้ว!', resText);
-    _isConfirming = false;
-    exitMatch();
+    if (r.ok || (r.reason === 'already' && sameResult)) {
+      vibrateDevice([60, 40, 60, 40, 120]);
+      await showAlert('✅', 'ส่งผลแล้ว!', resText);
+      _isConfirming = false;
+      exitMatch();
+    } else if (r.reason === 'already' || r.reason === 'missing') {
+      await showAlert('ℹ️', 'แมตช์นี้ถูกบันทึกผลไปแล้ว', 'แอดมินบันทึกผลหรือปิดแมตช์นี้ไปก่อน — ผลจากเครื่องนี้จึงไม่ถูกส่งซ้ำ');
+      _isConfirming = false;
+      exitMatch();
+    } else {
+      _isConfirming = false;
+      renderGameUI();
+      await showAlert('⚠️', 'ส่งผลไม่สำเร็จ', 'ลองกด SUBMIT อีกครั้ง — คะแนนยังอยู่ครบ');
+    }
   }
 }

@@ -54,9 +54,16 @@ let _prevMatchHistoryLength = -1; // -1 = ยังไม่ init
 let _notiDismissTimer       = null;
 let _adminJustFinalized     = false;
 
+// The server state this client last saw — the "base" of the 3-way merge every
+// save performs (see shared/sync-merge.js). Captured from each snapshot BEFORE
+// any local change is applied to it.
+let _syncBase = null;
+function _cloneData(v) { return v == null ? null : JSON.parse(JSON.stringify(v)); }
+
 function loadData() {
   dbRef.once('value').then(snapshot => {
     const data = snapshot.val();
+    _syncBase = _cloneData(data);
     if (data) appState = data;
     seedDefaultPlayers(appState);
     if (!appState.ongoingMatches) appState.ongoingMatches = [];
@@ -99,6 +106,7 @@ dbRef.on('value', (snapshot) => {
     console.warn('dbRef.on: received null data — keeping current appState');
     return;
   }
+  _syncBase = _cloneData(data);   // before the command handling below mutates it
 
   const prevLen = _prevMatchHistoryLength;
   const newHistory = data.matchHistory || [];
@@ -111,12 +119,7 @@ dbRef.on('value', (snapshot) => {
   // ── GAME1_DONE — แสดงแค่ indicator เล็กๆ บน court card ไม่ต้อง popup ใหญ่ ──
   if (appState.remoteCommand && appState.remoteCommand.action === 'GAME1_DONE') {
     const cmd = appState.remoteCommand;
-    appState.remoteCommand = null;
-    if (userRole === 'admin' || userRole === 'superadmin') {
-      saveData(true);
-    } else {
-      dbRef.child('remoteCommand').set(null);
-    }
+    _clearRemoteCommand(cmd);
     // แสดง toast เล็กๆ แทน popup ใหญ่
     const g1r = Number(cmd.g1R || 0), g1b = Number(cmd.g1B || 0);
     const g1WinnerText = g1r > g1b ? '🔴 Red' : g1b > g1r ? '🔵 Blue' : '🤝 เสมอ';
@@ -125,13 +128,8 @@ dbRef.on('value', (snapshot) => {
 
   // ── SHOW_TROPHY ──
   else if (appState.remoteCommand && appState.remoteCommand.action === 'SHOW_TROPHY') {
-    appState.remoteCommand = null;
-    // ต้อง write null กลับ Firebase ทันที ป้องกัน re-trigger ทุก score update
-    if (userRole === 'admin' || userRole === 'superadmin') {
-      saveData(true);
-    } else {
-      dbRef.child('remoteCommand').set(null);
-    }
+    // ต้อง clear กลับ Firebase ทันที ป้องกัน re-trigger ทุก score update
+    _clearRemoteCommand(appState.remoteCommand);
     if (document.getElementById('trophyOverlay').style.display !== 'block') {
       openEndGame();
     }
@@ -141,10 +139,9 @@ dbRef.on('value', (snapshot) => {
   else if ((userRole === 'admin' || userRole === 'superadmin') &&
            appState.remoteCommand && appState.remoteCommand.action === 'FINALIZE') {
     const cmd = appState.remoteCommand;
-    appState.remoteCommand = null;
+    _clearRemoteCommand(cmd);
     _adminJustFinalized = true;
-    saveData(true);
-    autoFinalizeMatchFromUmpire(cmd);
+    autoFinalizeMatchFromUmpire(cmd);   // saves through the merge
   }
 
   // ── MATCH END: popup เมื่อ matchHistory เพิ่มขึ้น ──
@@ -212,33 +209,66 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function saveData(immediate = false) {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return;
+// ── Saving: a conflict-safe 3-way merge, committed as one transaction ──
+// This used to be dbRef.set(appState): the whole blob from this device's copy.
+// Umpires score on the same data, so any point / result / command that landed
+// on the server after our last snapshot was silently reverted by the next
+// admin action. Now the save merges base (last seen) + local (ours) + server
+// (current) — see shared/sync-merge.js — and Firebase re-runs the merge if the
+// server moves before it commits. Saves are always immediate: a delayed save
+// could be overtaken by a snapshot that replaces appState and loses the edit.
+// The `immediate` / key arguments are kept for the existing call sites.
+function saveData() { return _commitMerge(null); }
+function saveKeys(keys) { return _commitMerge(Array.isArray(keys) && keys.length ? keys : null); }
+
+function _commitMerge(onlyKeys) {
+  if (userRole !== 'admin' && userRole !== 'superadmin') return Promise.resolve(false);
   // ป้องกัน write appState เปล่าทับ Firebase — ต้องมี players อย่างน้อย
   if (!appState.players || appState.players.length === 0) {
-    console.warn('saveData blocked: appState.players empty — possible partial state');
-    return;
+    console.warn('save blocked: appState.players empty — possible partial state');
+    return Promise.resolve(false);
   }
-  clearTimeout(_saveTimer);
-  const doSave = () => { dbRef.set(appState); };
-  if (immediate) doSave(); else _saveTimer = setTimeout(doSave, 400);
+  // freeze both sides now: the write below fires the listener, which replaces appState
+  return _runMerge(_cloneData(_syncBase), _cloneData(appState), onlyKeys, 1);
 }
 
-// เขียนเฉพาะ top-level key ที่เปลี่ยน (dbRef.update) แทนการ set ทั้งก้อน
-// ป้องกันการทับ subtree อื่น เช่น ongoingMatches ที่กรรมการกำลังเขียนคะแนนสดอยู่
-let _saveKeysTimer = null;
-function saveKeys(keys, immediate = false) {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return;
-  if (!appState.players || appState.players.length === 0) {
-    console.warn('saveKeys blocked: appState.players empty — possible partial state');
-    return;
-  }
-  const patch = {};
-  keys.forEach(k => { if (appState[k] !== undefined) patch[k] = appState[k]; });
-  if (Object.keys(patch).length === 0) return;
-  clearTimeout(_saveKeysTimer);
-  const doSave = () => { dbRef.update(patch); };
-  if (immediate) doSave(); else _saveKeysTimer = setTimeout(doSave, 400);
+function _runMerge(base, local, onlyKeys, attempt) {
+  let why = '';
+  return dbRef.transaction(server => {
+    if (base === null) {
+      // we never received a snapshot: only a truly empty database (first run)
+      // may be initialised from this device — never merge "defaults" into real data
+      if (server === null) return smSanitize(local);
+      why = 'no-base'; return;
+    }
+    if (server === null) { why = 'no-snapshot'; return; }   // never write from an empty cache
+    const merged = smMergeState(base, local, server, onlyKeys);
+    if (smToArr(server.players).length && !smToArr(merged.players).length) { why = 'players-vanished'; return; }
+    return merged;
+  }).then(res => {
+    if (res.committed) return true;
+    if (why === 'no-snapshot' && attempt < 3) {
+      return dbRef.once('value').then(() => _runMerge(base, local, onlyKeys, attempt + 1));
+    }
+    console.error('save aborted:', why || 'unknown');
+    showToast(why === 'no-base' ? '⚠️ ข้อมูลยังโหลดไม่เสร็จ — รอสักครู่แล้วลองใหม่' : '⚠️ บันทึกไม่สำเร็จ — ลองอีกครั้ง', 'error');
+    return false;
+  }).catch(err => {
+    console.error('save failed:', err);
+    showToast('⚠️ บันทึกไม่สำเร็จ: ' + (err && (err.code || err.message) || err), 'error');
+    return false;
+  });
+}
+
+// Clear a remote command only if it is still the one we handled — a newer
+// command that arrived meanwhile must survive. The local copy and the merge
+// base both drop it too, so no later merge-save writes remoteCommand at all.
+function _clearRemoteCommand(cmd) {
+  if (appState) appState.remoteCommand = null;
+  if (_syncBase) _syncBase.remoteCommand = null;
+  const same = c => c && cmd && c.action === cmd.action && c.mId === cmd.mId;
+  return dbRef.child('remoteCommand').transaction(cur => (same(cur) ? null : undefined))
+    .catch(e => console.warn('clear remoteCommand failed:', e));
 }
 
 function clearData() {

@@ -6,7 +6,7 @@
 // NOTE: Firebase Realtime DB traffic is WebSocket (not fetch),
 // so live data still needs a connection — this only caches the shell.
 // ============================================================
-const CACHE = 'bdm2026-shell-v12';
+const CACHE = 'bdm2026-shell-v13';
 
 const SHELL = [
     "./",
@@ -64,6 +64,7 @@ const SHELL = [
     "js/vendor/qrcode.min.js",
     "shared/firebase-config.js",
     "shared/pwa.js",
+    "shared/sync-merge.js",
     "umpire/umpire.js",
     "icons/icon-192.png",
     "icons/icon-512.png",

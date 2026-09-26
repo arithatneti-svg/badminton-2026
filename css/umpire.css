@@ -1425,3 +1425,45 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   padding:10px 24px; animation:pulse 1.5s ease infinite;
 }
 @media (prefers-reduced-motion:reduce){ #vsIntro, #vsIntro *{ animation:none !important; } }
+
+/* ══════════════════════════════════════════
+   Safety & clarity additions
+   ══════════════════════════════════════════ */
+
+/* Fullscreen lives in the nav now — the floating button sat on top of 🚪 and
+   swallowed taps meant for "change umpire". (Login and scoring have their own.) */
+#fsBtn { display: none !important; }
+.btn-nav-fs {
+  flex-shrink: 0; min-height: 52px; min-width: 52px; padding: 0;
+  border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+  background: var(--surface2); color: var(--text2); font-size: 1.1rem; cursor: pointer;
+  transition: transform .1s, background .15s;
+}
+.btn-nav-fs.fs-active { color: var(--gold); border-color: rgba(240,192,64,.4); }
+.btn-nav-fs:active { transform: scale(.94); }
+@media (max-width: 420px) {
+  /* four controls on a phone-width bar: tighten the tabs so nothing overflows */
+  #umpireNav { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  #umpireNav .nav-tabs { gap: 6px; min-width: 0; }
+  #umpireNav .tab-btn { padding: 14px 6px; font-size: .95rem; min-width: 0; }
+}
+
+/* Offline — Firebase queues writes while offline, but only while the page
+   stays open, so the umpire must know. Never blocks taps. */
+.net-banner { display: none; }
+body.is-offline .net-banner {
+  display: block; padding: 8px 14px; text-align: center; pointer-events: none;
+  font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: .2px;
+  color: #fff; background: rgba(220,38,38,.94); box-shadow: 0 6px 18px -8px rgba(0,0,0,.6);
+}
+/* on the scoring grid it floats just under the top bar instead of taking a row */
+#screen-scoring > .net-banner { position: absolute; left: 0; right: 0; top: 0; z-index: 5; }
+
+/* the whole half-screen is the +1 button — hint it, only at 0–0 */
+.tap-hint { display: none; }
+#screen-scoring.fresh-game .tap-hint {
+  display: block; margin-top: 6px; font-size: 13px; font-weight: 700; letter-spacing: .5px;
+  color: rgba(255,255,255,.55); animation: tapHint 1.8s ease-in-out infinite;
+}
+@keyframes tapHint { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { #screen-scoring.fresh-game .tap-hint { animation: none; } }

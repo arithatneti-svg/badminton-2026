@@ -19,6 +19,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Umpire">
 <script defer src="shared/pwa.js"></script>
+<script defer src="shared/sync-merge.js"></script>
 <script defer src="umpire/umpire.js"></script>
 </head>
 <body class="is-login">
@@ -70,8 +71,11 @@
     <button class="tab-btn active" id="tab-live" onclick="goToTab('live')">🟢 LIVE</button>
     <button class="tab-btn" id="tab-finished" onclick="goToTab('finished')">🏁 FINISHED</button>
   </div>
-  <button class="btn-logout" onclick="logoutUmpire()">🚪</button>
+  <!-- fullscreen lives in the bar: the old floating button sat on top of 🚪 -->
+  <button class="btn-nav-fs" id="navFsBtn" onclick="toggleFullScreen()" title="เต็มจอ" aria-label="เต็มจอ">⛶</button>
+  <button class="btn-logout" onclick="logoutUmpire()" title="เปลี่ยนกรรมการ / ออกจากระบบ" aria-label="เปลี่ยนกรรมการ">🚪</button>
 </div>
+<div class="net-banner" role="status" aria-live="polite"></div>
 
 <!-- ============================================================
      🔐 LOGIN SCREEN
@@ -169,6 +173,7 @@
     <button class="topbar-btn" id="btnFs" onclick="toggleFullScreen()">⛶</button>
     <button class="topbar-btn" id="btnPause" onclick="togglePause()">⏸</button>
   </div>
+  <div class="net-banner" role="status" aria-live="polite"></div>
 
   <!-- RED PANEL -->
   <div class="score-panel red" id="redPanel">
@@ -176,6 +181,7 @@
     <div class="score-center-col">
       <div class="team-name-score" style="color:var(--red);" id="redNames">RED TEAM</div>
       <div class="score-number" style="color:var(--red);" id="scoreRed">0</div>
+      <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
     <button class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนน Red">−</button>
   </div>
@@ -191,6 +197,7 @@
     <div class="score-center-col">
       <div class="team-name-score" style="color:var(--blue);" id="blueNames">BLUE TEAM</div>
       <div class="score-number" style="color:var(--blue);" id="scoreBlue">0</div>
+      <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
     <button class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนน Blue">−</button>
   </div>

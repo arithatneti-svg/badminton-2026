@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node build.mjs",
     "dev": "node scripts/serve.mjs . 5173",
-    "preview": "npm run build && node scripts/serve.mjs dist 4173"
+    "preview": "npm run build && node scripts/serve.mjs dist 4173",
+    "test": "node scripts/test-sync-merge.mjs"
   },
   "repository": {
     "type": "git",
