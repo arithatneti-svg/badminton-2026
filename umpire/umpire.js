@@ -149,7 +149,7 @@ async function _sendResult(entry, pRed, pBlue) {
     if (first.done) return first.done;
     const question = showConfirm('⏳', 'ส่งนานกว่าปกติ',
       'สัญญาณอาจไม่ดี — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้ ถ้าออกตอนนี้ ระบบจะส่งต่อเองเมื่อสัญญาณกลับ',
-      { confirmLabel: 'ลองใหม่', cancelLabel: 'ออก — ส่งต่อเอง' });
+      { confirmLabel: 'ลองใหม่', cancelLabel: 'ออก — ส่งต่อเอง', noEscape: true });   // leaving here is a real choice, so Esc must not make it
     const out = await Promise.race([question.then(choice => ({ choice })), late]);
     if (out.done) { _modalDone(null); return out.done; }       // it got through while we were asking
     if (!out.choice) return { ok: false, reason: 'abandoned' };
@@ -715,12 +715,42 @@ function vibrateDevice(pattern) {
 // CUSTOM MODAL — fullscreen-safe แทน alert/confirm
 // ==========================================
 let _modalResolve = null;
+let _modalReturnFocus = null;   // what had the focus before the box opened (it gets it back)
+let _modalEscape = null;        // { v } — what Esc answers; null = Esc does nothing (a question with no safe way out)
+
+// Every box goes through here: the screen reader is told it is a dialog (role/aria-modal/labels are on #modalBox
+// in umpire.html), the focus moves INTO it — onto the SAFE button, so Enter is never "yes, do it" — Tab stays
+// inside, and Esc answers `escapeWith` when given. Before, the focus stayed on the page behind and the
+// two buttons looked alike.
+function _modalOpen(escapeWith) {
+  const a = document.activeElement;
+  _modalReturnFocus = a && a !== document.body ? a : null;
+  _modalEscape = escapeWith === undefined ? null : { v: escapeWith };
+  document.getElementById('customModal').classList.add('open');
+  const box = document.getElementById('modalBox');
+  const first = box.querySelector('[data-safe]') || box.querySelector('#modalBtns button');
+  if (first) first.focus({ preventScroll: true });
+}
+document.addEventListener('keydown', e => {
+  const modal = document.getElementById('customModal');
+  if (!modal || !modal.classList.contains('open')) return;
+  if (e.key === 'Escape') {
+    if (_modalEscape) { e.preventDefault(); _modalDone(_modalEscape.v); }
+  } else if (e.key === 'Tab') {
+    const f = [...modal.querySelectorAll('button')].filter(b => !b.disabled && b.offsetParent !== null);
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && (i < 0 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+  }
+});
 
 /**
- * showAlert(icon, title, body) → Promise<void>
- * showConfirm(icon, title, body, {confirmLabel, confirmClass, cancelLabel, scoreHtml}) → Promise<bool>
+ * showAlert(icon, title, body, okLabel) → Promise<void>   (Esc = the OK button)
+ * showConfirm(icon, title, body, {confirmLabel, confirmClass, cancelLabel, scoreHtml, noEscape}) → Promise<bool>
+ *   the cancel button is the safe one: first, plain, and it has the focus. Esc cancels, unless noEscape.
  */
-function showAlert(icon, title, body) {
+function showAlert(icon, title, body, okLabel) {
   return new Promise(resolve => {
     _modalResolve = resolve;
     document.getElementById('modalIcon').textContent = icon;
@@ -729,8 +759,8 @@ function showAlert(icon, title, body) {
     document.getElementById('modalScorePreview').style.display = 'none';
     const btns = document.getElementById('modalBtns');
     btns.className = 'modal-btns';
-    btns.innerHTML = `<button class="modal-btn modal-btn-ok" onclick="_modalDone(true)">ตกลง</button>`;
-    document.getElementById('customModal').classList.add('open');
+    btns.innerHTML = `<button class="modal-btn modal-btn-ok" data-safe onclick="_modalDone(true)">${_uEsc(okLabel || 'ตกลง')}</button>`;
+    _modalOpen(true);
   });
 }
 
@@ -753,19 +783,24 @@ function showConfirm(icon, title, body, opts = {}) {
     const confirmClass = opts.confirmClass || 'modal-btn-confirm';
     const cancelLabel  = opts.cancelLabel  || 'ยกเลิก';
 
+    // side by side when both labels are short; one above the other when a label is long or the phone is narrow
+    // (a two-line label squeezed into half a 320 px box was the old "รับ/เพิ่ม" wrap). A landscape phone is wide enough.
+    const stack = window.innerWidth < 340 || (Math.max(cancelLabel.length, confirmLabel.length) > 9 && window.innerWidth < 500);
     const btns = document.getElementById('modalBtns');
-    btns.className = 'modal-btns two-col';
+    btns.className = 'modal-btns two-col' + (stack ? ' stack' : '');
     btns.innerHTML = `
-      <button class="modal-btn modal-btn-cancel" onclick="_modalDone(false)">${cancelLabel}</button>
-      <button class="modal-btn ${confirmClass}" onclick="_modalDone(true)">${confirmLabel}</button>
+      <button class="modal-btn modal-btn-cancel" data-safe onclick="_modalDone(false)">${_uEsc(cancelLabel)}</button>
+      <button class="modal-btn ${confirmClass}" onclick="_modalDone(true)">${_uEsc(confirmLabel)}</button>
     `;
-    document.getElementById('customModal').classList.add('open');
+    _modalOpen(opts.noEscape ? undefined : false);
   });
 }
 
 function _modalDone(result) {
   document.getElementById('customModal').classList.remove('open');
   document.getElementById('modalBox').classList.remove('is-courts');
+  const back = _modalReturnFocus; _modalReturnFocus = null; _modalEscape = null;
+  if (back && document.contains(back) && back.offsetParent !== null) back.focus({ preventScroll: true });
   if (_modalResolve) { _modalResolve(result); _modalResolve = null; }
 }
 
@@ -983,8 +1018,8 @@ function showCourtPicker(m, current, cancelLabel) {
     document.getElementById('modalBox').classList.add('is-courts');   // wide + short layout on a landscape phone
     const btns = document.getElementById('modalBtns');
     btns.className = 'modal-btns';
-    btns.innerHTML = `<button class="modal-btn modal-btn-cancel" onclick="_modalDone(0)">${cancelLabel || 'ยกเลิก'}</button>`;
-    document.getElementById('customModal').classList.add('open');
+    btns.innerHTML = `<button class="modal-btn modal-btn-cancel" data-safe onclick="_modalDone(0)">${_uEsc(cancelLabel || 'ยกเลิก')}</button>`;
+    _modalOpen(0);
   });
 }
 // picker + the "this court already has a match" check; resolves to a court number, or 0 when cancelled
