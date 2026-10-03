@@ -335,6 +335,26 @@ function _tvBoardPages() {
   return Math.max(1, Math.ceil(_tvStandings().length / _tvBoardPerPage()));
 }
 
+// Same idea for the live grid. _tvGridPlan() guesses from the court count; the screen has the last word.
+// A 55-inch TV at 1080p never needs more than the plan, but a 720p projector with 5–6 courts did: three rows
+// of cards did not fit (1280 × 720: 527 px of room, 609 px of cards), so the top row sat on the heading and
+// the bottom row on the footer. Once the grid is on the page it is measured, and while any card is outside
+// the room the grid has, it steps down one notch: regular → compact (faces and team names dropped, smaller
+// type, narrower cards, so more across) → tight (smaller again). It only ever steps down, so nothing that
+// already fits changes. Runs in the same task as the render, so there is no flash.
+function _tvFitGrid(el) {
+  const grid = el.querySelector('.tv-live-grid');
+  if (!grid) return;
+  const outside = () => {
+    const g = grid.getBoundingClientRect();
+    return [...grid.children].some(c => { const r = c.getBoundingClientRect(); return r.top < g.top - 1 || r.bottom > g.bottom + 1; });
+  };
+  for (const step of ['is-compact', 'is-tight']) {
+    if (!outside()) return;
+    grid.classList.add(step);
+  }
+}
+
 function _tvFootHtml() {
   const dots = TV_PANELS.map((_, i) => `<span class="tv-dot ${i === _tvPanel ? 'on' : ''}"></span>`).join('');
   return `<div class="tv-foot"><div class="tv-dots">${dots}</div><div class="tv-sync${_tvOfflineSince ? ' off' : ''}" id="tvSync">${_tvSyncInner()}</div><div class="tv-brand">Badminton Sports Day 2026</div></div>`;
@@ -585,6 +605,7 @@ function renderTvPanel(force) {
   _tvLastKey = key;
   el.innerHTML = html + _tvFootHtml();
   if (panel === 'board') _tvFitBoard(el);
+  else if (panel === 'live') _tvFitGrid(el);
 }
 
 // ── Fullscreen for TV / projector ──
@@ -654,6 +675,13 @@ function _tvBindFsControls() {
     document.addEventListener(ev, _tvSyncFsBtn));
   ['mousemove', 'touchstart', 'keydown'].forEach(ev =>
     document.addEventListener(ev, () => { if (_tvActive) _tvPokeIdle(); }, { passive: true }));
+  // the fits above are measured, so a new size (entering full screen, a projector changing mode) needs a new measurement
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    if (!_tvActive) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => renderTvPanel(true), 300);
+  });
   document.addEventListener('keydown', (e) => {
     if (!_tvActive) return;
     if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleTvFullscreen(); }

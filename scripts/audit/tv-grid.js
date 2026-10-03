@@ -59,6 +59,10 @@
     const rects = cards.map(R);
     out.cols = new Set(rects.map((r) => Math.round(r.left))).size; out.rows = new Set(rects.map((r) => Math.round(r.top))).size;
     out.w = Math.round(rects[0].width); out.h = Math.round(rects[0].height);
+    // which size the fit settled on, and how far the top row reaches up onto the heading (0 = clear)
+    const gridEl = document.querySelector(".tv-live-grid");
+    out.fit = gridEl ? (gridEl.classList.contains("is-tight") ? "tight" : gridEl.classList.contains("is-compact") ? "compact" : "regular") : null;
+    out.ontoHeading = Math.max(0, Math.round((head ? R(head).bottom : 0) - Math.min(...rects.map((r) => r.top))));
     const hit = (p, o) => p.left < o.right - 2 && p.right > o.left + 2 && p.top < o.bottom - 2 && p.bottom > o.top + 2;
     cards.forEach((c, i) => {
       const cr = rects[i];
