@@ -290,6 +290,28 @@ function adminSetCourt(mId, val) {
   renderAdminOngoingMatches();    // put the picker back to the saved value until the save (or the cancel) settles
 }
 
+// "ปล่อยแมตช์" — an umpire took a match and walked away: give it back to the queue so someone else can take it.
+// A score already counted is thrown away, so the dialog says so and points to Force Result instead.
+function adminReleaseMatch(mId) {
+  if (userRole !== 'admin' && userRole !== 'superadmin') return;
+  const m = (appState.ongoingMatches || []).find(x => x && x.id === mId);
+  if (!m || !m.umpire) return;
+  const seen = matchLastActivityAt(m), lv = m.live || {};
+  const pts = (Number(lv.g1R) || 0) + (Number(lv.g1B) || 0) + (Number(lv.g2R) || 0) + (Number(lv.g2B) || 0);
+  const score = pts
+    ? ` คะแนนที่นับไว้ (G1 ${lv.g1R || 0}–${lv.g1B || 0}${lv.g1Locked ? ` · G2 ${lv.g2R || 0}–${lv.g2B || 0}` : ''}) จะหายไป — ถ้าต้องการเก็บผล ให้ใช้ Force Result แทน`
+    : '';
+  showConfirmDialog(`ปล่อย ${mId}${m.court ? ' (คอร์ต ' + m.court + ')' : ''} กลับเข้าคิว? กรรมการ ${m.umpire} จะหลุดจากแมตช์นี้.${score}`, () => {
+    releaseMatch(mId, seen).then(r => {
+      if (r.ok) return showToast(`↩ ปล่อย ${mId} กลับเข้าคิวแล้ว`, 'success');
+      const msg = r.reason === 'active' ? `⚠️ ${mId} เพิ่งมีความเคลื่อนไหว — ยังไม่ปล่อย ลองดูสถานะอีกครั้ง`
+        : (r.reason === 'already' || r.reason === 'missing') ? `ℹ️ ${mId} ไม่ได้อยู่ในสถานะที่ปล่อยได้แล้ว`
+        : '⚠️ ปล่อยแมตช์ไม่สำเร็จ — ลองอีกครั้ง';
+      showToast(msg, 'error');
+    });
+  });
+}
+
 function renderAdminOngoingMatches() {
   const c = document.getElementById('adminOngoingMatchesContainer'); if (!c) return;
   document.getElementById('ongoingCount').textContent = appState.ongoingMatches.length;
@@ -323,6 +345,7 @@ function renderAdminOngoingMatches() {
         </div>
         ${isLive ? `<div class="match-court-row">${matchStatusHtml(m)}${courtSelectHtml(m)}</div>` : ''}
         <div class="match-footer">
+          ${isLive ? `<button class="btn btn-sm" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border2);" onclick="adminReleaseMatch('${m.id}')" title="ให้กรรมการหลุดจากแมตช์นี้ แล้วกลับเข้าคิว">↩ ปล่อยแมตช์</button>` : ''}
           <button class="btn btn-info btn-sm" onclick="openResultModal('${m.id}')">⚡ Force Result</button>
           <button class="btn btn-danger btn-sm" onclick="removeOngoingMatch('${m.id}')">🗑 Delete</button>
         </div>

@@ -96,7 +96,9 @@ async function _umpFinalize(entry, pRed, pBlue, tries = 0) {
       const ong = smToArr(root.ongoingMatches), hist = smToArr(root.matchHistory);
       existing = hist.find(h => h && h.id === entry.id) || null;
       if (existing) { reason = 'already'; return; }          // recorded already — don't count twice
-      if (!ong.some(m => m && m.id === entry.id)) { reason = 'missing'; return; }
+      const cur = ong.find(m => m && m.id === entry.id);
+      if (!cur) { reason = 'missing'; return; }
+      if (cur.umpire !== currentUmpire) { reason = 'taken'; return; }   // released by an admin / taken by someone else
       reason = '';
       root.globalScoreRed  = (Number(root.globalScoreRed)  || 0) + pRed;
       root.globalScoreBlue = (Number(root.globalScoreBlue) || 0) + pBlue;
@@ -124,6 +126,18 @@ function _uMatchClosed() {
   if (_uClosedShown || _isConfirming) return;
   _uClosedShown = true;
   showAlert('⚠️', 'แมตช์ถูกปิดแล้ว', 'แมตช์นี้ถูกปิดหรือดึงผลไปแล้วครับ').then(() => exitMatch());
+}
+// "This match is no longer yours" — an admin gave it back to the queue (an umpire walked away), or
+// someone else took it afterwards. Same once-only rule. Every write is also refused on the server
+// while the match belongs to someone else, so a phone that has not heard yet cannot write into it.
+function _uMatchReleased(m) {
+  if (_uClosedShown || _isConfirming) return;
+  _uClosedShown = true;
+  const back = !m.umpire;
+  showAlert(back ? '↩️' : '🔒',
+    back ? 'แมตช์นี้ถูกปล่อยแล้ว' : 'แมตช์นี้มีกรรมการคนอื่นแล้ว',
+    back ? 'แอดมินปล่อยแมตช์นี้กลับเข้าคิว — คะแนนที่นับไว้ไม่ถูกบันทึก\nถ้ายังต้องคุม เลือกแมตช์นี้จากรายการอีกครั้ง'
+         : `${m.umpire} กำลังคุมแมตช์นี้อยู่`).then(() => exitMatch());
 }
 function _uWriteFailed(reason) {
   if (reason === 'refused') return;                  // e.g. paused on the server — nothing to do
@@ -235,8 +249,11 @@ function restoreSession() {
   const savedTab = localStorage.getItem('bdm_umpire_tab') || 'live';
 
   if (currentUmpire) {
-    if (activeMatchId && appState.ongoingMatches.find(m => m.id === activeMatchId)) {
+    // only a match that is still ours: one given back to the queue (or taken by someone else) while this
+    // phone was closed must not be re-entered — a point there would be written into someone else's match
+    if (activeMatchId && appState.ongoingMatches.find(m => m.id === activeMatchId && m.umpire === currentUmpire && m.live)) {
       const m = appState.ongoingMatches.find(m => m.id === activeMatchId);
+      _uOwned = m.id;
       isGame2 = m.live && m.live.g1Locked;
       document.getElementById('umpireNav').style.display = 'none';
       switchScreen('screen-scoring');
@@ -428,6 +445,7 @@ function goToTab(tabName) {
 }
 
 let _isConfirming = false; // ป้องกัน double-alert race condition ตอน confirmMatch
+let _uOwned = '';          // id of the match the server has confirmed as ours (so "released" is never guessed from a claim still in flight)
 
 function updateCurrentScreen() {
   const s = id => document.getElementById(id).classList.contains('active');
@@ -435,10 +453,16 @@ function updateCurrentScreen() {
   if (s('screen-live'))     renderMatchList();
   if (s('screen-finished')) renderFinishedList();
   if (s('screen-scoring')) {
-    if (activeMatchId && !appState.ongoingMatches.find(m => m.id === activeMatchId)) {
+    const am = activeMatchId && appState.ongoingMatches.find(m => m.id === activeMatchId);
+    if (activeMatchId && !am) {
       _uMatchClosed();   // once only; skipped while confirmMatch is handling it
-    } else {
+    } else if (am && am.umpire === currentUmpire) {
+      _uOwned = am.id;   // the server confirms this match is ours
       renderGameUI();
+    } else if (am && _uOwned === am.id) {
+      _uMatchReleased(am);   // it was ours and is not any more (given back to the queue, or taken)
+    } else {
+      renderGameUI();    // our claim has not reached the server yet — nothing to conclude
     }
   }
 }
@@ -770,7 +794,7 @@ async function changeCourt() {
   if (!n || n === m.court) return;
   m.court = n;
   renderGameUI();
-  _umpMutate(activeMatchId, cur => { cur.court = n; }).then(r => { if (!r.ok) _uWriteFailed(r.reason); });
+  _umpMutate(activeMatchId, cur => { if (cur.umpire !== currentUmpire) return false; cur.court = n; }).then(r => { if (!r.ok) _uWriteFailed(r.reason); });
 }
 // top bar text: "คอร์ต 3 · M05 | ชื่อกรรมการ" — the court part is the button that changes it
 let _matchInfoKey = '';
@@ -917,6 +941,7 @@ function updateScore(team, delta, event) {
 
   // one transaction on this match (point + comeback flags together), found by id
   _umpMutate(activeMatchId, cur => {
+    if (cur.umpire !== currentUmpire) return false;   // released by an admin / taken by someone else: never write into it
     cur.live = cur.live || {};
     if (cur.live.isPaused) return false;
     cur.live[gameKey] = Math.max(0, Number(cur.live[gameKey] || 0) + delta);
@@ -949,7 +974,7 @@ function checkEpicPossible(match) {
 
 function renderGameUI() {
   const match = appState.ongoingMatches.find(m => m.id === activeMatchId);
-  if (!match) return;
+  if (!match || !match.live) return;   // no live data: given back to the queue, or our claim has not arrived yet
   setMatchInfo(match);   // an admin may have set / changed the court from the other app
 
   document.getElementById('scoreRed').textContent  = isGame2 ? (match.live.g2R||0) : (match.live.g1R||0);
@@ -1083,7 +1108,7 @@ async function lockGame1() {
     _lastScored = null;   // new game — no last point / server yet
     vibrateDevice([40, 30, 60]);
     renderGameUI();
-    _umpMutate(activeMatchId, cur => { cur.live = cur.live || {}; cur.live.g1Locked = true; cur.live.lastAt = at; })
+    _umpMutate(activeMatchId, cur => { if (cur.umpire !== currentUmpire) return false; cur.live = cur.live || {}; cur.live.g1Locked = true; cur.live.lastAt = at; })
       .then(r => { if (!r.ok) _uWriteFailed(r.reason); });
   }
 }
@@ -1134,7 +1159,7 @@ function togglePause() {
     totalPauseMs:   match.live.totalPauseMs || 0,
     lastAt:         match.live.lastAt,
   };
-  _umpMutate(activeMatchId, cur => { cur.live = cur.live || {}; Object.assign(cur.live, pausePatch); })
+  _umpMutate(activeMatchId, cur => { if (cur.umpire !== currentUmpire) return false; cur.live = cur.live || {}; Object.assign(cur.live, pausePatch); })
     .then(r => { if (!r.ok) _uWriteFailed(r.reason); });
   renderGameUI();
 }
@@ -1142,6 +1167,7 @@ function togglePause() {
 function exitMatch() {
   releaseWakeLock();
   activeMatchId = '';
+  _uOwned = '';
   localStorage.removeItem('bdm_umpire_match');
   // Exit fullscreen on leave
   const exitFs = document.exitFullscreen || document.webkitExitFullscreen;
@@ -1287,6 +1313,10 @@ async function confirmMatch() {
       exitMatch();
     } else if (r.reason === 'already' || r.reason === 'missing') {
       await showAlert('ℹ️', 'แมตช์นี้ถูกบันทึกผลไปแล้ว', 'แอดมินบันทึกผลหรือปิดแมตช์นี้ไปก่อน — ผลจากเครื่องนี้จึงไม่ถูกส่งซ้ำ');
+      _isConfirming = false;
+      exitMatch();
+    } else if (r.reason === 'taken') {
+      await showAlert('🔒', 'แมตช์นี้ไม่ได้อยู่กับคุณแล้ว', 'แอดมินปล่อยแมตช์นี้ หรือกรรมการคนอื่นรับไปแล้ว — ผลจากเครื่องนี้จึงไม่ถูกส่ง');
       _isConfirming = false;
       exitMatch();
     } else {

@@ -262,6 +262,31 @@ function setMatchField(mId, field, value) {
     .catch(err => { console.error('setMatchField failed:', err); return false; });
 }
 
+// Give a taken match back to the queue (its umpire walked away): the umpire, the live score, the clock, the
+// court and the claim time are removed, so it is an ordinary queued match again. One transaction, by id.
+// seenActivityAt is the last sign of life the admin was looking at: if the match has shown any since
+// (a point scored while the confirm dialog was open), nothing is released.
+// → { ok, reason } with reason 'active' | 'already' | 'missing' | 'no-snapshot' | 'error'
+function releaseMatch(mId, seenActivityAt) {
+  if (userRole !== 'admin' && userRole !== 'superadmin') return Promise.resolve({ ok: false, reason: 'role' });
+  let why = '';
+  return dbRef.transaction(root => {
+    if (!root) { why = 'no-snapshot'; return; }
+    const list = smToArr(root.ongoingMatches);
+    const i = list.findIndex(m => m && m.id === mId);
+    if (i < 0) { why = 'missing'; return; }
+    const cur = list[i];
+    if (!cur.umpire) { why = 'already'; return; }
+    if (matchLastActivityAt(cur) > (Number(seenActivityAt) || 0)) { why = 'active'; return; }
+    const queued = { ...cur };
+    ['umpire', 'live', 'timerStartedAt', 'claimedAt', 'court', 'potFlags'].forEach(k => { delete queued[k]; });
+    list[i] = queued;
+    root.ongoingMatches = list;
+    return root;
+  }).then(res => ({ ok: !!res.committed, reason: res.committed ? '' : (why || 'error') }))
+    .catch(err => { console.error('releaseMatch failed:', err); return { ok: false, reason: 'error' }; });
+}
+
 function _commitMerge(onlyKeys) {
   if (userRole !== 'admin' && userRole !== 'superadmin') return Promise.resolve(false);
   // ป้องกัน write appState เปล่าทับ Firebase — ต้องมี players อย่างน้อย

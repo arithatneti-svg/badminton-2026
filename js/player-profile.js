@@ -19,12 +19,16 @@ const AWARDS = [
   { id: 'marathon_fighter', title: 'Marathon Fighter', subtitle: 'Most time on court',      criteria: { dynamic: 'marathon' } },
 ];
 
+// A badminton match is over well inside this: no single match counts for more, so one that was left open
+// (a duration recorded before play time was measured properly) can no longer decide the award on its own.
+const MARATHON_CAP_MS = 90 * 60 * 1000;
+
 // Player(s) with the most total time on court — sum of match durations across
-// matchHistory. Ties all win; nobody wins if no match carries a duration.
+// matchHistory, each capped at MARATHON_CAP_MS. Ties all win; nobody wins if no match carries a duration.
 function marathonWinnerIds() {
   const total = {};
   (appState.matchHistory || []).forEach(h => {
-    const d = Number(h.duration) || 0;
+    const d = Math.min(Number(h.duration) || 0, MARATHON_CAP_MS);
     if (d <= 0) return;
     [h.r1, h.r2, h.b1, h.b2].forEach(id => { if (id) total[id] = (total[id] || 0) + d; });
   });
