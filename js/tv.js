@@ -107,6 +107,7 @@ function _tvHealth() {
   }
   const chip = document.getElementById('tvSync');
   if (chip) { chip.classList.toggle('off', offline); chip.innerHTML = _tvSyncInner(); }
+  _tvPatchStatus();
   if (offline) {
     const offFor = now - _tvOfflineSince;
     if (offFor >= TV_RECOVERY.reconnectAfterMs && now - _tvReconnectAt >= TV_RECOVERY.reconnectAfterMs) {
@@ -143,7 +144,34 @@ function _tvClimaxLevel(m) {
 }
 // LIVE = a match an umpire has claimed (it has live data) — the same rule as the viewer's
 // _liveMatches(). Matches still waiting in the queue are not on court, so they are not counted.
-function _tvLiveList() { return (appState.ongoingMatches || []).filter(m => m && m.id && m.live); }
+// Sorted by court number so the grid reads like the hall (matches without a court keep their order,
+// after the numbered ones).
+function _tvLiveList() {
+  return (appState.ongoingMatches || []).filter(m => m && m.id && m.live)
+    .map((m, i) => ({ m, i }))
+    .sort((a, b) => ((Number(a.m.court) || 99) - (Number(b.m.court) || 99)) || (a.i - b.i))
+    .map(x => x.m);
+}
+// "คอร์ต 3" as a gold pill — the thing a viewer looks for first; nothing when no court was chosen
+function _tvCourtPill(m) { return m.court ? `<b class="tv-court">${escHtml(courtLabel(m))}</b>` : ''; }
+// "พักเกม" / "ไม่มีความเคลื่อนไหว 12 นาที" hanging on the card — it ages with the clock, not with data
+// (a stuck court sends nothing), so _tvPatchStatus refreshes it from the health timer
+function _tvStatusHtml(m, now) {
+  const tag = matchStatusTag(m, now);
+  return `<span class="tv-status${matchLooksStuck(m, now) ? ' stuck' : ''}">${escHtml(tag)}</span>`;
+}
+function _tvPatchStatus() {
+  const now = Date.now();
+  document.querySelectorAll('#tvView [data-mid]').forEach(card => {
+    const el = card.querySelector('.tv-status'); if (!el) return;
+    const m = (appState.ongoingMatches || []).find(x => x && x.id === card.dataset.mid); if (!m) return;
+    const tag = matchStatusTag(m, now);
+    if (el.textContent !== tag) el.textContent = tag;
+    el.classList.toggle('stuck', matchLooksStuck(m, now));
+  });
+}
+// what makes a live card or hero need rebuilding (a court change, the first point, a new game, a climax)
+function _tvMKey(m) { const s = _tvScore(m); return `${m.id}:${m.court || 0}:${s.g2on ? 2 : 1}:${s.notStarted ? 0 : 1}:${_tvClimaxLevel(m)}`; }
 // every hot court, deuce before climax — so a takeover can cycle through them
 function _tvClimaxList() {
   return _tvLiveList()
@@ -345,7 +373,7 @@ function _tvVsHeroHtml(m, countHtml) {
                 : cx === 1 ? `<span class="tv-vs-climax">🔥 CLIMAX</span>` : '';
   return `<div class="tv-panel tv-vs-panel${cx ? ' is-climax' : ''}" data-mid="${escHtml(m.id)}">
     <div class="tv-vs-top">
-      <span class="tv-vs-court">🟢 ${escHtml(m.id)}</span>
+      <span class="tv-vs-court">🟢 ${_tvCourtPill(m)}${escHtml(m.id)}</span>
       ${m.round ? `<span class="tv-vs-round">ROUND ${escHtml(String(m.round))}</span>` : ''}
       <span class="tv-vs-game">${s.g2on ? 'GAME 2' : 'GAME 1'}</span>
       ${cxBadge}
@@ -362,6 +390,7 @@ function _tvVsHeroHtml(m, countHtml) {
           ? `<div class="tv-vs-nowplaying">NOW<br>PLAYING</div>`
           : `<div class="tv-vs-score"><span class="red">${s.cr}</span><span class="sep">:</span><span class="blue">${s.cb}</span></div>`}
         <div class="tv-vs-g1">${s.g2on ? `G1 · ${s.g1r}–${s.g1b}` : (s.notStarted ? 'พร้อมแข่ง' : '')}</div>
+        ${_tvStatusHtml(m)}
       </div>
       <div class="tv-vs-side blue">
         ${_tvTag('blue')}
@@ -392,7 +421,8 @@ function _tvGridHtml(live) {
     const cxCls = cx === 2 ? ' is-deuce' : cx === 1 ? ' is-climax' : '';
     const cxTag = cx === 2 ? ' · ⚡' : cx === 1 ? ' · 🔥' : '';
     return `<div class="tv-live-card${cxCls}" data-mid="${escHtml(m.id)}">
-      <div class="tv-live-id">🟢 ${escHtml(m.id)} · ${s.g2on ? 'G2' : 'G1'}${cxTag}</div>
+      ${_tvStatusHtml(m)}
+      <div class="tv-live-id">🟢 ${_tvCourtPill(m)}${escHtml(m.id)} · ${s.g2on ? 'G2' : 'G1'}${cxTag}</div>
       <div class="tv-live-teams">
         <div class="tv-lt red">${_tvTag('red')}<span class="tv-faces">${[m.r1, m.r2].map(id => avatarHtml(id, 44)).join('')}</span>${escHtml(_tvStrip(m.redNames))}</div>
         <div class="tv-live-score">${s.notStarted
@@ -457,6 +487,7 @@ function _tvPatchHero(el, m) {
   const rEl = el.querySelector('.tv-vs-score .red');  if (rEl) rEl.textContent = s.cr;
   const bEl = el.querySelector('.tv-vs-score .blue'); if (bEl) bEl.textContent = s.cb;
   const g1El = el.querySelector('.tv-vs-g1'); if (g1El && s.g2on) g1El.textContent = `G1 · ${s.g1r}–${s.g1b}`;
+  _tvPatchStatus();
 }
 function _tvPatchGrid(el, live) {
   live.forEach(m => {
@@ -467,6 +498,7 @@ function _tvPatchGrid(el, live) {
     const bEl = card.querySelector('.tv-live-score .blue'); if (bEl) bEl.textContent = s.cb;
     const gEl = card.querySelector('.tv-live-games'); if (gEl && s.g2on) gEl.textContent = `G1 · ${s.g1r}–${s.g1b}`;
   });
+  _tvPatchStatus();
 }
 
 // Transient full-screen announcement: a match finished, or a game 1 wrapped up.
@@ -511,7 +543,7 @@ function renderTvPanel(force) {
     const hot = _tvClimaxList();
     if (hot.length) {
       const m = hot[_tvClimaxIdx % hot.length];
-      const key = `hero|${m.id}|${_tvScore(m).g2on ? 2 : 1}|${_tvClimaxLevel(m)}|${_tvNamesKey()}`;
+      const key = `hero|${_tvMKey(m)}|${_tvNamesKey()}`;
       if (!force && key === _tvLastKey && el.querySelector('.tv-vs-panel[data-mid]')) { _tvPatchHero(el, m); return; }
       _tvLastKey = key;
       const count = hot.length > 1 ? `<div class="tv-vs-count">🔥 ${ (_tvClimaxIdx % hot.length) + 1 } / ${hot.length} คอร์ตกำลังเดือด</div>` : '';
@@ -536,11 +568,11 @@ function renderTvPanel(force) {
       html = `<div class="tv-panel tv-vs-panel"><div class="tv-heading">🟢 LIVE</div><div class="tv-empty">ยังไม่มีแมตช์กำลังแข่ง</div></div>`;
     } else if (live.length === 1) {
       const m = live[0];
-      key = `hero|${m.id}|${_tvScore(m).g2on ? 2 : 1}|${_tvClimaxLevel(m)}|${_tvNamesKey()}`;
+      key = `hero|${_tvMKey(m)}|${_tvNamesKey()}`;
       if (!force && key === _tvLastKey && el.querySelector('.tv-vs-panel[data-mid]')) { _tvPatchHero(el, m); return; }
       html = _tvVsHeroHtml(m);
     } else {
-      key = 'grid|' + _tvNamesKey() + '|' + live.map(m => `${m.id}:${_tvScore(m).g2on ? 2 : 1}:${_tvClimaxLevel(m)}`).join(',');
+      key = 'grid|' + _tvNamesKey() + '|' + live.map(_tvMKey).join(',');
       if (!force && key === _tvLastKey && el.querySelector('.tv-live-grid')) { _tvPatchGrid(el, live); return; }
       html = _tvGridHtml(live);
     }

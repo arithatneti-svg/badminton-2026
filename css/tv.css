@@ -80,6 +80,26 @@ body.tv-mode { --blue: #7cb7ff; --blue-glow: rgba(124,183,255,0.45); --blue-dim:
 .tv-live-score .red { color: var(--red); } .tv-live-score .blue { color: var(--blue); } .tv-live-score .sep { color: var(--muted); margin: 0 .12em; }
 .tv-live-games { text-align: center; color: var(--muted); font-size: clamp(13px, 1.3vw, 22px); font-weight: 600; }
 
+/* court number — the first thing a viewer looks for — and the status label (พักเกม / ไม่มีความเคลื่อนไหว) */
+.tv-court {
+  display: inline-block; margin-right: .45em; padding: 0 .5em; border-radius: .45em;
+  font-family: 'Space Grotesk', 'Rajdhani', sans-serif; font-weight: 800; letter-spacing: 0; line-height: 1.25;
+  color: #14120a; background: var(--gold);
+}
+.tv-live-card { position: relative; }
+/* hangs on the card's top edge, so it never changes the card's height — a grid that fits still fits */
+.tv-status {
+  position: absolute; top: 0; right: clamp(12px, 1.6vw, 28px); transform: translateY(-55%); z-index: 1;
+  padding: 0 .7em; border-radius: 999px; white-space: nowrap;
+  font-size: clamp(12px, 1.15vw, 20px); font-weight: 800; letter-spacing: 0; line-height: 1.5;
+  color: #14120a; background: var(--gold);
+}
+.tv-status.stuck { background: #FF8A8A; }
+.tv-status:empty { display: none; }
+/* single court: no card to hang on — a line under the score, its space kept so nothing jumps */
+.tv-vs-mid .tv-status { position: static; transform: none; align-self: center; min-height: 1.5em; font-size: clamp(14px, 1.6vw, 28px); }
+.tv-vs-mid .tv-status:empty { display: block; visibility: hidden; }
+
 /* ── Leaderboard ── */
 .tv-board { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: clamp(8px, 1.4vh, 20px); max-width: 1100px; margin: 0 auto; width: 100%; }
 .tv-board-row {

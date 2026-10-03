@@ -68,6 +68,16 @@
       const three = [c.querySelector(".tv-lt.red"), c.querySelector(".tv-live-score"), c.querySelector(".tv-lt.blue")].filter(Boolean).map(R);
       for (let a = 0; a < three.length; a++) for (let b = a + 1; b < three.length; b++) if (hit(three[a], three[b])) out.innerOverlaps++;
     });
+    // status labels hang on the card's top edge: they must not touch another card or the heading, or leave their own card sideways
+    const labels = [...document.querySelectorAll(".tv-live-card .tv-status")].filter((e) => e.textContent.trim());
+    out.statusLabels = labels.length; out.statusHitsCard = 0; out.statusOverHeading = 0; out.statusOverflowRight = 0;
+    const headBottom = head ? R(head).bottom : 0;
+    labels.forEach((s) => {
+      const sr = R(s), own = s.closest(".tv-live-card"), ownR = R(own);
+      cards.forEach((c, j) => { if (c !== own && hit(sr, rects[j])) out.statusHitsCard++; });
+      if (sr.top < headBottom - 1) out.statusOverHeading++;
+      if (sr.right > ownR.right + 1 || sr.left < ownR.left - 1) out.statusOverflowRight++;
+    });
     const lowest = Math.max(...rects.map((r) => r.bottom));
     out.intoFooter = Math.max(0, Math.round(lowest - footTop)); out.belowViewport = Math.max(0, Math.round(lowest - vh));
     return out;
