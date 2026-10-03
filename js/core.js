@@ -126,6 +126,9 @@ function loadData() {
     if ((userRole === 'admin' || userRole === 'superadmin') && data === null) {
       console.warn('loadData: Firebase returned null — NOT saving to prevent data loss');
     }
+    // "⭐ ชื่อฉัน" was saved to this phone but never read back, so it vanished at every refresh (S-05):
+    // read it now that the player list is here (it also drops an id from a past season)
+    if (typeof loadMe === 'function') loadMe();
     _dataDone();
     updateUI();
   }).catch(err => {

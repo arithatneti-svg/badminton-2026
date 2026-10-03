@@ -33,6 +33,9 @@
   display: flex;
 }
 
+/* the Dashboard is a staff screen: a viewer in full screen used to get a button that opened an empty page (S-06).
+   Not .admin-only: that one is display:revert for a super-admin, which would drop this button's flex layout. */
+body.guest-mode .fs-admin-only { display: none !important; }
 .fs-nav-btn {
   display: flex;
   flex-direction: column;
