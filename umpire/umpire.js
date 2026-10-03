@@ -883,10 +883,18 @@ async function selectMatch(mId) {
   }
 }
 
-// Only a finger bounce (two fires within ~90ms) is ignored. Taps used to be
-// blocked until the server answered the previous one, so a quick double-tap
-// counted once and, with no signal, every tap after the first did nothing.
-const _tapAt = {};
+// Two taps on the same button closer than TAP_GATE.sameSideMs (umpire/tap-gate.js, 400 ms) count once.
+// The old guard was 90 ms: it caught a finger bounce but not a person's double-tap (150-300 ms), while real
+// points are seconds apart. Taps are never held back for the server: the first one counts at once and shows
+// at once; the gate only drops the repeat, and says so (a long double buzz and a blink of the number —
+// the "+1" buzz is one short pulse, the "−" buzz two quick ones, so the three can be told apart by feel).
+const _tapState = {};
+const TAP_IGNORED_BUZZ = [45, 55, 45];
+function _tapIgnored(team) {
+  vibrateDevice(TAP_IGNORED_BUZZ);
+  const el = document.getElementById(team === 'red' ? 'scoreRed' : 'scoreBlue');
+  if (el) { el.classList.remove('ignored'); void el.offsetWidth; el.classList.add('ignored'); }
+}
 
 function addRipple(el, e) {
   const rect = el.getBoundingClientRect();
@@ -901,9 +909,7 @@ function addRipple(el, e) {
 }
 
 function updateScore(team, delta, event) {
-  const now = Date.now(), tapKey = team + delta;
-  if (now - (_tapAt[tapKey] || 0) < 90) return;
-  _tapAt[tapKey] = now;
+  const now = Date.now();
 
   if (_isConfirming) return;              // result is being submitted
   const match = appState.ongoingMatches.find(m => m.id === activeMatchId);
@@ -914,6 +920,10 @@ function updateScore(team, delta, event) {
     : (team === 'red' ? 'g2R' : 'g2B');
   const curVal = Number(match.live[gameKey] || 0);
   if (delta < 0 && curVal <= 0) return;   // nothing to take back
+
+  // the repeat of a tap that already counted (checked last, so a tap that could not count anyway
+  // never starts a gate window)
+  if (!tapGate(_tapState, team + delta, now).ok) { _tapIgnored(team); return; }
 
   // Ripple on button
   const btnId = delta > 0

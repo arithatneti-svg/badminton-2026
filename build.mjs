@@ -32,7 +32,7 @@ const JS = [
 ];
 
 const UMP_CSS = ['css/umpire.css'];
-const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/sync-merge.js','shared/match-time.js','umpire/umpire.js'];
+const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/sync-merge.js','shared/match-time.js','umpire/tap-gate.js','umpire/umpire.js'];
 
 const ICONS = readdirSync(join(root,'icons')).filter(f => f.endsWith('.png'));
 const COPY = ['manifest.webmanifest','umpire.webmanifest', ...ICONS.map(f => `icons/${f}`)];
@@ -127,7 +127,7 @@ async function build() {
   }));
   writeFileSync(join(DIST, 'umpire.html'), rewriteHtml('umpire.html', {
     cssHref: 'assets/umpire.css', jsHref: 'assets/umpire.js',
-    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|shared\/match-time\.js|umpire\/umpire\.js)"><\/script>$/,
+    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|shared\/match-time\.js|umpire\/tap-gate\.js|umpire\/umpire\.js)"><\/script>$/,
   }));
 
   // static copies + generated sw

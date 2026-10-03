@@ -71,6 +71,7 @@ const SHELL = [
     "shared/pwa.js",
     "shared/version.js",
     "shared/sync-merge.js",
+    "umpire/tap-gate.js",
     "umpire/umpire.js",
     "icons/icon-192.png",
     "icons/icon-512.png",

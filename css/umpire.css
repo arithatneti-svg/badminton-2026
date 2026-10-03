@@ -773,6 +773,10 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   text-align: center;
 }
 .score-number.pop { animation: score-pop 0.22s ease; }
+/* a tap that was ignored as a repeat: the number blinks once, so it is clear the phone saw it (iPhone has no vibration) */
+.score-number.ignored { animation: tapIgnored 0.3s ease; }
+@keyframes tapIgnored { 0%, 100% { opacity: 1; } 35% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .score-number.ignored { animation: none; } }
 .score-panel.shake { animation: shake 0.35s ease; }
 
 /* ── MINUS — small pill button, bottom-left corner ── */
