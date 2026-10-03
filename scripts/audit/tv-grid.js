@@ -43,6 +43,7 @@
     return out;
   };
   A.tvFreeze = (panel) => {
+    if (!(appState.players && appState.players.length)) throw new Error("data not loaded yet - wait for the players before freezing the listener");
     try { dbRef.off(); } catch (e) {}
     A.guard();
     clearInterval(_tvTimer);

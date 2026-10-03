@@ -50,7 +50,9 @@ function _tvClimaxLevel(m) {
   const g2 = lv.g1Locked ? chk(Number(lv.g2R || 0), Number(lv.g2B || 0), false) : 0;
   return Math.max(g1, g2);
 }
-function _tvLiveList() { return (appState.ongoingMatches || []).filter(m => m && m.id); }
+// LIVE = a match an umpire has claimed (it has live data) — the same rule as the viewer's
+// _liveMatches(). Matches still waiting in the queue are not on court, so they are not counted.
+function _tvLiveList() { return (appState.ongoingMatches || []).filter(m => m && m.id && m.live); }
 // every hot court, deuce before climax — so a takeover can cycle through them
 function _tvClimaxList() {
   return _tvLiveList()
