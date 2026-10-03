@@ -176,24 +176,25 @@ try {
     <span id="dbDotLabel">...</span>
   </span>
   <div class="nav-tabs">
-    <button class="tab-btn" id="tab-scoreboard" onclick="switchTab('scoreboard', this)">Scoreboard</button>
-    <button class="tab-btn" id="tab-ongoing" onclick="switchTab('ongoing', this)">🟢 Ongoing <span id="navOngoingBadge" style="display:none;background:var(--green);color:#000;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
-    <button class="tab-btn" id="tab-finished" onclick="switchTab('finished', this)">🏁 Finished <span id="navFinishedBadge" style="display:none;background:var(--muted);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
-    <button class="tab-btn" id="tab-players" onclick="switchTab('players', this)">👤 Players</button>
-    <button class="tab-btn" id="tab-gallery" onclick="switchTab('gallery', this)">📷 Gallery</button>
+    <button class="tab-btn" id="tab-scoreboard" onclick="switchTab('scoreboard', this)"><span class="tab-ico tab-ico-phone" aria-hidden="true">📋</span><span class="tab-lbl">Scoreboard</span></button>
+    <button class="tab-btn" id="tab-ongoing" onclick="switchTab('ongoing', this)"><span class="tab-ico" aria-hidden="true">🟢</span> <span class="tab-lbl">กำลังแข่ง</span> <span id="navOngoingBadge" style="display:none;background:var(--green);color:#000;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
+    <button class="tab-btn" id="tab-finished" onclick="switchTab('finished', this)"><span class="tab-ico" aria-hidden="true">🏁</span> <span class="tab-lbl">จบแล้ว</span> <span id="navFinishedBadge" style="display:none;background:var(--muted);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
+    <button class="tab-btn" id="tab-players" onclick="switchTab('players', this)"><span class="tab-ico" aria-hidden="true">👤</span> <span class="tab-lbl">ผู้เล่น</span></button>
+    <button class="tab-btn" id="tab-gallery" onclick="switchTab('gallery', this)"><span class="tab-ico" aria-hidden="true">📷</span> <span class="tab-lbl">Gallery</span></button>
     <!-- Admin Only Tabs -->
-    <button class="tab-btn admin-only" id="tab-dashboard" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
-    <button class="tab-btn admin-only" id="tab-admin" onclick="switchTab('admin', this)">⚙️ Admin</button>
-    <button class="tab-btn admin-only" id="tab-report" onclick="switchTab('report', this)">📈 Reports</button>
+    <button class="tab-btn admin-only" id="tab-dashboard" onclick="switchTab('dashboard', this)"><span class="tab-ico" aria-hidden="true">📊</span> <span class="tab-lbl">Dashboard</span></button>
+    <button class="tab-btn admin-only" id="tab-admin" onclick="switchTab('admin', this)"><span class="tab-ico" aria-hidden="true">⚙️</span> <span class="tab-lbl">Admin</span></button>
+    <button class="tab-btn admin-only" id="tab-report" onclick="switchTab('report', this)"><span class="tab-ico" aria-hidden="true">📈</span> <span class="tab-lbl">Reports</span></button>
   </div>
-  <div class="nav-actions">
+  <button type="button" class="nav-more" id="navMoreBtn" aria-label="เมนูเพิ่มเติม" aria-haspopup="true" aria-expanded="false" aria-controls="navActions" onclick="toggleNavMenu()">⋯</button>
+  <div class="nav-actions" id="navActions">
     <span id="seasonBadge" class="season-badge superadmin-only" onclick="openSeasonArchive()" title="ดู Season Archive">📅 2026</span>
     <span id="roleBadge" style="display:none; font-size:0.7rem; font-weight:800; letter-spacing:1px; padding:5px 9px; border-radius:6px; white-space:nowrap;"></span>
-    <button class="nav-ic superadmin-only nav-hide-mobile" onclick="openSeasonWizard()" title="เริ่ม Season ใหม่">🔄</button>
-    <button class="nav-ic admin-only" onclick="openQrModal()" title="QR สำหรับผู้ชม / กรรมการ">📱</button>
-    <button class="nav-ic" onclick="toggleFullScreen()" title="เต็มจอ (F)">⛶</button>
-    <button class="nav-ic reset admin-only superadmin-only" onclick="clearData()" title="Reset การแข่งขัน">↺</button>
-    <button class="nav-ic exit" onclick="logout()" title="ออกจากระบบ">🚪</button>
+    <button class="nav-ic superadmin-only nav-hide-mobile" onclick="openSeasonWizard()" title="เริ่ม Season ใหม่" aria-label="เริ่ม Season ใหม่"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">🔄</span><span class="nav-ic-label">เริ่ม Season ใหม่</span></span></button>
+    <button class="nav-ic admin-only" onclick="openQrModal()" title="QR สำหรับผู้ชม / กรรมการ" aria-label="QR สำหรับผู้ชม / กรรมการ"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">📱</span><span class="nav-ic-label">QR ผู้ชม / กรรมการ</span></span></button>
+    <button class="nav-ic" onclick="toggleFullScreen()" title="เต็มจอ (F)" aria-label="เต็มจอ"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">⛶</span><span class="nav-ic-label">เต็มจอ</span></span></button>
+    <button class="nav-ic reset admin-only superadmin-only" onclick="clearData()" title="Reset การแข่งขัน" aria-label="Reset การแข่งขัน"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">↺</span><span class="nav-ic-label">Reset การแข่งขัน</span></span></button>
+    <button class="nav-ic exit" onclick="logout()" title="ออกจากระบบ" aria-label="ออกจากระบบ"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">🚪</span><span class="nav-ic-label">ออกจากระบบ</span></span></button>
   </div>
 </div>
 
@@ -1404,10 +1405,10 @@ try {
     <span class="fs-nav-icon">🟢</span><span class="fs-nav-label">Live</span>
   </button>
   <button class="fs-nav-btn" onclick="switchTab('finished'); fsBtnActive(this)">
-    <span class="fs-nav-icon">🏁</span><span class="fs-nav-label">Finished</span>
+    <span class="fs-nav-icon">🏁</span><span class="fs-nav-label">จบแล้ว</span>
   </button>
   <button class="fs-nav-btn" onclick="switchTab('players');  fsBtnActive(this)">
-    <span class="fs-nav-icon">👤</span><span class="fs-nav-label">Players</span>
+    <span class="fs-nav-icon">👤</span><span class="fs-nav-label">ผู้เล่น</span>
   </button>
   <button class="fs-nav-btn" onclick="switchTab('scoreboard'); fsBtnActive(this)">
     <span class="fs-nav-icon">📋</span><span class="fs-nav-label">Scoreboard</span>

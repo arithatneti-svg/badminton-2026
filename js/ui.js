@@ -27,11 +27,60 @@ window.addEventListener('DOMContentLoaded', () => {
   else window.addEventListener('resize', _syncNavHeight);
 });
 
+// ── Phone nav: the ⋯ menu and the tab strip's edge fade (css/nav.css, "PHONE NAV") ──
+function toggleNavMenu(force) {
+  const nav = document.getElementById('mainNav');
+  if (!nav) return;
+  const open = typeof force === 'boolean' ? force : !nav.classList.contains('menu-open');
+  nav.classList.toggle('menu-open', open);
+  const b = document.getElementById('navMoreBtn');
+  if (b) b.setAttribute('aria-expanded', String(open));
+}
+document.addEventListener('click', (e) => {
+  const nav = document.getElementById('mainNav');
+  if (!nav || !nav.classList.contains('menu-open') || e.target.closest('#navMoreBtn')) return;
+  // a tap on a menu action runs it first (its own onclick), then the menu closes; a tap anywhere else just closes
+  if (e.target.closest('#navActions button') || !e.target.closest('#navActions')) toggleNavMenu(false);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleNavMenu(false); });
+window.addEventListener('resize', () => { if (window.innerWidth > 768) toggleNavMenu(false); });
+
+// a fade on the side of the tab strip that has more tabs behind it, so a hidden tab is not a secret
+function _navFade() {
+  const s = document.querySelector('#mainNav .nav-tabs');
+  if (!s) return;
+  const l = s.scrollLeft > 4, r = s.scrollLeft + s.clientWidth < s.scrollWidth - 4;
+  if (l || r) s.dataset.fade = (l ? 'l' : '') + (r ? 'r' : ''); else delete s.dataset.fade;
+}
+// bring the chosen tab into the middle of the strip (the page itself is not scrolled)
+function _navRevealTab(btn) {
+  const s = btn && btn.parentElement;
+  if (!s || !s.classList.contains('nav-tabs') || s.scrollWidth <= s.clientWidth + 1) return;
+  const left = btn.getBoundingClientRect().left - s.getBoundingClientRect().left + s.scrollLeft;
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  s.scrollTo({ left: Math.max(0, left - (s.clientWidth - btn.offsetWidth) / 2), behavior: reduced ? 'auto' : 'smooth' });
+}
+window.addEventListener('DOMContentLoaded', () => {
+  const s = document.querySelector('#mainNav .nav-tabs');
+  if (!s) return;
+  s.addEventListener('scroll', _navFade, { passive: true });
+  if (window.ResizeObserver) {            // tabs appear / disappear with the role, and the strip with the screen
+    const ro = new ResizeObserver(_navFade);
+    ro.observe(s); s.querySelectorAll('.tab-btn').forEach(b => ro.observe(b));
+  } else window.addEventListener('resize', _navFade);
+  // a role switch shows / hides whole tabs by a body class — measure again when the class changes
+  new MutationObserver(_navFade).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  _navFade();
+});
+
 function switchTab(tabId, btn) {
   document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   if (btn) btn.classList.add('active');
+  toggleNavMenu(false);
+  _navRevealTab(btn);
+  _navFade();
   if (tabId === 'dashboard') renderDashboard();
   if (tabId === 'report') { renderReportHero(); switchReportTab(_activeReportTab, document.getElementById('rtab-'+_activeReportTab)); }
   if (tabId === 'players') renderPlayersTab();

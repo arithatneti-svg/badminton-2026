@@ -911,3 +911,10 @@
   background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
 }
 #report tr.cmp-gone { opacity: 0.6; }
+
+/* ── a player's name in a report is a link, 12-17 x 18-19 px (A-11): on a touch screen its tap area grows
+   to about 44 px tall by an invisible box around it, with nothing moving on the page ── */
+@media (pointer: coarse) {
+  #report .rp-name-link, #report .rp-prow-name { position: relative; }
+  #report .rp-name-link::before, #report .rp-prow-name::before { content: ''; position: absolute; inset: -14px -8px; }
+}

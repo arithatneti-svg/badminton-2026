@@ -189,3 +189,83 @@
 }
 .btn-fs:hover { background: var(--surface3); border-color: var(--border2); }
 
+
+/* ══════════════════════════════════════════════════════════════════════
+   PHONE NAV — one row, 56 px (P-13 · S-07 A-11 S-11)
+   The bar used to be two rows (brand + status + icons, then the tabs): 91-97 px, 11-16% of a
+   phone screen, with 31 px tabs and 36 px icons. Now it is one row: [status dot] [tabs, scrolling
+   sideways with a fade on the edge that has more] [⋯]. The rare actions (full screen, QR, reset,
+   leave) live in the ⋯ menu as full-width 48 px rows with a word each. The brand is not repeated
+   here: the Scoreboard tab carries the event title. Every target is 44 px.
+   Each tab is an icon over a word (so all five viewer tabs are on screen at once on a 360-390 px phone
+   instead of two and a half); the connection dot sits on the corner of the ⋯ button.
+   ══════════════════════════════════════════════════════════════════════ */
+.nav-more { display: none; }
+.nav-ic-label { display: none; }
+.nav-ic-in { display: contents; }     /* an icon button looks exactly as before; in the phone menu it lays out its icon + word */
+.tab-ico-phone { display: none; }     /* the Scoreboard tab has no icon on a wide screen */
+
+/* any touch screen, any width (a tablet too): thumbs, in glare */
+@media (pointer: coarse) {
+  .tab-btn { min-height: 44px; }
+  .nav-ic { width: 44px; height: 44px; }
+}
+
+/* phones, and landscape phones (a 390 px high screen cannot spare 94 px) */
+@media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  #mainNav { flex-wrap: nowrap; align-items: center; gap: 6px; padding: 5px 8px; }
+  #mainNav .nav-title { display: none; }
+  /* the connection dot: a small light on the corner of the ⋯ button (its word is in the offline bar) */
+  #mainNav .nav-live {
+    position: absolute; top: 8px; right: 11px; z-index: 3; margin: 0; padding: 0;
+    background: transparent; border: 0; pointer-events: none;
+  }
+  #mainNav .nav-live #dbDot { width: 9px; height: 9px; box-shadow: 0 0 0 2px var(--surface2); }
+  #mainNav .nav-live #dbDotLabel { display: none; }
+  #mainNav .nav-tabs {
+    order: 1; flex: 1 1 0; flex-basis: 0; min-width: 0; gap: 2px; align-items: stretch;
+    overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start;
+  }
+  #mainNav .tab-btn {
+    flex: 1 0 auto; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    min-height: 44px; min-width: 44px; padding: 3px 4px; font-size: 12px; line-height: 1.2;
+  }
+  #mainNav .tab-ico, #mainNav .tab-ico-phone { display: block; font-size: 17px; line-height: 1.15; }
+  #mainNav .tab-lbl { display: block; font-size: 12px; letter-spacing: 0; white-space: nowrap; }
+  /* the count on Ongoing / Finished rides on the icon's corner */
+  #mainNav #navOngoingBadge, #mainNav #navFinishedBadge {
+    position: absolute; top: 1px; right: 2px; margin: 0 !important; padding: 0 5px !important; font-size: 10px !important; line-height: 14px;
+  }
+  /* a fade on the edge that has more tabs behind it (set by _navFade in ui.js) */
+  #mainNav .nav-tabs[data-fade="r"]  { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+  #mainNav .nav-tabs[data-fade="l"]  { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+  #mainNav .nav-tabs[data-fade="lr"] { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+
+  #mainNav .nav-more {
+    order: 2; display: inline-flex; align-items: center; justify-content: center; flex: none;
+    width: 44px; height: 44px; padding: 0; cursor: pointer;
+    font-size: 22px; line-height: 1; color: var(--text2);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+  }
+  #mainNav.menu-open .nav-more { background: var(--surface3); border-color: var(--border2); color: var(--text); }
+
+  /* the actions become a menu under the bar */
+  #mainNav .nav-actions {
+    display: none; order: 3; position: absolute; top: calc(100% + 6px); right: 8px; margin: 0; z-index: 101;
+    flex-direction: column; align-items: stretch; flex-wrap: nowrap; justify-content: flex-start; gap: 2px;
+    min-width: 230px; max-width: calc(100vw - 16px); padding: 6px;
+    background: var(--surface); border: 1px solid var(--border2); border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.6);
+  }
+  #mainNav.menu-open .nav-actions { display: flex; }
+  /* NOTE: a button tagged admin-only / superadmin-only is display:revert (login.css), so it cannot be a flex box
+     here — the layout is the inner span's job */
+  #mainNav .nav-actions .nav-ic {
+    width: 100%; height: 48px; padding: 0 12px; text-align: left;
+    font-size: 17px; border-radius: 10px; background: transparent; border-color: transparent;
+  }
+  #mainNav .nav-ic-in { display: flex; align-items: center; gap: 12px; width: 100%; height: 100%; }
+  #mainNav .nav-actions .nav-ic:active { background: var(--surface3); }
+  #mainNav .nav-ic-ico { width: 24px; text-align: center; flex: none; }
+  #mainNav .nav-ic-label { display: inline; font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0; }
+}
