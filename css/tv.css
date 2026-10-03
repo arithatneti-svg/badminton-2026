@@ -17,6 +17,11 @@ body.tv-mode #tvView {
   padding: clamp(20px, 4vh, 56px) clamp(20px, 4vw, 72px);
 }
 
+/* TV-only palette tweak (A-04 · S-13): red and blue had almost the same brightness (1.08:1), so in
+   glare, from far away or on a black-and-white screen they merged. A lighter blue gives 1.67:1;
+   red is unchanged. One place — delete this rule to go back to the app blue. */
+body.tv-mode { --blue: #7cb7ff; --blue-glow: rgba(124,183,255,0.45); --blue-dim: rgba(124,183,255,0.1); }
+
 .tv-panel { flex: 1; display: flex; flex-direction: column; animation: tvFade .6s ease; min-height: 0; }
 @keyframes tvFade { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
@@ -127,10 +132,24 @@ body.tv-mode .tv-stale:not([hidden]) {
 .tv-faces .pav + .pav { margin-left: -8px; }
 .tv-lt { display: flex; flex-direction: column; align-items: center; }
 
+/* team tag — the team's name plus a shape beside the colour (triangle = red, circle = blue), so a
+   team is never told apart by colour alone (A-04) */
+.tv-shape { display: inline-block; flex: none; width: .8em; height: .8em; background: currentColor; vertical-align: -.05em; }
+.tv-shape.red  { color: var(--red);  clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.tv-shape.blue { color: var(--blue); border-radius: 50%; }
+.tv-tag {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45em; max-width: 100%; margin-bottom: clamp(2px, .5vh, 6px);
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(12px, 1.1vw, 20px); letter-spacing: 2px; line-height: 1; white-space: nowrap;
+}
+.tv-tag.red  { color: var(--red); }
+.tv-tag.blue { color: var(--blue); }
+.tv-tag-name { overflow: hidden; text-overflow: ellipsis; }
+.tv-vs-side .tv-tag { font-size: clamp(16px, 1.8vw, 34px); margin-bottom: clamp(6px, 1vh, 14px); }
+
 /* 7+ courts: compact cards — faces dropped, type scaled down — so every court still fits on
    the screen. Interim: the big-court layout (7–10 courts, number-led cards) is WP8. */
 .tv-live-grid.is-compact { --tv-card-min: clamp(250px, 14vw + 90px, 330px); }
-.tv-live-grid.is-compact .tv-faces { display: none; }
+.tv-live-grid.is-compact .tv-faces, .tv-live-grid.is-compact .tv-tag-name { display: none; }   /* the shape alone keeps the team */
 .tv-live-grid.is-compact .tv-live-card { padding: clamp(8px, 1.2vh, 14px) clamp(10px, 1.2vw, 20px); border-radius: 14px; }
 .tv-live-grid.is-compact .tv-live-id { font-size: clamp(14px, 1.4vw, 24px); }
 .tv-live-grid.is-compact .tv-live-teams { gap: 8px; margin: 4px 0; }

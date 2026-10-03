@@ -313,6 +313,14 @@ function _tvFootHtml() {
   return `<div class="tv-foot"><div class="tv-dots">${dots}</div><div class="tv-sync${_tvOfflineSince ? ' off' : ''}" id="tvSync">${_tvSyncInner()}</div><div class="tv-brand">Badminton Sports Day 2026</div></div>`;
 }
 
+// Team tag: the team's name with a shape beside the colour (triangle = red, circle = blue), so a
+// team is never told apart by colour alone — glare, distance and black-and-white screens (A-04).
+function _tvTag(side) {
+  const name = side === 'red' ? (appState.redTeamName || 'RED TEAM') : (appState.blueTeamName || 'BLUE TEAM');
+  return `<span class="tv-tag ${side}"><i class="tv-shape ${side}"></i><span class="tv-tag-name">${escHtml(name)}</span></span>`;
+}
+function _tvNamesKey() { return (appState.redTeamName || '') + '/' + (appState.blueTeamName || ''); }
+
 // ── HTML builders ──────────────────────────────────────────────
 function _tvBattleHtml() {
   const r = appState.globalScoreRed || 0, b = appState.globalScoreBlue || 0;
@@ -341,6 +349,7 @@ function _tvVsHeroHtml(m, countHtml) {
     </div>
     <div class="tv-vs-row">
       <div class="tv-vs-side red">
+        ${_tvTag('red')}
         <div class="tv-vs-faces">${[m.r1, m.r2].map(id => avatarHtml(id, 160)).join('')}</div>
         <div class="tv-vs-names red">${escHtml(_tvStrip(m.redNames))}</div>
       </div>
@@ -352,6 +361,7 @@ function _tvVsHeroHtml(m, countHtml) {
         <div class="tv-vs-g1">${s.g2on ? `G1 · ${s.g1r}–${s.g1b}` : (s.notStarted ? 'พร้อมแข่ง' : '')}</div>
       </div>
       <div class="tv-vs-side blue">
+        ${_tvTag('blue')}
         <div class="tv-vs-faces">${[m.b1, m.b2].map(id => avatarHtml(id, 160)).join('')}</div>
         <div class="tv-vs-names blue">${escHtml(_tvStrip(m.blueNames))}</div>
       </div>
@@ -381,11 +391,11 @@ function _tvGridHtml(live) {
     return `<div class="tv-live-card${cxCls}" data-mid="${escHtml(m.id)}">
       <div class="tv-live-id">🟢 ${escHtml(m.id)} · ${s.g2on ? 'G2' : 'G1'}${cxTag}</div>
       <div class="tv-live-teams">
-        <div class="tv-lt red"><span class="tv-faces">${[m.r1, m.r2].map(id => avatarHtml(id, 44)).join('')}</span>${escHtml(_tvStrip(m.redNames))}</div>
+        <div class="tv-lt red">${_tvTag('red')}<span class="tv-faces">${[m.r1, m.r2].map(id => avatarHtml(id, 44)).join('')}</span>${escHtml(_tvStrip(m.redNames))}</div>
         <div class="tv-live-score">${s.notStarted
           ? `<span class="sep">—</span>`
           : `<span class="red">${s.cr}</span><span class="sep">:</span><span class="blue">${s.cb}</span>`}</div>
-        <div class="tv-lt blue"><span class="tv-faces">${[m.b1, m.b2].map(id => avatarHtml(id, 44)).join('')}</span>${escHtml(_tvStrip(m.blueNames))}</div>
+        <div class="tv-lt blue">${_tvTag('blue')}<span class="tv-faces">${[m.b1, m.b2].map(id => avatarHtml(id, 44)).join('')}</span>${escHtml(_tvStrip(m.blueNames))}</div>
       </div>
       <div class="tv-live-games">${s.g2on ? `G1 · ${s.g1r}–${s.g1b}` : (s.notStarted ? 'พร้อมแข่ง' : '')}</div>
     </div>`;
@@ -417,7 +427,7 @@ function _tvBoardHtml() {
       <div class="tv-rank">${medals[rank] || ('#' + (rank + 1))}</div>
       <div class="tv-board-face">${avatarHtml(p.id, 64)}</div>
       <div class="tv-pname ${p.team === 'Red' ? 'red' : 'blue'}">${escHtml(p.name)}</div>
-      <div class="tv-pmeta">${p.team} · WR ${wr}%</div>
+      <div class="tv-pmeta"><i class="tv-shape ${p.team === 'Red' ? 'red' : 'blue'}"></i> ${p.team} · WR ${wr}%</div>
       <div class="tv-ppts">${p.pts}<span>pt</span></div>
     </div>`;
   }).join('');
@@ -498,7 +508,7 @@ function renderTvPanel(force) {
     const hot = _tvClimaxList();
     if (hot.length) {
       const m = hot[_tvClimaxIdx % hot.length];
-      const key = `hero|${m.id}|${_tvScore(m).g2on ? 2 : 1}|${_tvClimaxLevel(m)}`;
+      const key = `hero|${m.id}|${_tvScore(m).g2on ? 2 : 1}|${_tvClimaxLevel(m)}|${_tvNamesKey()}`;
       if (!force && key === _tvLastKey && el.querySelector('.tv-vs-panel[data-mid]')) { _tvPatchHero(el, m); return; }
       _tvLastKey = key;
       const count = hot.length > 1 ? `<div class="tv-vs-count">🔥 ${ (_tvClimaxIdx % hot.length) + 1 } / ${hot.length} คอร์ตกำลังเดือด</div>` : '';
@@ -523,11 +533,11 @@ function renderTvPanel(force) {
       html = `<div class="tv-panel tv-vs-panel"><div class="tv-heading">🟢 LIVE</div><div class="tv-empty">ยังไม่มีแมตช์กำลังแข่ง</div></div>`;
     } else if (live.length === 1) {
       const m = live[0];
-      key = `hero|${m.id}|${_tvScore(m).g2on ? 2 : 1}|${_tvClimaxLevel(m)}`;
+      key = `hero|${m.id}|${_tvScore(m).g2on ? 2 : 1}|${_tvClimaxLevel(m)}|${_tvNamesKey()}`;
       if (!force && key === _tvLastKey && el.querySelector('.tv-vs-panel[data-mid]')) { _tvPatchHero(el, m); return; }
       html = _tvVsHeroHtml(m);
     } else {
-      key = 'grid|' + live.map(m => `${m.id}:${_tvScore(m).g2on ? 2 : 1}:${_tvClimaxLevel(m)}`).join(',');
+      key = 'grid|' + _tvNamesKey() + '|' + live.map(m => `${m.id}:${_tvScore(m).g2on ? 2 : 1}:${_tvClimaxLevel(m)}`).join(',');
       if (!force && key === _tvLastKey && el.querySelector('.tv-live-grid')) { _tvPatchGrid(el, live); return; }
       html = _tvGridHtml(live);
     }
