@@ -89,7 +89,8 @@ async function _tvProbe() {
 function _tvSyncInner() {
   const wake = (_tvWake === 'unsupported' || _tvWake === 'denied')
     ? ' <span class="tv-sync-warn">⚠ จออาจดับเอง — ตั้งปิดการพักจอที่เครื่อง</span>' : '';
-  return `<span class="tv-sync-dot"></span>ซิงก์ ${_tvClock(_tvAliveAt, true)}${wake}`;
+  const ver = typeof APP_VERSION === 'string' ? ` · v${APP_VERSION}` : '';
+  return `<span class="tv-sync-dot"></span>ซิงก์ ${_tvClock(_tvAliveAt, true)}${ver}${wake}`;
 }
 function _tvHealth() {
   const now = Date.now();
@@ -114,6 +115,8 @@ function _tvHealth() {
     }
     if (offFor >= 2 * TV_RECOVERY.reconnectAfterMs && _tvProbeFails === 0 && now - _tvLastChangeAt >= TV_RECOVERY.idleBeforeReloadMs) _tvReload();
   }
+  // a new version was released (shared/pwa.js): pick it up at the first quiet moment, never mid-rally
+  if (typeof _appNewVersion !== 'undefined' && _appNewVersion && now - _tvLastChangeAt >= TV_RECOVERY.idleBeforeReloadMs) _tvReload();
 }
 function _tvStartHealth() {
   clearInterval(_tvHealthTimer);

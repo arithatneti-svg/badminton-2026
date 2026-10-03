@@ -6,7 +6,11 @@
 // NOTE: Firebase Realtime DB traffic is WebSocket (not fetch),
 // so live data still needs a connection — this only caches the shell.
 // ============================================================
-const CACHE = 'bdm2026-shell-v13';
+// The release number lives in ONE file (shared/version.js). Importing it here means a bump
+// changes this worker (the browser byte-compares imported scripts too), and the cache name
+// follows it, so every release starts from a fresh cache and the old one is deleted on activate.
+importScripts('shared/version.js');
+const CACHE = 'bdm2026-shell-' + APP_VERSION;
 
 const SHELL = [
     "./",
@@ -64,6 +68,7 @@ const SHELL = [
     "js/vendor/qrcode.min.js",
     "shared/firebase-config.js",
     "shared/pwa.js",
+    "shared/version.js",
     "shared/sync-merge.js",
     "umpire/umpire.js",
     "icons/icon-192.png",

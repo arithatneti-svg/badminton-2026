@@ -33,6 +33,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Scoreboard">
+<script defer src="shared/version.js"></script>
 <script defer src="shared/pwa.js"></script>
 <!-- App styles (split from original single <style>) -->
 <link rel="stylesheet" href="css/base.css">
@@ -107,6 +108,7 @@ try {
       </div>
     </details>
 
+    <div class="app-version" data-app-version></div>
   </div>
 </div>
 
@@ -438,7 +440,8 @@ try {
 
 <!-- ADMIN TAB (Admin) -->
 <div id="admin" class="container admin-only">
-  
+  <div class="app-version" data-app-version style="text-align:right;margin:0 0 8px;"></div>
+
   <details class="adm-collapse">
     <summary>👤 Player Management (Add/Import)</summary>
     <div class="adm-collapse-body">
