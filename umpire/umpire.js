@@ -411,10 +411,20 @@ function restoreSession() {
         _localPauseStart = m.live.pauseStartedAt || Date.now();
         document.getElementById('pauseOverlay').classList.add('show');
       }
+      // one line, so a reopened page never leaves the umpire wondering whether it is the same match
+      showNotice(`กู้กลับมาแล้ว — คุมแมตช์ ${m.id} ต่อ`, { tone: 'ok', ms: 3500 });
     } else {
+      const wasId = activeMatchId;
+      const gone = wasId && appState.ongoingMatches.find(m => m.id === wasId);
       activeMatchId = '';
       localStorage.removeItem('bdm_umpire_match');
       goToTab(savedTab);
+      // say why the match is not on screen instead of opening a scoreboard whose taps do nothing
+      if (wasId) {
+        showNotice(!gone ? `แมตช์ ${wasId} ปิดแล้ว — เลือกแมตช์ในรายการ`
+          : gone.umpire && gone.umpire !== currentUmpire ? `แมตช์ ${wasId} มี ${gone.umpire} คุมอยู่แล้ว`
+          : `แมตช์ ${wasId} ยังไม่ได้เป็นของคุณ — แตะรับอีกครั้ง`, { tone: 'warn', ms: 9000 });
+      }
     }
   } else {
     document.getElementById('umpireNav').style.display = 'none';
