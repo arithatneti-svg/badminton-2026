@@ -194,7 +194,7 @@ document.addEventListener('webkitfullscreenchange', onFsChange);
 function onFsChange() {
   const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
   // Update all FS buttons
-  document.querySelectorAll('.topbar-btn#btnFs, #liFsBtn, #navFsBtn').forEach(btn => {
+  document.querySelectorAll('#liFsBtn, #navFsBtn').forEach(btn => {
     btn.classList.toggle('fs-active', isFs);
     btn.textContent = isFs ? '⤢' : '⛶';
   });
