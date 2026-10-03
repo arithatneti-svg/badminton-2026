@@ -146,8 +146,11 @@ let _arenaKey = '';      // signature of what the arena is showing → patch vs 
 let _arenaChoice = null; // null = default (my match, else auto) · 'auto' · a match id
 const ARENA_ROTATE_MS = 9000;
 
+// LIVE = a match whose first point has been scored. One an umpire has only taken ("พร้อมแข่ง") is not
+// being played yet: it waits on the idle board as "next up" instead of showing a 0–0 scoreboard (N-01).
+// In court order, like the hall.
 function _liveMatches() {
-  return sortByCourt((appState.ongoingMatches || []).filter(m => m && m.live));   // in court order, like the hall
+  return sortByCourt((appState.ongoingMatches || []).filter(m => m && m.live && matchStage(m) === 'playing'));
 }
 
 // Which court to show, and why: 'pin' (viewer tapped it), 'me' (their match), 'auto'.
@@ -216,7 +219,7 @@ function renderIdleBoard() {
   const box = document.getElementById('idleNext');
   if (!box) return;
   const ong  = (appState.ongoingMatches || []).filter(m => m && m.id);
-  const onCourt = ong.filter(m => m.umpire && !m.live);   // umpire in place, not started
+  const onCourt = sortByCourt(ong.filter(m => matchStage(m) === 'ready'));   // umpire in place, no first point yet
   const queue   = ong.filter(m => !m.umpire);
   const next = [...onCourt, ...queue];
   const hist = appState.matchHistory || [];
@@ -230,7 +233,7 @@ function renderIdleBoard() {
 
   // the cards only rebuild when the line-up changes
   const me = typeof getMe === 'function' ? getMe() : '';
-  const key = next.map(m => [m.id, m.round, m.umpire || '', m.r1, m.r2, m.b1, m.b2].join(':')).join('|') + '|' + me + '|' + hist.length;
+  const key = next.map(m => [m.id, m.round, m.umpire || '', m.court || 0, m.r1, m.r2, m.b1, m.b2].join(':')).join('|') + '|' + me + '|' + hist.length;
   if (key === _idleKey && box.firstChild) return;
   _idleKey = key;
 
@@ -247,11 +250,12 @@ function renderIdleBoard() {
   const m = next[0];
   const red = _idlePairHtml([m.r1, m.r2], m.redNames, 96), blue = _idlePairHtml([m.b1, m.b2], m.blueNames, 96);
   const state = m.umpire
-    ? `<span class="idl-next-state on">🟢 ลงสนามแล้ว · 👔 ${escHtml(m.umpire)}</span>`
+    ? `<span class="idl-next-state on">🟢 พร้อมแข่ง · 👔 ${escHtml(m.umpire)}</span>`
     : `<span class="idl-next-state">⏳ รอเรียกลงสนาม</span>`;
   const hero = `<div class="idl-next${mine(m) ? ' me' : ''}">
     <div class="idl-next-head">
       <span class="idl-next-tag">⏭ แมตช์ถัดไป</span>
+      ${m.court ? `<span class="court-no">${escHtml(courtLabel(m))}</span>` : ''}
       <span class="idl-next-id">${escHtml(m.id)} · Round ${escHtml(String(m.round || '?'))}</span>
       ${state}
     </div>

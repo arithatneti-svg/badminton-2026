@@ -678,3 +678,9 @@ body.tv-mode .me-bar { display: none; }
   background: var(--surface2); color: var(--text); border: 1px solid var(--border2);
   font: 700 12px 'Space Grotesk', sans-serif;
 }
+/* taken by an umpire, no first point yet — calm, not the green LIVE */
+.court-ready {
+  display: inline-block; padding: 2px 10px; border-radius: 20px; white-space: nowrap;
+  font-size: 11px; font-weight: 800; letter-spacing: .3px;
+  color: var(--text2); background: var(--surface3); border: 1px solid var(--border2);
+}

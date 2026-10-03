@@ -56,14 +56,22 @@ function formatTeamNames(namesStr, teamColor) {
 
 // ── FIX-SHAKE: lightweight badge-only update, called on every Firebase tick ──
 // Does NOT touch liveContainer/queueContainer innerHTML, so no reflow/scroll jank.
+// "LIVE ON COURT" counts matches being played; one an umpire has only taken is "พร้อมแข่ง" (N-01)
+function _ongoingCounts() {
+  const ong = (appState && appState.ongoingMatches) || [];
+  return { playing: ong.filter(m => matchStage(m) === 'playing').length, ready: ong.filter(m => matchStage(m) === 'ready').length, queue: ong.filter(m => !m.umpire).length };
+}
+function _ongoingQueueText(c) {
+  const parts = [c.ready ? `${c.ready} พร้อมแข่ง` : '', c.queue ? `${c.queue} รอคิว` : ''].filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'ไม่มีคิว';
+}
 function updateOngoingBadges() {
   if (!appState) return;
-  const liveMatches     = appState.ongoingMatches.filter(m => m.umpire);
-  const upcomingMatches = appState.ongoingMatches.filter(m => !m.umpire);
+  const c = _ongoingCounts();
   const liveCountEl = document.getElementById('ongoingLiveCount');
-  if (liveCountEl) liveCountEl.textContent = liveMatches.length > 0 ? liveMatches.length : '—';
+  if (liveCountEl) liveCountEl.textContent = c.playing > 0 ? c.playing : '—';
   const queueEl = document.getElementById('ongoingQueueCount');
-  if (queueEl) queueEl.textContent = upcomingMatches.length > 0 ? `${upcomingMatches.length} รอคิว` : 'ไม่มีคิว';
+  if (queueEl) queueEl.textContent = _ongoingQueueText(c);
   const navOB = document.getElementById('navOngoingBadge');
   if (navOB) { const t = appState.ongoingMatches.length; navOB.textContent = t; navOB.style.display = t > 0 ? 'inline-block' : 'none'; }
   const navFB = document.getElementById('navFinishedBadge');
@@ -77,11 +85,12 @@ function renderPublicOngoingMatches() {
   if (!liveContainer || !queueContainer) return;
 
   liveContainer.innerHTML = ''; queueContainer.innerHTML = '';
-  const liveMatches     = sortByCourt(appState.ongoingMatches.filter(m => m.umpire));
+  const liveMatches     = sortByCourt(appState.ongoingMatches.filter(m => m.umpire));   // on court: playing, or ready to
   const upcomingMatches = appState.ongoingMatches.filter(m => !m.umpire);
-  if (liveCountEl) liveCountEl.textContent = liveMatches.length > 0 ? liveMatches.length : '—';
+  const counts = _ongoingCounts();
+  if (liveCountEl) liveCountEl.textContent = counts.playing > 0 ? counts.playing : '—';
   const queueEl = document.getElementById('ongoingQueueCount');
-  if (queueEl) queueEl.textContent = upcomingMatches.length > 0 ? `${upcomingMatches.length} รอคิว` : 'ไม่มีคิว';
+  if (queueEl) queueEl.textContent = _ongoingQueueText(counts);
   const navOB = document.getElementById('navOngoingBadge');
   if (navOB) { const t = appState.ongoingMatches.length; navOB.textContent = t; navOB.style.display = t > 0 ? 'inline-block' : 'none'; }
   const navFB = document.getElementById('navFinishedBadge');
@@ -127,8 +136,10 @@ function renderPublicOngoingMatches() {
         : '';
 
       // ── Score rows ──
+      // taken but no first point yet: no 0–0 scoreboard, say "พร้อมแข่ง" (N-01)
+      const isReady = matchStage(m) === 'ready';
       let scoreBlockHtml = '';
-      if (m.live) {
+      if (m.live && !isReady) {
         const pf  = m.potFlags || {};
         const g1r = Number(m.live.g1R||0), g1b = Number(m.live.g1B||0);
         const g2r = Number(m.live.g2R||0), g2b = Number(m.live.g2B||0);
@@ -170,7 +181,7 @@ function renderPublicOngoingMatches() {
         scoreBlockHtml = `
           <div class="court-waiting">
             <div class="court-waiting-score">– : –</div>
-            <div class="court-waiting-label">รอ Umpire เริ่มนับ</div>
+            <div class="court-waiting-label">${isReady ? 'พร้อมแข่ง · รอแต้มแรก' : 'รอ Umpire เริ่มนับ'}</div>
           </div>`;
       }
 
@@ -195,7 +206,9 @@ function renderPublicOngoingMatches() {
             ${m.umpire ? `<span class="court-card-umpire">👔 ${escHtml(m.umpire)}</span>` : ''}
             ${matchStatusHtml(m)}
             ${climaxBadge}
-            <div class="live-indicator" style="margin-left:auto;"><span class="live-dot"></span>LIVE</div>
+            ${isReady
+              ? `<span class="court-ready" style="margin-left:auto;">พร้อมแข่ง</span>`
+              : `<div class="live-indicator" style="margin-left:auto;"><span class="live-dot"></span>LIVE</div>`}
             <span class="court-card-timer${timerLongClass}" style="color:${timerColor};" id="pubTimer-${m.id}">⏱${timerLabel}</span>
           </div>
           ${scoreBlockHtml}
@@ -292,7 +305,9 @@ function renderAdminOngoingMatches() {
             ${courtPillHtml(m)}
           </div>
           ${isLive
-            ? `<div class="live-indicator"><span class="live-dot"></span>LIVE · ${m.umpire||''}</div>`
+            ? (matchStage(m) === 'ready'
+                ? `<span class="court-ready">พร้อมแข่ง · ${escHtml(m.umpire||'')}</span>`
+                : `<div class="live-indicator"><span class="live-dot"></span>LIVE · ${m.umpire||''}</div>`)
             : `<span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">QUEUE</span>`}
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin:10px 0;">
