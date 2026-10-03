@@ -693,3 +693,30 @@ body.tv-mode .me-bar { display: none; }
   .filter-pill { padding-top: 0; padding-bottom: 0; }
   .tab-toolbar input, .tab-toolbar select { min-height: 44px; }
 }
+
+/* ── FIRST LOAD and CONNECTION BAR (P-21) ──
+   Until the first data is in, the content is hidden and #dataState says what is going on (js/core.js:
+   loading / slow / failed). After that a connection that drops gets one persistent bar under the menu. */
+.data-state { display: none; }
+body.data-loading:not(.tv-mode) .container, body.data-loading:not(.tv-mode) .me-bar { display: none !important; }
+body.data-loading:not(.tv-mode) .data-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  min-height: 55vh; padding: 40px 24px; text-align: center;
+}
+.ds-spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--border2); border-top-color: var(--accent, var(--gold)); animation: dsSpin 0.9s linear infinite; }
+.data-state.is-stuck .ds-spin { display: none; }
+.ds-msg { font-size: 17px; font-weight: 700; color: var(--text); }
+.ds-sub { font-size: 13px; color: var(--muted); max-width: 320px; line-height: 1.5; }
+.ds-sub:empty { display: none; }
+.ds-retry { min-height: 44px; padding: 0 22px; margin-top: 6px; }
+.ds-retry[hidden] { display: none; }   /* .btn sets display, which would otherwise beat the hidden attribute */
+@keyframes dsSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ds-spin { animation-duration: 3s; } }
+
+.conn-bar {
+  position: sticky; top: var(--nav-h, 56px); z-index: 99;
+  padding: 8px 14px; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.4;
+  background: #3a1219; color: #ffb3bf; border-bottom: 1px solid rgba(255,69,96,0.45);
+}
+.conn-bar[hidden] { display: none; }
+body.tv-mode .conn-bar, body.tv-mode .data-state { display: none !important; }

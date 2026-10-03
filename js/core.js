@@ -61,7 +61,45 @@ let _syncBase = null;
 let _lastSnapshotAt = 0;   // when a data snapshot last arrived — the TV status chip reads it
 function _cloneData(v) { return v == null ? null : JSON.parse(JSON.stringify(v)); }
 
+// ── What the page says BEFORE the first data arrives (P-21) ──
+// Until the first read comes back, every number on screen is a default — "0 – 0", "RED TEAM", "LIVE ON
+// COURT 0", "ยังไม่มีรูป" — and looks like data, on a slow phone for seconds (the gallery showed "no photos"
+// for 1.2 s on a fast network). So until data is in, the content is hidden (body.data-loading, css/components.css)
+// and one honest card stands in for it:
+//   loading   "กำลังโหลดคะแนน…"
+//   slow      nothing after 10 s            "ยังเชื่อมต่อไม่ได้" + [ลองใหม่]; it still loads by itself when the signal returns
+//   failed    the read was refused / failed "โหลดข้อมูลไม่ได้"   + [ลองใหม่]
+// A database that is genuinely empty is a loaded state (null data counts), so its zeros are true.
+const DATA_SLOW_MS = 10000;
+let _dataReady = false, _dataPhase = 'loading', _dataTimer = null;
+function _dataShow() {
+  document.body.classList.toggle('data-loading', !_dataReady);
+  const card = document.getElementById('dataState');
+  if (!card) return;
+  const stuck = _dataPhase === 'slow' || _dataPhase === 'failed';
+  card.classList.toggle('is-stuck', stuck);
+  const msg = document.getElementById('dsMsg'), sub = document.getElementById('dsSub'), retry = document.getElementById('dsRetry');
+  if (msg) msg.textContent = _dataPhase === 'failed' ? 'โหลดข้อมูลไม่ได้' : _dataPhase === 'slow' ? 'ยังเชื่อมต่อไม่ได้' : 'กำลังโหลดคะแนน…';
+  if (sub) sub.textContent = _dataPhase === 'failed' ? 'ตรวจสัญญาณแล้วลองใหม่ ถ้ายังไม่ได้ แจ้งทีมงาน'
+    : _dataPhase === 'slow' ? 'ตรวจสัญญาณอินเทอร์เน็ต — จะโหลดเองเมื่อเชื่อมต่อได้' : '';
+  if (retry) retry.hidden = !stuck;
+}
+function _dataBegin() {
+  _dataPhase = 'loading';
+  clearTimeout(_dataTimer);
+  _dataTimer = setTimeout(() => { if (!_dataReady && _dataPhase === 'loading') { _dataPhase = 'slow'; _dataShow(); if (typeof _tvActive !== 'undefined' && _tvActive) renderTvPanel(true); } }, DATA_SLOW_MS);
+  _dataShow();
+}
+function _dataDone() { _dataReady = true; _dataPhase = 'ready'; clearTimeout(_dataTimer); _dataShow(); }
+function _dataFail() { _dataPhase = 'failed'; clearTimeout(_dataTimer); _dataShow(); if (typeof _tvActive !== 'undefined' && _tvActive) renderTvPanel(true); }
+// the [ลองใหม่] button: wake the connection, ask again
+function retryLoad() {
+  try { firebase.database().goOnline(); } catch (e) { /* the SDK decides */ }
+  loadData();
+}
+
 function loadData() {
+  if (!_dataReady) _dataBegin();
   dbRef.once('value').then(snapshot => {
     const data = snapshot.val();
     _syncBase = _cloneData(data);
@@ -88,12 +126,14 @@ function loadData() {
     if ((userRole === 'admin' || userRole === 'superadmin') && data === null) {
       console.warn('loadData: Firebase returned null — NOT saving to prevent data loss');
     }
+    _dataDone();
     updateUI();
   }).catch(err => {
     // FIX-3: handle Firebase unreachable (offline, rules deny, etc.)
     console.error('Firebase loadData failed:', err);
-    showToast('⚠️ ไม่สามารถโหลดข้อมูลได้ — ตรวจสอบการเชื่อมต่อ', 'error');
-    updateUI(); // still render with empty local state
+    if (_dataReady) showToast('⚠️ โหลดข้อมูลใหม่ไม่ได้ — ตรวจสอบสัญญาณ', 'error');   // data is on screen: say so, keep it
+    else _dataFail();                                                                // nothing yet: the card says so, with a retry
+    updateUI();
   });
 }
 
@@ -204,6 +244,14 @@ const DB_OFFLINE_GRACE_MS = 3000;
 const _dbLoadedAt = Date.now();
 let _dbOnline = false, _dbEverOnline = false, _dbToastTimer = null;
 function dbIsOffline() { return !_dbOnline && (_dbEverOnline || Date.now() - _dbLoadedAt > DB_OFFLINE_GRACE_MS); }
+// The dot is the quick read; the bar under the menu is the plain-words read, and it stays up (it was a 2.4 s toast
+// that nobody saw, and on a phone the dot's own label is hidden). The bar appears only for a connection that
+// drops AFTER data was shown; before the first data the loading card speaks, and the TV has its own red bar.
+let _dbBarShown = false;
+function _hms(ms) {
+  const d = new Date(ms), p = n => String(n).padStart(2, '0');
+  return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+}
 function _dbRenderConn() {
   const dot = document.getElementById('dbDot');
   const lbl = document.getElementById('dbDotLabel');
@@ -212,6 +260,16 @@ function _dbRenderConn() {
   dot.style.background = state === 'live' ? 'var(--green)' : state === 'offline' ? 'var(--danger)' : 'var(--muted)';
   lbl.textContent = state === 'live' ? 'LIVE' : state === 'offline' ? 'ออฟไลน์' : '...';
   dot.style.boxShadow = state === 'live' ? '0 0 6px var(--green)' : state === 'offline' ? '0 0 6px var(--danger)' : 'none';
+  const dotBox = document.getElementById('dbStatusDot');
+  if (dotBox) dotBox.title = state === 'live' ? 'เชื่อมต่อแล้ว' : state === 'offline' ? 'สัญญาณหลุด' : 'กำลังเชื่อมต่อ';
+  const bar = document.getElementById('connBar');
+  if (bar) {
+    const show = state === 'offline' && _dataReady && !(typeof _tvActive !== 'undefined' && _tvActive);
+    bar.hidden = !show;
+    if (show) bar.textContent = '📶 สัญญาณหลุด — ข้อมูลเมื่อ ' + _hms(_lastSnapshotAt || Date.now()) + ' · กำลังเชื่อมต่อ…';
+    if (!show && _dbBarShown && state === 'live') showToast('✓ เชื่อมต่อกลับมาแล้ว', 'success');
+    _dbBarShown = show;
+  }
 }
 const dbConnRef = firebase.database().ref('.info/connected');
 window.addEventListener('DOMContentLoaded', () => {
@@ -222,10 +280,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if (_dbOnline) _dbEverOnline = true;
     _dbRenderConn();
     clearTimeout(_dbToastTimer);
-    if (!_dbOnline) _dbToastTimer = setTimeout(() => {
-      _dbRenderConn();
-      if (dbIsOffline()) showToast(_dbEverOnline ? '⚠️ สัญญาณหลุด — กำลังเชื่อมต่อใหม่' : '⚠️ ยังเชื่อมต่อไม่ได้ — ตรวจสอบสัญญาณ', 'error');
-    }, DB_OFFLINE_GRACE_MS);
+    // not connected: look again when the grace period is over (a blip that reconnects stays silent)
+    if (!_dbOnline) _dbToastTimer = setTimeout(_dbRenderConn, DB_OFFLINE_GRACE_MS);
   }, (error) => {
     console.error('Firebase sync error:', error);
     showToast('⚠️ ซิงก์ข้อมูลไม่ได้ — ตรวจสอบสัญญาณ', 'error');

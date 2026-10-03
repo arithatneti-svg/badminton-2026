@@ -44,13 +44,27 @@ function deleteGalleryR2(key) {
 // tab is opened — not downloaded on every app boot for users who never look
 // at it. Re-fetched each time the tab opens so new uploads from other
 // devices appear on return; upload/delete refresh it immediately.
+// The first fetch decides what an empty album means: until it has answered the tab says "loading" (it used to say
+// "no photos of 2026" for the second or more the photos took to arrive), and if it fails or hangs it says so, with a
+// retry (P-21). _galleryPhase: loading | slow (10 s, no answer) | failed | ready.
+let _galleryPhase = 'loading', _gallerySlowTimer = null;
 function loadGallery(force) {
   if (_galleryLoaded && !force) return Promise.resolve(_gallery);
+  if (!_galleryLoaded) {
+    clearTimeout(_gallerySlowTimer);
+    _gallerySlowTimer = setTimeout(() => { if (!_galleryLoaded && _galleryPhase === 'loading') { _galleryPhase = 'slow'; paintGallery(); } }, 10000);
+  }
   return galleryRef.once('value').then((snap) => {
     _gallery = snap.val() || {};
-    _galleryLoaded = true;
+    _galleryLoaded = true; _galleryPhase = 'ready';
+    clearTimeout(_gallerySlowTimer);
     return _gallery;
-  }).catch(() => _gallery);
+  }).catch(() => { if (!_galleryLoaded) _galleryPhase = 'failed'; return _gallery; });
+}
+function retryGallery() {
+  try { firebase.database().goOnline(); } catch (e) { /* the SDK decides */ }
+  _galleryPhase = 'loading'; paintGallery();
+  loadGallery(false).then(() => paintGallery());
 }
 
 function galleryYears() {
@@ -129,6 +143,17 @@ function paintGallery() {
   const titleEl = document.getElementById('galleryYearTitle');
   const count = galleryCount(_galleryYear);
   if (titleEl) titleEl.innerHTML = `ปี ${_galleryYear}${count ? ` <span>${count} รูป</span>` : ''}`;
+
+  // before the first answer there is no album to call empty
+  if (!_galleryLoaded) {
+    const stuck = _galleryPhase === 'slow' || _galleryPhase === 'failed';
+    gridEl.innerHTML = `<div class="gal-empty">
+      <span class="gal-empty-icon">${stuck ? '📶' : '⏳'}</span>
+      <div>${_galleryPhase === 'failed' ? 'โหลดรูปไม่ได้' : _galleryPhase === 'slow' ? 'ยังเชื่อมต่อไม่ได้' : 'กำลังโหลดรูป…'}</div>
+      ${stuck ? '<div class="gal-empty-sub">ตรวจสัญญาณแล้วลองใหม่</div><button type="button" class="btn btn-outline" style="margin-top:12px;min-height:44px;" onclick="retryGallery()">ลองใหม่</button>' : ''}
+    </div>`;
+    return;
+  }
 
   const photos = galleryPhotos(_galleryYear);
   if (!photos.length) {

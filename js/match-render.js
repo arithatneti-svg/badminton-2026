@@ -99,7 +99,8 @@ function renderPublicOngoingMatches() {
   if (liveMatches.length === 0) {
     liveContainer.innerHTML = `
       <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;font-weight:600;background:var(--surface2);border-radius:14px;border:1px dashed var(--border);">
-        🏸 ยังไม่มีคอร์ทที่กำลังแข่งขันอยู่
+        🏸 ยังไม่มีแมตช์ที่กำลังแข่ง
+        <div style="font-size:12px;font-weight:600;margin-top:6px;">แมตช์ถัดไปจะขึ้นที่นี่</div>
       </div>`;
   } else {
     liveMatches.forEach(m => {
@@ -381,7 +382,7 @@ function renderFinishedMatches() {
   }).slice().reverse();
 
   if (!matches.length) {
-    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;font-weight:600;background:var(--surface2);border-radius:14px;border:1px dashed var(--border);">🏁 ยังไม่มีแมตช์ที่จบแล้ว</div>`;
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;font-weight:600;background:var(--surface2);border-radius:14px;border:1px dashed var(--border);">${appState.matchHistory.length ? '🔍 ไม่พบแมตช์ที่ตรงกับที่ค้นหา' : '🏁 ยังไม่มีแมตช์ที่จบแล้ว<div style="font-size:12px;font-weight:600;margin-top:6px;">ผลจะขึ้นที่นี่เมื่อแมตช์จบ</div>'}</div>`;
     return;
   }
 

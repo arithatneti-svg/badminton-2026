@@ -547,9 +547,17 @@ function _tvEventHtml(ev) {
   </div>`;
 }
 
+// Before the first data (core.js: _dataReady) there is nothing true to show — the battle panel would say
+// "RED TEAM 0 VS BLUE TEAM 0" for the moment it takes, or for good on a screen that never connects (P-21).
+function _tvLoadingHtml() {
+  const stuck = typeof _dataPhase !== 'undefined' && (_dataPhase === 'slow' || _dataPhase === 'failed');
+  return `<div class="tv-panel tv-vs-panel"><div class="tv-heading">🏸 SPORTS DAY 2026</div><div class="tv-empty">${stuck ? 'ยังเชื่อมต่อไม่ได้ — กำลังลองใหม่…' : 'กำลังเชื่อมต่อ…'}</div></div>`;
+}
+
 function renderTvPanel(force) {
   const el = document.getElementById('tvView');
   if (!el || !_tvActive) return;
+  if (typeof _dataReady !== 'undefined' && !_dataReady) { el.innerHTML = _tvLoadingHtml() + _tvFootHtml(); _tvLastKey = '__loading'; return; }
 
   // an announcement owns the whole screen while it is up
   if (_tvEvent) { el.innerHTML = _tvEventHtml(_tvEvent) + _tvFootHtml(); _tvLastKey = '__event'; return; }

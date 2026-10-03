@@ -1697,3 +1697,14 @@ body:not(.is-scoring) #landscapeInfo { display: none !important; }
 }
 .list-filter.on { border-color: rgba(240,192,64,0.6); background: var(--gold-dim); color: var(--gold); }
 .badge-next { background: var(--gold); color: #14120a; border: 1px solid var(--gold); }
+
+/* the "ลองใหม่" button of the loading / no-connection states (P-21) */
+.btn-retry {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 0 24px; margin-top: 12px;
+  border-radius: var(--radius-md); border: 2px solid var(--border-bright);
+  background: var(--surface3); color: var(--text);
+  font-size: 1rem; font-weight: 800; cursor: pointer; touch-action: manipulation;
+}
+.btn-retry:active { background: var(--surface2); }
+.btn-retry[hidden] { display: none; }

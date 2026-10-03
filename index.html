@@ -86,7 +86,7 @@ try {
 <script defer src="js/vendor/qrcode.min.js"></script>
 <script defer src="js/qr.js"></script>
 <script defer src="js/tv.js"></script>
-<body>
+<body class="data-loading">
 
 <!-- ── LOGIN OVERLAY ── -->
 <div id="loginOverlay">
@@ -171,7 +171,7 @@ try {
 <!-- NAVIGATION -->
 <div class="nav" id="mainNav">
   <span class="nav-title">🏸 <span id="seasonNavTitle">SPORTS DAY 2026</span></span>
-  <span id="dbStatusDot" class="nav-live" title="สถานะการเชื่อมต่อ Firebase">
+  <span id="dbStatusDot" class="nav-live" title="สถานะการเชื่อมต่อ">
     <span id="dbDot"></span>
     <span id="dbDotLabel">...</span>
   </span>
@@ -197,6 +197,17 @@ try {
     <button class="nav-ic exit" onclick="logout()" title="ออกจากระบบ" aria-label="ออกจากระบบ"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">🚪</span><span class="nav-ic-label">ออกจากระบบ</span></span></button>
   </div>
 </div>
+
+<!-- WHAT THE PAGE SAYS UNTIL THE FIRST DATA ARRIVES (P-21): the content below is hidden (body.data-loading) and this
+     card stands in for it - loading, then "ยังเชื่อมต่อไม่ได้" after 10 s, or "โหลดข้อมูลไม่ได้"; see js/core.js -->
+<div id="dataState" class="data-state" role="status" aria-live="polite">
+  <div class="ds-spin" aria-hidden="true"></div>
+  <div class="ds-msg" id="dsMsg">กำลังโหลดคะแนน…</div>
+  <div class="ds-sub" id="dsSub"></div>
+  <button type="button" class="btn btn-outline ds-retry" id="dsRetry" onclick="retryLoad()" hidden>ลองใหม่</button>
+</div>
+<!-- a connection that drops AFTER data was shown: one persistent bar under the menu (not a 2.4 s toast) -->
+<div id="connBar" class="conn-bar" role="status" aria-live="polite" hidden></div>
 
 <!-- SCOREBOARD TAB -->
 <!-- ⭐ "me" bar — spectator/player shortcut, guest-visible -->

@@ -43,6 +43,33 @@ function _uOnSnapshot(val) {
 }
 dbRef.on('value', (snapshot) => _uOnSnapshot(snapshot.val()));
 
+// Before the first data there is no list to call empty (P-21): the name list says "loading", the match list used to say
+// "NO MATCHES", and a phone that never connects waited on "กำลังโหลดรายชื่อ…" for good. After 8 s both say that the
+// connection is not there yet and offer a retry; the data still loads by itself when the signal returns.
+const U_LOAD_SLOW_MS = 8000;
+let _uLoadSlow = false, _uLoadTimer = null;
+function _uLoadArm() {
+  clearTimeout(_uLoadTimer);
+  _uLoadSlow = false;
+  _uLoadTimer = setTimeout(() => { if (!appState) { _uLoadSlow = true; _uRenderLoadStates(); } }, U_LOAD_SLOW_MS);
+}
+function _uRenderLoadStates() {
+  if (appState) return;
+  const sel = document.getElementById('umpireSelect'), retry = document.getElementById('namesRetry');
+  if (sel && sel.options.length <= 1) { sel.options[0].textContent = _uLoadSlow ? '— โหลดรายชื่อไม่ได้ —' : '— กำลังโหลดรายชื่อ... —'; }
+  if (retry) retry.hidden = !_uLoadSlow;
+  const help = document.getElementById('loginHelp');
+  if (help && _uLoadSlow) { help.textContent = 'ยังเชื่อมต่อไม่ได้ — ตรวจสัญญาณแล้วกดลองใหม่'; help.style.display = 'block'; }
+  const list = document.getElementById('matchList');
+  if (list && document.getElementById('screen-live').classList.contains('active')) renderMatchList();
+}
+function retryUmpireLoad() {
+  try { firebase.database().goOnline(); } catch (e) { /* the SDK decides */ }
+  _uLoadArm();
+  _uRenderLoadStates();
+}
+_uLoadArm();
+
 // ==========================================
 // SAFE WRITES — by match ID, never by a possibly-stale array position
 // ==========================================
@@ -818,6 +845,7 @@ function _modalDone(result) {
 // ==========================================
 function renderUmpireList() {
   if (!appState || !appState.players) return;
+  const rt = document.getElementById('namesRetry'); if (rt) rt.hidden = true;   // the list has arrived
   const select = document.getElementById('umpireSelect');
   const currentVal = select.value;
 
@@ -882,7 +910,17 @@ function _matchTakenHtml(m) {
 function renderMatchList() {
   const list = document.getElementById('matchList');
 
-  if (!appState || appState.ongoingMatches.length === 0) {
+  if (!appState) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">${_uLoadSlow ? '📶' : '⏳'}</span>
+        <div class="empty-title">${_uLoadSlow ? 'ยังเชื่อมต่อไม่ได้' : 'กำลังโหลดแมตช์…'}</div>
+        ${_uLoadSlow ? '<div class="empty-sub">ตรวจสัญญาณ — จะโหลดเองเมื่อเชื่อมต่อได้</div><button type="button" class="btn-retry" onclick="retryUmpireLoad()">ลองใหม่</button>' : ''}
+      </div>`;
+    return;
+  }
+
+  if (appState.ongoingMatches.length === 0) {
     list.innerHTML = `
       <div class="empty-state">
         <span class="empty-icon">☕</span>
