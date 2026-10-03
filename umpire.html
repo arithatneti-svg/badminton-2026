@@ -26,24 +26,22 @@
 </head>
 <body class="is-login">
 
-<!-- ── PAUSE OVERLAY — แตะเพื่อเล่นต่อ ── -->
-<div id="pauseOverlay" onclick="togglePause()">
-  <div class="pause-icon">⏸</div>
-  <div class="pause-label">หยุดพัก</div>
+<!-- ── PAUSE OVERLAY — sits above the scoring screen; only the ▶ button resumes ── -->
+<div id="pauseOverlay" role="dialog" aria-modal="true" aria-label="หยุดพัก">
+  <div class="pause-title">⏸ หยุดพัก</div>
 
-  <!-- เวลาพักครั้งนี้ -->
   <div class="pause-current-block">
-    <div class="pause-current-label">⏱ พักครั้งนี้</div>
+    <div class="pause-current-label">พักครั้งนี้</div>
     <div class="pause-current-timer" id="pauseTimerBig">0:00</div>
   </div>
 
-  <!-- เวลาพักสะสมทั้งหมด -->
-  <div class="pause-total-block">
-    <div class="pause-total-label">📊 พักสะสมทั้งหมด</div>
-    <div class="pause-total-timer" id="pauseTimerTotal">0:00</div>
+  <div class="pause-meta">
+    <span>พักสะสม <b id="pauseTimerTotal">0:00</b></span>
+    <span>คะแนน <b id="pauseScore">0 – 0</b></span>
   </div>
 
-  <div class="pause-hint">▶ แตะที่นี่เพื่อเล่นต่อ</div>
+  <button type="button" class="pause-resume" id="btnResume" onclick="togglePause()">▶ เล่นต่อ</button>
+  <button type="button" class="pause-exit" onclick="confirmExit()">← ออกจากแมตช์</button>
 </div>
 
 <!-- ── FULLSCREEN FLOATING BUTTON (non-scoring screens) ── -->

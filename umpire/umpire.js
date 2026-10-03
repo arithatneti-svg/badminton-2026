@@ -999,6 +999,13 @@ function renderGameUI() {
   const g2r = Number(match.live.g2R||0), g2b = Number(match.live.g2B||0);
   const curR = isGame2 ? g2r : g1r, curB = isGame2 ? g2b : g1b;
 
+  // the pause screen follows the match state, so it also appears when the match is entered while paused
+  // or paused / resumed from another device with the same name; it shows the score so a break never hides it
+  const pauseOv = document.getElementById('pauseOverlay');
+  if (pauseOv) pauseOv.classList.toggle('show', !!paused);
+  const pauseScore = document.getElementById('pauseScore');
+  if (pauseScore) pauseScore.textContent = `${curR} – ${curB}`;
+
   // single SUBMIT button — label + ready state follow the current game.
   // muted until the game reads as a valid finish (still tappable: warn-then-allow)
   const submitBtn = document.getElementById('btnSubmitGame');
@@ -1170,6 +1177,8 @@ function exitMatch() {
   releaseWakeLock();
   activeMatchId = '';
   _uOwned = '';
+  const pauseOv = document.getElementById('pauseOverlay');
+  if (pauseOv) pauseOv.classList.remove('show');   // leaving while paused: the break screen must not stay over the list
   localStorage.removeItem('bdm_umpire_match');
   // Exit fullscreen on leave
   const exitFs = document.exitFullscreen || document.webkitExitFullscreen;

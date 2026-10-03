@@ -861,109 +861,105 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   box-shadow: 0 6px 24px rgba(240,192,64,0.4);
 }
 
-/* PAUSE TIMER OVERLAY — tappable to resume */
+/* PAUSE OVERLAY — above the scoring screen (z 1000) and the landscape bar (2000); below the VS intro (3000)
+   and the dialogs. It used to sit at z 500 - behind the scoring screen - so a pause showed nothing but a
+   gold clock and +1 / − taps did nothing without a word. Only the ▶ button resumes: a palm on the screen
+   while the phone is down must not restart play. */
 #pauseOverlay {
   display: none;
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 500;
-  background: rgba(7,7,13,0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  inset: 0;
+  z-index: 2500;
+  background: var(--bg);              /* solid: no ghost of the scoring screen showing through */
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  pointer-events: all;
-  cursor: pointer;
+  gap: 14px;
+  padding: calc(16px + var(--sat)) 20px calc(16px + var(--sab));
+  overflow-y: auto;
 }
 #pauseOverlay.show { display: flex; animation: fadeUp 0.2s ease both; }
 
-.pause-icon {
-  font-size: 2.4rem;
-  margin-bottom: 10px;
-  filter: drop-shadow(0 0 20px rgba(240,192,64,0.5));
-  animation: pulse 1.5s ease infinite;
-}
-.pause-label {
+.pause-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1em;
+  font-size: 2.3rem;
   letter-spacing: 6px;
   color: var(--gold);
-  opacity: 0.7;
-  margin-bottom: 18px;
+  line-height: 1;
 }
-
-/* Current pause session timer */
 .pause-current-block {
   display: flex;
   flex-direction: column;
   align-items: center;
   background: rgba(240,192,64,0.07);
-  border: 1.5px solid rgba(240,192,64,0.25);
+  border: 1.5px solid rgba(240,192,64,0.3);
   border-radius: var(--radius-xl);
-  padding: 20px 48px 16px;
-  margin-bottom: 16px;
-  min-width: 260px;
+  padding: 14px 44px 12px;
+  min-width: 240px;
 }
 .pause-current-label {
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 3px;
   color: var(--gold);
-  opacity: 0.65;
-  margin-bottom: 6px;
 }
 .pause-current-timer {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(4.5rem, 18vw, 7.5rem);
+  font-size: clamp(4rem, 18vw, 7rem);
   letter-spacing: 4px;
   line-height: 1;
   color: var(--gold);
   text-shadow: 0 0 50px rgba(240,192,64,0.55);
-  animation: pulse 1.5s ease infinite;
 }
-
-/* Total pause accumulation */
-.pause-total-block {
+.pause-meta {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 40px;
-  padding: 10px 22px;
-  margin-bottom: 24px;
-}
-.pause-total-label {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: var(--muted);
-}
-.pause-total-timer {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4em;
-  letter-spacing: 2px;
-  color: var(--muted);
-}
-
-.pause-hint {
-  font-size: 0.88rem;
-  color: var(--muted);
-  letter-spacing: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 22px;
+  font-size: 0.95rem;
   font-weight: 700;
-  padding: 12px 32px;
-  border: 1.5px solid rgba(255,255,255,0.1);
-  border-radius: 40px;
-  background: rgba(255,255,255,0.04);
-  transition: all 0.15s;
+  color: var(--text);
 }
-#pauseOverlay:active .pause-hint {
-  background: rgba(46,204,113,0.12);
-  border-color: rgba(46,204,113,0.3);
-  color: var(--green);
+.pause-meta b { font-family: 'Bebas Neue', sans-serif; font-size: 1.5em; letter-spacing: 2px; color: var(--gold); margin-left: 4px; }
+.pause-resume {
+  width: min(100%, 360px);
+  min-height: 72px;
+  margin-top: 6px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #2ecc71, #1a9e55);
+  color: #04130a;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 6px 24px rgba(46,204,113,0.3);
 }
+.pause-resume:active { transform: scale(0.97); filter: brightness(0.9); }
+.pause-exit {
+  width: min(100%, 360px);
+  min-height: 52px;
+  border: 1.5px solid var(--border-bright);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.pause-exit:active { background: var(--surface2); }
+/* landscape phones are short: tighten so title, clock, buttons all fit (320 px high is the floor) */
+@media (max-height: 480px) {
+  #pauseOverlay { gap: 8px; padding-top: calc(8px + var(--sat)); padding-bottom: calc(8px + var(--sab)); }
+  .pause-title { font-size: 1.5rem; letter-spacing: 4px; }
+  .pause-current-block { padding: 6px 36px 4px; }
+  .pause-current-timer { font-size: 3rem; }
+  .pause-resume { min-height: 56px; margin-top: 0; font-size: 1.3rem; }
+  .pause-exit { min-height: 48px; }
+}
+@media (prefers-reduced-motion: reduce) { #pauseOverlay.show { animation: none; } }
 
 /* Safe area bottom */
 .scoring-bottom-safe {
