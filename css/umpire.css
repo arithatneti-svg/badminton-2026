@@ -1109,6 +1109,12 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   gap: 0;
   margin: auto;
   box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  /* taller than the screen: the box scrolls inside itself and the buttons stay pinned at its bottom edge
+     (the worst submit box - two warnings and the result - is taller than a 568 px phone) */
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .modal-icon {
   font-size: 2.4rem;
@@ -1131,7 +1137,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   color: var(--muted);
   text-align: center;
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
   white-space: pre-line;
 }
 .modal-score-preview {
@@ -1166,11 +1172,24 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   font-weight: 300;
   align-self: center;
 }
+.msv-dash { color: #9a9ab8; font-size: 0.7em; margin: 0 4px; }
+/* the sides named under each score, so colour is never the only thing telling red from blue */
+.modal-score-sides { margin-top: 4px; font-size: 0.82rem; font-weight: 700; color: #b4b4cc; }
+/* what sending will record, in words — the line to read before pressing the gold button */
+.modal-result { text-align: center; margin: -6px 0 20px; font-size: 1.1rem; font-weight: 800; line-height: 1.4; color: var(--gold); }
+.modal-result small { display: block; margin-bottom: 2px; font-size: 0.82rem; font-weight: 700; color: #b4b4cc; }
 /* two buttons at least 16px apart (a thumb that lands between them hits neither); the safe one first, plain and
    readable, the one that does something coloured by what it does (gold = sends, red = leaves / discards). */
 .modal-btns {
   display: grid;
   gap: 16px;
+  position: sticky;
+  bottom: 0;             /* the bottom of the box's content area: its own 24px padding stays under the buttons */
+  background: var(--surface);
+  padding-top: 10px;
+  /* the 10px of padding is a cushion in the box colour, so scrolled text never touches the buttons;
+     the margins above them (.modal-body, .court-grid) are 10px smaller to make up for it */
+  box-shadow: 0 24px 0 0 var(--surface);   /* paints the box padding under the buttons so scrolled text never shows there */
 }
 .modal-btns.two-col { grid-template-columns: 1fr 1fr; }
 .modal-btns.stack { grid-template-columns: 1fr; }
@@ -1215,14 +1234,26 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   color: #000;
   box-shadow: 0 4px 16px rgba(46,204,113,0.3);
 }
+/* a submit box reads title -> the scores and what they record -> the warnings -> buttons: the numbers come first,
+   so on a small phone they are what is on screen when the rest has to scroll */
+#modalBox.has-score .modal-icon { order: -3; }
+#modalBox.has-score .modal-title { order: -2; }
+#modalBox.has-score #modalScorePreview { order: -1; }
+#modalBox.has-score .modal-body { margin-bottom: 10px; }
+/* a short phone (a 568 px iPhone SE, a 640 px Android): no big icon, so the common box fits without scrolling */
+@media (max-height: 640px) {
+  .modal-icon { display: none; }
+  .modal-box { padding-top: 22px; }
+}
 /* a landscape phone: less air and no big icon, so most boxes fit without scrolling (the rest scroll) */
 @media (max-height: 480px) {
   #customModal { padding: 12px; }
-  .modal-box { padding: 14px 20px 16px; max-width: 520px; }
+  .modal-box { padding: 14px 20px 16px; max-width: 520px; max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); }
   .modal-icon { display: none; }
   .modal-title { margin-bottom: 6px; }
-  .modal-body { margin-bottom: 12px; }
+  .modal-body { margin-bottom: 2px; }
   .modal-score-preview { margin-bottom: 12px; padding: 8px 12px; }
+  .modal-result { margin-bottom: 12px; }
 }
 
 /* ── COURT PICKER (inside #customModal) ── */
@@ -1232,7 +1263,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-  margin: 0 -8px 20px;
+  margin: 0 -8px 10px;
 }
 .court-chip {
   min-height: 56px;
@@ -1259,7 +1290,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   #modalBox.is-courts .modal-icon { display: none; }
   #modalBox.is-courts .modal-title { font-size: 1.5em; margin-bottom: 4px; }
   #modalBox.is-courts .modal-body { margin-bottom: 10px; }
-  #modalBox.is-courts .court-grid { grid-template-columns: repeat(10, 1fr); margin: 0 0 12px; }
+  #modalBox.is-courts .court-grid { grid-template-columns: repeat(10, 1fr); margin: 0 0 2px; }
   #modalBox.is-courts .modal-btn { padding: 10px; font-size: 1.3em; }
 }
 

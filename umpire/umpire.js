@@ -148,7 +148,7 @@ async function _sendResult(entry, pRed, pBlue) {
     const first = await Promise.race([late, slow]);
     if (first.done) return first.done;
     const question = showConfirm('⏳', 'ส่งนานกว่าปกติ',
-      'สัญญาณอาจไม่ดี — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้ ถ้าออกตอนนี้ ระบบจะส่งต่อเองเมื่อสัญญาณกลับ',
+      'สัญญาณอาจไม่ดี — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้\nถ้าออกตอนนี้ ระบบจะส่งต่อเองเมื่อสัญญาณกลับ',
       { confirmLabel: 'ลองใหม่', cancelLabel: 'ออก — ส่งต่อเอง', noEscape: true });   // leaving here is a real choice, so Esc must not make it
     const out = await Promise.race([question.then(choice => ({ choice })), late]);
     if (out.done) { _modalDone(null); return out.done; }       // it got through while we were asking
@@ -735,6 +735,8 @@ function _modalOpen(escapeWith) {
   _modalEscape = escapeWith === undefined ? null : { v: escapeWith };
   document.getElementById('customModal').classList.add('open');
   const box = document.getElementById('modalBox');
+  // a score box (not the court picker, which shares the same slot) reads scores-first — see css .has-score
+  box.classList.toggle('has-score', document.getElementById('modalScorePreview').style.display === 'block' && !box.classList.contains('is-courts'));
   const first = box.querySelector('[data-safe]') || box.querySelector('#modalBtns button');
   if (first) first.focus({ preventScroll: true });
 }
@@ -805,7 +807,7 @@ function showConfirm(icon, title, body, opts = {}) {
 
 function _modalDone(result) {
   document.getElementById('customModal').classList.remove('open');
-  document.getElementById('modalBox').classList.remove('is-courts');
+  document.getElementById('modalBox').classList.remove('is-courts', 'has-score');
   const back = _modalReturnFocus; _modalReturnFocus = null; _modalEscape = null;
   if (back && document.contains(back) && back.offsetParent !== null) back.focus({ preventScroll: true });
   if (_modalResolve) { _modalResolve(result); _modalResolve = null; }
@@ -1345,13 +1347,39 @@ function isValidBadmintonScore(a, b) {
   return true;
 }
 
+// the short reason a game score does not look like a finished game (label: "เกม 1"); null = it does
 function scoreValidationMsg(a, b, label) {
   if (a < 0 || b < 0) return `${label}: คะแนนติดลบไม่ได้`;
   const winner = Math.max(a,b), loser = Math.min(a,b);
-  if (winner < 21) return `${label}: ต้องได้อย่างน้อย 21 แต้มก่อนจบเกม (ตอนนี้ ${winner})`;
-  if (winner - loser < 2) return `${label}: ต้องนำห่างอย่างน้อย 2 แต้ม (${a}:${b})`;
-  if (winner > 30 || (winner === 30 && loser !== 29)) return `${label}: คะแนนสูงสุดคือ 30:29`;
+  if (winner < 21) return `${label}: ยังไม่ถึง 21 คะแนน`;
+  if (winner - loser < 2) return `${label}: ต้องนำห่างอย่างน้อย 2 คะแนน`;
+  if (winner > 30 || (winner === 30 && loser !== 29)) return `${label}: คะแนนสูงสุดคือ 30–29`;
   return null;
+}
+
+// What two game scores are worth: 3 points to the winner of the match, 1 each for a draw — the decision the
+// stored result has always carried (pRed / pBlue / rStat / bStat / resText are byte for byte what the inline
+// code produced; resText stays English because the scoreboard, reports and PDF read it) — plus `label`,
+// the same thing in Thai for the umpire. A "Point Diff" branch that used to follow could never run:
+// the two sides' half-wins always add up to 2, so a tie there is always 1 – 1.
+function _uOutcome(g1r, g1b, g2r, g2b) {
+  let rWin = 0, bWin = 0, rGames = 0, bGames = 0;
+  if (g1r > g1b) { rWin++; rGames++; } else if (g1b > g1r) { bWin++; bGames++; } else { rWin += 0.5; bWin += 0.5; }
+  if (g2r > g2b) { rWin++; rGames++; } else if (g2b > g2r) { bWin++; bGames++; } else { rWin += 0.5; bWin += 0.5; }
+  const side = (name, games) => games === 2 ? `ทีม${name}ชนะ 2–0` : `ทีม${name}ชนะ 1–0 · อีกเกมเสมอ`;   // a tied game only exists in a walk-over
+  if (rWin > bWin) return { pRed: 3, pBlue: 0, rStat: 'W', bStat: 'L', resText: '🔴 Red Win 2–0 (+3pts)',  label: `${side('แดง', rGames)} (+3 คะแนน)` };
+  if (bWin > rWin) return { pRed: 0, pBlue: 3, rStat: 'L', bStat: 'W', resText: '🔵 Blue Win 2–0 (+3pts)', label: `${side('น้ำเงิน', bGames)} (+3 คะแนน)` };
+  return { pRed: 1, pBlue: 1, rStat: 'D', bStat: 'D', resText: '🤝 เสมอ 1–1 (+1pt each)', label: `${rGames === 1 && bGames === 1 ? 'เสมอ 1–1' : 'เสมอ'} (ทีมละ +1 คะแนน)` };
+}
+
+// The score box in the submit boxes: each game as "21 – 15" with the sides named under it (colour is never the
+// only cue), and — when given — the result that sending will record, in words.
+function _scorePreviewHtml(games, resultLabel) {
+  const cell = g => `<div class="modal-score-game"><div class="modal-score-label">${g.label}</div>
+      <div class="modal-score-val"><span style="color:var(--red)">${g.r}</span><span class="msv-dash">–</span><span style="color:var(--blue)">${g.b}</span></div>
+      <div class="modal-score-sides"><span style="color:var(--red)">แดง</span> – <span style="color:var(--blue)">น้ำเงิน</span></div></div>`;
+  return `<div class="modal-score-preview">${games.map(cell).join('<div class="modal-score-sep">·</div>')}</div>`
+    + (resultLabel ? `<div class="modal-result"><small>ผลที่จะบันทึก</small>${_uEsc(resultLabel)}</div>` : '');
 }
 
 // Single SUBMIT button dispatches by game: Game 1 locks + advances,
@@ -1367,27 +1395,17 @@ async function lockGame1() {
 
   const g1r = Number(match.live.g1R || 0);
   const g1b = Number(match.live.g1B || 0);
-  // คะแนนไม่เข้ากติกา 21 แต้ม (ยอมแพ้/เจ็บ/เล่นสั้น) → เตือนแต่ให้ล็อกได้ ไม่ block
-  const warn = scoreValidationMsg(g1r, g1b, 'Game 1');
+  // a score that does not look like a finished game (walk-over / injury / short game) warns but never blocks
+  const warn = scoreValidationMsg(g1r, g1b, 'เกม 1');
   if (warn) vibrateDevice([60, 30, 60]);
 
-  const scoreHtml = `
-    <div class="modal-score-preview">
-      <div class="modal-score-game">
-        <div class="modal-score-label">GAME 1</div>
-        <div class="modal-score-val">
-          <span style="color:var(--red)">${g1r}</span>
-          <span style="color:var(--muted2);font-size:0.7em;margin:0 4px">–</span>
-          <span style="color:var(--blue)">${g1b}</span>
-        </div>
-      </div>
-    </div>`;
-
-  const ok = await showConfirm('🏁', 'SUBMIT GAME 1?', warn ? `⚠️ ${warn}\nจะบันทึกตามคะแนนนี้` : 'จะบันทึก Game 1 แล้วเริ่มนับ Game 2 ทันที', {
-    scoreHtml,
-    confirmLabel: 'SUBMIT GAME 1',
+  // says that it cannot be undone from here (an admin fixes it), shows what is being sent, names the sides
+  const ok = await showConfirm('🏁', 'ส่งผลเกม 1?',
+    (warn ? `⚠️ ${warn}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ\n` : '') + 'ส่งแล้วแก้เกม 1 เองไม่ได้\nจากนั้นเริ่มเกม 2 ทันที', {
+    scoreHtml: _scorePreviewHtml([{ label: 'เกม 1', r: g1r, b: g1b }]),
+    confirmLabel: 'ส่งผลเกม 1',
     confirmClass: 'modal-btn-confirm',
-    cancelLabel: 'ยกเลิก'
+    cancelLabel: 'กลับไปแก้'
   });
 
   if (ok) {
@@ -1480,7 +1498,7 @@ async function confirmExit() {
   const waiting = offline || _uPending > 0;
   const ok = waiting
     ? await showConfirm('📶', 'ออกตอนที่ยังส่งไม่ครบ?',
-        `${_uPending > 0 ? `ยังมี ${_uPending} รายการรอส่ง` : 'ตอนนี้ไม่มีสัญญาณ'} — อย่าปิดหน้านี้จนกว่าสัญญาณกลับ\nระบบจะส่งต่อเองเมื่อสัญญาณกลับ`,
+        `${_uPending > 0 ? `ยังมี ${_uPending} รายการรอส่ง` : 'ตอนนี้ไม่มีสัญญาณ'}\nอย่าปิดหน้านี้จนกว่าสัญญาณกลับ\nระบบจะส่งต่อเองเมื่อสัญญาณกลับ`,
         { confirmLabel: 'ออกทั้งที่ยังไม่ส่ง', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' })
     : await showConfirm('🚪', 'ออกจากหน้านี้?',
         `คะแนน ${score} ถูกบันทึกแล้ว\nแตะ ▶ คุมต่อ ที่รายการเพื่อกลับมา`,
@@ -1531,71 +1549,36 @@ async function confirmMatch() {
   const g1r=Number(m.live.g1R||0), g1b=Number(m.live.g1B||0);
   const g2r=Number(m.live.g2R||0), g2b=Number(m.live.g2B||0);
 
-  // คะแนนไม่มาตรฐานก็ส่งได้ (ยอมแพ้/เจ็บ/เล่นสั้น) — เตือนแต่ไม่ block
-  const _warns = [scoreValidationMsg(g1r, g1b, 'Game 1'), scoreValidationMsg(g2r, g2b, 'Game 2')].filter(Boolean);
+  // a score that does not look like a finished game (walk-over / injury / short game) warns but never blocks
+  const _warns = [scoreValidationMsg(g1r, g1b, 'เกม 1'), scoreValidationMsg(g2r, g2b, 'เกม 2')].filter(Boolean);
   if (_warns.length) vibrateDevice([60,30,60]);
 
-  const scoreHtml = `
-    <div class="modal-score-preview">
-      <div class="modal-score-game">
-        <div class="modal-score-label">GAME 1</div>
-        <div class="modal-score-val">
-          <span style="color:var(--red)">${g1r}</span>
-          <span style="color:var(--muted2);font-size:0.7em;margin:0 4px">–</span>
-          <span style="color:var(--blue)">${g1b}</span>
-        </div>
-      </div>
-      <div class="modal-score-sep">·</div>
-      <div class="modal-score-game">
-        <div class="modal-score-label">GAME 2</div>
-        <div class="modal-score-val">
-          <span style="color:var(--red)">${g2r}</span>
-          <span style="color:var(--muted2);font-size:0.7em;margin:0 4px">–</span>
-          <span style="color:var(--blue)">${g2b}</span>
-        </div>
-      </div>
-    </div>`;
+  // what sending will record, worked out once: shown in the box, then written
+  const { pRed, pBlue, rStat, bStat, resText, label: resLabel } = _uOutcome(g1r, g1b, g2r, g2b);
 
-  const ok = await showConfirm('🏁', 'SUBMIT GAME 2?', _warns.length ? `⚠️ ${_warns.join(' · ')}\nจะส่งผลตามคะแนนนี้` : 'ผลจะส่งไปที่ Scoreboard ทันที', {
-    scoreHtml,
-    confirmLabel: 'SUBMIT',
+  const ok = await showConfirm('🏁', 'ส่งผลแมตช์?',
+    (_warns.length ? `⚠️ ${_warns.join('\n')}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ\n` : '') + 'ส่งแล้วแก้เองไม่ได้\nต้องให้ทีมงานแก้', {
+    scoreHtml: _scorePreviewHtml([{ label: 'เกม 1', r: g1r, b: g1b }, { label: 'เกม 2', r: g2r, b: g2b }], resLabel),
+    confirmLabel: 'ส่งผลแมตช์',
     confirmClass: 'modal-btn-confirm',
-    cancelLabel: 'ยกเลิก'
+    cancelLabel: 'กลับไปแก้'
   });
 
   if (ok) {
     // An earlier send of THIS match may still arrive (it timed out, the umpire left, it is queued in this
     // page). Sending the same scores again is safe; different scores would race it, so wait for it.
     if (_uSubmitPending && _uSubmitPending.id === m.id && (_uSubmitPending.game1 !== `${g1r}:${g1b}` || _uSubmitPending.game2 !== `${g2r}:${g2b}`)) {
-      await showAlert('⏳', 'ผลก่อนหน้านี้ยังส่งค้างอยู่', `ผลที่ส่งไปก่อน (เกม 1 ${_uSubmitPending.game1.replace(':', '–')} · เกม 2 ${_uSubmitPending.game2.replace(':', '–')}) ยังไม่ถึงเซิร์ฟเวอร์
-รอสัญญาณกลับให้ส่งเสร็จก่อน แล้วค่อยแก้`);
+      await showAlert('⏳', 'ผลก่อนหน้านี้ยังส่งค้างอยู่', `ผลที่ส่งไปก่อน (เกม 1 ${_uSubmitPending.game1.replace(':', '–')} · เกม 2 ${_uSubmitPending.game2.replace(':', '–')})\nยังส่งไม่ถึงระบบ — รอให้ส่งเสร็จก่อน แล้วค่อยแก้`);
       return;
     }
     // Finalizing needs the server: a queued offline result would be lost if the
     // phone is locked or the page closed before the signal returns.
     if (!_uOnline) {
-      await showAlert('📶', 'ยังส่งผลไม่ได้', 'ตอนนี้ไม่มีสัญญาณ — รอสัญญาณกลับมาแล้วกด SUBMIT อีกครั้ง\nคะแนนยังอยู่ครบในเครื่องนี้');
+      await showAlert('📶', 'ยังส่งผลไม่ได้', 'ไม่มีสัญญาณ — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้\nเมื่อสัญญาณกลับ กด “ส่งผลแมตช์” อีกครั้ง');
       return;
     }
     _isConfirming = true; // ป้องกัน updateCurrentScreen แสดง modal ซ้ำ
     renderGameUI();       // → "กำลังส่งผล…" on the submit button
-    let rWin=0, bWin=0;
-    if(g1r>g1b)rWin++;else if(g1b>g1r)bWin++;else{rWin+=0.5;bWin+=0.5;}
-    if(g2r>g2b)rWin++;else if(g2b>g2r)bWin++;else{rWin+=0.5;bWin+=0.5;}
-
-    let pRed=0, pBlue=0, rStat='', bStat='', resText='';
-    if(rWin>bWin){pRed=3;rStat='W';bStat='L';resText='🔴 Red Win 2–0 (+3pts)';}
-    else if(bWin>rWin){pBlue=3;rStat='L';bStat='W';resText='🔵 Blue Win 2–0 (+3pts)';}
-    else{
-      if(rWin===1 && bWin===1){
-        pRed=1; pBlue=1; rStat='D'; bStat='D'; resText='🤝 เสมอ 1–1 (+1pt each)';
-      } else {
-        const pdRed=(g1r-g1b)+(g2r-g2b), pdBlue=-pdRed;
-        if(pdRed>0){pRed=3;rStat='W';bStat='L';resText=`🔴 Red Win (Point Diff +${pdRed}) (+3pts)`;}
-        else if(pdBlue>0){pBlue=3;rStat='L';bStat='W';resText=`🔵 Blue Win (Point Diff +${pdBlue}) (+3pts)`;}
-        else{pRed=1;pBlue=1;rStat='D';bStat='D';resText='🤝 Perfect Draw (+1pt each)';}
-      }
-    }
 
     // time actually played: first point to now, minus the time spent paused
     // (it used to be "time since the match was taken", which counted waiting too)
@@ -1613,29 +1596,45 @@ async function confirmMatch() {
     }));
 
     // history + team scores + court list, atomically, on the server's current data
-    const r = await _sendResult(entry, pRed, pBlue);
+    let r = await _sendResult(entry, pRed, pBlue);
+    // a plain failure (not "already recorded", "not yours any more", "left") offers the retry in the box itself;
+    // sending again is safe: the transaction refuses a result that is already recorded
+    while (!r.ok && !['already', 'missing', 'taken', 'abandoned'].includes(r.reason)) {
+      _isConfirming = false;
+      renderGameUI();
+      const again = await showConfirm('⚠️', 'ส่งผลไม่สำเร็จ', 'คะแนนยังอยู่ครบในเครื่องนี้\nตรวจสัญญาณแล้วลองส่งอีกครั้ง\nถ้ายังไม่ได้ แจ้งทีมงาน',
+        { confirmLabel: 'ลองส่งอีกครั้ง', cancelLabel: 'ปิด' });
+      if (!again) return;
+      _isConfirming = true;
+      renderGameUI();
+      r = await _sendResult(entry, pRed, pBlue);
+    }
     const sameResult = r.existing && r.existing.game1 === entry.game1 && r.existing.game2 === entry.game2;
 
     if (r.ok || (r.reason === 'already' && sameResult)) {
       vibrateDevice([60, 40, 60, 40, 120]);
-      await showAlert('✅', 'ส่งผลแล้ว!', resText);
+      await showAlert('✅', 'ส่งผลแล้ว ✓', `${m.id} · ${resLabel}`, 'กลับไปรายการ');
       _isConfirming = false;
       exitMatch();
-    } else if (r.reason === 'already' || r.reason === 'missing') {
-      await showAlert('ℹ️', 'แมตช์นี้ถูกบันทึกผลไปแล้ว', 'แอดมินบันทึกผลหรือปิดแมตช์นี้ไปก่อน — ผลจากเครื่องนี้จึงไม่ถูกส่งซ้ำ');
+    } else if (r.reason === 'already') {
+      // recorded by someone else first; when their scores are not the ones pressed here, say both
+      const both = x => `${String(x.game1).replace(':', '–')} · ${String(x.game2).replace(':', '–')}`;
+      await showAlert('ℹ️', 'แมตช์นี้ถูกบันทึกผลไปแล้ว',
+        'ทีมงานบันทึกผลไว้ก่อน — ผลจากเครื่องนี้ไม่ถูกส่งซ้ำ' + (r.existing ? `\nผลที่บันทึก ${both(r.existing)}\nต่างจากที่คุณกด ${both(entry)}\nแจ้งทีมงานหากไม่ถูกต้อง` : ''), 'กลับไปรายการ');
+      _isConfirming = false;
+      exitMatch();
+    } else if (r.reason === 'missing') {
+      // gone from the court list without a result in the history: nothing was recorded anywhere
+      await showAlert('ℹ️', 'แมตช์นี้ถูกปิดไปแล้ว', 'ทีมงานปิดแมตช์นี้ไปก่อน — ผลจากเครื่องนี้จึงไม่ถูกส่ง\nถ้ายังต้องบันทึกผล แจ้งทีมงาน', 'กลับไปรายการ');
       _isConfirming = false;
       exitMatch();
     } else if (r.reason === 'taken') {
-      await showAlert('🔒', 'แมตช์นี้ไม่ได้อยู่กับคุณแล้ว', 'แอดมินปล่อยแมตช์นี้ หรือกรรมการคนอื่นรับไปแล้ว — ผลจากเครื่องนี้จึงไม่ถูกส่ง');
+      await showAlert('🔒', 'แมตช์นี้ไม่ได้อยู่กับคุณแล้ว', 'ทีมงานปล่อยแมตช์นี้ หรือกรรมการคนอื่นรับไปแล้ว\nผลจากเครื่องนี้จึงไม่ถูกส่ง', 'กลับไปรายการ');
       _isConfirming = false;
-      exitMatch();
-    } else if (r.reason === 'abandoned') {
-      _isConfirming = false;     // left with the result still pending: the page keeps trying while it stays open
       exitMatch();
     } else {
-      _isConfirming = false;
-      renderGameUI();
-      await showAlert('⚠️', 'ส่งผลไม่สำเร็จ', 'ลองกด SUBMIT อีกครั้ง — คะแนนยังอยู่ครบ');
+      _isConfirming = false;     // 'abandoned': left with the result still pending — the page keeps trying while it stays open
+      exitMatch();
     }
   }
 }
