@@ -50,6 +50,22 @@ let _tvProbeAt = 0, _tvProbeBusy = false, _tvProbeFails = 0;
 let _tvOfflineSince = 0;          // when it was last known fine, once judged offline (0 = fine)
 let _tvHealthTimer = null;
 
+// Recovery — nobody is there to press refresh. After 5 min offline the screen drops and re-opens
+// its connection; if it is STILL offline 5 min later although the network answers (so something in
+// the page is stuck) it reloads — but only while no score has moved for 2 min, never mid-rally.
+// With the network really down it never reloads (a reload could land on a browser error page);
+// the red bar simply stays up. Values are an object so a test can shorten them.
+const TV_RECOVERY = { reconnectAfterMs: 5 * 60 * 1000, idleBeforeReloadMs: 2 * 60 * 1000 };
+let _tvLastChangeAt = Date.now(), _tvSig = '', _tvReconnectAt = 0;
+let _tvWake = 'pending';          // screen wake lock: pending | ok | lost | unsupported | denied
+function _tvReload() { location.reload(); }
+// any score, pause or finished match counts as activity
+function _tvNoteActivity() {
+  const sig = _tvLiveList().map(m => { const lv = m.live || {}; return [m.id, lv.g1R, lv.g1B, lv.g2R, lv.g2B, lv.g1Locked ? 1 : 0, lv.isPaused ? 1 : 0].join(':'); }).join('|')
+    + '#' + (appState.matchHistory || []).length;
+  if (sig !== _tvSig) { _tvSig = sig; _tvLastChangeAt = Date.now(); }
+}
+
 function _tvClock(ms, withSeconds) {
   const d = new Date(ms), p = n => String(n).padStart(2, '0');
   return p(d.getHours()) + ':' + p(d.getMinutes()) + (withSeconds ? ':' + p(d.getSeconds()) : '');
@@ -70,7 +86,11 @@ async function _tvProbe() {
   } catch (e) { _tvProbeFails++; }
   finally { clearTimeout(timer); _tvProbeBusy = false; }
 }
-function _tvSyncInner() { return `<span class="tv-sync-dot"></span>ซิงก์ ${_tvClock(_tvAliveAt, true)}`; }
+function _tvSyncInner() {
+  const wake = (_tvWake === 'unsupported' || _tvWake === 'denied')
+    ? ' <span class="tv-sync-warn">⚠ จออาจดับเอง — ตั้งปิดการพักจอที่เครื่อง</span>' : '';
+  return `<span class="tv-sync-dot"></span>ซิงก์ ${_tvClock(_tvAliveAt, true)}${wake}`;
+}
 function _tvHealth() {
   const now = Date.now();
   if (!_tvProbeBusy && now - _tvProbeAt >= TV_PROBE_EVERY_MS) _tvProbe();
@@ -86,10 +106,19 @@ function _tvHealth() {
   }
   const chip = document.getElementById('tvSync');
   if (chip) { chip.classList.toggle('off', offline); chip.innerHTML = _tvSyncInner(); }
+  if (offline) {
+    const offFor = now - _tvOfflineSince;
+    if (offFor >= TV_RECOVERY.reconnectAfterMs && now - _tvReconnectAt >= TV_RECOVERY.reconnectAfterMs) {
+      _tvReconnectAt = now;                           // drop the connection and open a fresh one
+      try { const db = firebase.database(); db.goOffline(); setTimeout(() => db.goOnline(), 1000); } catch (e) { /* retry next round */ }
+    }
+    if (offFor >= 2 * TV_RECOVERY.reconnectAfterMs && _tvProbeFails === 0 && now - _tvLastChangeAt >= TV_RECOVERY.idleBeforeReloadMs) _tvReload();
+  }
 }
 function _tvStartHealth() {
   clearInterval(_tvHealthTimer);
   _tvAliveAt = Date.now(); _tvProbeAt = 0; _tvProbeFails = 0; _tvOfflineSince = 0;
+  _tvLastChangeAt = Date.now(); _tvReconnectAt = 0;
   _tvHealthTimer = setInterval(_tvHealth, 1000);
   _tvHealth();
 }
@@ -205,6 +234,7 @@ function _tvAdvancePanel() {
 // then render smoothly (patch values instead of rebuilding when possible).
 function tvOnDataChange() {
   if (!_tvActive) return;
+  _tvNoteActivity();
   _tvDetectEvents();
   renderTvPanel();
 }
@@ -561,11 +591,13 @@ function _tvPokeIdle() {
 let _tvWakeLock = null;
 
 async function requestTvWakeLock() {
-  if (!_tvActive || !('wakeLock' in navigator)) return;
+  if (!_tvActive) return;
+  if (!('wakeLock' in navigator)) { _tvWake = 'unsupported'; return; }   // the footer chip then says so
   try {
     _tvWakeLock = await navigator.wakeLock.request('screen');
-    _tvWakeLock.addEventListener('release', () => { _tvWakeLock = null; });
-  } catch (e) { /* denied or not allowed in this context */ }
+    _tvWake = 'ok';
+    _tvWakeLock.addEventListener('release', () => { _tvWakeLock = null; _tvWake = 'lost'; });
+  } catch (e) { _tvWake = 'denied'; /* denied or not allowed in this context */ }
 }
 
 function releaseTvWakeLock() {

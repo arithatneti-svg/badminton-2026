@@ -109,6 +109,7 @@ body.tv-mode #tvView {
 /* sync chip — the last moment this screen was confirmed live (a frozen page = a frozen clock) */
 .tv-sync { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: clamp(11px, 1vw, 16px); font-weight: 600; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
 .tv-sync-dot { width: clamp(7px, .6vw, 10px); height: clamp(7px, .6vw, 10px); border-radius: 50%; background: var(--green); }
+.tv-sync-warn { color: var(--gold); font-weight: 700; }
 .tv-sync.off { color: #FF8A8A; }
 .tv-sync.off .tv-sync-dot { background: var(--danger); }
 /* red bar across the top while the data may be old (toggled by _tvHealth; above every panel) */
