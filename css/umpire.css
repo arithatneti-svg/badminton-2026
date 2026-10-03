@@ -608,6 +608,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 /* BOTTOM BAR — leave / pause. The 24 px on top is a guard strip: it belongs to the bar and holds no button,
    so a thumb or palm that slips off the blue +1 area lands on nothing. */
 .scoring-bottombar {
+  position: relative;
   display: flex;
   gap: 12px;
   padding: 24px 12px 12px;
@@ -1530,6 +1531,12 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 /* Offline — Firebase queues writes while offline, but only while the page
    stays open, so the umpire must know. Never blocks taps. */
 .net-banner { display: none; }
+/* slow but online: gold instead of red, same place */
+body.is-slow:not(.is-offline) .net-banner {
+  display: block; padding: 8px 14px; text-align: center; pointer-events: none;
+  font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: .2px;
+  color: #14120a; background: rgba(240,192,64,.96); box-shadow: 0 6px 18px -8px rgba(0,0,0,.6);
+}
 body.is-offline .net-banner {
   display: block; padding: 8px 14px; text-align: center; pointer-events: none;
   font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: .2px;
@@ -1569,3 +1576,13 @@ body.is-offline .net-banner {
 #umpNotice .un-btn { padding: 0 16px; background: var(--gold-dim); border-color: rgba(240,192,64,0.6); color: var(--gold); }
 #umpNotice .un-x { font-size: 1.1rem; }
 #umpNotice .un-btn:active, #umpNotice .un-x:active { transform: scale(0.95); }
+
+/* ── SYNC STRIP — the three states, in the guard strip above the leave / pause buttons (portrait) ── */
+.sync-strip {
+  position: absolute; top: 3px; left: 12px; right: 12px; height: 18px;
+  text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .3px; line-height: 18px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+}
+.sync-strip.sync-ok      { color: #7fe3a6; }
+.sync-strip.sync-sending { color: var(--gold); }
+.sync-strip.sync-offline { color: #ff9a9a; }

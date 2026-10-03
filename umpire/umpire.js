@@ -77,7 +77,7 @@ async function _umpMutate(mId, mutate, tries = 0) {
       reason = '';
       return cur;
     });
-    if (res.committed) return { ok: true };
+    if (res.committed) { _uLastSentAt = Date.now(); return { ok: true }; }
   } catch (e) {
     console.error('umpire write failed:', e);
     reason = reason || 'error';
@@ -115,7 +115,7 @@ async function _umpFinalize(entry, pRed, pBlue, tries = 0) {
       root.ongoingMatches  = ong.filter(m => m && m.id !== undefined && m.id !== entry.id);
       return root;
     });
-    if (res.committed) return { ok: true };
+    if (res.committed) { _uLastSentAt = Date.now(); return { ok: true }; }
   } catch (e) {
     console.error('finalize failed:', e);
     reason = reason || 'error';
@@ -257,9 +257,14 @@ document.addEventListener('click', e => {
 const _uLoadedAt = Date.now();
 let _uOnline = false, _uEverOnline = false, _uPending = 0;
 let _uOfflinePoints = 0;   // point taps made while offline: they wait in the SDK queue and go out together
+let _uPendingSince = 0;     // when the queue last went from empty to non-empty
+let _uLastSentAt = 0;      // the last moment the server ACCEPTED one of our writes (shown as "ส่งแล้ว 14:31:07")
+const SYNC_SLOW_MS = 1200; // a normal tap is answered in 100-300 ms; a send still waiting after this is "slow" and is said so
 function _uPendingAdd(d) {
   const before = _uPending;
   _uPending = Math.max(0, _uPending + d);
+  if (before === 0 && _uPending > 0) { _uPendingSince = Date.now(); setTimeout(_uRenderNet, SYNC_SLOW_MS + 60); }
+  if (_uPending === 0) _uPendingSince = 0;
   _uRenderNet();
   // the queue has just emptied after an offline stretch: say so, with how many points it carried
   // (the red bar used to vanish with no word that everything had arrived)
@@ -268,13 +273,36 @@ function _uPendingAdd(d) {
     showNotice(`ส่งครบแล้ว ✓ ${n} แต้ม`, { tone: 'ok', ms: 4000 });
   }
 }
+// The three states the umpire needs to know (P-17 stage 1) — always one of them, in words and an icon, never colour alone:
+//   ok       "✓ ส่งแล้ว 14:31:07"  everything this phone sent has been accepted (time of the last one)
+//   sending  "⏳ กำลังส่ง 3"        online, but a send has been waiting longer than SYNC_SLOW_MS (slow signal)
+//   offline  "📶 ออฟไลน์ · รอส่ง 3"  no connection; sends wait in the queue and go out by themselves
+function _uSyncState(now) {
+  const offline = !_uOnline && (_uEverOnline || now - _uLoadedAt > 3000);
+  if (offline) return 'offline';
+  if (_uPending > 0 && _uPendingSince && now - _uPendingSince >= SYNC_SLOW_MS) return 'sending';
+  return 'ok';
+}
+function _uClock(ms) {
+  const d = new Date(ms), p = n => String(n).padStart(2, '0');
+  return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+}
 function _uRenderNet() {
-  const offline = !_uOnline && (_uEverOnline || Date.now() - _uLoadedAt > 3000);
-  document.body.classList.toggle('is-offline', offline);
-  const txt = offline
+  const st = _uSyncState(Date.now());
+  document.body.classList.toggle('is-offline', st === 'offline');
+  document.body.classList.toggle('is-slow', st === 'sending');
+  // the bar on top speaks up only when something is wrong; the strip above the bottom buttons always shows the state
+  const txt = st === 'offline'
     ? `📶 ออฟไลน์ — แต้มที่กดจะส่งเองเมื่อสัญญาณกลับ · อย่าปิดหรือรีเฟรชหน้านี้${_uPending ? ` · รอส่ง ${_uPending}` : ''}`
-    : '';
+    : st === 'sending' ? `⏳ กำลังส่ง ${_uPending} รายการ — สัญญาณช้า รอสักครู่ อย่าปิดหน้านี้` : '';
   document.querySelectorAll('.net-banner').forEach(el => { el.textContent = txt; });
+  const strip = document.getElementById('syncStrip');
+  if (strip) {
+    strip.className = 'sync-strip sync-' + st;
+    strip.textContent = st === 'offline' ? `📶 ออฟไลน์${_uPending ? ` · รอส่ง ${_uPending}` : ''}`
+      : st === 'sending' ? `⏳ กำลังส่ง ${_uPending}`
+      : _uLastSentAt ? `✓ ส่งแล้ว ${_uClock(_uLastSentAt)}` : '✓ เชื่อมต่อแล้ว';
+  }
   // on the scoring screen the banner floats just under the top bar
   const sb = document.querySelector('#screen-scoring > .net-banner');
   const tb = document.querySelector('.scoring-topbar');
