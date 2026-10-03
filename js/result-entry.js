@@ -116,11 +116,11 @@ function closeConfirm() { document.getElementById('confirmModal').classList.remo
 function finalizeResult() {
   if (!_pendingResult) return;
   const { mId, m, g1R, g1B, g2R, g2B, pRed, pBlue, rStat, bStat, resText } = _pendingResult; 
-  const matchDuration = getCourtElapsed(mId);
+  const matchDuration = matchPlayMs(m);   // played time (first point to now, minus pauses), same as the umpire app stores
   appState.globalScoreRed += pRed; appState.globalScoreBlue += pBlue;
-  
+
   const analysis = analyzeSkillGap(g1R, g1B, g2R, g2B, rStat, mId, m ? m.potFlags : null);
-  appState.matchHistory.push({ id: m.id, round: m.round, r1: m.r1, r2: m.r2, b1: m.b1, b2: m.b2, redNames: m.redNames, blueNames: m.blueNames, game1: `${g1R}:${g1B}`, game2: `${g2R}:${g2B}`, result: resText, pRed, pBlue, rStat, bStat, duration: matchDuration, analysis: analysis, umpire: m.umpire || 'Admin (Force)' });
+  appState.matchHistory.push({ id: m.id, round: m.round, r1: m.r1, r2: m.r2, b1: m.b1, b2: m.b2, redNames: m.redNames, blueNames: m.blueNames, game1: `${g1R}:${g1B}`, game2: `${g2R}:${g2B}`, result: resText, pRed, pBlue, rStat, bStat, duration: matchDuration, ...(m.court ? { court: m.court } : {}), analysis: analysis, umpire: m.umpire || 'Admin (Force)' });
   
   appState.ongoingMatches = appState.ongoingMatches.filter(x => x.id !== mId);
   _pendingResult = null;
@@ -182,11 +182,11 @@ function autoFinalizeMatchFromUmpire(cmd) {
     }
   }
   
-  const matchDuration = getCourtElapsed(cmd.mId); 
-  appState.globalScoreRed += pRed; appState.globalScoreBlue += pBlue; 
-  
+  const matchDuration = matchPlayMs(m);
+  appState.globalScoreRed += pRed; appState.globalScoreBlue += pBlue;
+
   const analysis = analyzeSkillGap(g1r, g1b, g2r, g2b, rStat, cmd.mId, m.potFlags);
-  appState.matchHistory.push({ id: m.id, round: m.round, r1: m.r1, r2: m.r2, b1: m.b1, b2: m.b2, redNames: m.redNames, blueNames: m.blueNames, game1: `${g1r}:${g1b}`, game2: `${g2r}:${g2b}`, result: resText, pRed, pBlue, rStat, bStat, duration: matchDuration, analysis, umpire: m.umpire || cmd.umpire || 'System' });
+  appState.matchHistory.push({ id: m.id, round: m.round, r1: m.r1, r2: m.r2, b1: m.b1, b2: m.b2, redNames: m.redNames, blueNames: m.blueNames, game1: `${g1r}:${g1b}`, game2: `${g2r}:${g2b}`, result: resText, pRed, pBlue, rStat, bStat, duration: matchDuration, ...(m.court ? { court: m.court } : {}), analysis, umpire: m.umpire || cmd.umpire || 'System' });
   appState.ongoingMatches = appState.ongoingMatches.filter(x => x.id !== cmd.mId);
   _finalizingMatches.delete(cmd.mId); // release lock immediately after success
   invalidateStatsCache(); // stats เปลี่ยนแล้ว

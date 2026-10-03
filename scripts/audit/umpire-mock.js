@@ -54,7 +54,8 @@
     const out = [];
     for (let i = 0; i < n; i++) {
       const r1 = red[(2 * i) % red.length], r2 = red[(2 * i + 1) % red.length], b1 = blue[(2 * i) % blue.length], b2 = blue[(2 * i + 1) % blue.length];
-      out.push({ id: "M" + String(1 + i).padStart(2, "0"), round: "1", r1: r1.id, r2: r2.id, b1: b1.id, b2: b2.id, redNames: nm(r1, r2), blueNames: nm(b1, b2) });
+      // "T01"... — never "M01": the real history already holds M-numbers, and a submit of a clashing id is refused as "already recorded"
+      out.push({ id: "T" + String(1 + i).padStart(2, "0"), round: "1", r1: r1.id, r2: r2.id, b1: b1.id, b2: b2.id, redNames: nm(r1, r2), blueNames: nm(b1, b2) });
     }
     return out;
   };
@@ -68,7 +69,7 @@
     return { matches: matches.length, umpire: currentUmpire };
   };
 
-  // the usual test bench: M01 M04 M05 M06 free · M02 held by another umpire on court 3 · M03 mine, taken before courts existed
+  // the usual test bench: T01 T04 T05 T06 free · T02 held by another umpire on court 3 · T03 mine, taken before courts existed
   A.umpScenario = (name) => {
     name = name || "ทดสอบ";
     const ms = A.umpMatches(6), now = Date.now();

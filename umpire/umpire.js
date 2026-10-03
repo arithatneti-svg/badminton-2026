@@ -1253,7 +1253,9 @@ async function confirmMatch() {
       }
     }
 
-    let matchDuration = m.timerStartedAt ? Date.now() - m.timerStartedAt : 0;
+    // time actually played: first point to now, minus the time spent paused
+    // (it used to be "time since the match was taken", which counted waiting too)
+    const matchDuration = matchPlayMs(m);
 
     const analysis = analyzeSkillGap(g1r, g1b, g2r, g2b, rStat, m.potFlags||{});
     const entry = JSON.parse(JSON.stringify({
@@ -1261,6 +1263,7 @@ async function confirmMatch() {
       redNames:m.redNames, blueNames:m.blueNames,
       game1:`${g1r}:${g1b}`, game2:`${g2r}:${g2b}`,
       result:resText, pRed, pBlue, rStat, bStat, duration:matchDuration,
+      court:m.court,                  // undefined (no court chosen) is dropped by the JSON round trip
       analysis:{...analysis, potFlags:m.potFlags||{}},
       umpire:currentUmpire
     }));
