@@ -190,22 +190,42 @@ dbRef.on('value', (snapshot) => {
 // but now showToast() lives in a later file (ui.js). We therefore attach on
 // DOMContentLoaded — by then every deferred app script has run, so showToast and
 // friends exist, and the DOM (#dbDot) is ready too.
+//
+// One connection state for every screen (the TV status bar reads it too). `.info/connected`
+// is false until the FIRST connection is made, so a "false" at page load is not an outage —
+// it used to raise a red "disconnected" toast on every open, even when the final state was
+// LIVE, which taught people to ignore the real one. Offline = not connected AND (connected
+// before, or 3 s have passed since load without ever connecting) — the same rule the umpire
+// page uses. The toast waits out that grace period, so a blip that reconnects stays silent.
+const DB_OFFLINE_GRACE_MS = 3000;
+const _dbLoadedAt = Date.now();
+let _dbOnline = false, _dbEverOnline = false, _dbToastTimer = null;
+function dbIsOffline() { return !_dbOnline && (_dbEverOnline || Date.now() - _dbLoadedAt > DB_OFFLINE_GRACE_MS); }
+function _dbRenderConn() {
+  const dot = document.getElementById('dbDot');
+  const lbl = document.getElementById('dbDotLabel');
+  if (!dot || !lbl) return;
+  const state = _dbOnline ? 'live' : dbIsOffline() ? 'offline' : 'connecting';
+  dot.style.background = state === 'live' ? 'var(--green)' : state === 'offline' ? 'var(--danger)' : 'var(--muted)';
+  lbl.textContent = state === 'live' ? 'LIVE' : state === 'offline' ? 'ออฟไลน์' : '...';
+  dot.style.boxShadow = state === 'live' ? '0 0 6px var(--green)' : state === 'offline' ? '0 0 6px var(--danger)' : 'none';
+}
 const dbConnRef = firebase.database().ref('.info/connected');
 window.addEventListener('DOMContentLoaded', () => {
   // career/compare views and pid allocation need the durable person records
   if (typeof loadMasterPlayers === 'function') loadMasterPlayers();
   dbConnRef.on('value', snap => {
-    const online = snap.val() === true;
-    const dot = document.getElementById('dbDot');
-    const lbl = document.getElementById('dbDotLabel');
-    if (!dot || !lbl) return;
-    dot.style.background = online ? 'var(--green)' : 'var(--danger)';
-    lbl.textContent = online ? 'LIVE' : 'OFFLINE';
-    dot.style.boxShadow = online ? '0 0 6px var(--green)' : '0 0 6px var(--danger)';
-    if (!online) showToast('⚠️ ขาดการเชื่อมต่อ Firebase', 'error');
+    _dbOnline = snap.val() === true;
+    if (_dbOnline) _dbEverOnline = true;
+    _dbRenderConn();
+    clearTimeout(_dbToastTimer);
+    if (!_dbOnline) _dbToastTimer = setTimeout(() => {
+      _dbRenderConn();
+      if (dbIsOffline()) showToast(_dbEverOnline ? '⚠️ สัญญาณหลุด — กำลังเชื่อมต่อใหม่' : '⚠️ ยังเชื่อมต่อไม่ได้ — ตรวจสอบสัญญาณ', 'error');
+    }, DB_OFFLINE_GRACE_MS);
   }, (error) => {
     console.error('Firebase sync error:', error);
-    showToast('⚠️ Firebase sync error — ตรวจสอบการเชื่อมต่อ', 'error');
+    showToast('⚠️ ซิงก์ข้อมูลไม่ได้ — ตรวจสอบสัญญาณ', 'error');
   });
 });
 
