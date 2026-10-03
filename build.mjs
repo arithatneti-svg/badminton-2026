@@ -22,7 +22,7 @@ const CSS = ['base','login','nav','scoreboard','match-cards','tables-modals','da
 
 const JS = [
   'shared/firebase-config.js',
-  'js/utils.js','js/auth.js','shared/sync-merge.js','js/core.js','js/ui.js',
+  'js/utils.js','js/auth.js','shared/sync-merge.js','shared/match-time.js','js/core.js','js/ui.js',
   'js/player-photo.js','js/player-profile.js','js/me.js','js/gallery.js','js/career.js','js/season.js','js/export-import.js',
   'js/match-picker.js','js/match-render.js','js/result-entry.js','js/stats.js',
   'js/reports.js','js/pdf-export.js','js/dashboard.js','js/ranking.js',
@@ -32,7 +32,7 @@ const JS = [
 ];
 
 const UMP_CSS = ['css/umpire.css'];
-const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/sync-merge.js','umpire/umpire.js'];
+const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/sync-merge.js','shared/match-time.js','umpire/umpire.js'];
 
 const ICONS = readdirSync(join(root,'icons')).filter(f => f.endsWith('.png'));
 const COPY = ['manifest.webmanifest','umpire.webmanifest', ...ICONS.map(f => `icons/${f}`)];
@@ -123,11 +123,11 @@ async function build() {
   // html
   writeFileSync(join(DIST, 'index.html'), rewriteHtml('index.html', {
     cssHref: 'assets/app.css', jsHref: 'assets/app.js',
-    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|js\/[^"]+\.js)"><\/script>$/,
+    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|shared\/match-time\.js|js\/[^"]+\.js)"><\/script>$/,
   }));
   writeFileSync(join(DIST, 'umpire.html'), rewriteHtml('umpire.html', {
     cssHref: 'assets/umpire.css', jsHref: 'assets/umpire.js',
-    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|umpire\/umpire\.js)"><\/script>$/,
+    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|shared\/match-time\.js|umpire\/umpire\.js)"><\/script>$/,
   }));
 
   // static copies + generated sw

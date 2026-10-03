@@ -1,10 +1,5 @@
 // ── TIMERS & DISPLAY ──
-function formatTimer(ms) { 
-  ms = Math.min(ms, 3600000); 
-  const s = Math.floor(ms / 1000), m = Math.floor(s / 60); 
-  return `${m}:${String(s % 60).padStart(2, '0')}`; 
-}
-
+// formatTimer() lives in shared/match-time.js (shows hours past 60 minutes)
 function getCourtElapsed(mId) { const m = appState.ongoingMatches.find(x => x.id === mId); if (!m || !m.timerStartedAt) return 0; return Date.now() - m.timerStartedAt; }
 
 // FIX-6: skip timer updates when tab is hidden (saves CPU in background)

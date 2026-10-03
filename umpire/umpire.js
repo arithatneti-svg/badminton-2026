@@ -456,12 +456,7 @@ document.getElementById('screen-live').addEventListener('touchend', e => {
   }
 }, { passive: true });
 
-// ── TIMER ──
-function formatTimer(ms) {
-  ms = Math.min(ms, 3600000);
-  const s = Math.floor(ms / 1000), m = Math.floor(s / 60);
-  return `${m}:${String(s % 60).padStart(2, '0')}`;
-}
+// ── TIMER ── (formatTimer lives in shared/match-time.js: it shows hours past 60 minutes)
 
 setInterval(() => {
   const scoringActive = document.getElementById('screen-scoring').classList.contains('active');

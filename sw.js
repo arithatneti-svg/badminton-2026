@@ -67,6 +67,7 @@ const SHELL = [
     "js/utils.js",
     "js/vendor/qrcode.min.js",
     "shared/firebase-config.js",
+    "shared/match-time.js",
     "shared/pwa.js",
     "shared/version.js",
     "shared/sync-merge.js",
