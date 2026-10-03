@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07070d">
-<title>Umpire Panel</title>
+<title>กรรมการ — คุมคะแนน</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Thai:wght@400;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
@@ -28,8 +28,8 @@
 <body class="is-login">
 
 <!-- ── PAUSE OVERLAY — sits above the scoring screen; only the ▶ button resumes ── -->
-<div id="pauseOverlay" role="dialog" aria-modal="true" aria-label="หยุดพัก">
-  <div class="pause-title">⏸ หยุดพัก</div>
+<div id="pauseOverlay" role="dialog" aria-modal="true" aria-label="พักเกม">
+  <div class="pause-title">⏸ พักเกม</div>
 
   <div class="pause-current-block">
     <div class="pause-current-label">พักครั้งนี้</div>
@@ -62,7 +62,7 @@
   <button class="li-btn danger" onclick="confirmExit()">← ออก</button>
   <button class="li-btn" onclick="togglePause()" id="liPauseBtn">⏸ พัก</button>
   <div class="li-timer" id="liTimer">0:00</div>
-  <div style="font-family:'Bebas Neue';font-size:1em;color:var(--muted);letter-spacing:2px;" id="liGameInd">GAME 1</div>
+  <div style="font-family:'Bebas Neue','Noto Sans Thai',sans-serif;font-weight:700;font-size:1em;color:var(--muted);letter-spacing:1px;" id="liGameInd">เกม 1</div>
   <button class="li-btn" onclick="toggleFullScreen()" id="liFsBtn">⛶</button>
 </div>
 
@@ -70,7 +70,7 @@
 <div id="umpireNav">
   <div class="nav-tabs">
     <button class="tab-btn active" id="tab-live" onclick="goToTab('live')">🟢 LIVE</button>
-    <button class="tab-btn" id="tab-finished" onclick="goToTab('finished')">🏁 FINISHED</button>
+    <button class="tab-btn" id="tab-finished" onclick="goToTab('finished')">🏁 จบแล้ว</button>
   </div>
   <!-- fullscreen lives in the bar: the old floating button sat on top of 🚪 -->
   <button class="btn-nav-fs" id="navFsBtn" onclick="toggleFullScreen()" title="เต็มจอ" aria-label="เต็มจอ">⛶</button>
@@ -84,8 +84,8 @@
 <div id="screen-login" class="screen active">
   <div class="login-hero">
     <span class="login-icon">🏸</span>
-    <div class="login-title">UMPIRE</div>
-    <div class="login-subtitle">กรรมการผู้ตัดสิน · Sports Day 2026</div>
+    <div class="login-title">กรรมการ</div>
+    <div class="login-subtitle">คุมคะแนนสด · Sports Day 2026</div>
     <div class="login-fs-row">
       <button class="btn-login-fs" onclick="toggleFullScreen()">⛶ &nbsp;เปิดเต็มจอ</button>
       <div class="login-fs-hint" id="fsHint" style="display:none;">เครื่องนี้เปิดเต็มจอจากหน้าเว็บไม่ได้ — ใน Safari เลือก “เพิ่มไปยังหน้าจอโฮม” แล้วเปิดจากไอคอน จะได้เต็มจอ</div>
@@ -136,7 +136,7 @@
 <div id="screen-live" class="screen">
   <div class="screen-header">
     <div class="screen-header-text">
-      <div class="screen-title">SELECT MATCH</div>
+      <div class="screen-title">เลือกแมตช์</div>
       <div class="screen-sub">เลือกแมตช์ที่ต้องการคุมคะแนน</div>
     </div>
   </div>
@@ -150,7 +150,7 @@
 <div id="screen-finished" class="screen">
   <div class="screen-header">
     <div class="screen-header-text">
-      <div class="screen-title">FINISHED</div>
+      <div class="screen-title">จบแล้ว</div>
       <div class="screen-sub">ประวัติแมตช์ที่แข่งขันจบไปแล้ว</div>
     </div>
   </div>
@@ -168,7 +168,7 @@
       <div class="match-info-text" id="activeMatchInfo">—</div>
       <div class="center-row">
         <div class="timer-display" id="umpireTimerDisplay">0:00</div>
-        <div class="game-indicator" id="gameIndicator">GAME 1</div>
+        <div class="game-indicator" id="gameIndicator">เกม 1</div>
       </div>
       <div class="g1line" id="g1Line" style="display:none;"></div>
     </div>
@@ -177,29 +177,29 @@
 
   <!-- RED PANEL -->
   <div class="score-panel red" id="redPanel">
-    <button class="score-btn-plus" id="btnRedPlus" onclick="updateScore('red',1)" aria-label="เพิ่มคะแนน Red"></button>
+    <button class="score-btn-plus" id="btnRedPlus" onclick="updateScore('red',1)" aria-label="เพิ่มคะแนนทีมแดง"></button>
     <div class="score-center-col">
       <div class="team-name-score" style="color:var(--red);" id="redNames">RED TEAM</div>
       <div class="score-number" style="color:var(--red);" id="scoreRed">0</div>
       <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
-    <button class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนน Red">−</button>
+    <button class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนนทีมแดง">−</button>
   </div>
 
-  <!-- SUBMIT — single button; label switches GAME 1 / GAME 2 -->
+  <!-- SUBMIT — single button; label switches "ส่งผลเกม 1" / "ส่งผลแมตช์" -->
   <div class="scoring-actions">
-    <button class="btn-action btn-submit" id="btnSubmitGame" onclick="submitGame()">SUBMIT GAME 1</button>
+    <button class="btn-action btn-submit" id="btnSubmitGame" onclick="submitGame()">ส่งผลเกม 1</button>
   </div>
 
   <!-- BLUE PANEL -->
   <div class="score-panel blue" id="bluePanel">
-    <button class="score-btn-plus" id="btnBluePlus" onclick="updateScore('blue',1)" aria-label="เพิ่มคะแนน Blue"></button>
+    <button class="score-btn-plus" id="btnBluePlus" onclick="updateScore('blue',1)" aria-label="เพิ่มคะแนนทีมน้ำเงิน"></button>
     <div class="score-center-col">
       <div class="team-name-score" style="color:var(--blue);" id="blueNames">BLUE TEAM</div>
       <div class="score-number" style="color:var(--blue);" id="scoreBlue">0</div>
       <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
-    <button class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนน Blue">−</button>
+    <button class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนนทีมน้ำเงิน">−</button>
   </div>
 
   <!-- BOTTOM BAR — leave / pause, well away from both +1 areas (a guard strip sits above it) -->

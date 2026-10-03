@@ -183,7 +183,7 @@ function _uMatchReleased(m) {
 // A write that did not go through. It used to open a dialog that blocked the next tap and said nothing
 // about WHICH point; now it is a bar that does not block anything: what failed, what the viewers see, and
 // (for a point) a retry that cannot count twice.
-//   what   — "แต้มล่าสุด", "สถานะพัก", … (shown in the sentence)
+//   what   — "คะแนนล่าสุด", "สถานะพัก", … (shown in the sentence)
 //   retry  — optional function behind the [ลองใหม่] button
 //   seen   — optional function returning "12–10", the score the viewers have
 function _uWriteFailed(reason, what, retry, seen) {
@@ -215,7 +215,7 @@ function _retryPoint(mId, gameKey, delta, before, game2) {
   }).then(r => {
     if (r.ok) showNotice('ส่งแล้ว ✓', { tone: 'ok', ms: 2500 });
     else if (r.reason === 'refused') showNotice('คะแนนบนเซิร์ฟเวอร์เปลี่ยนไปแล้ว — ดูคะแนนบนจอ แล้วแตะใหม่ถ้ายังไม่ถูก', { tone: 'warn', ms: 8000 });
-    else _uWriteFailed(r.reason, 'แต้มล่าสุด', () => _retryPoint(mId, gameKey, delta, before, game2), () => _uSeenScore(mId, game2));
+    else _uWriteFailed(r.reason, 'คะแนนล่าสุด', () => _retryPoint(mId, gameKey, delta, before, game2), () => _uSeenScore(mId, game2));
   });
 }
 
@@ -273,7 +273,7 @@ function _uPendingAdd(d) {
   // (the red bar used to vanish with no word that everything had arrived)
   if (before > 0 && _uPending === 0 && _uOnline && _uOfflinePoints > 0) {
     const n = _uOfflinePoints; _uOfflinePoints = 0;
-    showNotice(`ส่งครบแล้ว ✓ ${n} แต้ม`, { tone: 'ok', ms: 4000 });
+    showNotice(`ส่งครบแล้ว ✓ ${n} คะแนน`, { tone: 'ok', ms: 4000 });
   }
 }
 // The three states the umpire needs to know (P-17 stage 1) — always one of them, in words and an icon, never colour alone:
@@ -296,7 +296,7 @@ function _uRenderNet() {
   document.body.classList.toggle('is-slow', st === 'sending');
   // the bar on top speaks up only when something is wrong; the strip above the bottom buttons always shows the state
   const txt = st === 'offline'
-    ? `📶 ออฟไลน์ — แต้มที่กดจะส่งเองเมื่อสัญญาณกลับ · อย่าปิดหรือรีเฟรชหน้านี้${_uPending ? ` · รอส่ง ${_uPending}` : ''}`
+    ? `📶 ออฟไลน์ — คะแนนที่กดจะส่งเองเมื่อสัญญาณกลับ · อย่าปิดหรือรีเฟรชหน้านี้${_uPending ? ` · รอส่ง ${_uPending}` : ''}`
     : st === 'sending' ? `⏳ กำลังส่ง ${_uPending} รายการ — สัญญาณช้า รอสักครู่ อย่าปิดหน้านี้` : '';
   document.querySelectorAll('.net-banner').forEach(el => { el.textContent = txt; });
   const strip = document.getElementById('syncStrip');
@@ -534,7 +534,7 @@ let _vsIntroTimer = null;
 function showVsIntro(m) {
   const ov = document.getElementById('vsIntro');
   if (!ov || !m) return;
-  document.getElementById('vsiCourt').textContent = '🟢 ' + (m.court ? `คอร์ต ${m.court} · ` : '') + m.id + (m.round ? ` · ROUND ${m.round}` : '');
+  document.getElementById('vsiCourt').textContent = '🟢 ' + (m.court ? `คอร์ต ${m.court} · ` : '') + m.id + (m.round ? ` · รอบ ${m.round}` : '');
   document.getElementById('vsiRedFaces').innerHTML  = umpirePairFaces(m.r1, m.r2, 96);
   document.getElementById('vsiBlueFaces').innerHTML = umpirePairFaces(m.b1, m.b2, 96);
   document.getElementById('vsiRedNames').innerHTML  = formatNames(m.redNames || '');
@@ -863,7 +863,7 @@ function _matchCardHtml(m, mine, next) {
   return `
     <div class="match-card ${mine ? 'claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
       <div class="match-card-header">
-        <div class="match-id">${m.id} <span style="color:var(--muted);font-size:0.55em;letter-spacing:1px;">ROUND ${m.round}</span></div>
+        <div class="match-id">${m.id} <span style="color:var(--muted);font-size:0.55em;letter-spacing:0;">รอบ ${m.round}</span></div>
         ${badge}
       </div>
       <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${formatNames(m.redNames)}</span></div>
@@ -874,7 +874,7 @@ function _matchTakenHtml(m) {
   return `
     <div class="match-card locked-other">
       <div class="match-card-header">
-        <div class="match-id" style="color:var(--muted);">${m.id} <span style="font-size:0.55em;">R${m.round}</span></div>
+        <div class="match-id" style="color:var(--muted);">${m.id} <span style="font-size:0.55em;">รอบ ${m.round}</span></div>
         <span class="badge badge-taken">🔒 ${_uEsc(m.umpire)}${m.court ? ' · ' + courtLabel(m) : ''}</span>
       </div>
     </div>`;
@@ -886,8 +886,8 @@ function renderMatchList() {
     list.innerHTML = `
       <div class="empty-state">
         <span class="empty-icon">☕</span>
-        <div class="empty-title">NO MATCHES</div>
-        <div class="empty-sub">พักเบรก! ตอนนี้ไม่มีแมตช์รอแข่งครับ</div>
+        <div class="empty-title">ยังไม่มีแมตช์ให้คุม</div>
+        <div class="empty-sub">รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง</div>
       </div>`;
     return;
   }
@@ -958,18 +958,18 @@ function renderFinishedList() {
     const rScoreColor = rWon ? 'var(--red)'  : bWon ? '#c86464' : 'var(--red)';
     const bScoreColor = bWon ? 'var(--blue)' : rWon ? '#5090d0' : 'var(--blue)';
     // one malformed history row must not take down the whole list
-    const resultLabel = _uEsc(String(m.result || '').replace(/[🔴🔵🤝]/g, '').trim());
+    const resultLabel = _uEsc(_uResultLabel(m));
 
     list.innerHTML += `
       <div class="finished-card" style="border-color:${rWon ? 'rgba(255,77,77,0.22)' : bWon ? 'rgba(77,159,255,0.22)' : 'rgba(240,192,64,0.22)'};">
         <div class="finished-header">
-          <div style="font-family:'Bebas Neue';font-size:1.5em;color:var(--gold);letter-spacing:2px;">${m.id} · R${m.round}</div>
+          <div style="font-family:'Bebas Neue';font-size:1.5em;color:var(--gold);letter-spacing:2px;">${m.id} <small style="font-family:'Noto Sans Thai',sans-serif;font-size:0.6em;letter-spacing:0;color:var(--muted);">รอบ ${m.round}</small></div>
           <div class="result-badge" style="background:${resultColor}18;color:${resultColor};border:1px solid ${resultColor}44;">${resultLabel}</div>
         </div>
         <div class="score-grid" style="margin-bottom:6px;">
           <div class="score-grid-header">ทีม</div>
-          <div class="score-grid-header">G1</div>
-          <div class="score-grid-header">G2</div>
+          <div class="score-grid-header">เกม 1</div>
+          <div class="score-grid-header">เกม 2</div>
         </div>
         <div class="score-grid" style="margin-bottom:8px;">
           <div class="score-team-cell" style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.18);">
@@ -993,7 +993,7 @@ function renderFinishedList() {
           <div class="score-num-cell" style="background:rgba(77,159,255,0.08);color:${bScoreColor};">${g1b}</div>
           <div class="score-num-cell" style="background:rgba(77,159,255,0.08);color:${bScoreColor};">${g2b}</div>
         </div>
-        ${m.umpire ? `<div class="finished-umpire">👔 Umpire: ${m.umpire}</div>` : ''}
+        ${m.umpire ? `<div class="finished-umpire">👔 กรรมการ: ${_uEsc(m.umpire)}</div>` : ''}
       </div>`;
   });
 }
@@ -1232,7 +1232,7 @@ function updateScore(team, delta, event) {
   }).then(r => {
     if (r.ok) return;
     const mId = activeMatchId, g2 = isGame2;
-    _uWriteFailed(r.reason, 'แต้มล่าสุด', () => _retryPoint(mId, gameKey, delta, curVal, g2), () => _uSeenScore(mId, g2));
+    _uWriteFailed(r.reason, 'คะแนนล่าสุด', () => _retryPoint(mId, gameKey, delta, curVal, g2), () => _uSeenScore(mId, g2));
   });
 
   // Score pop animation
@@ -1289,12 +1289,12 @@ function renderGameUI() {
   const pauseScore = document.getElementById('pauseScore');
   if (pauseScore) pauseScore.textContent = `${curR} – ${curB}`;
 
-  // single SUBMIT button — label + ready state follow the current game.
+  // single submit button — label + ready state follow the current game (ส่งผลเกม 1 / ส่งผลแมตช์).
   // muted until the game reads as a valid finish (still tappable: warn-then-allow)
   const submitBtn = document.getElementById('btnSubmitGame');
   if (submitBtn) {
     submitBtn.disabled = _isConfirming;
-    submitBtn.textContent = _isConfirming ? '⏳ กำลังส่งผล…' : (isGame2 ? 'SUBMIT GAME 2' : 'SUBMIT GAME 1');
+    submitBtn.textContent = _isConfirming ? '⏳ กำลังส่งผล…' : (isGame2 ? 'ส่งผลแมตช์' : 'ส่งผลเกม 1');
     submitBtn.classList.toggle('is-ready', !_isConfirming && isValidBadmintonScore(curR, curB));
   }
 
@@ -1304,12 +1304,12 @@ function renderGameUI() {
 
   // landscape game label
   const liInd = document.getElementById('liGameInd');
-  if (liInd) liInd.textContent = isGame2 ? 'GAME 2' : 'GAME 1';
+  if (liInd) liInd.textContent = isGame2 ? 'เกม 2' : 'เกม 1';
 
   // Game 1 recap line, shown only during game 2
   const g1Line = document.getElementById('g1Line');
   if (g1Line) {
-    if (isGame2) { g1Line.style.display = 'block'; g1Line.textContent = `G1 · ${g1r}–${g1b}`; }
+    if (isGame2) { g1Line.style.display = 'block'; g1Line.textContent = `เกม 1 · ${g1r}–${g1b}`; }
     else g1Line.style.display = 'none';
   }
 
@@ -1319,7 +1319,7 @@ function renderGameUI() {
     const sit = gameSituation(curR, curB);
     chip.classList.remove('gp-red', 'gp-blue', 'deuce');
     if (!sit) {
-      chip.textContent = isGame2 ? 'GAME 2' : 'GAME 1';
+      chip.textContent = isGame2 ? 'เกม 2' : 'เกม 1';
     } else if (sit.type === 'deuce') {
       chip.textContent = 'DEUCE'; chip.classList.add('deuce');
     } else {
@@ -1370,6 +1370,19 @@ function _uOutcome(g1r, g1b, g2r, g2b) {
   if (rWin > bWin) return { pRed: 3, pBlue: 0, rStat: 'W', bStat: 'L', resText: '🔴 Red Win 2–0 (+3pts)',  label: `${side('แดง', rGames)} (+3 คะแนน)` };
   if (bWin > rWin) return { pRed: 0, pBlue: 3, rStat: 'L', bStat: 'W', resText: '🔵 Blue Win 2–0 (+3pts)', label: `${side('น้ำเงิน', bGames)} (+3 คะแนน)` };
   return { pRed: 1, pBlue: 1, rStat: 'D', bStat: 'D', resText: '🤝 เสมอ 1–1 (+1pt each)', label: `${rGames === 1 && bGames === 1 ? 'เสมอ 1–1' : 'เสมอ'} (ทีมละ +1 คะแนน)` };
+}
+
+// The badge on a finished card, in Thai, worked out from the two game scores. When the stored points do not
+// agree with the scores (an admin corrected the result by hand) or the scores are missing, the stored text is
+// shown as it is (minus its emoji) — it is never "corrected" here.
+function _uResultLabel(h) {
+  const g = s => String(s || '').split(':').map(Number);
+  const [a, b] = g(h.game1), [c, d] = g(h.game2);
+  if ([a, b, c, d].every(Number.isFinite)) {
+    const o = _uOutcome(a, b, c, d);
+    if (o.rStat === h.rStat && o.pRed === Number(h.pRed) && o.pBlue === Number(h.pBlue)) return o.label;
+  }
+  return String(h.result || '').replace(/[🔴🔵🤝]/g, '').trim();
 }
 
 // The score box in the submit boxes: each game as "21 – 15" with the sides named under it (colour is never the

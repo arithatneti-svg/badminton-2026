@@ -227,18 +227,19 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   filter: drop-shadow(0 0 24px rgba(240,192,64,0.55));
 }
 .login-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 3.4em;
+  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
+  font-size: 2.8em;
+  font-weight: 800;
   color: var(--gold);
-  letter-spacing: 4px;
-  line-height: 1;
+  letter-spacing: 1px;
+  line-height: 1.15;
   text-shadow: 0 0 30px rgba(240,192,64,0.3);
   margin-bottom: 6px;
 }
 .login-subtitle {
   color: var(--muted);
   font-size: 1rem;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
 }
 /* Fullscreen entry button on login */
 .login-fs-row {
@@ -403,10 +404,12 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 }
 .screen-header-text { flex: 1; }
 .screen-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.8em;
+  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
+  font-size: 2.2em;
+  font-weight: 800;
   color: var(--gold);
-  letter-spacing: 3px;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
 }
 .screen-sub { color: var(--muted); font-size: 0.95rem; margin-top: 4px; }
 
@@ -508,10 +511,11 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 }
 .empty-icon { font-size: 3.5em; margin-bottom: 12px; display: block; }
 .empty-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2em;
+  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
+  font-size: 1.5em;
+  font-weight: 800;
   color: var(--muted);
-  letter-spacing: 2px;
+  letter-spacing: 0.5px;
   margin-bottom: 8px;
 }
 .empty-sub { color: var(--muted2); font-size: 0.95rem; }
@@ -547,9 +551,9 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   align-items: center;
 }
 .score-grid-header {
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 0.5px;
   color: var(--muted);
   text-align: center;
 }
@@ -675,9 +679,9 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .timer-display.paused { color: var(--gold); animation: pulse 1.5s ease infinite; }
 .timer-display.idle { color: var(--muted); }   /* taken, no point yet: the clock starts with the first point */
 .game-indicator {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.2em;
-  letter-spacing: 3px;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
+  font-size: 1.25em;
+  letter-spacing: 1.5px;
   color: var(--text);
   margin-top: 1px;
   line-height: 1;
@@ -858,9 +862,11 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .btn-action {
   width: 100%;
   padding: 22px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2em;
-  letter-spacing: 3px;
+  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
+  font-size: 1.7em;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
   border: none;
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -901,9 +907,10 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 #pauseOverlay.show { display: flex; animation: fadeUp 0.2s ease both; }
 
 .pause-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.3rem;
-  letter-spacing: 6px;
+  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: 2px;
   color: var(--gold);
   line-height: 1;
 }
@@ -1548,8 +1555,8 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 #vsIntro.show{ display:flex; animation:vsiFade .25s ease; }
 @keyframes vsiFade{ from{ opacity:0 } to{ opacity:1 } }
 .vsi-court{
-  font-family:'Bebas Neue',sans-serif; font-size:clamp(22px,6vw,40px);
-  letter-spacing:3px; color:var(--gold); text-shadow:0 0 24px rgba(240,192,64,.4);
+  font-family:'Bebas Neue','Noto Sans Thai',sans-serif; font-size:clamp(22px,6vw,40px);
+  letter-spacing:1.5px; color:var(--gold); text-shadow:0 0 24px rgba(240,192,64,.4);
 }
 .vsi-row{ display:flex; align-items:center; justify-content:center; gap:clamp(12px,4vw,40px); width:100%; }
 .vsi-side{ display:flex; flex-direction:column; align-items:center; gap:14px; flex:1; min-width:0; }
@@ -1664,7 +1671,7 @@ body:not(.is-scoring) #landscapeInfo { display: none !important; }
 @media (max-height: 760px) {
   #screen-login { padding: calc(14px + var(--sat)) 18px calc(16px + var(--sab)); }
   .login-icon { font-size: 2.4rem; margin-bottom: 2px; }
-  .login-title { font-size: 2.4em; margin-bottom: 2px; }
+  .login-title { font-size: 2.1em; margin-bottom: 2px; }
   .login-subtitle { font-size: 0.9rem; }
   .login-fs-row { margin-top: 6px; }
   .login-card { padding: 16px 16px 18px; gap: 14px; }

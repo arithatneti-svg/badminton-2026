@@ -35,6 +35,28 @@
     return { size: innerWidth + "x" + innerHeight, team: team || "-", picked: !!pick, btn: { top: Math.round(b.top), bottom: Math.round(b.bottom), h: Math.round(b.height), label: document.getElementById("btnLogin").textContent, disabled: document.getElementById("btnLogin").disabled }, selectBottom: Math.round(sb.bottom), selectCovered: Math.max(0, Math.round(sb.bottom - b.top)), noScroll: document.documentElement.scrollHeight <= innerHeight + 1, inView: b.top >= 0 && b.bottom <= innerHeight, helpShown: getComputedStyle(document.getElementById("loginHelp")).display !== "none", small48: A.small("#screen-login") };
   };
 
+  // The Latin words a person can SEE (or a screen reader reads) on the page right now, minus the ones the owner allows
+  // (glossary Q8: LIVE · DEUCE · GAME POINT · TEAM BATTLE · team names · "Sports Day 2026" · VS) and minus data
+  // (player names, ids like T03, group codes like G1). Names sit in the elements listed in SKIP. An empty list = clean.
+  const ALLOWED = new Set(["LIVE", "DEUCE", "GAME", "POINT", "TEAM", "BATTLE", "Red", "Blue", "RED", "BLUE", "VS", "Sports", "Day"]);
+  const SKIP = "option, .team-row, #redNames, #blueNames, .vsi-names, .score-team-cell, .uavatar, script, style";
+  A.wp4English = () => {
+    const found = [];
+    const visible = (el) => { const cs = getComputedStyle(el); return cs.display !== "none" && cs.visibility !== "hidden" && el.getClientRects().length > 0; };
+    const take = (text, where) => { (String(text || "").match(/[A-Za-z]{2,}(?![A-Za-z0-9])/g) || []).forEach((w) => { if (!ALLOWED.has(w) && !/^[A-Z]\d+$/.test(w)) found.push(w + "  ← " + where); }); };
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const el = n.parentElement; if (!el || el.closest(SKIP) || !visible(el)) continue;
+      // an id such as "T03" or "M05" is data: strip letter+digit tokens before looking for words
+      take(n.nodeValue.replace(/\b[A-Za-z]+\d+\b/g, ""), (el.id ? "#" + el.id : el.className ? "." + String(el.className).split(" ")[0] : el.tagName.toLowerCase()) + ' "' + n.nodeValue.trim().slice(0, 40) + '"');
+    }
+    document.querySelectorAll("[aria-label], [title], [placeholder]").forEach((el) => {
+      if (el.closest(SKIP) || !visible(el)) return;
+      ["aria-label", "title", "placeholder"].forEach((a) => { if (el.hasAttribute(a)) take(el.getAttribute(a), "[" + a + "] " + (el.id ? "#" + el.id : el.tagName.toLowerCase())); });
+    });
+    return found;
+  };
+
   // T03 mine, in play (game 1: 9-6) or ready to submit (game 2 finished 21-17), history emptied so a submit is "new"
   A.wp4Ready = async (opts) => {
     opts = opts || {};
