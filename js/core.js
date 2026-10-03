@@ -58,12 +58,14 @@ let _adminJustFinalized     = false;
 // save performs (see shared/sync-merge.js). Captured from each snapshot BEFORE
 // any local change is applied to it.
 let _syncBase = null;
+let _lastSnapshotAt = 0;   // when a data snapshot last arrived — the TV status chip reads it
 function _cloneData(v) { return v == null ? null : JSON.parse(JSON.stringify(v)); }
 
 function loadData() {
   dbRef.once('value').then(snapshot => {
     const data = snapshot.val();
     _syncBase = _cloneData(data);
+    _lastSnapshotAt = Date.now();
     if (data) appState = data;
     seedDefaultPlayers(appState);
     if (!appState.ongoingMatches) appState.ongoingMatches = [];
@@ -107,6 +109,7 @@ dbRef.on('value', (snapshot) => {
     return;
   }
   _syncBase = _cloneData(data);   // before the command handling below mutates it
+  _lastSnapshotAt = Date.now();
 
   const prevLen = _prevMatchHistoryLength;
   const newHistory = data.matchHistory || [];

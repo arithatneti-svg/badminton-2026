@@ -106,6 +106,19 @@ body.tv-mode #tvView {
 .tv-dot.on { background: var(--accent); box-shadow: 0 0 14px var(--accent-glow); transform: scale(1.2); }
 .tv-brand { color: var(--muted); font-size: clamp(12px, 1.3vw, 22px); letter-spacing: 2px; font-weight: 600; }
 
+/* sync chip — the last moment this screen was confirmed live (a frozen page = a frozen clock) */
+.tv-sync { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: clamp(11px, 1vw, 16px); font-weight: 600; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+.tv-sync-dot { width: clamp(7px, .6vw, 10px); height: clamp(7px, .6vw, 10px); border-radius: 50%; background: var(--green); }
+.tv-sync.off { color: #FF8A8A; }
+.tv-sync.off .tv-sync-dot { background: var(--danger); }
+/* red bar across the top while the data may be old (toggled by _tvHealth; above every panel) */
+.tv-stale { display: none; }
+body.tv-mode .tv-stale:not([hidden]) {
+  display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 4020; text-align: center;
+  padding: clamp(8px, 1.4vh, 18px) 16px; background: #B3262F; color: #fff;
+  font-size: clamp(18px, 2.4vw, 44px); font-weight: 800; letter-spacing: 1px; box-shadow: 0 6px 30px rgba(0,0,0,.5);
+}
+
 /* faces on the TV live card — the audience screen is where a face
    earns the most, so these scale with the viewport and overlap slightly */
 .tv-faces { display: inline-flex; flex-wrap: wrap; justify-content: center; max-width: 100%; margin-bottom: clamp(4px, 0.8vh, 10px); }

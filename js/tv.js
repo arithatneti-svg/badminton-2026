@@ -35,6 +35,65 @@ let _tvClimaxCooldown = 0;      // seconds left before a takeover may start agai
 let _tvBoardPage = 0;
 let _tvBoardSecs = 0;
 
+// ── Is this screen still live? ──────────────────────────────────
+// Nobody watches the TV (Q18), so it has to say when its data may be old. `.info/connected`
+// only flips after the socket's keep-alive times out (can take a minute), and a quiet rally
+// sends no data at all, so "no data for 15 s" proves nothing. Instead the screen probes the
+// database over plain HTTPS every 5 s (one number, ~1 byte). Two misses in a row — or the
+// browser reporting no network, or the shared connection state (dbIsOffline) saying offline —
+// raise the red bar within ~15 s. The footer chip "ซิงก์ HH:MM:SS" shows the last moment the
+// screen was confirmed live, so a frozen page (its clock stops) is visible from across the
+// room even when no alarm can fire.
+const TV_PROBE_EVERY_MS = 5000, TV_PROBE_TIMEOUT_MS = 4000;
+let _tvAliveAt = Date.now();      // last moment confirmed live: a data snapshot or a good probe
+let _tvProbeAt = 0, _tvProbeBusy = false, _tvProbeFails = 0;
+let _tvOfflineSince = 0;          // when it was last known fine, once judged offline (0 = fine)
+let _tvHealthTimer = null;
+
+function _tvClock(ms, withSeconds) {
+  const d = new Date(ms), p = n => String(n).padStart(2, '0');
+  return p(d.getHours()) + ':' + p(d.getMinutes()) + (withSeconds ? ':' + p(d.getSeconds()) : '');
+}
+function _tvIsOffline() {
+  return _tvProbeFails >= 2 || navigator.onLine === false || (typeof dbIsOffline === 'function' && dbIsOffline());
+}
+async function _tvProbe() {
+  let url = '';
+  try { url = firebase.app().options.databaseURL || ''; } catch (e) { /* no config — rely on the shared state */ }
+  if (!url) return;
+  _tvProbeBusy = true; _tvProbeAt = Date.now();
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), TV_PROBE_TIMEOUT_MS);
+  try {
+    const res = await fetch(url + '/sportsday_2026_data/matchCounter.json', { cache: 'no-store', signal: ctl.signal });
+    if (res.status >= 500) throw new Error('http ' + res.status);   // a 4xx still proves the server is reachable
+    _tvProbeFails = 0; _tvAliveAt = Date.now();
+  } catch (e) { _tvProbeFails++; }
+  finally { clearTimeout(timer); _tvProbeBusy = false; }
+}
+function _tvSyncInner() { return `<span class="tv-sync-dot"></span>ซิงก์ ${_tvClock(_tvAliveAt, true)}`; }
+function _tvHealth() {
+  const now = Date.now();
+  if (!_tvProbeBusy && now - _tvProbeAt >= TV_PROBE_EVERY_MS) _tvProbe();
+  if (_lastSnapshotAt > _tvAliveAt) _tvAliveAt = _lastSnapshotAt;   // fresh data also proves it is live
+  const offline = _tvIsOffline();
+  if (offline && !_tvOfflineSince) _tvOfflineSince = _tvAliveAt;
+  if (!offline) _tvOfflineSince = 0;
+  const bar = document.getElementById('tvStale');
+  if (bar) {
+    bar.hidden = !offline;
+    const txt = '⚠️ ข้อมูลอาจไม่ล่าสุด — สัญญาณหลุดตั้งแต่ ' + _tvClock(_tvOfflineSince || _tvAliveAt);
+    if (offline && bar.textContent !== txt) bar.textContent = txt;
+  }
+  const chip = document.getElementById('tvSync');
+  if (chip) { chip.classList.toggle('off', offline); chip.innerHTML = _tvSyncInner(); }
+}
+function _tvStartHealth() {
+  clearInterval(_tvHealthTimer);
+  _tvAliveAt = Date.now(); _tvProbeAt = 0; _tvProbeFails = 0; _tvOfflineSince = 0;
+  _tvHealthTimer = setInterval(_tvHealth, 1000);
+  _tvHealth();
+}
+
 // ── Climax detection (same thresholds as the court cards) ──
 function _tvClimaxLevel(m) {
   if (!m || !m.live) return 0;
@@ -83,6 +142,7 @@ function enterTvMode() {
   renderTvPanel();
   _tvBindFsControls();
   requestTvWakeLock();
+  _tvStartHealth();
   clearInterval(_tvTimer);
   _tvTimer = setInterval(_tvTick, 1000);
 }
@@ -220,7 +280,7 @@ function _tvBoardPages() {
 
 function _tvFootHtml() {
   const dots = TV_PANELS.map((_, i) => `<span class="tv-dot ${i === _tvPanel ? 'on' : ''}"></span>`).join('');
-  return `<div class="tv-foot"><div class="tv-dots">${dots}</div><div class="tv-brand">Badminton Sports Day 2026</div></div>`;
+  return `<div class="tv-foot"><div class="tv-dots">${dots}</div><div class="tv-sync${_tvOfflineSince ? ' off' : ''}" id="tvSync">${_tvSyncInner()}</div><div class="tv-brand">Badminton Sports Day 2026</div></div>`;
 }
 
 // ── HTML builders ──────────────────────────────────────────────
