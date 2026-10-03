@@ -191,7 +191,7 @@
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   PHONE NAV — one row, 56 px (P-13 · S-07 A-11 S-11)
+   PHONE NAV — one row, 55 px (P-13 · S-07 A-11 S-11)
    The bar used to be two rows (brand + status + icons, then the tabs): 91-97 px, 11-16% of a
    phone screen, with 31 px tabs and 36 px icons. Now it is one row: [status dot] [tabs, scrolling
    sideways with a fade on the edge that has more] [⋯]. The rare actions (full screen, QR, reset,
