@@ -52,6 +52,30 @@
     return out;
   };
 
+  // portrait / landscape layout of the scoring screen (P-06, P-12): bar heights, the free rim around each +1 area,
+  // the bottom bar, what a touch at the edges lands on, overlaps with the "−" buttons, contrast, tap count
+  A.wp3Layout = async () => {
+    const R = (e) => (typeof e === "string" ? document.querySelector(e) : e).getBoundingClientRect(); const rd = (n) => Math.round(n);
+    const out = { size: innerWidth + "x" + innerHeight };
+    await onScoring({ game2: false }); await sleep(300); out.topH1 = rd(R(".scoring-topbar").height);
+    await onScoring({ game2: true }); await sleep(300); out.topH2 = rd(R(".scoring-topbar").height);
+    const red = R("#redPanel"), blue = R("#bluePanel"), pr = R("#btnRedPlus"), pb = R("#btnBluePlus"), bar = R(".scoring-bottombar");
+    out.panels = { redH: rd(red.height), blueH: rd(blue.height) };
+    out.plusRim = { redLeft: rd(pr.left - red.left), redRight: rd(red.right - pr.right), redBottom: rd(red.bottom - pr.bottom), blueTop: rd(pb.top - blue.top), blueRight: rd(blue.right - pb.right) };
+    const barOn = getComputedStyle(document.querySelector(".scoring-bottombar")).display !== "none";
+    out.bottomBar = barOn ? { top: rd(bar.top), bottom: rd(bar.bottom), vh: innerHeight, back: [rd(R("#btnBack").width), rd(R("#btnBack").height)], pause: [rd(R("#btnPause").width), rd(R("#btnPause").height)], guard: rd(R("#btnBack").top - bar.top) } : "hidden (landscape)";
+    const cy = red.top + red.height / 2;
+    out.hit = { redEdge: A.hit(8, cy), redCenter: A.hit(innerWidth / 2, cy), blueCenter: A.hit(innerWidth / 2, blue.top + blue.height / 2) };
+    if (barOn) { out.hit.redBottomRim = A.hit(innerWidth / 2, red.bottom - 6); out.hit.blueTopRim = A.hit(innerWidth / 2, blue.top + 6); out.hit.barGuard = A.hit(innerWidth / 2, bar.top + 10); }
+    const hit = (a, b) => a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1; const overlaps = [];
+    [["#btnRedMinus", "#scoreRed"], ["#btnRedMinus", "#redNames"], ["#btnBlueMinus", "#scoreBlue"], ["#btnBlueMinus", "#blueNames"]].forEach(([a, b]) => { if (hit(R(a), R(b))) overlaps.push(a + " x " + b); });
+    out.minusOverlaps = overlaps;
+    out.small48 = A.small("#screen-scoring").concat(A.small("#landscapeInfo"));
+    out.taps = [...document.querySelectorAll("#screen-scoring button")].filter(A.vis).length + ([...document.querySelectorAll("#landscapeInfo button")].filter(A.vis).length);
+    const c = A.contrast("#screen-scoring", 5); out.contrast = c.total + "/" + c.fail; out.docSW = document.documentElement.scrollWidth;
+    exitMatch(); await sleep(100); return out;
+  };
+
   // two quick taps on the same side: how many points count? (P-12)
   A.wp3DoubleTap = async (gapMs, side) => {
     await onScoring({});

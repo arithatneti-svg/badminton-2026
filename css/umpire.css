@@ -583,62 +583,57 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   width: 100dvw;
   overflow: hidden;
   display: grid;
-  grid-template-rows: auto 1fr auto 1fr auto;
+  grid-template-rows: auto 1fr auto 1fr auto auto;   /* info bar · red · SUBMIT · blue · leave/pause bar · safe area */
   /* one column exactly as wide as the screen. It used to be `auto`, i.e. as wide as the widest row's content:
      343 px on a 320 px phone, which pushed ⏸ and SUBMIT off the right edge */
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
 }
 
-/* TOP BAR */
+/* TOP BAR — information only (court, clock, game). The leave and pause buttons used to sit in its corners,
+   the hardest place to reach with one hand and right next to the red +1 area; they are in the bottom bar now. */
 .scoring-topbar {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex-shrink: 0;
+  min-height: calc(94px + var(--sat));   /* same height in game 1 and game 2 (the g1 recap line comes and goes) */
   padding: calc(10px + var(--sat)) 10px 10px;
   background: rgba(7,7,13,0.75);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.topbar-btn {
-  background: var(--surface2);
-  border: 1.5px solid var(--border);
-  color: var(--text);
-  border-radius: var(--radius-sm);
-  padding: 0;
-  width: 60px;
-  height: 60px;
-  font-size: 1.35rem;
-  cursor: pointer;
+
+/* BOTTOM BAR — leave / pause. The 24 px on top is a guard strip: it belongs to the bar and holds no button,
+   so a thumb or palm that slips off the blue +1 area lands on nothing. */
+.scoring-bottombar {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.12s;
+  gap: 12px;
+  padding: 24px 12px 12px;
+  background: rgba(7,7,13,0.75);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.bar-btn {
+  flex: 1 1 0;
+  min-height: 56px;
+  min-width: 48px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border-bright);
+  color: var(--text);
+  border-radius: var(--radius-md);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.12s;
   -webkit-tap-highlight-color: transparent;
-  position: relative;
-  overflow: hidden;
   touch-action: manipulation;
 }
-.topbar-btn:active { background: var(--surface3); transform: scale(0.88); }
-.topbar-btn.danger { border-color: rgba(255,77,77,0.4); color: var(--danger); background: rgba(255,77,77,0.06); }
-.topbar-btn.danger:active { background: rgba(255,77,77,0.15); }
-.topbar-btn.paused { border-color: rgba(46,204,113,0.5); color: var(--green); background: rgba(46,204,113,0.1); }
-.topbar-btn.fs-active { border-color: rgba(240,192,64,0.5); color: var(--gold); }
-.topbar-btn#btnUndoBar {
-  background: rgba(240,192,64,0.08);
-  border-color: rgba(240,192,64,0.4);
-  color: var(--gold);
-  font-size: 1.2rem;
-  gap: 4px;
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 1px;
-  font-size: 0.9rem;
-  width: auto;
-  padding: 0 14px;
-  min-width: 60px;
-}
+.bar-btn:active { background: var(--surface3); transform: scale(0.96); }
+.bar-btn.danger { border-color: rgba(255,77,77,0.5); color: var(--danger); background: rgba(255,77,77,0.06); }
+.bar-btn.danger:active { background: rgba(255,77,77,0.15); }
+.bar-btn.paused { border-color: rgba(46,204,113,0.6); color: var(--green); background: rgba(46,204,113,0.1); }
 
 .scoring-center {
   flex: 1;
@@ -719,8 +714,11 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 /* ── PLUS — invisible full-area button behind everything ── */
 .score-btn-plus {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  /* 28 px free at both screen edges (a grip, a palm) and 16 px next to the SUBMIT band: the half-screen is
+     still one big target, but its rim is not */
+  top: 0;
+  left: 28px;
+  width: calc(100% - 56px);
   height: 100%;
   background: transparent;
   border: none;
@@ -731,6 +729,9 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   user-select: none;
   overflow: hidden;
 }
+/* the rim next to the SUBMIT band stays free too (portrait: the red panel's bottom, the blue panel's top) */
+.score-panel.red .score-btn-plus  { height: calc(100% - 16px); }
+.score-panel.blue .score-btn-plus { top: 16px; height: calc(100% - 16px); }
 .score-panel.red .score-btn-plus:active   { background: rgba(255,77,77,0.10); }
 .score-panel.blue .score-btn-plus:active  { background: rgba(77,159,255,0.10); }
 
@@ -1004,7 +1005,9 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
     grid-template-columns: 1fr auto 1fr;
     grid-template-areas: "red  middle  blue";
   }
-  #screen-scoring.active .scoring-topbar { display: none; }
+  #screen-scoring.active .scoring-topbar, #screen-scoring.active .scoring-bottombar { display: none; }
+  /* side by side: only the screen edges and the SUBMIT column need a free rim, top and bottom do not */
+  #screen-scoring.active .score-panel .score-btn-plus { top: 0; height: 100%; }
   #screen-scoring.active .score-panel.red  { grid-area: red;    border-top: none; border-right: 1px solid rgba(255,255,255,0.05); }
   #screen-scoring.active .score-panel.blue { grid-area: blue;   border-top: none; border-left:  1px solid rgba(255,255,255,0.05); }
   #screen-scoring.active .scoring-actions  { grid-area: middle; width: 130px; display: flex; flex-direction: column; justify-content: center; padding: 10px 6px; gap: 8px; }

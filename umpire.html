@@ -158,10 +158,8 @@
      ============================================================ -->
 <div id="screen-scoring" class="screen">
 
-  <!-- TOP BAR — [←] center [⛶ small][⏸] -->
+  <!-- TOP BAR — information only (court, clock, game): nothing here can be tapped by accident except the court -->
   <div class="scoring-topbar">
-    <button class="topbar-btn danger" id="btnBack" onclick="confirmExit()">←</button>
-
     <div class="scoring-center">
       <div class="match-info-text" id="activeMatchInfo">—</div>
       <div class="center-row">
@@ -170,8 +168,6 @@
       </div>
       <div class="g1line" id="g1Line" style="display:none;"></div>
     </div>
-
-    <button class="topbar-btn" id="btnPause" onclick="togglePause()">⏸</button>
   </div>
   <div class="net-banner" role="status" aria-live="polite"></div>
 
@@ -200,6 +196,12 @@
       <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
     <button class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนน Blue">−</button>
+  </div>
+
+  <!-- BOTTOM BAR — leave / pause, well away from both +1 areas (a guard strip sits above it) -->
+  <div class="scoring-bottombar">
+    <button class="bar-btn danger" id="btnBack" onclick="confirmExit()">← ออก</button>
+    <button class="bar-btn" id="btnPause" onclick="togglePause()">⏸ พัก</button>
   </div>
 
   <!-- safe area bottom -->

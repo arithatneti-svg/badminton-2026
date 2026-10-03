@@ -985,10 +985,10 @@ function renderGameUI() {
   const paused = match.live && match.live.isPaused;
   const btnPause = document.getElementById('btnPause');
   if (paused) {
-    btnPause.innerHTML = '▶';
+    btnPause.innerHTML = '▶ เล่นต่อ';
     btnPause.classList.add('paused');
   } else {
-    btnPause.innerHTML = '⏸';
+    btnPause.innerHTML = '⏸ พัก';
     btnPause.classList.remove('paused');
   }
   // Update landscape pause button
