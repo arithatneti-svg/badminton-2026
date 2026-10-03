@@ -120,6 +120,35 @@ async function _umpFinalize(entry, pRed, pBlue, tries = 0) {
   return { ok: false, reason: reason || 'error', existing };
 }
 
+// Sending the result of a match. The transaction can hang for good while the SDK still believes it is
+// online (a Wi-Fi that stopped answering), and the button used to say "กำลังส่งผล…" forever. After
+// UMP_TIMING.finalizeTimeoutMs it asks: try again, or leave (the result is still pending on this phone and goes out
+// by itself when the signal returns — as long as this page stays open). Trying again is safe: the
+// transaction refuses a result that is already recorded, so the late first attempt and the second one can
+// never count twice. If the late attempt finishes while the question is open, the question closes by itself.
+const UMP_TIMING = { finalizeTimeoutMs: 10000 };   // an object so a test can shorten it
+// the result an attempt may still deliver after the umpire left: { id, game1, game2 } — see confirmMatch
+let _uSubmitPending = null;
+async function _sendResult(entry, pRed, pBlue) {
+  _uSubmitPending = { id: entry.id, game1: entry.game1, game2: entry.game2 };
+  let attempt = _umpFinalize(entry, pRed, pBlue);
+  attempt.then(() => { if (_uSubmitPending && _uSubmitPending.id === entry.id) _uSubmitPending = null; });
+  for (;;) {
+    const late = attempt.then(r => ({ done: r }));
+    const slow = new Promise(res => setTimeout(() => res({ slow: true }), UMP_TIMING.finalizeTimeoutMs));
+    const first = await Promise.race([late, slow]);
+    if (first.done) return first.done;
+    const question = showConfirm('⏳', 'ส่งนานกว่าปกติ',
+      'สัญญาณอาจไม่ดี — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้ ถ้าออกตอนนี้ ระบบจะส่งต่อเองเมื่อสัญญาณกลับ',
+      { confirmLabel: 'ลองใหม่', cancelLabel: 'ออก — ส่งต่อเอง' });
+    const out = await Promise.race([question.then(choice => ({ choice })), late]);
+    if (out.done) { _modalDone(null); return out.done; }       // it got through while we were asking
+    if (!out.choice) return { ok: false, reason: 'abandoned' };
+    attempt = _umpFinalize(entry, pRed, pBlue);
+    attempt.then(() => { if (_uSubmitPending && _uSubmitPending.id === entry.id) _uSubmitPending = null; });
+  }
+}
+
 // "This match is gone" — shown once, however many writes notice it.
 let _uClosedShown = false;
 function _uMatchClosed() {
@@ -1282,6 +1311,13 @@ async function confirmMatch() {
   });
 
   if (ok) {
+    // An earlier send of THIS match may still arrive (it timed out, the umpire left, it is queued in this
+    // page). Sending the same scores again is safe; different scores would race it, so wait for it.
+    if (_uSubmitPending && _uSubmitPending.id === m.id && (_uSubmitPending.game1 !== `${g1r}:${g1b}` || _uSubmitPending.game2 !== `${g2r}:${g2b}`)) {
+      await showAlert('⏳', 'ผลก่อนหน้านี้ยังส่งค้างอยู่', `ผลที่ส่งไปก่อน (เกม 1 ${_uSubmitPending.game1.replace(':', '–')} · เกม 2 ${_uSubmitPending.game2.replace(':', '–')}) ยังไม่ถึงเซิร์ฟเวอร์
+รอสัญญาณกลับให้ส่งเสร็จก่อน แล้วค่อยแก้`);
+      return;
+    }
     // Finalizing needs the server: a queued offline result would be lost if the
     // phone is locked or the page closed before the signal returns.
     if (!_uOnline) {
@@ -1324,7 +1360,7 @@ async function confirmMatch() {
     }));
 
     // history + team scores + court list, atomically, on the server's current data
-    const r = await _umpFinalize(entry, pRed, pBlue);
+    const r = await _sendResult(entry, pRed, pBlue);
     const sameResult = r.existing && r.existing.game1 === entry.game1 && r.existing.game2 === entry.game2;
 
     if (r.ok || (r.reason === 'already' && sameResult)) {
@@ -1339,6 +1375,9 @@ async function confirmMatch() {
     } else if (r.reason === 'taken') {
       await showAlert('🔒', 'แมตช์นี้ไม่ได้อยู่กับคุณแล้ว', 'แอดมินปล่อยแมตช์นี้ หรือกรรมการคนอื่นรับไปแล้ว — ผลจากเครื่องนี้จึงไม่ถูกส่ง');
       _isConfirming = false;
+      exitMatch();
+    } else if (r.reason === 'abandoned') {
+      _isConfirming = false;     // left with the result still pending: the page keeps trying while it stays open
       exitMatch();
     } else {
       _isConfirming = false;

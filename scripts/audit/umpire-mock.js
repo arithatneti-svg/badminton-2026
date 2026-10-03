@@ -11,6 +11,19 @@
   const clone = (x) => (x === undefined ? undefined : JSON.parse(JSON.stringify(x)));
   window.__writes = window.__writes || [];
   A.server = { ongoing: [], history: [], red: 0, blue: 0 };
+  // What the network does to a transaction: ok · slow (answers after delayMs) · hang (never answers: a Wi-Fi that stopped
+  // replying while the SDK still thinks it is online) · fail (throws). held[] keeps the hung ones so a test can release them later.
+  A.net = { mode: "ok", delayMs: 0, held: [] };
+  A.umpNetMode = (mode, delayMs) => { A.net.mode = mode; A.net.delayMs = delayMs || 0; return A.net.mode; };
+  A.umpRelease = () => { const h = A.net.held.splice(0); h.forEach((f) => f()); return h.length; };
+  // run the real code on the server copy, then deliver the answer the way the network allows
+  const deliver = (work) => {
+    const m = A.net.mode;
+    if (m === "fail") return Promise.reject(new Error("network error (mock)"));
+    if (m === "hang") return new Promise((resolve) => { A.net.held.push(() => resolve(work())); });
+    if (m === "slow") return new Promise((resolve) => setTimeout(() => resolve(work()), A.net.delayMs));
+    return Promise.resolve(work());
+  };
 
   // what the realtime listener does when the server changes
   A.umpEcho = () => {
@@ -31,23 +44,27 @@
       const one = /\/ongoingMatches\/(\d+)$/.exec(url);
       if (one) {                                      // one match, as _umpMutate does
         const i = +one[1];
-        const cur = clone(A.server.ongoing[i]);
-        const out = fn(cur === undefined ? null : cur);
-        window.__writes.push({ path: "ongoingMatches/" + i, committed: out !== undefined });
-        if (out === undefined) return Promise.resolve({ committed: false, snapshot: { val: () => cur } });
-        A.server.ongoing[i] = clone(out);
-        setTimeout(A.umpEcho, 30);
-        return Promise.resolve({ committed: true, snapshot: { val: () => out } });
+        return deliver(() => {
+          const cur = clone(A.server.ongoing[i]);
+          const out = fn(cur === undefined ? null : cur);
+          window.__writes.push({ path: "ongoingMatches/" + i, committed: out !== undefined });
+          if (out === undefined) return { committed: false, snapshot: { val: () => cur } };
+          A.server.ongoing[i] = clone(out);
+          setTimeout(A.umpEcho, 30);
+          return { committed: true, snapshot: { val: () => out } };
+        });
       }
       if (/sportsday_2026_data\/?$/.test(url)) {      // the whole root, as _umpFinalize does
-        const root = { ongoingMatches: clone(A.server.ongoing), matchHistory: clone(A.server.history), globalScoreRed: A.server.red, globalScoreBlue: A.server.blue };
-        const out = fn(root);
-        window.__writes.push({ path: "root", committed: out !== undefined });
-        if (out === undefined) return Promise.resolve({ committed: false, snapshot: { val: () => root } });
-        A.server.ongoing = clone(out.ongoingMatches); A.server.history = clone(out.matchHistory);
-        A.server.red = out.globalScoreRed; A.server.blue = out.globalScoreBlue;
-        setTimeout(A.umpEcho, 30);
-        return Promise.resolve({ committed: true, snapshot: { val: () => out } });
+        return deliver(() => {
+          const root = { ongoingMatches: clone(A.server.ongoing), matchHistory: clone(A.server.history), globalScoreRed: A.server.red, globalScoreBlue: A.server.blue };
+          const out = fn(root);
+          window.__writes.push({ path: "root", committed: out !== undefined });
+          if (out === undefined) return { committed: false, snapshot: { val: () => root } };
+          A.server.ongoing = clone(out.ongoingMatches); A.server.history = clone(out.matchHistory);
+          A.server.red = out.globalScoreRed; A.server.blue = out.globalScoreBlue;
+          setTimeout(A.umpEcho, 30);
+          return { committed: true, snapshot: { val: () => out } };
+        });
       }
       window.__writes.push({ path: url, committed: false });
       return Promise.resolve({ committed: false, snapshot: { val: () => null } });
