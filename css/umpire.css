@@ -93,7 +93,7 @@ body.is-login #fsBtn { display: none; }
   color: var(--gold);
   font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.3px;
   padding: 8px 18px;
   border-radius: 40px;
   z-index: 9998;
@@ -256,7 +256,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   min-height: 48px;
   font-size: 0.85rem;
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.3px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -275,7 +275,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .login-section-label {
   font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 2.5px;
+  letter-spacing: 0.3px;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 12px;
@@ -364,7 +364,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   padding: 24px;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 2.2em;
-  letter-spacing: 3px;
+  letter-spacing: 0.3px;
   border: none;
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -419,7 +419,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   color: var(--muted2);
   font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.3px;
   padding: 6px 0 2px;
 }
 
@@ -477,7 +477,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   border-radius: 50px;
   font-size: 0.82rem;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
 }
 .badge-mine { background: rgba(46,204,113,0.18); color: var(--green); border: 1px solid rgba(46,204,113,0.4); }
 .badge-taken { background: rgba(255,255,255,0.06); color: #a0a0be; border: 1px solid var(--border-bright); }
@@ -662,7 +662,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   font-size: 0.72rem;
   color: var(--muted);
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -681,7 +681,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .game-indicator {
   font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.25em;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   color: var(--text);
   margin-top: 1px;
   line-height: 1;
@@ -910,7 +910,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
   font-size: 2.1rem;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   color: var(--gold);
   line-height: 1;
 }
@@ -927,7 +927,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .pause-current-label {
   font-size: 0.8rem;
   font-weight: 800;
-  letter-spacing: 3px;
+  letter-spacing: 0.5px;
   color: var(--gold);
 }
 .pause-current-timer {
@@ -958,7 +958,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   color: #04130a;
   font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
   cursor: pointer;
   touch-action: manipulation;
   box-shadow: 0 6px 24px rgba(46,204,113,0.3);
@@ -980,7 +980,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 /* landscape phones are short: tighten so title, clock, buttons all fit (320 px high is the floor) */
 @media (max-height: 480px) {
   #pauseOverlay { gap: 8px; padding-top: calc(8px + var(--sat)); padding-bottom: calc(8px + var(--sab)); }
-  .pause-title { font-size: 1.5rem; letter-spacing: 4px; }
+  .pause-title { font-size: 1.5rem; letter-spacing: 1px; }
   .pause-current-block { padding: 6px 36px 4px; }
   .pause-current-timer { font-size: 3rem; }
   .pause-resume { min-height: 56px; margin-top: 0; font-size: 1.3rem; }
@@ -1008,7 +1008,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   color: var(--green);
   font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
   padding: 5px 10px;
   border-radius: 20px;
   display: none;
@@ -1040,7 +1040,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   #screen-scoring.active .scoring-actions  { grid-area: middle; width: 130px; display: flex; flex-direction: column; justify-content: center; padding: 10px 6px; gap: 8px; }
   #screen-scoring.active .scoring-bottom-safe { display: none; }
   .score-number { font-size: clamp(4rem, 16vw, 8rem); }
-  .btn-action   { font-size: 1.2em; padding: 14px 6px; letter-spacing: 1px; }
+  .btn-action   { font-size: 1.2em; padding: 14px 6px; letter-spacing: 0.5px; }
   .score-btn    { font-size: 2rem; }
   #landscapeInfo { display: flex !important; }
 }
@@ -1504,7 +1504,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 /* game chip — also carries the deuce / game-point read (no floating badge) */
 #screen-scoring.active .game-indicator{
   display:inline-block; font-family:'Bebas Neue',sans-serif;
-  font-size:var(--fs-game); letter-spacing:2px; line-height:1;
+  font-size:var(--fs-game); letter-spacing:1px; line-height:1;
   padding:4px 9px; border-radius:8px; margin-top:0;
   background:var(--surface2); border:1px solid var(--border-bright); color:var(--text);
 }
@@ -1575,7 +1575,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 .vsi-side.blue .vsi-names{ color:var(--blue); }
 .vsi-vs{ font-family:'Bebas Neue',sans-serif; font-size:clamp(26px,7vw,64px); letter-spacing:2px; color:var(--muted); flex-shrink:0; }
 .vsi-ready{
-  font-size:clamp(13px,3.6vw,18px); letter-spacing:2px; font-weight:700; color:var(--gold);
+  font-size:clamp(13px,3.6vw,18px); letter-spacing:0.5px; font-weight:700; color:var(--gold);
   background:rgba(240,192,64,.1); border:1px solid rgba(240,192,64,.3); border-radius:40px;
   padding:10px 24px; animation:pulse 1.5s ease infinite;
 }
@@ -1678,7 +1678,7 @@ body:not(.is-scoring) #landscapeInfo { display: none !important; }
   .login-section-label { margin-bottom: 8px; }
   .toggle-btn { padding: 12px 8px; }
   .umpire-select { min-height: 56px; padding: 14px 44px 14px 16px; font-size: 1.1rem; }
-  .btn-login { font-size: 1.6em; letter-spacing: 1px; padding: 14px 16px; }   /* one line at 320 px, not two */
+  .btn-login { font-size: 1.6em; letter-spacing: 0.3px; padding: 14px 16px; }   /* one line at 320 px, not two */
 }
 /* really short (320 x 568): the racket icon goes, so team + group + name + button all fit at once */
 @media (max-height: 640px) {
