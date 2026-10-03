@@ -318,7 +318,9 @@ select option { background: #161625; }
    Same visual language as the live arena (it replaced the old fire rings).
    ══════════════════════════════════════════ */
 .scoreboard-wrapper.idle-board {
-  display: block; max-width: 1100px; margin: 0 auto;
+  /* min-height: 0 — the base .scoreboard-wrapper reserves 100vh − 120px for the old big-score
+     layout, which made this board taller than the screen (36–82 px of scroll) with an empty queue */
+  display: block; min-height: 0; max-width: 1100px; margin: 0 auto;
   padding: clamp(14px, 2.5vh, 30px) clamp(12px, 3vw, 44px) clamp(20px, 3vh, 40px);
 }
 .idl-top {
