@@ -318,6 +318,20 @@ setTimeout(_uRenderNet, 3500);   // never connected after a few seconds → say 
 // ==========================================
 // FULLSCREEN
 // ==========================================
+// An iPhone has no Fullscreen API, so ⛶ did nothing and said nothing; an app added to the home screen is
+// already full screen. Where full screen cannot be asked for, the ⛶ buttons are hidden and the login page says why.
+function initDeviceSupport(force) {
+  const de = document.documentElement;
+  const fsApi = force && force.fs !== undefined ? force.fs : !!(de.requestFullscreen || de.webkitRequestFullscreen);
+  const standalone = force && force.standalone !== undefined ? force.standalone
+    : !!((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true);
+  const canFs = fsApi && !standalone;
+  document.querySelectorAll('#navFsBtn, #liFsBtn, .btn-login-fs').forEach(b => { b.style.display = canFs ? '' : 'none'; });
+  const hint = document.getElementById('fsHint');
+  if (hint) hint.style.display = (!fsApi && !standalone) ? 'block' : 'none';
+  return { fsApi, standalone, canFs };
+}
+initDeviceSupport();
 let _fsIndicatorTimer = null;
 
 function toggleFullScreen() {
@@ -357,17 +371,28 @@ function onFsChange() {
 // ==========================================
 let _wakeLock = null;
 
+// Said once per visit, a few seconds after the match opens (after the VS intro and any "restored" line): the
+// screen may go dark on its own. It used to fail without a word (an empty catch) on iPhones before iOS 16.4
+// and when battery saver refuses the request.
+let _wakeWarned = false;
+function _wakeWarn() {
+  if (_wakeWarned) return;
+  _wakeWarned = true;
+  setTimeout(() => {
+    if (document.getElementById('screen-scoring').classList.contains('active'))
+      showNotice('หน้าจออาจดับเอง — ตั้งให้ล็อกหน้าจออัตโนมัติช้าลง หรือเสียบชาร์จไว้', { tone: 'warn', ms: 12000 });
+  }, 4000);
+}
 async function requestWakeLock() {
-  if ('wakeLock' in navigator) {
-    try {
-      _wakeLock = await navigator.wakeLock.request('screen');
-      document.getElementById('wakeLockBadge').style.display = 'block';
-      _wakeLock.addEventListener('release', () => {
-        document.getElementById('wakeLockBadge').style.display = 'none';
-        _wakeLock = null;
-      });
-    } catch(e) { /* not supported or denied */ }
-  }
+  if (!(navigator.wakeLock && navigator.wakeLock.request)) { _wakeWarn(); return; }
+  try {
+    _wakeLock = await navigator.wakeLock.request('screen');
+    document.getElementById('wakeLockBadge').style.display = 'block';
+    _wakeLock.addEventListener('release', () => {
+      document.getElementById('wakeLockBadge').style.display = 'none';
+      _wakeLock = null;
+    });
+  } catch (e) { _wakeWarn(); }   // refused (battery saver, page hidden)
 }
 
 function releaseWakeLock() {

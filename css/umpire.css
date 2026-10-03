@@ -101,6 +101,7 @@ body.is-login #fsBtn { display: none; }
   transition: opacity 0.4s, transform 0.4s;
   pointer-events: none;
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 #fsIndicator.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -602,6 +603,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   padding: calc(10px + var(--sat)) 10px 10px;
   background: rgba(7,7,13,0.75);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
@@ -802,6 +804,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   touch-action: manipulation;
   user-select: none;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: all 0.12s;
   line-height: 1;
 }
@@ -831,6 +834,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   transition: opacity 0.3s, transform 0.3s;
   pointer-events: none;
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
@@ -992,6 +996,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   border-radius: 20px;
   display: none;
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* ============================================================
@@ -1049,6 +1054,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   font-weight: 700;
   cursor: pointer;
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -1586,3 +1592,6 @@ body.is-offline .net-banner {
 .sync-strip.sync-ok      { color: #7fe3a6; }
 .sync-strip.sync-sending { color: var(--gold); }
 .sync-strip.sync-offline { color: #ff9a9a; }
+
+/* iPhone: no full-screen button, so say why (login page only) */
+.login-fs-hint { margin-top: 8px; max-width: 320px; font-size: 0.82rem; line-height: 1.5; color: var(--muted); text-align: center; }
