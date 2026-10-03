@@ -193,11 +193,26 @@ function _tvStandings() {
   });
   return Object.values(stats).filter(p => p.total > 0).sort((a, b) => b.pts - a.pts || b.w - a.w);
 }
-// rows that fit one screen height (so a page never spills into the footer),
-// clamped to a readable 5–8 — photos make each row taller than the old text list
+// Rows that fit one screen height (so a page never spills into the footer). Photos and type scale
+// with the viewport, so a height formula guesses wrong — 8 rows ran 86 px off a 1080p screen.
+// Start from a guess (readable 5–8); _tvFitBoard() then measures the rendered rows and trims the
+// count until the last row clears the footer, and remembers the result for this viewport size.
+let _tvFit = { key: '', per: 0 };
+function _tvViewKey() { return (window.innerWidth || 0) + 'x' + (window.innerHeight || 0); }
 function _tvBoardPerPage() {
+  if (_tvFit.per && _tvFit.key === _tvViewKey()) return _tvFit.per;
   const avail = (window.innerHeight || 720) - 260;   // heading + footer + padding
   return Math.max(5, Math.min(8, Math.floor(avail / 84)));
+}
+function _tvFitBoard(el) {
+  for (let tries = 0; tries < 5; tries++) {          // trimming happens in one task — no flash
+    const rows = el.querySelectorAll('.tv-board-row'), foot = el.querySelector('.tv-foot');
+    if (!rows.length || !foot) return;
+    const over = rows[rows.length - 1].getBoundingClientRect().bottom > foot.getBoundingClientRect().top - 2;
+    if (!over || rows.length <= 3) return;
+    _tvFit = { key: _tvViewKey(), per: rows.length - 1 };
+    el.innerHTML = _tvBoardHtml() + _tvFootHtml();
+  }
 }
 function _tvBoardPages() {
   return Math.max(1, Math.ceil(_tvStandings().length / _tvBoardPerPage()));
@@ -438,6 +453,7 @@ function renderTvPanel(force) {
 
   _tvLastKey = key;
   el.innerHTML = html + _tvFootHtml();
+  if (panel === 'board') _tvFitBoard(el);
 }
 
 // ── Fullscreen for TV / projector ──
