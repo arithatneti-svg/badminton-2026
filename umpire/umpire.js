@@ -163,8 +163,10 @@ let _uClosedShown = false;
 function _uMatchClosed() {
   if (_uClosedShown || _isConfirming) return;
   _uClosedShown = true;
-  showAlert('⚠️', 'แมตช์ถูกปิดแล้ว', 'แมตช์นี้ถูกปิดหรือดึงผลไปแล้วครับ').then(() => exitMatch());
+  showAlert('⚠️', 'แมตช์นี้ปิดแล้ว', 'ทีมงานบันทึกผลหรือปิดแมตช์นี้แล้ว\nคะแนนที่กดต่อจากนี้จะไม่ถูกนับ', 'กลับไปรายการ').then(() => exitMatch());
 }
+// "somebody else got this match first" — the same words wherever a claim loses the race
+const _uTakenFirst = name => showAlert('🔒', `${name} รับแมตช์นี้ไปก่อนแล้ว`, 'เลือกแมตช์อื่นได้', 'กลับไปรายการ');
 // "This match is no longer yours" — an admin gave it back to the queue (an umpire walked away), or
 // someone else took it afterwards. Same once-only rule. Every write is also refused on the server
 // while the match belongs to someone else, so a phone that has not heard yet cannot write into it.
@@ -174,8 +176,9 @@ function _uMatchReleased(m) {
   const back = !m.umpire;
   showAlert(back ? '↩️' : '🔒',
     back ? 'แมตช์นี้ถูกปล่อยแล้ว' : 'แมตช์นี้มีกรรมการคนอื่นแล้ว',
-    back ? 'แอดมินปล่อยแมตช์นี้กลับเข้าคิว — คะแนนที่นับไว้ไม่ถูกบันทึก\nถ้ายังต้องคุม เลือกแมตช์นี้จากรายการอีกครั้ง'
-         : `${m.umpire} กำลังคุมแมตช์นี้อยู่`).then(() => exitMatch());
+    back ? 'ทีมงานปล่อยแมตช์นี้กลับเข้าคิว\nคะแนนที่นับไว้ไม่ถูกบันทึก\nถ้ายังต้องคุม เลือกแมตช์นี้ใหม่จากรายการ'
+         : `${m.umpire} กำลังคุมแมตช์นี้อยู่\nคะแนนจากเครื่องนี้จะไม่ถูกส่ง`,
+    'กลับไปรายการ').then(() => exitMatch());
 }
 // A write that did not go through. It used to open a dialog that blocked the next tap and said nothing
 // about WHICH point; now it is a bar that does not block anything: what failed, what the viewers see, and
@@ -589,13 +592,17 @@ function updateLoginReady() {
 }
 function processLogin() {
   currentUmpire = document.getElementById('umpireSelect').value;
-  if (!currentUmpire) { vibrateDevice([80, 40, 80]); showAlert('⚠️', 'เลือกชื่อก่อน', 'กรุณาเลือกชื่อของคุณจากรายการก่อนนะครับ'); return; }
+  if (!currentUmpire) { vibrateDevice([80, 40, 80]); showAlert('⚠️', 'ยังไม่ได้เลือกชื่อ', 'เลือกชื่อของคุณจากรายการก่อนเข้าระบบ', 'เลือกชื่อ'); return; }
   localStorage.setItem('bdm_umpire_name', currentUmpire);
   goToTab('live');
 }
 
 async function logoutUmpire() {
-  const ok = await showConfirm('🚪', 'เปลี่ยนกรรมการ?', 'ต้องการออกจากระบบและเปลี่ยนตัวกรรมการใช่หรือไม่?', {
+  // matches stay in this name's hands: nothing is released by leaving (the same name on any phone carries on)
+  const held = ((appState && appState.ongoingMatches) || []).filter(m => m && m.umpire === currentUmpire).map(m => m.id);
+  const ok = await showConfirm('🚪', `ออกจากชื่อ ${currentUmpire}?`,
+    held.length ? `แมตช์ ${held.join(', ')} จะยังเป็นของ ${currentUmpire}\nเข้าชื่อเดิมเพื่อคุมต่อ หรือให้ทีมงานปล่อย`
+                : 'เลือกชื่อใหม่ได้ที่หน้าแรก', {
     confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ'
   });
   if (ok) {
@@ -1030,7 +1037,7 @@ async function chooseCourt(m, current, cancelLabel) {
     const other = _courtTakenBy(n, m.id);
     if (!other) return n;
     const ok = await showConfirm('⚠️', `คอร์ต ${n} มีแมตช์อยู่แล้ว`,
-      `${other.id} ยังอยู่ในคอร์ตนี้ — ถ้าจบไปแล้ว ให้แจ้งแอดมินปิดแมตช์นั้น\nใช้คอร์ต ${n} ต่อไหม?`,
+      `${other.id} ยังอยู่ในคอร์ตนี้\nถ้าจบไปแล้ว ให้แจ้งทีมงานปิดแมตช์นั้น\nใช้คอร์ต ${n} ต่อไหม?`,
       { confirmLabel: `ใช้คอร์ต ${n}`, cancelLabel: 'เลือกใหม่' });
     if (ok) return n;
     current = n;
@@ -1062,7 +1069,7 @@ async function selectMatch(mId) {
   let m = appState.ongoingMatches.find(x => x.id === mId);
   if (!m) return;
   if (m.umpire && m.umpire !== currentUmpire) {
-    showAlert('🔒', 'แมตช์นี้มีกรรมการแล้ว', `${m.umpire} กำลังคุมแมตช์นี้อยู่`);
+    showAlert('🔒', `${m.umpire} คุมแมตช์ ${m.id} อยู่`, 'ถ้าต้องรับช่วงต่อ ให้ติดต่อทีมงาน', 'กลับ');
     return;
   }
   // A second match while one is still yours is allowed (some umpires run two courts) but is rarely what a
@@ -1071,14 +1078,11 @@ async function selectMatch(mId) {
     const held = appState.ongoingMatches.filter(x => x.id !== mId && x.umpire === currentUmpire);
     if (held.length) {
       const more = await showConfirm('❓', `คุณคุม ${held.map(x => x.id).join(', ')} อยู่แล้ว`,
-        `รับ ${mId} เพิ่มอีกใบจริงไหม?`, { confirmLabel: 'รับเพิ่ม', cancelLabel: 'กลับ' });
+        `รับ ${mId} เพิ่มอีกแมตช์จริงไหม?`, { confirmLabel: 'รับเพิ่ม', cancelLabel: 'กลับ' });
       if (!more) return;
       m = appState.ongoingMatches.find(x => x.id === mId);          // the data moved while the dialog was open
       if (!m) return;
-      if (m.umpire && m.umpire !== currentUmpire) {
-        showAlert('🔒', 'มีกรรมการรับแมตช์นี้ไปแล้ว', `${m.umpire} กดรับแมตช์นี้ก่อนคุณเล็กน้อย`);
-        return;
-      }
+      if (m.umpire && m.umpire !== currentUmpire) { _uTakenFirst(m.umpire); return; }
     }
   }
   // Which court? Asked once, BEFORE the match is claimed: choosing the court is the step that takes
@@ -1093,10 +1097,7 @@ async function selectMatch(mId) {
     if (!court && !mine) return;
     m = appState.ongoingMatches.find(x => x.id === mId);          // the data moved while the dialog was open
     if (!m) return;
-    if (m.umpire && m.umpire !== currentUmpire) {
-      showAlert('🔒', 'มีกรรมการรับแมตช์นี้ไปแล้ว', `${m.umpire} กดรับแมตช์นี้ก่อนคุณเล็กน้อย`);
-      return;
-    }
+    if (m.umpire && m.umpire !== currentUmpire) { _uTakenFirst(m.umpire); return; }
   }
   activeMatchId = mId;
   localStorage.setItem('bdm_umpire_match', mId);
@@ -1122,7 +1123,7 @@ async function selectMatch(mId) {
   }).then(r => {
     if (r.ok) return;
     if (r.reason === 'refused' && takenBy) {
-      showAlert('🔒', 'มีกรรมการรับแมตช์นี้ไปแล้ว', `${takenBy} กดรับแมตช์นี้ก่อนคุณเล็กน้อย`).then(() => exitMatch());
+      _uTakenFirst(takenBy).then(() => exitMatch());
     } else {
       _uWriteFailed(r.reason, 'การรับแมตช์');
     }
