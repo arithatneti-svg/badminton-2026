@@ -450,16 +450,50 @@ function saveTeamNames() {
   saveKeys(['redTeamName', 'blueTeamName']); // เขียนเฉพาะชื่อทีม ไม่แตะ ongoingMatches
 }
 
-let _toastTimer = null;
-function showToast(msg, type='') {
-  // UX-2: duration scales with message length; clears previous toast first
-  const t = document.getElementById('toast');
-  clearTimeout(_toastTimer);
-  t.className = ''; // reset first to re-trigger animation
-  void t.offsetWidth;
-  t.textContent = msg; t.className = 'show ' + type;
-  const duration = Math.max(2400, Math.min(msg.length * 60, 5000));
-  _toastTimer = setTimeout(() => { t.className = ''; }, duration);
+// ── TOASTS (P-35 · A-16 A-20) ──
+// There was one box that every new message replaced at once, and every kind lasted 2.4-5 s: 77 of the 128 calls
+// are errors, and an error could be wiped by the "success" that followed it 0.8 s later (season.js). Now they stack
+// (4 at most); an error stays 15 s and a warning 10 s, each with a ✕ of 44 px; success and info stay short and
+// close with a tap; a message already on screen is renewed, not stacked again. Errors and warnings go into a
+// role="alert" region, the rest into role="status" — both exist from the start, so a screen reader announces
+// whatever lands in them (there was no live region at all).
+const TOAST_MAX = 4;
+const _toastTimers = new Map();
+function showToast(msg, type = '') {
+  msg = String(msg == null ? '' : msg);
+  const kind = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'info';
+  const loud = kind === 'error' || kind === 'warning';
+  const host = document.getElementById(loud ? 'toastAlert' : 'toastStatus');
+  if (!host) return;
+  const same = [...host.children].find(el => el.dataset.msg === msg && el.dataset.kind === kind);
+  if (same) { _toastArm(same, kind, msg); return; }
+  const el = document.createElement('div');
+  el.className = 'toast-item ' + kind; el.dataset.msg = msg; el.dataset.kind = kind;
+  const txt = document.createElement('span'); txt.className = 'toast-txt'; txt.textContent = msg; el.appendChild(txt);
+  if (loud) {
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'toast-x'; x.setAttribute('aria-label', 'ปิดข้อความ'); x.textContent = '✕';
+    x.onclick = () => _toastClose(el); el.appendChild(x);
+  } else el.onclick = () => _toastClose(el);
+  host.appendChild(el);
+  const all = [...document.querySelectorAll('#toastStack .toast-item:not(.closing)')];   // too many: quiet ones go first (oldest first), then warnings, errors last
+  if (all.length > TOAST_MAX) {
+    const rank = e => e.classList.contains('error') ? 2 : e.classList.contains('warning') ? 1 : 0;
+    _toastClose(all.slice().sort((x, y) => rank(x) - rank(y))[0]);
+  }
+  requestAnimationFrame(() => el.classList.add('show'));
+  _toastArm(el, kind, msg);
+}
+function _toastArm(el, kind, msg) {
+  clearTimeout(_toastTimers.get(el));
+  const ms = kind === 'error' ? 15000 : kind === 'warning' ? 10000 : Math.max(2400, Math.min(msg.length * 60, 5000));
+  _toastTimers.set(el, setTimeout(() => _toastClose(el), ms));
+}
+function _toastClose(el) {
+  if (!el || !el.isConnected) return;
+  clearTimeout(_toastTimers.get(el)); _toastTimers.delete(el);
+  el.classList.remove('show'); el.classList.add('closing');
+  setTimeout(() => el.remove(), 250);
 }
 
 // ══════════════════════════════════════════
