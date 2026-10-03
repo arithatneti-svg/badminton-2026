@@ -252,9 +252,9 @@ function renderPublicOngoingMatches() {
             <span class="queue-mid">${safeId}</span>
             <span class="queue-round">รอบ ${m.round||'?'}</span>
             <div class="queue-teams" style="flex:1;min-width:0;">
-              <span class="queue-team-names" style="color:var(--red);">${escHtml(redNames)}</span>
+              <span class="queue-team-names" style="color:var(--red-text);">${escHtml(redNames)}</span>
               <span class="queue-vs">VS</span>
-              <span class="queue-team-names" style="color:var(--blue);">${escHtml(blueNames)}</span>
+              <span class="queue-team-names" style="color:var(--blue-text);">${escHtml(blueNames)}</span>
             </div>
             ${corruptBadge}
             <span class="queue-status">⏳ รอ</span>

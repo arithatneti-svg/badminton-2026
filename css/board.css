@@ -73,6 +73,8 @@
 .mb-chip { display: inline-flex; align-items: center; }
 
 /* Create button: dim until both teams are full (createMatch still guards) */
-.mb-create { opacity: 0.4; filter: grayscale(0.4); transition: opacity 0.2s, filter 0.2s, transform 0.15s; }
-.mb-create.mb-create-ready { opacity: 1; filter: none; }
+/* (P-33 · A-03: it used to be the whole button at 40% opacity, text 2.3:1; now a quiet but readable button, and
+   aria-disabled says it is not ready - it still answers a tap with the reason, createMatch() guards) */
+.mb-create { transition: background 0.2s, color 0.2s, transform 0.15s; }
+.mb-create:not(.mb-create-ready) { background: var(--surface3); color: var(--text2); border: 1px dashed var(--border2); box-shadow: none; }
 .mb-create.mb-create-ready:active { transform: scale(0.97); }

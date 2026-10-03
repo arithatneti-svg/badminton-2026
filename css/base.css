@@ -26,6 +26,14 @@
 }
 
 :root {
+  /* team colours for TEXT on the dark panels: --red / --blue are 4.2:1 and 4.7:1 at best on --surface2, and the
+     "RED" / "BLUE" labels were drawn at 65% of them (2.8 and 3.1:1). These two clear 4.5:1 on every surface (P-33). */
+  --red-text: #ff6a82;
+  --blue-text: #6aa9ff;
+  /* a lost game's score, quieter than the winner's but a solid colour (it was the winner's colour at 30-40% opacity:
+     1.55-1.9:1 for a 22-60 px number; these are about 3.3-3.7:1, the large-text minimum) */
+  --red-lost: #b8445d;
+  --blue-lost: #3f70b8;
   --green: #00e676;
   --green-dim: rgba(0,230,118,0.1);
   --purple: #a855f7;

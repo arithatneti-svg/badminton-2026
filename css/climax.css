@@ -203,7 +203,8 @@
 }
 .court-snum.red  { color: var(--red); }
 .court-snum.blue { color: var(--blue); }
-.court-snum.dim  { opacity: 0.3; }
+.court-snum.red.dim  { color: var(--red-lost); opacity: 1; }
+.court-snum.blue.dim { color: var(--blue-lost); opacity: 1; }
 .court-ssep {
   color: rgba(255,255,255,0.2);
   font-family: 'Bebas Neue', sans-serif;
@@ -213,9 +214,9 @@
   flex-shrink: 0;
 }
 .court-g2-placeholder {
-  font-size: 11px;
-  color: rgba(255,255,255,0.12);
-  letter-spacing: 1px;
+  font-size: 12px;
+  color: var(--text2);
+  letter-spacing: 0.3px;
   font-weight: 700;
   text-align: center;
 }
@@ -256,13 +257,13 @@
 .court-player-name.red  { color: var(--red); }
 .court-player-name.blue { color: var(--blue); text-align: right; }
 .court-team-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   margin-bottom: 5px;
 }
-.court-team-label.red  { color: rgba(255,59,92,0.65); }
-.court-team-label.blue { color: rgba(59,142,255,0.65); text-align: right; }
+.court-team-label.red  { color: var(--red-text); }
+.court-team-label.blue { color: var(--blue-text); text-align: right; }
 
 /* Waiting state (no umpire yet, score = – : –) */
 .court-waiting {
@@ -323,7 +324,7 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.3px;
-  color: var(--muted);
+  color: var(--text2);
   background: var(--surface2);
   padding: 2px 7px;
   border-radius: 4px;
@@ -346,7 +347,7 @@
 .queue-vs {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 0.9em;
-  color: var(--muted);
+  color: var(--text2);
   letter-spacing: 2px;
   flex-shrink: 0;
 }

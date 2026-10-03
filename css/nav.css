@@ -234,7 +234,7 @@
   #mainNav .tab-lbl { display: block; font-size: 12px; letter-spacing: 0; white-space: nowrap; }
   /* the count on Ongoing / Finished rides on the icon's corner */
   #mainNav #navOngoingBadge, #mainNav #navFinishedBadge {
-    position: absolute; top: 1px; right: 2px; margin: 0 !important; padding: 0 5px !important; font-size: 10px !important; line-height: 14px;
+    position: absolute; top: 0; right: 1px; margin: 0 !important; padding: 0 5px !important; font-size: 12px !important; line-height: 16px;
   }
   /* a fade on the edge that has more tabs behind it (set by _navFade in ui.js) */
   #mainNav .nav-tabs[data-fade="r"]  { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }

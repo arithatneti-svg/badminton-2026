@@ -117,11 +117,12 @@
 .fmatch-av-dim { opacity: .45; }
 .fmatch-score { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 13px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border); }
 .fmatch-g { display: flex; align-items: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.55rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.fmatch-g .gl { font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 0; color: var(--muted); width: 34px; white-space: nowrap; }
+.fmatch-g .gl { font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0; color: var(--text2); width: 36px; white-space: nowrap; }
 .fmatch-g .r { color: var(--red); }
 .fmatch-g .b { color: var(--blue); }
 .fmatch-g .sep { color: var(--muted2); padding: 0 5px; }
-.fmatch-g .dim { opacity: .4; }
+.fmatch-g .r.dim { color: var(--red-lost); opacity: 1; }
+.fmatch-g .b.dim { color: var(--blue-lost); opacity: 1; }
 .fmatch-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 9px 15px 11px; border-top: 1px solid var(--border); }
 .fmatch-foot-r { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
 .fmatch-ump { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; }
@@ -129,7 +130,7 @@
 @media (max-width: 480px) {
   .fmatch-body { gap: 8px; padding: 12px; }
   .fmatch-name { font-size: 13.5px; }
-  .fmatch-g { font-size: 1.4rem; }
+  .fmatch-g { font-size: 1.5rem; }   /* 24 px = "large text" for the contrast rule, which a quieter lost score needs */
 }
 
 .frow {
