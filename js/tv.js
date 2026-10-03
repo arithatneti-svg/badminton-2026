@@ -255,8 +255,20 @@ function _tvVsHeroHtml(m, countHtml) {
   </div>`;
 }
 
+// How many cards go across, by court count: a lone card in the last row looks broken, so
+// 4 courts are 2×2 and 5–6 are 3 across. Seven or more use compact cards (no faces), 4 across,
+// so every court still fits on the screen. The CSS never lets a card get narrower than its
+// content needs — on a small screen the grid simply uses fewer columns than asked for here.
+function _tvGridPlan(n) {
+  if (n <= 3) return { cols: Math.max(1, n), compact: false };
+  if (n === 4) return { cols: 2, compact: false };
+  if (n <= 6) return { cols: 3, compact: false };
+  return { cols: 4, compact: true };
+}
+
 // All live courts at once — the default live view when 2+ courts are running.
 function _tvGridHtml(live) {
+  const plan = _tvGridPlan(live.length);
   const card = (m) => {
     const s = _tvScore(m), cx = _tvClimaxLevel(m);
     const cxCls = cx === 2 ? ' is-deuce' : cx === 1 ? ' is-climax' : '';
@@ -275,7 +287,7 @@ function _tvGridHtml(live) {
   };
   return `<div class="tv-panel">
     <div class="tv-heading">🟢 LIVE · ${live.length} ${live.length > 1 ? 'COURTS' : 'COURT'}</div>
-    <div class="tv-live-grid">${live.map(card).join('')}</div>
+    <div class="tv-live-grid${plan.compact ? ' is-compact' : ''}" style="--tv-cols:${plan.cols}">${live.map(card).join('')}</div>
   </div>`;
 }
 

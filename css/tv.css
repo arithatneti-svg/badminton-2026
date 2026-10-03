@@ -52,8 +52,14 @@ body.tv-mode #tvView {
 
 /* ── Live ── */
 .tv-live-grid {
-  flex: 1; display: grid; gap: clamp(12px, 2vw, 28px); min-height: 0;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  --tv-gap: clamp(12px, 2vw, 28px);
+  /* least width a card needs to hold two faces, a score and two names without touching its
+     neighbour — measured with the longest player names: 317 px at 1024 wide … 531 px from 2560 */
+  --tv-card-min: clamp(340px, 22vw + 120px, 540px);
+  flex: 1; display: grid; gap: var(--tv-gap); min-height: 0;
+  /* --tv-cols (set by _tvGridHtml) is how many cards fit across; a card never gets narrower than
+     --tv-card-min, so on a small screen the grid uses fewer columns instead of overflowing */
+  grid-template-columns: repeat(auto-fit, minmax(max(var(--tv-card-min), calc((100% - (var(--tv-cols, 3) - 1) * var(--tv-gap)) / var(--tv-cols, 3) - 1px)), 1fr));
   align-content: center;
 }
 .tv-live-card {
@@ -62,7 +68,7 @@ body.tv-mode #tvView {
 }
 .tv-live-id { font-family: 'Bebas Neue', sans-serif; font-size: clamp(18px, 2vw, 34px); color: var(--accent); letter-spacing: 2px; }
 .tv-live-teams { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
-.tv-lt { flex: 1; font-size: clamp(16px, 1.6vw, 30px); font-weight: 700; line-height: 1.15; }
+.tv-lt { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: clamp(16px, 1.6vw, 30px); font-weight: 700; line-height: 1.15; }
 .tv-lt.red  { color: var(--red);  text-align: left; }
 .tv-lt.blue { color: var(--blue); text-align: right; }
 .tv-live-score { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px, 6vw, 96px); white-space: nowrap; flex-shrink: 0; }
@@ -102,7 +108,7 @@ body.tv-mode #tvView {
 
 /* faces on the TV live card — the audience screen is where a face
    earns the most, so these scale with the viewport and overlap slightly */
-.tv-faces { display: inline-flex; margin-bottom: clamp(4px, 0.8vh, 10px); }
+.tv-faces { display: inline-flex; flex-wrap: wrap; justify-content: center; max-width: 100%; margin-bottom: clamp(4px, 0.8vh, 10px); }
 .tv-live-card .tv-faces .pav { --pav-size: clamp(32px, 3.4vw, 64px) !important; border-width: 2px; }
 .tv-faces .pav + .pav { margin-left: -8px; }
 .tv-lt { display: flex; flex-direction: column; align-items: center; }

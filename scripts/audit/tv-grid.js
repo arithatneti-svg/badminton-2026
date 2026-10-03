@@ -82,6 +82,16 @@
     st.remove();
     return w;
   };
+  // least width a card can have: the widest card when every text wraps as much as it can
+  A.tvMinContent = (n, opts) => {
+    A.tvLive(n, opts);
+    const st = document.createElement("style"); st.id = "__mincontent";
+    st.textContent = ".tv-live-grid{display:flex!important;flex-wrap:wrap}.tv-live-card{width:min-content!important;flex:none!important}";
+    document.head.appendChild(st);
+    const w = Math.max(...[...document.querySelectorAll(".tv-live-card")].map((c) => Math.round(R(c).width)));
+    st.remove();
+    return w;
+  };
   A.tvLive = (n, opts) => {
     A.tvFreeze("live");
     appState.ongoingMatches = A.mockMatches(n, opts);
