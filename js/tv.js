@@ -145,7 +145,9 @@ function _tvClimaxLevel(m) {
 // LIVE = a match an umpire has claimed (it has live data) — the same rule as the viewer's
 // _liveMatches(). Matches still waiting in the queue are not on court, so they are not counted.
 // Sorted by court number so the grid reads like the hall (sortByCourt: shared/match-time.js).
-function _tvLiveList() { return sortByCourt((appState.ongoingMatches || []).filter(m => m && m.id && m.live)); }
+// A court needs its umpire too: live data left behind on a match that was given back to the queue
+// (a phone still on an older version writing into it) must not show up as a court.
+function _tvLiveList() { return sortByCourt((appState.ongoingMatches || []).filter(m => m && m.id && m.live && m.umpire)); }
 // "คอร์ต 3" as a gold pill — the thing a viewer looks for first; nothing when no court was chosen
 function _tvCourtPill(m) { return m.court ? `<b class="tv-court">${escHtml(courtLabel(m))}</b>` : ''; }
 // "พักเกม" / "ไม่มีความเคลื่อนไหว 12 นาที" hanging on the card — it ages with the clock, not with data
