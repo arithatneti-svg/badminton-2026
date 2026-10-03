@@ -1,12 +1,25 @@
-// Umpire-app test helpers (dev-only). They swap the Firebase write path for an in-memory store, so a
+// Umpire-app test helpers (dev-only). They swap the Firebase write path for an in-memory "server", so a
 // claim / score / submit can be exercised end to end without anything reaching the real database.
+// The server copy (__audit.server) is separate from the page's own appState, exactly like the real thing:
+// a transaction runs against the server copy, and the page sees the result as an echo a moment later,
+// so an optimistic local edit is never applied twice and a stale local view can lose a race.
 // Usage: open /umpire.html, load audit-helpers.js and then this file, wait until appState.players is
-// filled, then call __audit.umpFreeze() once and __audit.umpMock([...]) to put matches on the courts.
+// filled, then call __audit.umpFreeze() once and __audit.umpScenario() (or umpMock([...])).
 (function () {
   const A = window.__audit;
   if (!A) throw new Error("load scripts/audit/audit-helpers.js first");
   const clone = (x) => (x === undefined ? undefined : JSON.parse(JSON.stringify(x)));
   window.__writes = window.__writes || [];
+  A.server = { ongoing: [], history: [], red: 0, blue: 0 };
+
+  // what the realtime listener does when the server changes
+  A.umpEcho = () => {
+    appState.ongoingMatches = clone(A.server.ongoing);
+    appState.matchHistory = clone(A.server.history);
+    appState.globalScoreRed = A.server.red; appState.globalScoreBlue = A.server.blue;
+    A.umpIndex();
+    updateCurrentScreen();
+  };
 
   A.umpFreeze = () => {
     if (!(appState && appState.players && appState.players.length)) throw new Error("data not loaded yet - wait for the players before freezing the listener");
@@ -18,23 +31,22 @@
       const one = /\/ongoingMatches\/(\d+)$/.exec(url);
       if (one) {                                      // one match, as _umpMutate does
         const i = +one[1];
-        const cur = clone(appState.ongoingMatches[i]);
+        const cur = clone(A.server.ongoing[i]);
         const out = fn(cur === undefined ? null : cur);
         window.__writes.push({ path: "ongoingMatches/" + i, committed: out !== undefined });
         if (out === undefined) return Promise.resolve({ committed: false, snapshot: { val: () => cur } });
-        appState.ongoingMatches[i] = out;
-        setTimeout(updateCurrentScreen, 0);
+        A.server.ongoing[i] = clone(out);
+        setTimeout(A.umpEcho, 30);
         return Promise.resolve({ committed: true, snapshot: { val: () => out } });
       }
       if (/sportsday_2026_data\/?$/.test(url)) {      // the whole root, as _umpFinalize does
-        const root = { ongoingMatches: clone(appState.ongoingMatches), matchHistory: clone(appState.matchHistory), globalScoreRed: appState.globalScoreRed || 0, globalScoreBlue: appState.globalScoreBlue || 0 };
+        const root = { ongoingMatches: clone(A.server.ongoing), matchHistory: clone(A.server.history), globalScoreRed: A.server.red, globalScoreBlue: A.server.blue };
         const out = fn(root);
         window.__writes.push({ path: "root", committed: out !== undefined });
         if (out === undefined) return Promise.resolve({ committed: false, snapshot: { val: () => root } });
-        appState.ongoingMatches = out.ongoingMatches; appState.matchHistory = out.matchHistory;
-        appState.globalScoreRed = out.globalScoreRed; appState.globalScoreBlue = out.globalScoreBlue;
-        A.umpIndex();
-        setTimeout(updateCurrentScreen, 0);
+        A.server.ongoing = clone(out.ongoingMatches); A.server.history = clone(out.matchHistory);
+        A.server.red = out.globalScoreRed; A.server.blue = out.globalScoreBlue;
+        setTimeout(A.umpEcho, 30);
         return Promise.resolve({ committed: true, snapshot: { val: () => out } });
       }
       window.__writes.push({ path: url, committed: false });
@@ -46,8 +58,7 @@
   A.umpIndex = () => { _uKeys = {}; appState.ongoingMatches.forEach((m, i) => { if (m && m.id) _uKeys[m.id] = String(i); }); };
 
   // players from the real roster so names and faces look real
-  A.umpMatches = (n, opts) => {
-    opts = opts || {};
+  A.umpMatches = (n) => {
     const ps = (appState.players || []).slice();
     const red = ps.filter((p) => p.team === "Red"), blue = ps.filter((p) => p.team === "Blue");
     const nm = (a, b) => [a, b].map((p) => p.name + " (G" + p.group + ")").join(" & ");
@@ -60,10 +71,10 @@
     return out;
   };
 
-  // put matches on the screen as umpire `name` (kept in this browser's localStorage only)
+  // put matches on the "server" and on the screen as umpire `name` (kept in this browser's localStorage only)
   A.umpMock = (matches, name) => {
-    appState.ongoingMatches = matches;
-    A.umpIndex();
+    A.server = { ongoing: clone(matches), history: clone(appState.matchHistory) || [], red: appState.globalScoreRed || 0, blue: appState.globalScoreBlue || 0 };
+    A.umpEcho();
     if (name) { currentUmpire = name; localStorage.setItem("bdm_umpire_name", name); }
     updateCurrentScreen();
     return { matches: matches.length, umpire: currentUmpire };
@@ -79,5 +90,12 @@
     A.umpMock(ms, name);
     goToTab("live");
     return { matches: ms.length, umpire: name };
+  };
+
+  // change a match on the server only (another umpire / the admin did it), then let the page hear about it
+  A.umpServerEdit = (id, fn, echo) => {
+    const m = A.server.ongoing.find((x) => x.id === id); if (!m) throw new Error("no such match on the server: " + id);
+    fn(m);
+    if (echo !== false) A.umpEcho();
   };
 })();

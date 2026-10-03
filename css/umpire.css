@@ -657,6 +657,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   transition: color 0.3s;
 }
 .timer-display.paused { color: var(--gold); animation: pulse 1.5s ease infinite; }
+.timer-display.idle { color: var(--muted); }   /* taken, no point yet: the clock starts with the first point */
 .game-indicator {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.2em;
@@ -1042,6 +1043,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   text-shadow: 0 0 12px rgba(46,204,113,0.4);
 }
 #landscapeInfo .li-timer.paused { color: var(--gold); animation: pulse 1.5s ease infinite; }
+#landscapeInfo .li-timer.idle { color: var(--muted); text-shadow: none; }
 
 /* ── CUSTOM MODAL (replaces alert/confirm to keep fullscreen) ── */
 #customModal {

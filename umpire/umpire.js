@@ -466,16 +466,19 @@ setInterval(() => {
 
   const el      = document.getElementById('umpireTimerDisplay');
   const liTimer = document.getElementById('liTimer');
-  let timeStr;
 
-  if (m.live && m.live.isPaused) {
-    // ─ Match timer: นับต่อเนื่องแม้ขณะ Pause (ไม่หยุด)
-    if (m.timerStartedAt) {
-      timeStr = formatTimer(Date.now() - m.timerStartedAt);
-      el.className = 'timer-display paused';  // ยังใช้ style สี gold + pulse เพื่อบอกว่า paused
-      if (liTimer) { liTimer.textContent = timeStr; liTimer.className = 'li-timer paused'; }
-    }
+  // The match clock starts with the first point (a match that is only taken shows 0:00, muted) and
+  // keeps running through a pause. It used to start when the match was taken, so a stale time from
+  // the previous match could sit on screen and waiting counted as play.
+  const started = !!m.timerStartedAt;
+  const paused  = !!(m.live && m.live.isPaused);
+  const timeStr = formatTimer(started ? Date.now() - m.timerStartedAt : 0);
+  const state   = paused ? ' paused' : (started ? '' : ' idle');   // paused keeps the gold pulse
+  el.className = 'timer-display' + state;
+  el.textContent = timeStr;
+  if (liTimer) { liTimer.textContent = timeStr; liTimer.className = 'li-timer' + state; }
 
+  if (paused) {
     // ─ Pause current session timer (นับเวลาพักครั้งนี้แยกต่างหาก)
     if (!_localPauseStart) {
       _localPauseStart = m.live.pauseStartedAt || Date.now();
@@ -487,12 +490,7 @@ setInterval(() => {
     const totalEl = document.getElementById('pauseTimerTotal');
     if (bigEl)   bigEl.textContent   = formatTimer(currentPause);
     if (totalEl) totalEl.textContent = formatTimer(totalPause);
-  } else if (m.timerStartedAt) {
-    timeStr = formatTimer(Date.now() - m.timerStartedAt);
-    el.className = 'timer-display';
-    if (liTimer) { liTimer.textContent = timeStr; liTimer.className = 'li-timer'; }
   }
-  if (timeStr) el.textContent = timeStr;
 }, 1000);
 
 // ==========================================
@@ -822,8 +820,7 @@ async function selectMatch(mId) {
   if (!m.live) m.live = { ...blankLive };
   if (!m.claimedAt) m.claimedAt = claimedAt;
   if (court) m.court = court;
-  if (!m.timerStartedAt) m.timerStartedAt = Date.now();
-  const startedAt = m.timerStartedAt;
+  // no timerStartedAt here: the match is "พร้อมแข่ง" until the first point starts its clock
   let takenBy = '';
   _umpMutate(mId, cur => {
     if (cur.umpire && cur.umpire !== currentUmpire) { takenBy = cur.umpire; return false; }
@@ -832,7 +829,6 @@ async function selectMatch(mId) {
     if (!cur.live) cur.live = { ...blankLive };
     if (!cur.claimedAt) cur.claimedAt = claimedAt;
     if (court) cur.court = court;
-    if (!cur.timerStartedAt) cur.timerStartedAt = startedAt;
   }).then(r => {
     if (r.ok) return;
     if (r.reason === 'refused' && takenBy) {
@@ -908,8 +904,14 @@ function updateScore(team, delta, event) {
   if (delta === 1) vibrateDevice([22]);
   else vibrateDevice([12, 8, 12]);
 
+  // The first point starts the match clock; any pause taken before it was not play, so it is forgotten.
+  // live.lastAt marks the last sign of life — it is what the "no activity" tag measures.
+  const startsClock = delta > 0 && !match.timerStartedAt;
+
   // Optimistic UI — shown now; the transaction below is the source of truth
   match.live[gameKey] = Math.max(0, curVal + delta);
+  match.live.lastAt = now;
+  if (startsClock) { match.timerStartedAt = now; match.live.totalPauseMs = 0; }
   checkEpicPossible(match);
   renderGameUI();
 
@@ -918,6 +920,8 @@ function updateScore(team, delta, event) {
     cur.live = cur.live || {};
     if (cur.live.isPaused) return false;
     cur.live[gameKey] = Math.max(0, Number(cur.live[gameKey] || 0) + delta);
+    cur.live.lastAt = now;
+    if (delta > 0 && !cur.timerStartedAt) { cur.timerStartedAt = now; cur.live.totalPauseMs = 0; }
     checkEpicPossible(cur);
   }).then(r => { if (!r.ok) _uWriteFailed(r.reason); });
 
@@ -1072,12 +1076,14 @@ async function lockGame1() {
   });
 
   if (ok) {
+    const at = Date.now();
     match.live.g1Locked = true;
+    match.live.lastAt = at;
     isGame2 = true;
     _lastScored = null;   // new game — no last point / server yet
     vibrateDevice([40, 30, 60]);
     renderGameUI();
-    _umpMutate(activeMatchId, cur => { cur.live = cur.live || {}; cur.live.g1Locked = true; })
+    _umpMutate(activeMatchId, cur => { cur.live = cur.live || {}; cur.live.g1Locked = true; cur.live.lastAt = at; })
       .then(r => { if (!r.ok) _uWriteFailed(r.reason); });
   }
 }
@@ -1120,11 +1126,13 @@ function togglePause() {
     document.getElementById('pauseOverlay').classList.add('show');
   }
 
-  // write just the pause fields, on this match (found by id)
+  // write just the pause fields, on this match (found by id); pausing and resuming both count as activity
+  match.live.lastAt = Date.now();
   const pausePatch = {
     isPaused:       !!match.live.isPaused,
     pauseStartedAt: match.live.pauseStartedAt || null,
     totalPauseMs:   match.live.totalPauseMs || 0,
+    lastAt:         match.live.lastAt,
   };
   _umpMutate(activeMatchId, cur => { cur.live = cur.live || {}; Object.assign(cur.live, pausePatch); })
     .then(r => { if (!r.ok) _uWriteFailed(r.reason); });
