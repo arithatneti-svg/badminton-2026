@@ -578,6 +578,15 @@ function setGroupFilter(group) {
   renderUmpireList();
 }
 
+// the login button stays off until a name is chosen, and says so (it used to be pressable and then scold with a dialog)
+function updateLoginReady() {
+  const sel = document.getElementById('umpireSelect');
+  const ok = !!(sel && sel.value);
+  const btn = document.getElementById('btnLogin');
+  if (btn) { btn.disabled = !ok; btn.textContent = ok ? 'เข้าสู่ระบบ →' : 'เลือกชื่อของคุณก่อน'; }
+  const help = document.getElementById('loginHelp');
+  if (help) help.style.display = ok ? 'none' : 'block';
+}
 function processLogin() {
   currentUmpire = document.getElementById('umpireSelect').value;
   if (!currentUmpire) { vibrateDevice([80, 40, 80]); showAlert('⚠️', 'เลือกชื่อก่อน', 'กรุณาเลือกชื่อของคุณจากรายการก่อนนะครับ'); return; }
@@ -785,6 +794,7 @@ function renderUmpireList() {
   });
 
   if (currentVal && filtered.some(p => p.name === currentVal)) select.value = currentVal;
+  updateLoginReady();
 }
 
 // ==========================================
@@ -1387,6 +1397,7 @@ function exitMatch() {
 // bar saying the opposite.
 async function confirmExit() {
   const m = appState && appState.ongoingMatches.find(x => x.id === activeMatchId);
+  if (!activeMatchId || !m) { exitMatch(); return; }   // nothing is being scored: there is nothing to confirm
   const score = m && m.live ? `แดง ${isGame2 ? (m.live.g2R || 0) : (m.live.g1R || 0)} – ${isGame2 ? (m.live.g2B || 0) : (m.live.g1B || 0)} น้ำเงิน` : '';
   const offline = !_uOnline && (_uEverOnline || Date.now() - _uLoadedAt > 3000);
   const waiting = offline || _uPending > 0;

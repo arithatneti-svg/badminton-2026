@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07070d">
@@ -117,13 +117,15 @@
     <div>
       <div class="login-section-label"><span id="nameStepNum">2</span> เลือกชื่อของคุณ</div>
       <div class="select-wrapper">
-        <select id="umpireSelect" class="umpire-select">
+        <select id="umpireSelect" class="umpire-select" aria-label="ชื่อของคุณ" aria-describedby="loginHelp" onchange="updateLoginReady()">
           <option value="">— กำลังโหลดรายชื่อ... —</option>
         </select>
       </div>
+      <div class="login-help" id="loginHelp">เลือกชื่อของคุณเพื่อเริ่ม</div>
     </div>
 
-    <button class="btn-login" onclick="processLogin()">เข้าสู่ระบบ →</button>
+    <!-- off until a name is chosen, and it says so itself; pinned to the bottom of the screen so it is in reach on a small phone -->
+    <button class="btn-login" id="btnLogin" onclick="processLogin()" disabled>เลือกชื่อของคุณก่อน</button>
     <div class="app-version" data-app-version></div>
   </div>
 </div>

@@ -21,6 +21,20 @@
   // pretend the phone lost / regained its connection (the page reads these two globals)
   A.umpOnline = (on) => { _uOnline = !!on; if (on) _uEverOnline = true; _uRenderNet(); return { online: _uOnline, pending: _uPending }; };
 
+  // the login page in one of its states: is the button inside the screen WITHOUT scrolling, is it on or off, what does it say
+  A.wp4Login = async (team, pick) => {
+    localStorage.removeItem("bdm_umpire_name");
+    document.getElementById("umpireNav").style.display = "none";
+    switchScreen("screen-login"); selectedTeam = ""; selectedGroup = ""; document.getElementById("group-section").style.display = "none";
+    renderUmpireList();
+    if (team) setTeamFilter(team);
+    if (pick) { const sel = document.getElementById("umpireSelect"); sel.value = sel.options[1].value; updateLoginReady(); }
+    window.scrollTo(0, 0); await sleep(250);
+    const b = document.getElementById("btnLogin").getBoundingClientRect();
+    const sb = document.getElementById("umpireSelect").getBoundingClientRect();
+    return { size: innerWidth + "x" + innerHeight, team: team || "-", picked: !!pick, btn: { top: Math.round(b.top), bottom: Math.round(b.bottom), h: Math.round(b.height), label: document.getElementById("btnLogin").textContent, disabled: document.getElementById("btnLogin").disabled }, selectBottom: Math.round(sb.bottom), selectCovered: Math.max(0, Math.round(sb.bottom - b.top)), noScroll: document.documentElement.scrollHeight <= innerHeight + 1, inView: b.top >= 0 && b.bottom <= innerHeight, helpShown: getComputedStyle(document.getElementById("loginHelp")).display !== "none", small48: A.small("#screen-login") };
+  };
+
   // T03 mine, in play (game 1: 9-6) or ready to submit (game 2 finished 21-17), history emptied so a submit is "new"
   A.wp4Ready = async (opts) => {
     opts = opts || {};
