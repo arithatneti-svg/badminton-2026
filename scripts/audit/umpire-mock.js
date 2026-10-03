@@ -27,11 +27,10 @@
 
   // what the realtime listener does when the server changes
   A.umpEcho = () => {
-    appState.ongoingMatches = clone(A.server.ongoing);
-    appState.matchHistory = clone(A.server.history);
-    appState.globalScoreRed = A.server.red; appState.globalScoreBlue = A.server.blue;
-    A.umpIndex();
-    updateCurrentScreen();
+    // through the page's own snapshot function, so the id->slot map, the server-score copy and the screen
+    // refresh all run exactly as they do for a real snapshot
+    const root = Object.assign({}, appState, { ongoingMatches: clone(A.server.ongoing), matchHistory: clone(A.server.history), globalScoreRed: A.server.red, globalScoreBlue: A.server.blue });
+    _uOnSnapshot(root);
   };
 
   A.umpFreeze = () => {

@@ -7,6 +7,7 @@ let isGame2 = false;
 let isFirstLoad = true;
 let selectedTeam = '';
 let selectedGroup = '';
+let _uSrvLive = {};   // match id -> the score the server holds (see _uOnSnapshot)
 
 // which side scored the last point → drives the "just scored" glow.
 // In rally scoring the scorer serves next, so it also reads as the serve side.
@@ -19,12 +20,19 @@ let _localPauseStart = null;
 // ==========================================
 // 2. FIREBASE LISTENER
 // ==========================================
-dbRef.on('value', (snapshot) => {
-  appState = snapshot.val() || {};
+// what the page does with a new copy of the data (a function of its own so a test can feed it the same way)
+function _uOnSnapshot(val) {
+  appState = val || {};
   _uIndexOngoing(appState.ongoingMatches);                    // id → slot, before normalising
   appState.ongoingMatches = smToArr(appState.ongoingMatches);  // Firebase may hand back a sparse object
   appState.matchHistory   = smToArr(appState.matchHistory);
   if (!appState.players)        appState.players = [];
+  // what the server holds for each live match — read before any optimistic edit of ours, so an error
+  // message can say what the viewers see
+  _uSrvLive = {};
+  appState.ongoingMatches.forEach(m => {
+    if (m && m.id && m.live) _uSrvLive[m.id] = { g1R: Number(m.live.g1R || 0), g1B: Number(m.live.g1B || 0), g2R: Number(m.live.g2R || 0), g2B: Number(m.live.g2B || 0), g1Locked: !!m.live.g1Locked };
+  });
 
   if (isFirstLoad) {
     isFirstLoad = false;
@@ -32,7 +40,8 @@ dbRef.on('value', (snapshot) => {
   } else {
     updateCurrentScreen();
   }
-});
+}
+dbRef.on('value', (snapshot) => _uOnSnapshot(snapshot.val()));
 
 // ==========================================
 // SAFE WRITES — by match ID, never by a possibly-stale array position
@@ -168,11 +177,77 @@ function _uMatchReleased(m) {
     back ? 'แอดมินปล่อยแมตช์นี้กลับเข้าคิว — คะแนนที่นับไว้ไม่ถูกบันทึก\nถ้ายังต้องคุม เลือกแมตช์นี้จากรายการอีกครั้ง'
          : `${m.umpire} กำลังคุมแมตช์นี้อยู่`).then(() => exitMatch());
 }
-function _uWriteFailed(reason) {
+// A write that did not go through. It used to open a dialog that blocked the next tap and said nothing
+// about WHICH point; now it is a bar that does not block anything: what failed, what the viewers see, and
+// (for a point) a retry that cannot count twice.
+//   what   — "แต้มล่าสุด", "สถานะพัก", … (shown in the sentence)
+//   retry  — optional function behind the [ลองใหม่] button
+//   seen   — optional function returning "12–10", the score the viewers have
+function _uWriteFailed(reason, what, retry, seen) {
   if (reason === 'refused') return;                  // e.g. paused on the server — nothing to do
   if (reason === 'missing') return _uMatchClosed();
-  showAlert('⚠️', 'ส่งคะแนนไม่สำเร็จ', 'ลองกดอีกครั้ง — ถ้ายังไม่ได้ให้แจ้งแอดมิน');
+  const s = seen ? seen() : '';
+  showNotice(`ส่ง${what || 'ข้อมูล'}ไม่สำเร็จ${s ? ` — ผู้ชมเห็นคะแนน ${s}` : ' — ตรวจสัญญาณแล้วลองอีกครั้ง'}`,
+    { tone: 'err', actions: retry ? [{ label: 'ลองใหม่', run: retry }] : [] });
 }
+// the score of the game in play, as the server has it: "12–10" (or '' if unknown)
+function _uSeenScore(mId, game2) {
+  const v = _uSrvLive[mId];
+  return v ? (game2 ? `${v.g2R}–${v.g2B}` : `${v.g1R}–${v.g1B}`) : '';
+}
+// Retry of ONE failed point. It is applied only if the server still holds the value this tap started from:
+// the first attempt may have got through after all, or someone else scored — then it is not ours to repeat,
+// so a retry can never count a point twice.
+function _retryPoint(mId, gameKey, delta, before, game2) {
+  _umpMutate(mId, cur => {
+    if (cur.umpire !== currentUmpire) return false;
+    cur.live = cur.live || {};
+    if (cur.live.isPaused) return false;
+    if (Number(cur.live[gameKey] || 0) !== before) return false;
+    const now = Date.now();
+    cur.live[gameKey] = Math.max(0, before + delta);
+    cur.live.lastAt = now;
+    if (delta > 0 && !cur.timerStartedAt) { cur.timerStartedAt = now; cur.live.totalPauseMs = 0; }
+    checkEpicPossible(cur);
+  }).then(r => {
+    if (r.ok) showNotice('ส่งแล้ว ✓', { tone: 'ok', ms: 2500 });
+    else if (r.reason === 'refused') showNotice('คะแนนบนเซิร์ฟเวอร์เปลี่ยนไปแล้ว — ดูคะแนนบนจอ แล้วแตะใหม่ถ้ายังไม่ถูก', { tone: 'warn', ms: 8000 });
+    else _uWriteFailed(r.reason, 'แต้มล่าสุด', () => _retryPoint(mId, gameKey, delta, before, game2), () => _uSeenScore(mId, game2));
+  });
+}
+
+// ── NOTICE — a message that does not stop the umpire ────────────────────
+// tone: 'err' (stays until closed) · 'warn' · 'ok'; ms: hides itself after that long; actions: [{label, run}]
+let _noticeTimer = null, _noticeActions = [];
+function showNotice(text, opts) {
+  const el = document.getElementById('umpNotice');
+  if (!el) return;
+  opts = opts || {};
+  _noticeActions = opts.actions || [];
+  el.className = 'show ' + (opts.tone || 'warn');
+  el.innerHTML = `<span class="un-text">${_uEsc(text)}</span>`
+    + _noticeActions.map((a, i) => `<button type="button" class="un-btn" data-i="${i}">${_uEsc(a.label)}</button>`).join('')
+    + `<button type="button" class="un-x" data-x="1" aria-label="ปิดข้อความนี้">✕</button>`;
+  // under the bar that is on screen (the scoring info bar, or the menu bar), so it never covers the clock
+  const bar = document.querySelector('#screen-scoring.active .scoring-topbar') || document.getElementById('umpireNav');
+  const r = bar && bar.offsetParent ? bar.getBoundingClientRect() : null;
+  el.style.top = (r ? Math.round(r.bottom) + 6 : 10) + 'px';
+  clearTimeout(_noticeTimer);
+  if (opts.ms) _noticeTimer = setTimeout(hideNotice, opts.ms);
+}
+function hideNotice() {
+  const el = document.getElementById('umpNotice');
+  if (el) { el.className = ''; el.innerHTML = ''; }
+  clearTimeout(_noticeTimer); _noticeActions = [];
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('#umpNotice button');
+  if (!b) return;
+  if (b.dataset.x) return hideNotice();
+  const a = _noticeActions[Number(b.dataset.i)];
+  hideNotice();
+  if (a && a.run) a.run();
+});
 
 // ==========================================
 // CONNECTION — say so when offline, count writes still waiting to reach the server
@@ -181,7 +256,18 @@ function _uWriteFailed(reason) {
 // — but only while this page stays open. So the umpire must know.
 const _uLoadedAt = Date.now();
 let _uOnline = false, _uEverOnline = false, _uPending = 0;
-function _uPendingAdd(d) { _uPending = Math.max(0, _uPending + d); _uRenderNet(); }
+let _uOfflinePoints = 0;   // point taps made while offline: they wait in the SDK queue and go out together
+function _uPendingAdd(d) {
+  const before = _uPending;
+  _uPending = Math.max(0, _uPending + d);
+  _uRenderNet();
+  // the queue has just emptied after an offline stretch: say so, with how many points it carried
+  // (the red bar used to vanish with no word that everything had arrived)
+  if (before > 0 && _uPending === 0 && _uOnline && _uOfflinePoints > 0) {
+    const n = _uOfflinePoints; _uOfflinePoints = 0;
+    showNotice(`ส่งครบแล้ว ✓ ${n} แต้ม`, { tone: 'ok', ms: 4000 });
+  }
+}
 function _uRenderNet() {
   const offline = !_uOnline && (_uEverOnline || Date.now() - _uLoadedAt > 3000);
   document.body.classList.toggle('is-offline', offline);
@@ -825,7 +911,7 @@ async function changeCourt() {
   if (!n || n === m.court) return;
   m.court = n;
   renderGameUI();
-  _umpMutate(activeMatchId, cur => { if (cur.umpire !== currentUmpire) return false; cur.court = n; }).then(r => { if (!r.ok) _uWriteFailed(r.reason); });
+  _umpMutate(activeMatchId, cur => { if (cur.umpire !== currentUmpire) return false; cur.court = n; }).then(r => { if (!r.ok) _uWriteFailed(r.reason, 'เลขคอร์ต'); });
 }
 // top bar text: "คอร์ต 3 · M05 | ชื่อกรรมการ" — the court part is the button that changes it
 let _matchInfoKey = '';
@@ -889,7 +975,7 @@ async function selectMatch(mId) {
     if (r.reason === 'refused' && takenBy) {
       showAlert('🔒', 'มีกรรมการรับแมตช์นี้ไปแล้ว', `${takenBy} กดรับแมตช์นี้ก่อนคุณเล็กน้อย`).then(() => exitMatch());
     } else {
-      _uWriteFailed(r.reason);
+      _uWriteFailed(r.reason, 'การรับแมตช์');
     }
   });
 
@@ -954,6 +1040,8 @@ function updateScore(team, delta, event) {
   // never starts a gate window)
   if (!tapGate(_tapState, team + delta, now).ok) { _tapIgnored(team); return; }
 
+  if (!_uOnline) _uOfflinePoints++;
+
   // Ripple on button
   const btnId = delta > 0
     ? (team === 'red' ? 'btnRedPlus'  : 'btnBluePlus')
@@ -989,7 +1077,11 @@ function updateScore(team, delta, event) {
     cur.live.lastAt = now;
     if (delta > 0 && !cur.timerStartedAt) { cur.timerStartedAt = now; cur.live.totalPauseMs = 0; }
     checkEpicPossible(cur);
-  }).then(r => { if (!r.ok) _uWriteFailed(r.reason); });
+  }).then(r => {
+    if (r.ok) return;
+    const mId = activeMatchId, g2 = isGame2;
+    _uWriteFailed(r.reason, 'แต้มล่าสุด', () => _retryPoint(mId, gameKey, delta, curVal, g2), () => _uSeenScore(mId, g2));
+  });
 
   // Score pop animation
   const elId = team === 'red' ? 'scoreRed' : 'scoreBlue';
@@ -1157,7 +1249,7 @@ async function lockGame1() {
     vibrateDevice([40, 30, 60]);
     renderGameUI();
     _umpMutate(activeMatchId, cur => { if (cur.umpire !== currentUmpire) return false; cur.live = cur.live || {}; cur.live.g1Locked = true; cur.live.lastAt = at; })
-      .then(r => { if (!r.ok) _uWriteFailed(r.reason); });
+      .then(r => { if (!r.ok) _uWriteFailed(r.reason, 'ผลเกม 1'); });
   }
 }
 
@@ -1208,7 +1300,7 @@ function togglePause() {
     lastAt:         match.live.lastAt,
   };
   _umpMutate(activeMatchId, cur => { if (cur.umpire !== currentUmpire) return false; cur.live = cur.live || {}; Object.assign(cur.live, pausePatch); })
-    .then(r => { if (!r.ok) _uWriteFailed(r.reason); });
+    .then(r => { if (!r.ok) _uWriteFailed(r.reason, match.live.isPaused ? 'สถานะพัก' : 'สถานะเล่นต่อ'); });
   renderGameUI();
 }
 
@@ -1227,11 +1319,21 @@ function exitMatch() {
   goToTab('live');
 }
 
-// ถามยืนยันก่อนออก (กันแตะพลาดตอนคุมคะแนน) — คะแนนถูกบันทึกไว้แล้ว
+// ถามยืนยันก่อนออก (กันแตะพลาดตอนคุมคะแนน). What it says follows the real state: "saved" is only true when
+// the phone is online and nothing is waiting to be sent — it used to say "saved" even offline, under a red
+// bar saying the opposite.
 async function confirmExit() {
-  const ok = await showConfirm('🚪', 'ออกจากการคุมคะแนน?', 'คะแนนถูกบันทึกไว้แล้ว กลับเข้ามาคุมต่อได้เสมอ', {
-    confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ'
-  });
+  const m = appState && appState.ongoingMatches.find(x => x.id === activeMatchId);
+  const score = m && m.live ? `แดง ${isGame2 ? (m.live.g2R || 0) : (m.live.g1R || 0)} – ${isGame2 ? (m.live.g2B || 0) : (m.live.g1B || 0)} น้ำเงิน` : '';
+  const offline = !_uOnline && (_uEverOnline || Date.now() - _uLoadedAt > 3000);
+  const waiting = offline || _uPending > 0;
+  const ok = waiting
+    ? await showConfirm('📶', 'ออกตอนที่ยังส่งไม่ครบ?',
+        `${_uPending > 0 ? `ยังมี ${_uPending} รายการรอส่ง` : 'ตอนนี้ไม่มีสัญญาณ'} — อย่าปิดหน้านี้จนกว่าสัญญาณกลับ\nระบบจะส่งต่อเองเมื่อสัญญาณกลับ`,
+        { confirmLabel: 'ออกทั้งที่ยังไม่ส่ง', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' })
+    : await showConfirm('🚪', 'ออกจากหน้านี้?',
+        `คะแนน ${score} ถูกบันทึกแล้ว\nแตะ ▶ คุมต่อ ที่รายการเพื่อกลับมา`,
+        { confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' });
   if (ok) exitMatch();
 }
 

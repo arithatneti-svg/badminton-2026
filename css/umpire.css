@@ -1546,3 +1546,26 @@ body.is-offline .net-banner {
 }
 @keyframes tapHint { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { #screen-scoring.fresh-game .tap-hint { animation: none; } }
+
+/* ── NOTICE — does not block the screen; sits under the bar that is showing (JS sets top) ── */
+#umpNotice { display: none; }
+#umpNotice.show {
+  display: flex; align-items: center; gap: 8px;
+  position: fixed; left: 10px; right: 10px; z-index: 1800;
+  padding: 8px 8px 8px 14px; border-radius: var(--radius-md);
+  background: rgba(20,20,36,0.97); border: 1.5px solid var(--border-bright);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+  font-size: 0.92rem; font-weight: 700; line-height: 1.35; color: var(--text);
+}
+#umpNotice.err  { border-color: rgba(255,77,77,0.7); }
+#umpNotice.warn { border-color: rgba(240,192,64,0.7); }
+#umpNotice.ok   { border-color: rgba(46,204,113,0.7); }
+#umpNotice .un-text { flex: 1; min-width: 0; }
+#umpNotice .un-btn, #umpNotice .un-x {
+  flex: none; min-height: 48px; min-width: 48px; border-radius: var(--radius-sm); cursor: pointer;
+  border: 1.5px solid var(--border-bright); background: var(--surface3); color: var(--text);
+  font: inherit; font-weight: 800; touch-action: manipulation;
+}
+#umpNotice .un-btn { padding: 0 16px; background: var(--gold-dim); border-color: rgba(240,192,64,0.6); color: var(--gold); }
+#umpNotice .un-x { font-size: 1.1rem; }
+#umpNotice .un-btn:active, #umpNotice .un-x:active { transform: scale(0.95); }
