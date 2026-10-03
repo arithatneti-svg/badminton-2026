@@ -240,7 +240,7 @@ function restoreSession() {
       isGame2 = m.live && m.live.g1Locked;
       document.getElementById('umpireNav').style.display = 'none';
       switchScreen('screen-scoring');
-      document.getElementById('activeMatchInfo').textContent = `${m.id} | ${currentUmpire}`;
+      setMatchInfo(m);
       document.getElementById('redNames').innerHTML  = scoringNamesHtml(m, 'red');
       document.getElementById('blueNames').innerHTML = scoringNamesHtml(m, 'blue');
       renderGameUI();
@@ -336,7 +336,7 @@ let _vsIntroTimer = null;
 function showVsIntro(m) {
   const ov = document.getElementById('vsIntro');
   if (!ov || !m) return;
-  document.getElementById('vsiCourt').textContent = `🟢 ${m.id}` + (m.round ? ` · ROUND ${m.round}` : '');
+  document.getElementById('vsiCourt').textContent = '🟢 ' + (m.court ? `คอร์ต ${m.court} · ` : '') + m.id + (m.round ? ` · ROUND ${m.round}` : '');
   document.getElementById('vsiRedFaces').innerHTML  = umpirePairFaces(m.r1, m.r2, 96);
   document.getElementById('vsiBlueFaces').innerHTML = umpirePairFaces(m.b1, m.b2, 96);
   document.getElementById('vsiRedNames').innerHTML  = formatNames(m.redNames || '');
@@ -556,6 +556,7 @@ function showConfirm(icon, title, body, opts = {}) {
 
 function _modalDone(result) {
   document.getElementById('customModal').classList.remove('open');
+  document.getElementById('modalBox').classList.remove('is-courts');
   if (_modalResolve) { _modalResolve(result); _modalResolve = null; }
 }
 
@@ -614,7 +615,7 @@ function renderMatchList() {
           <div class="match-card-header">
             <div class="match-id">${m.id} <span style="color:var(--muted);font-size:0.55em;letter-spacing:1px;">ROUND ${m.round}</span></div>
             ${isMine
-              ? '<span class="badge badge-mine">▶ คุมต่อ</span>'
+              ? `<span class="badges">${m.court ? `<span class="badge badge-court">${courtLabel(m)}</span>` : ''}<span class="badge badge-mine">▶ คุมต่อ</span></span>`
               : '<span class="badge" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,192,64,0.3);">✦ ว่างอยู่</span>'}
           </div>
           <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${formatNames(m.redNames)}</span></div>
@@ -625,7 +626,7 @@ function renderMatchList() {
         <div class="match-card locked-other">
           <div class="match-card-header">
             <div class="match-id" style="color:var(--muted);">${m.id} <span style="font-size:0.55em;">R${m.round}</span></div>
-            <span class="badge badge-taken">🔒 ${m.umpire}</span>
+            <span class="badge badge-taken">🔒 ${m.umpire}${m.court ? ' · ' + courtLabel(m) : ''}</span>
           </div>
         </div>`;
     }
@@ -719,12 +720,95 @@ function renderFinishedList() {
 // ==========================================
 // 7. SCORING SYSTEM
 // ==========================================
-function selectMatch(mId) {
-  const m = appState.ongoingMatches.find(x => x.id === mId);
+// ── COURT — "which court is this match on?" ────────────────────────────
+// The umpire is standing at the court, so they say so — once, when they take the match — and
+// every screen then shows "คอร์ต N" instead of making viewers match a card to a court by guesswork.
+// Courts already in use show the match on them; choosing one anyway asks first (it can be a match
+// nobody closed, and a stale match must not lock a court).
+const COURT_COUNT = 10;
+function _courtTakenBy(n, exceptId) {
+  return (appState.ongoingMatches || []).find(x => x.id !== exceptId && x.umpire && Number(x.court) === n) || null;
+}
+function showCourtPicker(m, current, cancelLabel) {
+  return new Promise(resolve => {
+    _modalResolve = resolve;            // _modalDone(n) resolves it: a court number, or 0 to cancel
+    document.getElementById('modalIcon').textContent = '🏸';
+    document.getElementById('modalTitle').textContent = `${m.id} แข่งที่คอร์ตไหน?`;
+    document.getElementById('modalBody').textContent = 'แตะเลขคอร์ตที่คุณคุมอยู่';
+    const chips = [];
+    for (let n = 1; n <= COURT_COUNT; n++) {
+      const other = _courtTakenBy(n, m.id);
+      chips.push(`<button type="button" class="court-chip${n === current ? ' on' : ''}${other ? ' taken' : ''}" onclick="_modalDone(${n})" aria-label="คอร์ต ${n}${other ? ' มี ' + _uEsc(other.id) + ' อยู่' : ''}">${n}${other ? `<small>${_uEsc(other.id)}</small>` : ''}</button>`);
+    }
+    const preview = document.getElementById('modalScorePreview');
+    preview.innerHTML = `<div class="court-grid">${chips.join('')}</div>`;
+    preview.style.display = 'block';
+    document.getElementById('modalBox').classList.add('is-courts');   // wide + short layout on a landscape phone
+    const btns = document.getElementById('modalBtns');
+    btns.className = 'modal-btns';
+    btns.innerHTML = `<button class="modal-btn modal-btn-cancel" onclick="_modalDone(0)">${cancelLabel || 'ยกเลิก'}</button>`;
+    document.getElementById('customModal').classList.add('open');
+  });
+}
+// picker + the "this court already has a match" check; resolves to a court number, or 0 when cancelled
+async function chooseCourt(m, current, cancelLabel) {
+  for (;;) {
+    const n = await showCourtPicker(m, current, cancelLabel);
+    if (!n) return 0;
+    const other = _courtTakenBy(n, m.id);
+    if (!other) return n;
+    const ok = await showConfirm('⚠️', `คอร์ต ${n} มีแมตช์อยู่แล้ว`,
+      `${other.id} ยังอยู่ในคอร์ตนี้ — ถ้าจบไปแล้ว ให้แจ้งแอดมินปิดแมตช์นั้น\nใช้คอร์ต ${n} ต่อไหม?`,
+      { confirmLabel: `ใช้คอร์ต ${n}`, cancelLabel: 'เลือกใหม่' });
+    if (ok) return n;
+    current = n;
+  }
+}
+// tap the court badge on the scoring screen to change it (picked the wrong one)
+async function changeCourt() {
+  const m = appState.ongoingMatches.find(x => x.id === activeMatchId);
+  if (!m || _isConfirming) return;
+  const n = await chooseCourt(m, m.court);
+  if (!n || n === m.court) return;
+  m.court = n;
+  renderGameUI();
+  _umpMutate(activeMatchId, cur => { cur.court = n; }).then(r => { if (!r.ok) _uWriteFailed(r.reason); });
+}
+// top bar text: "คอร์ต 3 · M05 | ชื่อกรรมการ" — the court part is the button that changes it
+let _matchInfoKey = '';
+function setMatchInfo(m) {
+  const el = document.getElementById('activeMatchInfo');
+  if (!el || !m) return;
+  const key = `${m.id}|${m.court || ''}|${currentUmpire}`;
+  if (key === _matchInfoKey && el.firstChild) return;   // runs on every data update; don't rebuild under a finger
+  _matchInfoKey = key;
+  const court = m.court ? `คอร์ต ${m.court}` : 'เลือกคอร์ต';
+  el.innerHTML = `<button type="button" class="court-edit${m.court ? '' : ' empty'}" onclick="changeCourt()" aria-label="${m.court ? 'เปลี่ยนเลขคอร์ต (ตอนนี้คอร์ต ' + m.court + ')' : 'เลือกคอร์ต'}"><span class="ce-pill">${court} ✎</span></button><span class="mi-rest">${_uEsc(m.id)} | ${_uEsc(currentUmpire)}</span>`;
+}
+
+async function selectMatch(mId) {
+  let m = appState.ongoingMatches.find(x => x.id === mId);
   if (!m) return;
   if (m.umpire && m.umpire !== currentUmpire) {
     showAlert('🔒', 'แมตช์นี้มีกรรมการแล้ว', `${m.umpire} กำลังคุมแมตช์นี้อยู่`);
     return;
+  }
+  // Which court? Asked once, BEFORE the match is claimed: choosing the court is the step that takes
+  // the match, and a cancelled tap changes nothing. A match that already has a court (your own,
+  // resumed) skips this.
+  let court = 0;
+  if (!m.court) {
+    // a match claimed before courts existed is already yours: "skip" lets you carry on scoring
+    // (the header still says "เลือกคอร์ต"); for a free match, cancelling means you did not take it
+    const mine = m.umpire === currentUmpire;
+    court = await chooseCourt(m, 0, mine ? 'ข้ามไปก่อน' : 'ยกเลิก');
+    if (!court && !mine) return;
+    m = appState.ongoingMatches.find(x => x.id === mId);          // the data moved while the dialog was open
+    if (!m) return;
+    if (m.umpire && m.umpire !== currentUmpire) {
+      showAlert('🔒', 'มีกรรมการรับแมตช์นี้ไปแล้ว', `${m.umpire} กดรับแมตช์นี้ก่อนคุณเล็กน้อย`);
+      return;
+    }
   }
   activeMatchId = mId;
   localStorage.setItem('bdm_umpire_match', mId);
@@ -732,9 +816,12 @@ function selectMatch(mId) {
 
   // Claim it. Shown right away; the transaction refuses if another umpire
   // claimed it first (two phones tapping the same free match used to both win).
+  const claimedAt = Date.now();
   const blankLive = { g1R:0, g1B:0, g2R:0, g2B:0, g1Locked:false, isPaused:false, elapsedMs:0 };
   m.umpire = currentUmpire;
   if (!m.live) m.live = { ...blankLive };
+  if (!m.claimedAt) m.claimedAt = claimedAt;
+  if (court) m.court = court;
   if (!m.timerStartedAt) m.timerStartedAt = Date.now();
   const startedAt = m.timerStartedAt;
   let takenBy = '';
@@ -743,6 +830,8 @@ function selectMatch(mId) {
     takenBy = '';
     cur.umpire = currentUmpire;
     if (!cur.live) cur.live = { ...blankLive };
+    if (!cur.claimedAt) cur.claimedAt = claimedAt;
+    if (court) cur.court = court;
     if (!cur.timerStartedAt) cur.timerStartedAt = startedAt;
   }).then(r => {
     if (r.ok) return;
@@ -754,7 +843,7 @@ function selectMatch(mId) {
   });
 
   document.getElementById('umpireNav').style.display = 'none';
-  document.getElementById('activeMatchInfo').textContent = `${m.id} | ${currentUmpire}`;
+  setMatchInfo(m);
   document.getElementById('redNames').innerHTML  = scoringNamesHtml(m, 'red');
   document.getElementById('blueNames').innerHTML = scoringNamesHtml(m, 'blue');
 
@@ -857,6 +946,7 @@ function checkEpicPossible(match) {
 function renderGameUI() {
   const match = appState.ongoingMatches.find(m => m.id === activeMatchId);
   if (!match) return;
+  setMatchInfo(match);   // an admin may have set / changed the court from the other app
 
   document.getElementById('scoreRed').textContent  = isGame2 ? (match.live.g2R||0) : (match.live.g1R||0);
   document.getElementById('scoreBlue').textContent = isGame2 ? (match.live.g2B||0) : (match.live.g1B||0);
