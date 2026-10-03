@@ -800,9 +800,43 @@ function renderUmpireList() {
 // ==========================================
 // 5. MATCH LIST
 // ==========================================
+// ── MATCH LIST — mine first, then who is free (in queue order), then who is taken (P-27) ──
+// At 10 courts the list runs to several screens, and it used to be in stored order: your own "▶ คุมต่อ" could be
+// anywhere, free and taken cards mixed. Now three groups; "เฉพาะที่ว่าง" hides the taken ones; the first free card
+// is marked "ถัดไป" (the next one in the queue).
+let _onlyFree = false;
+try { _onlyFree = localStorage.getItem('bdm_umpire_onlyfree') === '1'; } catch (e) { /* private mode: it just starts off */ }
+function toggleOnlyFree() {
+  _onlyFree = !_onlyFree;
+  try { localStorage.setItem('bdm_umpire_onlyfree', _onlyFree ? '1' : '0'); } catch (e) { /* ignore */ }
+  renderMatchList();
+}
+function _matchCardHtml(m, mine, next) {
+  const badge = mine
+    ? `<span class="badges">${m.court ? `<span class="badge badge-court">${courtLabel(m)}</span>` : ''}<span class="badge badge-mine">▶ คุมต่อ</span></span>`
+    : next ? '<span class="badge badge-next">⏭ ถัดไป</span>'
+    : '<span class="badge" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,192,64,0.3);">✦ ว่างอยู่</span>';
+  return `
+    <div class="match-card ${mine ? 'claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
+      <div class="match-card-header">
+        <div class="match-id">${m.id} <span style="color:var(--muted);font-size:0.55em;letter-spacing:1px;">ROUND ${m.round}</span></div>
+        ${badge}
+      </div>
+      <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${formatNames(m.redNames)}</span></div>
+      <div class="team-row">${umpirePairFaces(m.b1, m.b2, 30)}<span style="color:var(--blue);">${formatNames(m.blueNames)}</span></div>
+    </div>`;
+}
+function _matchTakenHtml(m) {
+  return `
+    <div class="match-card locked-other">
+      <div class="match-card-header">
+        <div class="match-id" style="color:var(--muted);">${m.id} <span style="font-size:0.55em;">R${m.round}</span></div>
+        <span class="badge badge-taken">🔒 ${_uEsc(m.umpire)}${m.court ? ' · ' + courtLabel(m) : ''}</span>
+      </div>
+    </div>`;
+}
 function renderMatchList() {
   const list = document.getElementById('matchList');
-  list.innerHTML = '';
 
   if (!appState || appState.ongoingMatches.length === 0) {
     list.innerHTML = `
@@ -814,33 +848,24 @@ function renderMatchList() {
     return;
   }
 
-  appState.ongoingMatches.forEach(m => {
-    const isMine    = m.umpire === currentUmpire;
-    const isTaken   = m.umpire && m.umpire !== currentUmpire;
-    const available = !m.umpire || isMine;
+  const all   = appState.ongoingMatches.filter(m => m && m.id);
+  const mine  = sortByCourt(all.filter(m => m.umpire === currentUmpire));
+  const free  = all.filter(m => !m.umpire);                                   // queue order, as stored
+  const taken = sortByCourt(all.filter(m => m.umpire && m.umpire !== currentUmpire));
+  const group = (title, n) => `<div class="list-group"><span>${title}</span><b>${n}</b></div>`;
+  const html = [];
 
-    if (available) {
-      list.innerHTML += `
-        <div class="match-card ${isMine ? 'claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
-          <div class="match-card-header">
-            <div class="match-id">${m.id} <span style="color:var(--muted);font-size:0.55em;letter-spacing:1px;">ROUND ${m.round}</span></div>
-            ${isMine
-              ? `<span class="badges">${m.court ? `<span class="badge badge-court">${courtLabel(m)}</span>` : ''}<span class="badge badge-mine">▶ คุมต่อ</span></span>`
-              : '<span class="badge" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,192,64,0.3);">✦ ว่างอยู่</span>'}
-          </div>
-          <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${formatNames(m.redNames)}</span></div>
-          <div class="team-row">${umpirePairFaces(m.b1, m.b2, 30)}<span style="color:var(--blue);">${formatNames(m.blueNames)}</span></div>
-        </div>`;
-    } else {
-      list.innerHTML += `
-        <div class="match-card locked-other">
-          <div class="match-card-header">
-            <div class="match-id" style="color:var(--muted);">${m.id} <span style="font-size:0.55em;">R${m.round}</span></div>
-            <span class="badge badge-taken">🔒 ${m.umpire}${m.court ? ' · ' + courtLabel(m) : ''}</span>
-          </div>
-        </div>`;
-    }
-  });
+  if (taken.length) {
+    html.push(`<button type="button" class="list-filter${_onlyFree ? ' on' : ''}" aria-pressed="${_onlyFree}" onclick="toggleOnlyFree()">${
+      _onlyFree ? `ซ่อนอยู่ ${taken.length} แมตช์ — แตะเพื่อแสดงทั้งหมด` : 'เฉพาะแมตช์ที่ว่าง'}</button>`);
+  }
+  if (mine.length) { html.push(group('คุมอยู่', mine.length)); mine.forEach(m => html.push(_matchCardHtml(m, true, false))); }
+  if (free.length) { html.push(group('ว่างอยู่ — ตามลำดับคิว', free.length)); free.forEach((m, i) => html.push(_matchCardHtml(m, false, i === 0))); }
+  else if (_onlyFree && !mine.length) {
+    html.push('<div class="empty-state"><span class="empty-icon">🏸</span><div class="empty-title">ไม่มีแมตช์ว่าง</div><div class="empty-sub">ทุกแมตช์มีกรรมการคุมอยู่แล้ว</div></div>');
+  }
+  if (taken.length && !_onlyFree) { html.push(group('มีกรรมการแล้ว', taken.length)); taken.forEach(m => html.push(_matchTakenHtml(m))); }
+  list.innerHTML = html.join('');
 }
 
 function handleMatchCardTap(event, mId) {
@@ -1004,6 +1029,22 @@ async function selectMatch(mId) {
   if (m.umpire && m.umpire !== currentUmpire) {
     showAlert('🔒', 'แมตช์นี้มีกรรมการแล้ว', `${m.umpire} กำลังคุมแมตช์นี้อยู่`);
     return;
+  }
+  // A second match while one is still yours is allowed (some umpires run two courts) but is rarely what a
+  // tap on the wrong card means, so it asks once before taking it. Resuming your own match never asks.
+  if (!m.umpire) {
+    const held = appState.ongoingMatches.filter(x => x.id !== mId && x.umpire === currentUmpire);
+    if (held.length) {
+      const more = await showConfirm('❓', `คุณคุม ${held.map(x => x.id).join(', ')} อยู่แล้ว`,
+        `รับ ${mId} เพิ่มอีกใบจริงไหม?`, { confirmLabel: 'รับเพิ่ม', cancelLabel: 'กลับ' });
+      if (!more) return;
+      m = appState.ongoingMatches.find(x => x.id === mId);          // the data moved while the dialog was open
+      if (!m) return;
+      if (m.umpire && m.umpire !== currentUmpire) {
+        showAlert('🔒', 'มีกรรมการรับแมตช์นี้ไปแล้ว', `${m.umpire} กดรับแมตช์นี้ก่อนคุณเล็กน้อย`);
+        return;
+      }
+    }
   }
   // Which court? Asked once, BEFORE the match is claimed: choosing the court is the step that takes
   // the match, and a cancelled tap changes nothing. A match that already has a court (your own,
