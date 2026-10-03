@@ -1003,7 +1003,7 @@ function renderGameUI() {
   }
   // Update landscape pause button
   const liPause = document.getElementById('liPauseBtn');
-  if (liPause) liPause.textContent = paused ? '▶ เล่น' : '⏸ พัก';
+  if (liPause) liPause.textContent = paused ? '▶ เล่นต่อ' : '⏸ พัก';
 
   const g1r = Number(match.live.g1R||0), g1b = Number(match.live.g1B||0);
   const g2r = Number(match.live.g2R||0), g2b = Number(match.live.g2B||0);
