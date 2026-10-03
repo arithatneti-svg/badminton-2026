@@ -157,9 +157,9 @@ function updateUI() {
   
   rPanel.classList.remove('leading','dominant'); bPanel.classList.remove('leading','dominant');
   const diff = newRed - newBlue;
-  if (diff > 0) { rPanel.classList.add(diff >= 6 ? 'dominant' : 'leading'); document.getElementById('redLeadBadge').textContent = diff >= 6 ? '🔥 DOMINANT' : '▲ LEADING'; document.getElementById('blueLeadBadge').textContent = '▲ LEADING'; _fireWant = { red: diff >= 6, blue: false }; }
-  else if (diff < 0) { bPanel.classList.add(Math.abs(diff) >= 6 ? 'dominant' : 'leading'); document.getElementById('blueLeadBadge').textContent = Math.abs(diff) >= 6 ? '🔥 DOMINANT' : '▲ LEADING'; document.getElementById('redLeadBadge').textContent = '▲ LEADING'; _fireWant = { red: false, blue: Math.abs(diff) >= 6 }; }
-  else { document.getElementById('redLeadBadge').textContent = '▲ LEADING'; document.getElementById('blueLeadBadge').textContent = '▲ LEADING'; _fireWant = { red: false, blue: false }; }
+  if (diff > 0) { rPanel.classList.add(diff >= 6 ? 'dominant' : 'leading'); document.getElementById('redLeadBadge').textContent = diff >= 6 ? '🔥 นำขาด' : '▲ นำ'; document.getElementById('blueLeadBadge').textContent = '▲ นำ'; _fireWant = { red: diff >= 6, blue: false }; }
+  else if (diff < 0) { bPanel.classList.add(Math.abs(diff) >= 6 ? 'dominant' : 'leading'); document.getElementById('blueLeadBadge').textContent = Math.abs(diff) >= 6 ? '🔥 นำขาด' : '▲ นำ'; document.getElementById('redLeadBadge').textContent = '▲ นำ'; _fireWant = { red: false, blue: Math.abs(diff) >= 6 }; }
+  else { document.getElementById('redLeadBadge').textContent = '▲ นำ'; document.getElementById('blueLeadBadge').textContent = '▲ นำ'; _fireWant = { red: false, blue: false }; }
 
   if (typeof renderMeBar === 'function') renderMeBar();
   if (typeof renderLiveArena === 'function') renderLiveArena();
@@ -305,7 +305,7 @@ function renderIdleBoard() {
     <div class="idl-next-head">
       <span class="idl-next-tag">⏭ แมตช์ถัดไป</span>
       ${m.court ? `<span class="court-no">${escHtml(courtLabel(m))}</span>` : ''}
-      <span class="idl-next-id">${escHtml(m.id)} · Round ${escHtml(String(m.round || '?'))}</span>
+      <span class="idl-next-id">${escHtml(m.id)} · รอบ ${escHtml(String(m.round || '?'))}</span>
       ${state}
     </div>
     <div class="idl-next-row">
@@ -425,7 +425,7 @@ function _liveArenaHtml(m, live, mode) {
       <div class="lv-top">
         <span class="lv-live"><i></i> LIVE</span>
         ${m.court ? `<span class="lv-courtno">${escHtml(courtLabel(m))}</span>` : ''}
-        <span class="lv-match">${escHtml(m.id)} · Round ${escHtml(String(m.round))}</span>
+        <span class="lv-match">${escHtml(m.id)} · รอบ ${escHtml(String(m.round))}</span>
         ${m.umpire ? `<span class="lv-sep">·</span><span class="lv-ump">👔 ${escHtml(m.umpire)}</span>` : ''}
         ${mode === 'me' ? `<span class="lv-sep">·</span><span class="lv-court">⭐ แมตช์ของคุณ</span>` : ''}
         ${matchStatusHtml(m)}

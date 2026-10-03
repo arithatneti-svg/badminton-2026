@@ -203,7 +203,7 @@ function renderPublicOngoingMatches() {
           <div class="court-card-header">
             ${courtPillHtml(m)}
             <span class="court-card-id">${m.id}</span>
-            <span class="court-card-round">R${m.round}</span>
+            <span class="court-card-round">รอบ ${m.round}</span>
             ${m.umpire ? `<span class="court-card-umpire">👔 ${escHtml(m.umpire)}</span>` : ''}
             ${matchStatusHtml(m)}
             ${climaxBadge}
@@ -250,7 +250,7 @@ function renderPublicOngoingMatches() {
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <span class="queue-num">#${i+1}</span>
             <span class="queue-mid">${safeId}</span>
-            <span class="queue-round">R${m.round||'?'}</span>
+            <span class="queue-round">รอบ ${m.round||'?'}</span>
             <div class="queue-teams" style="flex:1;min-width:0;">
               <span class="queue-team-names" style="color:var(--red);">${escHtml(redNames)}</span>
               <span class="queue-vs">VS</span>
@@ -324,7 +324,7 @@ function renderAdminOngoingMatches() {
         <div class="match-id-badge">
           <div style="display:flex;align-items:center;gap:8px;">
             <span>${m.id}</span>
-            <span class="round-badge">Round ${m.round}</span>
+            <span class="round-badge">รอบ ${m.round}</span>
             ${courtPillHtml(m)}
           </div>
           ${isLive
@@ -400,7 +400,7 @@ function renderFinishedMatches() {
   container.innerHTML = matches.map(m => {
     const isRedWin = m.rStat === 'W', isBlueWin = m.bStat === 'W';
     const cls = isRedWin ? 'red' : isBlueWin ? 'blue' : 'draw';
-    const badge = isRedWin ? '🔴 RED WINS' : isBlueWin ? '🔵 BLUE WINS' : '🤝 DRAW';
+    const badge = isRedWin ? '🔴 ทีมแดงชนะ' : isBlueWin ? '🔵 ทีมน้ำเงินชนะ' : '🤝 เสมอ';
     const [g1r, g1b] = (m.game1 || '0:0').split(':').map(Number);
     const [g2r, g2b] = (m.game2 || '0:0').split(':').map(Number);
     const g2played = g2r > 0 || g2b > 0;
@@ -425,7 +425,7 @@ function renderFinishedMatches() {
     return `<div class="fmatch ${cls}${mineCls}">
       <div class="fmatch-head">
         <span class="fmatch-id">${m.id}</span>
-        <span class="fmatch-round">R${m.round}</span>
+        <span class="fmatch-round">รอบ ${m.round}</span>
         <span class="fmatch-badge ${cls}">${badge}</span>
       </div>
       <div class="fmatch-body">

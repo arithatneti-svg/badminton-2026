@@ -39,7 +39,35 @@ function queueMatchNoti(params) {
 
   _notiQueue.push(params);
   if (!_notiActive) _processNotiQueue();
+  else { _notiRenderButtons(); _notiShorten(NOTI_QUEUED_MS); }   // somebody is waiting: the one on screen gets 10 s at most
 }
+
+// Three matches that end close together used to be three 40-second popups one after another: the third came ~80 s
+// late and the page was covered all that time (C-16, S-18). Now the popup that has someone waiting behind it shows
+// for 10 s, the one on screen is cut to 10 s the moment another is queued, and [ปิดทั้งหมด] drops the whole queue
+// (the results are all in the "จบแล้ว" tab anyway). A popup with nobody behind it keeps its 40 s to be read in.
+const NOTI_ALONE_MS = 40000, NOTI_QUEUED_MS = 10000;
+let _notiDeadline = 0;
+function _notiRenderButtons() {
+  const n = _notiQueue.length;
+  const close = document.getElementById('matchNotiClose'), all = document.getElementById('matchNotiCloseAll');
+  if (close) close.textContent = n > 0 ? `ถัดไป (+${n})` : 'ปิด';
+  if (all) all.hidden = n === 0;
+}
+// cut the time left on the popup that is showing to at most `ms` (and restart its progress bar from where it is)
+function _notiShorten(ms) {
+  if (!_notiDismissTimer || _notiDeadline - Date.now() <= ms) return;
+  clearTimeout(_notiDismissTimer);
+  _notiDeadline = Date.now() + ms;
+  _notiDismissTimer = setTimeout(() => closeMatchNoti(), ms);
+  const bar = document.getElementById('matchNotiProgressBar');
+  if (bar && bar.parentElement) {
+    const w = bar.getBoundingClientRect().width / Math.max(1, bar.parentElement.getBoundingClientRect().width) * 100;
+    bar.style.transition = 'none'; bar.style.width = w + '%'; void bar.offsetWidth;
+    bar.style.transition = `width ${ms}ms linear`; bar.style.width = '0%';
+  }
+}
+function closeAllMatchNoti() { _notiQueue.length = 0; closeMatchNoti(); }
 
 function _processNotiQueue() {
   if (_notiQueue.length === 0) { _notiActive = false; return; }
@@ -94,8 +122,8 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
   document.getElementById('matchNotiGlow').className = `noti-glow-${accentKey}`;
 
   // ── Header ──
-  document.getElementById('matchNotiMatchId').textContent = `MATCH ${matchId}`;
-  document.getElementById('matchNotiStatusBadge').textContent = isMatchEnd ? '🏁 จบแมตช์' : `GAME ${gameNum} FINISHED`;
+  document.getElementById('matchNotiMatchId').textContent = `แมตช์ ${matchId}`;
+  document.getElementById('matchNotiStatusBadge').textContent = isMatchEnd ? '🏁 จบแมตช์' : `เกม ${gameNum} จบแล้ว`;
 
   // ── Team names — strip (G1)/(G2)/(G3) suffix, show full names ──
   const fmtNotiNames = (str) => (str||'').split(' & ').map(n => stripGroup(n.trim())).join(' & ');
@@ -171,7 +199,7 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
       : '';
   }
 
-  // ── Overall score + แต้มที่ได้ ──
+  // ── Overall score + คะแนนที่ได้ ──
   const newRed = globalRedBefore + pRed;
   const newBlue = globalBlueBefore + pBlue;
   const ptsRedStr = pRed > 0 ? ` <span style="color:var(--red);font-size:0.85em">(+${pRed})</span>` : '';
@@ -180,7 +208,7 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
   let gapStr = '';
   if (gap > 0) {
     const leadColor = newRed > newBlue ? 'var(--red)' : 'var(--blue)';
-    gapStr = ` <span style="color:${leadColor};font-size:0.85em;font-weight:800;">🔺นำห่าง ${gap} แต้ม</span>`;
+    gapStr = ` <span style="color:${leadColor};font-size:0.85em;font-weight:800;">🔺นำห่าง ${gap} คะแนน</span>`;
   }
   document.getElementById('matchNotiOverallScore').innerHTML =
     `<span style="color:var(--muted);font-size:12px;letter-spacing:2px;font-weight:700;">คะแนนทีมรวม</span><br>` +
@@ -190,15 +218,15 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
     `<br>${gapStr}`;
 
   // ── Close button ──
-  const queueLen = _notiQueue.length;
-  document.getElementById('matchNotiClose').textContent = queueLen > 0 ? `ถัดไป (+${queueLen})` : 'ปิด';
+  _notiRenderButtons();
 
   document.getElementById('matchNotiProgressBar').style.transition = 'none';
   document.getElementById('matchNotiProgressBar').style.width = '100%';
   document.getElementById('matchNotiOverlay').classList.add('open');
 
   // ── Auto-dismiss: 40 วินาที สำหรับ match จบ, 6 วินาทีสำหรับ G1 ──
-  const dismissDelay = isMatchEnd ? 40000 : 6000;
+  const dismissDelay = isMatchEnd ? (_notiQueue.length > 0 ? NOTI_QUEUED_MS : NOTI_ALONE_MS) : 6000;
+  _notiDeadline = Date.now() + dismissDelay;
   if (_notiDismissTimer) clearTimeout(_notiDismissTimer);
 
   // Animate progress bar
@@ -270,11 +298,11 @@ function buildNarrative({ rStat, isMatchEnd, tagIds, redNames, blueNames, g1r, g
     if (hasRollercoaster && hasClutch)
       gameLine = `โรลเลอร์โคสเตอร์สุดขีด! ทั้งสองทีมผลัดกันนำคนละเกม แล้วยังสูสีสุดๆในทุก set — แมตช์นี้ไม่มีผู้แพ้จริงๆ`;
     else if (hasRollercoaster)
-      gameLine = `สลับกันนำคนละเกม! ${redNames} ชนะเกม 1 ส่วน ${blueNames} ตีเสมอในเกม 2 — แต้มรวม ${totalR}:${totalB}`;
+      gameLine = `สลับกันนำคนละเกม! ${redNames} ชนะเกม 1 ส่วน ${blueNames} ตีเสมอในเกม 2 — คะแนนรวม ${totalR}:${totalB}`;
     else if (hasClutch)
       gameLine = `เสมอในแบบที่ทุกคนประทับใจ — ทั้งสองทีมทุ่มสุดตัว ไม่มีใครยอมใครสักนิด`;
     else
-      gameLine = `ผลเสมอ 1–1 — ทั้งสองทีมแบ่งคะแนนกันไปทีมละ 1 แต้ม`;
+      gameLine = `ผลเสมอ 1–1 — ทั้งสองทีมแบ่งคะแนนกันไปทีมละ 1 คะแนน`;
   }
 
   // ── บรรยายสถานการณ์คะแนนทีม ──
@@ -302,7 +330,7 @@ function buildTeamSituationLine({ redNames, blueNames, prevR, prevB, newRed, new
   const rLeadsBefore = prevGap > 0, bLeadsBefore = prevGap < 0, tiedBefore = prevGap === 0;
   const rLeadsAfter  = newGap  > 0, bLeadsAfter  = newGap  < 0, tiedAfter  = newGap  === 0;
 
-  // ── แมตช์แรก ยังไม่มีแต้มก่อนหน้า ──
+  // ── แมตช์แรก ยังไม่มีคะแนนก่อนหน้า ──
   if (prevR === 0 && prevB === 0) {
     if (tiedAfter)
       return `📊 เปิดสนามด้วยผลเสมอ — คะแนนทีมยังเท่ากัน ${newRed}:${newBlue}`;
@@ -327,37 +355,37 @@ function buildTeamSituationLine({ redNames, blueNames, prevR, prevB, newRed, new
   // ── ขยายช่องว่าง ──
   if (rLeadsAfter && rLeadsBefore && absNew > absPrev) {
     if (absNew >= 9)
-      return `📊 ${redNames} ถลำนำห่างออกไปเรื่อยๆ — ${newRed}:${newBlue} ห่าง ${absNew} แต้ม`;
-    return `📊 ${redNames} ขยายช่องว่าง — นำ ${newRed}:${newBlue} (ห่างขึ้นจาก ${absPrev} → ${absNew} แต้ม)`;
+      return `📊 ${redNames} ถลำนำห่างออกไปเรื่อยๆ — ${newRed}:${newBlue} ห่าง ${absNew} คะแนน`;
+    return `📊 ${redNames} ขยายช่องว่าง — นำ ${newRed}:${newBlue} (ห่างขึ้นจาก ${absPrev} → ${absNew} คะแนน)`;
   }
   if (bLeadsAfter && bLeadsBefore && absNew > absPrev) {
     if (absNew >= 9)
-      return `📊 ${blueNames} ถลำนำห่างออกไปเรื่อยๆ — ${newBlue}:${newRed} ห่าง ${absNew} แต้ม`;
-    return `📊 ${blueNames} ขยายช่องว่าง — นำ ${newBlue}:${newRed} (ห่างขึ้นจาก ${absPrev} → ${absNew} แต้ม)`;
+      return `📊 ${blueNames} ถลำนำห่างออกไปเรื่อยๆ — ${newBlue}:${newRed} ห่าง ${absNew} คะแนน`;
+    return `📊 ${blueNames} ขยายช่องว่าง — นำ ${newBlue}:${newRed} (ห่างขึ้นจาก ${absPrev} → ${absNew} คะแนน)`;
   }
 
   // ── ตีตื้นขึ้นมา แต่ยังตามอยู่ ──
   if (rLeadsAfter && rLeadsBefore && absNew < absPrev)
-    return `📊 ${blueNames} ตีตื้นขึ้นมา — ยังตามอยู่ ${newRed}:${newBlue} (ห่างเหลือ ${absNew} แต้ม)`;
+    return `📊 ${blueNames} ตีตื้นขึ้นมา — ยังตามอยู่ ${newRed}:${newBlue} (ห่างเหลือ ${absNew} คะแนน)`;
   if (bLeadsAfter && bLeadsBefore && absNew < absPrev)
-    return `📊 ${redNames} ตีตื้นขึ้นมา — ยังตามอยู่ ${newBlue}:${newRed} (ห่างเหลือ ${absNew} แต้ม)`;
+    return `📊 ${redNames} ตีตื้นขึ้นมา — ยังตามอยู่ ${newBlue}:${newRed} (ห่างเหลือ ${absNew} คะแนน)`;
 
   // ── นำห่างมากอยู่แล้ว คะแนนไม่ขยับ (Draw ฝั่งนำ) ──
   // gap ที่เป็นไปได้: 0, 2, 3, 4, 6, 7, 8, 9... (ไม่มี 1 เพราะ W=+3, D=+1 ทั้งคู่, L=+0)
   if (rLeadsAfter && absNew >= 6)
-    return `📊 ${redNames} ยังคงนำห่าง — ${newRed}:${newBlue} ห่าง ${absNew} แต้ม`;
+    return `📊 ${redNames} ยังคงนำห่าง — ${newRed}:${newBlue} ห่าง ${absNew} คะแนน`;
   if (bLeadsAfter && absNew >= 6)
-    return `📊 ${blueNames} ยังคงนำห่าง — ${newBlue}:${newRed} ห่าง ${absNew} แต้ม`;
+    return `📊 ${blueNames} ยังคงนำห่าง — ${newBlue}:${newRed} ห่าง ${absNew} คะแนน`;
 
   // ── เสมออยู่แล้วและยังเสมอ ──
   if (tiedAfter && tiedBefore)
     return `📊 ยังสูสีกัน — คะแนนทีมเสมอกันที่ ${newRed}:${newBlue}`;
 
-  // ── สูสี (gap 2-3 แต้ม เท่านั้นที่เป็นไปได้ในช่วงนี้) ──
+  // ── สูสี (gap 2-3 คะแนน เท่านั้นที่เป็นไปได้ในช่วงนี้) ──
   if (rLeadsAfter && absNew <= 3)
-    return `📊 ${redNames} นำสูสีมาก — ${newRed}:${newBlue} ห่างกันแค่ ${absNew} แต้ม`;
+    return `📊 ${redNames} นำสูสีมาก — ${newRed}:${newBlue} ห่างกันแค่ ${absNew} คะแนน`;
   if (bLeadsAfter && absNew <= 3)
-    return `📊 ${blueNames} นำสูสีมาก — ${newBlue}:${newRed} ห่างกันแค่ ${absNew} แต้ม`;
+    return `📊 ${blueNames} นำสูสีมาก — ${newBlue}:${newRed} ห่างกันแค่ ${absNew} คะแนน`;
 
   // fallback
   return `📊 คะแนนทีมปัจจุบัน — 🔴 ${newRed} : 🔵 ${newBlue}`;

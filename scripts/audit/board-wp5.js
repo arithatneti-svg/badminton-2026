@@ -34,6 +34,28 @@
     else { userRole = "superadmin"; document.body.classList.add("admin-mode", "superadmin-mode"); }
   };
 
+  // The Latin words a person can SEE (or a screen reader reads) on the page right now, minus the words the owner allows
+  // (glossary Q8: LIVE, DEUCE, GAME POINT, TEAM BATTLE, team names, the five English tab names, "Sports Day 2026", VS)
+  // and minus data (player names, ids like T03 / M05, group codes G1). Names sit in the elements listed in SKIP.
+  // An empty list = clean. Returns { word: [where, ...] } so the same word is shown once with its places.
+  const ALLOWED = new Set(["LIVE", "DEUCE", "GAME", "POINT", "TEAM", "BATTLE", "Red", "Blue", "RED", "BLUE", "VS", "Sports", "Day", "Scoreboard", "Gallery", "Dashboard", "Admin", "Reports"]);
+  const SKIP = "option, .uavatar, .pav, script, style, .player-name, .pname, .rp-name-link, .rp-prow-name, .idl-tname, input, textarea";
+  A.wp5English = (root) => {
+    const found = {};
+    const scope = root ? document.querySelector(root) : document.body;
+    const take = (text, where) => { (String(text || "").replace(/\b[A-Za-z]+\d+\b/g, "").match(/[A-Za-z]{2,}(?![A-Za-z0-9])/g) || []).forEach((w) => { if (ALLOWED.has(w)) return; (found[w] = found[w] || []).push(where); }); };
+    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const el = n.parentElement; if (!el || el.closest(SKIP) || !vis(el)) continue;
+      take(n.nodeValue, (el.id ? "#" + el.id : el.className ? "." + String(el.className).split(" ")[0] : el.tagName.toLowerCase()) + ' "' + n.nodeValue.trim().slice(0, 36) + '"');
+    }
+    scope.querySelectorAll("[aria-label], [title], [placeholder]").forEach((el) => {
+      if (el.closest(SKIP) || !vis(el)) return;
+      ["aria-label", "title", "placeholder"].forEach((a) => { if (el.hasAttribute(a)) take(el.getAttribute(a), "[" + a + "] " + (el.id ? "#" + el.id : el.tagName.toLowerCase())); });
+    });
+    return found;
+  };
+
   // the top bar for one role: height, tab sizes, how many tabs are on screen at once, the ⋯ button, targets under 44 px
   A.wp5Nav = async (role) => {
     window.__setRole(role); await sleep(180);

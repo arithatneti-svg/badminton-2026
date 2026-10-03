@@ -272,7 +272,7 @@ try {
       <div class="idl-team red" id="redPanel">
         <input class="team-name-edit idl-tname red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมแดง">
         <div class="idl-score" id="displayRedScore">0</div>
-        <div class="idl-lead" id="redLeadBadge">▲ LEADING</div>
+        <div class="idl-lead" id="redLeadBadge">▲ นำ</div>
       </div>
       <div class="idl-mid">
         <div class="idl-vs">VS</div>
@@ -282,7 +282,7 @@ try {
       <div class="idl-team blue" id="bluePanel">
         <input class="team-name-edit idl-tname blue" id="blueTeamName" value="BLUE TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมน้ำเงิน">
         <div class="idl-score" id="displayBlueScore">0</div>
-        <div class="idl-lead" id="blueLeadBadge">▲ LEADING</div>
+        <div class="idl-lead" id="blueLeadBadge">▲ นำ</div>
       </div>
     </div>
     <div id="idleNext"></div>
@@ -298,46 +298,46 @@ try {
   <!-- Hero stats bar -->
   <div class="ongoing-hero">
     <div>
-      <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">LIVE ON COURT</div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.3px;color:var(--muted);margin-bottom:4px;">กำลังแข่งบนคอร์ต</div>
       <div class="ongoing-live-count" id="ongoingLiveCount">0</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <div class="live-dot"></div>
-        <span style="font-size:12px;font-weight:700;letter-spacing:2px;color:var(--green);">REAL-TIME</span>
+        <span style="font-size:12px;font-weight:700;letter-spacing:0.3px;color:var(--green);">อัปเดตสด</span>
       </div>
       <span id="ongoingQueueCount" style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);">0 รอคิว</span>
     </div>
   </div>
 
-  <div class="section-title" style="margin-top:0;">
+  <div class="section-title th" style="margin-top:0;">
     <span class="live-dot" style="width:8px;height:8px;margin-right:-4px;"></span>
-    LIVE NOW
+    กำลังแข่งตอนนี้
   </div>
   <div id="publicLiveMatches" class="court-grid" style="margin-bottom:32px;"></div>
 
-  <div class="section-title">⏳ UPCOMING MATCHES</div>
+  <div class="section-title th">⏳ แมตช์ถัดไป</div>
   <div id="publicUpcomingMatches" class="queue-list"></div>
 </div>
 
 <!-- FINISHED MATCH TAB -->
 <div id="finished" class="container">
   <div class="report-header tab-toolbar">
-    <div class="section-title" style="margin:0;">🏁 Finished Matches</div>
+    <div class="section-title th" style="margin:0;">🏁 แมตช์ที่จบแล้ว</div>
     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-      <input type="text" id="finishedSearch" placeholder="🔍 Search match..." style="width:150px; font-size:13px; padding:6px 12px;" oninput="debounce(renderFinishedMatches,220)()">
+      <input type="text" id="finishedSearch" placeholder="🔍 ค้นหาแมตช์…" style="width:150px; font-size:13px; padding:6px 12px;" oninput="debounce(renderFinishedMatches,220)()">
       <select id="finishedFilterRound" style="font-size:13px; padding:6px 10px;" onchange="renderFinishedMatches()">
-        <option value="">All Rounds</option>
-        <option value="1">Round 1</option>
-        <option value="2">Round 2</option>
-        <option value="3">Round 3</option>
+        <option value="">ทุกรอบ</option>
+        <option value="1">รอบ 1</option>
+        <option value="2">รอบ 2</option>
+        <option value="3">รอบ 3</option>
       </select>
       <div style="display:flex;gap:4px;align-items:center;">
         <button class="me-filter-btn" onclick="toggleMeFilter(this)" title="ดูเฉพาะแมตช์ของฉัน">⭐ ของฉัน</button>
         <button class="filter-pill active" id="frAll"  onclick="setFinishedResultFilter('')">ทั้งหมด</button>
-        <button class="filter-pill" id="frRed"  onclick="setFinishedResultFilter('red')"  style="--pill-active-bg:rgba(255,59,92,0.15);--pill-active-border:rgba(255,59,92,0.35);--pill-active-color:var(--red);">🔴 Red Win</button>
-        <button class="filter-pill" id="frDraw" onclick="setFinishedResultFilter('draw')" style="--pill-active-bg:rgba(245,200,66,0.15);--pill-active-border:rgba(245,200,66,0.35);--pill-active-color:var(--gold);">🤝 Draw</button>
-        <button class="filter-pill" id="frBlue" onclick="setFinishedResultFilter('blue')" style="--pill-active-bg:rgba(59,142,255,0.15);--pill-active-border:rgba(59,142,255,0.35);--pill-active-color:var(--blue);">🔵 Blue Win</button>
+        <button class="filter-pill" id="frRed"  onclick="setFinishedResultFilter('red')"  style="--pill-active-bg:rgba(255,59,92,0.15);--pill-active-border:rgba(255,59,92,0.35);--pill-active-color:var(--red);">🔴 ทีมแดงชนะ</button>
+        <button class="filter-pill" id="frDraw" onclick="setFinishedResultFilter('draw')" style="--pill-active-bg:rgba(245,200,66,0.15);--pill-active-border:rgba(245,200,66,0.35);--pill-active-color:var(--gold);">🤝 เสมอ</button>
+        <button class="filter-pill" id="frBlue" onclick="setFinishedResultFilter('blue')" style="--pill-active-bg:rgba(59,142,255,0.15);--pill-active-border:rgba(59,142,255,0.35);--pill-active-color:var(--blue);">🔵 ทีมน้ำเงินชนะ</button>
       </div>
     </div>
   </div>
@@ -539,7 +539,7 @@ try {
 <!-- ── PLAYERS TAB ── -->
 <div id="players" class="container" style="max-width:1340px;">
   <div class="tab-toolbar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-    <div class="section-title" style="margin:0;">👤 Player Directory</div>
+    <div class="section-title th" style="margin:0;">👤 รายชื่อผู้เล่น</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <input type="text" id="playersTabSearch" placeholder="🔍 ค้นหาชื่อ..." style="width:140px;font-size:13px;padding:7px 12px;" oninput="renderPlayersTab()">
       <select id="playersTabFilterTeam" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
@@ -1141,7 +1141,7 @@ try {
 
     <!-- ── HEADER: Match ID + Status ── -->
     <div id="matchNotiHeader">
-      <div id="matchNotiMatchId">MATCH M01</div>
+      <div id="matchNotiMatchId">แมตช์ M01</div>
       <div id="matchNotiStatusBadge">จบแมตช์!</div>
     </div>
 
@@ -1188,7 +1188,10 @@ try {
     <div id="matchNotiOverallScore"></div>
 
     <!-- ── CLOSE BUTTON ── -->
-    <button id="matchNotiClose" onclick="closeMatchNoti()">ปิด</button>
+    <div id="matchNotiActions">
+      <button id="matchNotiClose" onclick="closeMatchNoti()">ปิด</button>
+      <button id="matchNotiCloseAll" onclick="closeAllMatchNoti()" hidden>ปิดทั้งหมด</button>
+    </div>
 
     <div id="matchNotiProgress" style="position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 20px 20px;width:100%;background:rgba(255,255,255,0.08);">
       <div id="matchNotiProgressBar" style="height:100%;width:0%;border-radius:0 0 20px 20px;"></div>
