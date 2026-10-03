@@ -656,3 +656,25 @@ body.tv-mode .me-bar { display: none; }
   .me-bar { padding: 8px 12px 0; }
   .me-cta-sub { display: none; }
 }
+
+/* ── court number + match status label (WP2) — the live arena, the Ongoing tab and the admin cards ── */
+.court-no, .lv-courtno {
+  display: inline-block; padding: 2px 10px; border-radius: 20px; white-space: nowrap;
+  font-weight: 800; letter-spacing: .3px; color: #14120a; background: var(--gold);
+}
+.court-no { font-size: 12px; }
+.m-status {
+  display: inline-block; padding: 2px 10px; border-radius: 20px; white-space: nowrap;
+  font-size: 11px; font-weight: 800; letter-spacing: .3px; color: #14120a; background: var(--gold);
+}
+.m-status.stuck { background: #ff8a8a; }
+.m-status:empty { display: none; }
+/* the public card header may need a second line once it carries the court and the label */
+.court-card-header { flex-wrap: wrap; row-gap: 6px; }
+/* admin card: status on the left, court picker on the right */
+.match-court-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; min-height: 32px; }
+.court-select {
+  margin-left: auto; min-height: 32px; padding: 4px 8px; border-radius: 8px;
+  background: var(--surface2); color: var(--text); border: 1px solid var(--border2);
+  font: 700 12px 'Space Grotesk', sans-serif;
+}

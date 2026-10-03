@@ -1,7 +1,7 @@
 // Unit tests for shared/match-time.js — run: npm test
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { formatTimer, matchStage, matchPlayMs, matchLastActivityAt, matchIdleMs, MATCH_IDLE_WARN_MS, fmtAgo, matchStatusTag, matchLooksStuck, courtLabel } = require('../shared/match-time.js');
+const { formatTimer, matchStage, matchPlayMs, matchLastActivityAt, matchIdleMs, MATCH_IDLE_WARN_MS, fmtAgo, matchStatusTag, matchLooksStuck, courtLabel, sortByCourt } = require('../shared/match-time.js');
 
 let pass = 0, fail = 0;
 function t(name, fn) {
@@ -64,6 +64,18 @@ t('claimed but never started, waiting 11 minutes → silent tag too', () => eq(m
 
 console.log('\ncourtLabel');
 t('court 3 → "คอร์ต 3"; none → empty', () => { eq(courtLabel({ court: 3 }), 'คอร์ต 3'); eq(courtLabel({}), ''); eq(courtLabel(null), ''); });
+
+console.log('\nsortByCourt');
+const ids = l => l.map(m => m.id).join(',');
+t('numeric order (10 after 9, not after 1), no court last, ties and the no-court group keep their order', () => {
+  const l = [{ id: 'a' }, { id: 'b', court: 10 }, { id: 'c', court: 2 }, { id: 'd' }, { id: 'e', court: 9 }, { id: 'f', court: 2 }];
+  eq(ids(sortByCourt(l)), 'c,f,e,b,a,d');
+});
+t('a court given as text still sorts as a number; the input is not changed; empty / null are fine', () => {
+  const l = [{ id: 'a', court: '10' }, { id: 'b', court: '3' }];
+  eq(ids(sortByCourt(l)), 'b,a'); eq(ids(l), 'a,b');
+  eq(sortByCourt([]).length, 0); eq(sortByCourt(null).length, 0);
+});
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

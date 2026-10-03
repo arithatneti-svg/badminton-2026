@@ -84,6 +84,14 @@ function courtLabel(m) {
   return m && m.court ? 'คอร์ต ' + m.court : '';
 }
 
+// courts in numeric order, so every screen reads like the hall; matches without a court keep
+// their order, after the numbered ones; two on the same court keep their order too
+function sortByCourt(list) {
+  return (list || []).map((m, i) => ({ m, i }))
+    .sort((a, b) => ((Number(a.m && a.m.court) || 99) - (Number(b.m && b.m.court) || 99)) || (a.i - b.i))
+    .map(x => x.m);
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { formatTimer, matchStage, matchPlayMs, matchLastActivityAt, matchIdleMs, MATCH_IDLE_WARN_MS, fmtAgo, matchStatusTag, matchLooksStuck, courtLabel };
+  module.exports = { formatTimer, matchStage, matchPlayMs, matchLastActivityAt, matchIdleMs, MATCH_IDLE_WARN_MS, fmtAgo, matchStatusTag, matchLooksStuck, courtLabel, sortByCourt };
 }

@@ -2,9 +2,28 @@
 // formatTimer() lives in shared/match-time.js (shows hours past 60 minutes)
 function getCourtElapsed(mId) { const m = appState.ongoingMatches.find(x => x.id === mId); if (!m || !m.timerStartedAt) return 0; return Date.now() - m.timerStartedAt; }
 
+// ── COURT NUMBER + STATUS LABEL — the same on the live arena, the Ongoing tab and the admin cards ──
+function courtPillHtml(m) { return m && m.court ? `<span class="court-no">${escHtml(courtLabel(m))}</span>` : ''; }
+// "พักเกม" / "ไม่มีความเคลื่อนไหว N นาที": it ages with the clock, not with data (a stalled court
+// sends none), so every label carries its match id and the 1 s timer below refreshes them all.
+function matchStatusHtml(m) {
+  const now = Date.now();
+  return `<span class="m-status${matchLooksStuck(m, now) ? ' stuck' : ''}" data-status-mid="${escHtml(m.id)}">${escHtml(matchStatusTag(m, now))}</span>`;
+}
+function patchMatchStatusTags() {
+  const now = Date.now();
+  document.querySelectorAll('[data-status-mid]').forEach(el => {
+    const m = (appState.ongoingMatches || []).find(x => x && x.id === el.dataset.statusMid); if (!m) return;
+    const tag = matchStatusTag(m, now);
+    if (el.textContent !== tag) el.textContent = tag;
+    el.classList.toggle('stuck', matchLooksStuck(m, now));
+  });
+}
+
 // FIX-6: skip timer updates when tab is hidden (saves CPU in background)
 setInterval(() => {
   if (document.hidden) return;
+  patchMatchStatusTags();
   if (document.getElementById('ongoing').classList.contains('active')) {
     appState.ongoingMatches.forEach(m => {
       const elapsed = getCourtElapsed(m.id); const mins = Math.floor(elapsed / 60000); const col = elapsed === 0 ? 'var(--muted)' : mins >= 30 ? 'var(--danger)' : mins >= 20 ? 'var(--gold)' : 'var(--green)';
@@ -58,7 +77,7 @@ function renderPublicOngoingMatches() {
   if (!liveContainer || !queueContainer) return;
 
   liveContainer.innerHTML = ''; queueContainer.innerHTML = '';
-  const liveMatches     = appState.ongoingMatches.filter(m => m.umpire);
+  const liveMatches     = sortByCourt(appState.ongoingMatches.filter(m => m.umpire));
   const upcomingMatches = appState.ongoingMatches.filter(m => !m.umpire);
   if (liveCountEl) liveCountEl.textContent = liveMatches.length > 0 ? liveMatches.length : '—';
   const queueEl = document.getElementById('ongoingQueueCount');
@@ -170,9 +189,11 @@ function renderPublicOngoingMatches() {
       liveContainer.innerHTML += `
         <div class="court-card ${climaxClass}${mineCls}">
           <div class="court-card-header">
+            ${courtPillHtml(m)}
             <span class="court-card-id">${m.id}</span>
             <span class="court-card-round">R${m.round}</span>
             ${m.umpire ? `<span class="court-card-umpire">👔 ${escHtml(m.umpire)}</span>` : ''}
+            ${matchStatusHtml(m)}
             ${climaxBadge}
             <div class="live-indicator" style="margin-left:auto;"><span class="live-dot"></span>LIVE</div>
             <span class="court-card-timer${timerLongClass}" style="color:${timerColor};" id="pubTimer-${m.id}">⏱${timerLabel}</span>
@@ -235,6 +256,27 @@ function renderPublicOngoingMatches() {
   }
 }
 
+// the court picker on an admin card — same ten courts as the umpire's chips
+function courtSelectHtml(m) {
+  const opts = [];
+  if (!m.court) opts.push('<option value="" selected>ยังไม่ระบุคอร์ต</option>');
+  for (let n = 1; n <= 10; n++) opts.push(`<option value="${n}"${Number(m.court) === n ? ' selected' : ''}>คอร์ต ${n}</option>`);
+  return `<select class="court-select" aria-label="เลขคอร์ตของ ${escHtml(m.id)}" onchange="adminSetCourt('${escHtml(m.id)}', this.value)">${opts.join('')}</select>`;
+}
+
+// An admin sets or corrects the court of a match an umpire has taken (the umpire can do the same
+// from the scoring screen). A court that already holds a match asks first — warn, never block.
+function adminSetCourt(mId, val) {
+  if (userRole !== 'admin' && userRole !== 'superadmin') return;
+  const n = Number(val) || 0;
+  const m = (appState.ongoingMatches || []).find(x => x && x.id === mId);
+  if (!m || !n || Number(m.court) === n) return;
+  const other = (appState.ongoingMatches || []).find(x => x && x.id !== mId && x.umpire && Number(x.court) === n);
+  const go = () => setMatchField(mId, 'court', n).then(ok => showToast(ok ? `✅ ${mId} → คอร์ต ${n}` : '⚠️ บันทึกเลขคอร์ตไม่สำเร็จ', ok ? 'success' : 'error'));
+  if (other) showConfirmDialog(`คอร์ต ${n} มีแมตช์ ${other.id} อยู่แล้ว — ใช้คอร์ต ${n} ต่อไหม?`, go); else go();
+  renderAdminOngoingMatches();    // put the picker back to the saved value until the save (or the cancel) settles
+}
+
 function renderAdminOngoingMatches() {
   const c = document.getElementById('adminOngoingMatchesContainer'); if (!c) return;
   document.getElementById('ongoingCount').textContent = appState.ongoingMatches.length;
@@ -247,6 +289,7 @@ function renderAdminOngoingMatches() {
           <div style="display:flex;align-items:center;gap:8px;">
             <span>${m.id}</span>
             <span class="round-badge">Round ${m.round}</span>
+            ${courtPillHtml(m)}
           </div>
           ${isLive
             ? `<div class="live-indicator"><span class="live-dot"></span>LIVE · ${m.umpire||''}</div>`
@@ -263,6 +306,7 @@ function renderAdminOngoingMatches() {
             <div style="text-align:right;">${formatTeamNames(m.blueNames,'var(--text)')}</div>
           </div>
         </div>
+        ${isLive ? `<div class="match-court-row">${matchStatusHtml(m)}${courtSelectHtml(m)}</div>` : ''}
         <div class="match-footer">
           <button class="btn btn-info btn-sm" onclick="openResultModal('${m.id}')">⚡ Force Result</button>
           <button class="btn btn-danger btn-sm" onclick="removeOngoingMatch('${m.id}')">🗑 Delete</button>

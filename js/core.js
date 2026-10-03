@@ -244,6 +244,24 @@ window.addEventListener('DOMContentLoaded', () => {
 function saveData() { return _commitMerge(null); }
 function saveKeys(keys) { return _commitMerge(Array.isArray(keys) && keys.length ? keys : null); }
 
+// One field of one match, by id, as its own transaction. For values that are labels, not counters:
+// the merge-save adds "our change" to a number that changed on both sides (court 3→5 here and
+// 3→4 there would come out as 6), a transaction on the match simply sets it.
+function setMatchField(mId, field, value) {
+  if (userRole !== 'admin' && userRole !== 'superadmin') return Promise.resolve(false);
+  let why = '';
+  return dbRef.transaction(root => {
+    if (!root) { why = 'no-snapshot'; return; }
+    const list = smToArr(root.ongoingMatches);
+    const i = list.findIndex(m => m && m.id === mId);
+    if (i < 0) { why = 'missing'; return; }
+    list[i] = { ...list[i], [field]: value };
+    root.ongoingMatches = list;
+    return root;
+  }).then(res => { if (!res.committed) console.warn('setMatchField not saved:', why || 'unknown'); return res.committed; })
+    .catch(err => { console.error('setMatchField failed:', err); return false; });
+}
+
 function _commitMerge(onlyKeys) {
   if (userRole !== 'admin' && userRole !== 'superadmin') return Promise.resolve(false);
   // ป้องกัน write appState เปล่าทับ Firebase — ต้องมี players อย่างน้อย

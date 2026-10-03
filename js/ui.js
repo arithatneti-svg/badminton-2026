@@ -147,7 +147,7 @@ let _arenaChoice = null; // null = default (my match, else auto) · 'auto' · a 
 const ARENA_ROTATE_MS = 9000;
 
 function _liveMatches() {
-  return (appState.ongoingMatches || []).filter(m => m && m.live);
+  return sortByCourt((appState.ongoingMatches || []).filter(m => m && m.live));   // in court order, like the hall
 }
 
 // Which court to show, and why: 'pin' (viewer tapped it), 'me' (their match), 'auto'.
@@ -300,7 +300,7 @@ function _arenaTick() {
 function _arenaShow(arena, live, idx, mode) {
   const m = live[idx];
   const onGame2 = !!(m.live && m.live.g1Locked);
-  const key = [mode, live.map(x => x.id).join(','), m.id, onGame2 ? 2 : 1, `${m.r1}-${m.r2}-${m.b1}-${m.b2}`].join('|');
+  const key = [mode, live.map(x => x.id + ':' + (x.court || 0)).join(','), m.id, onGame2 ? 2 : 1, `${m.r1}-${m.r2}-${m.b1}-${m.b2}`].join('|');
   if (key === _arenaKey && arena.querySelector('.lv-arena')) { _arenaPatch(arena, m, live); return; }
   _arenaKey = key;
   arena.innerHTML = _liveArenaHtml(m, live, mode);
@@ -342,8 +342,9 @@ function _arenaChipsHtml(m, live, mode) {
     const xs = _arenaScores(x);
     const shown = x.id === m.id;
     const cls = shown ? (mode === 'auto' ? ' cur' : ' on') : '';
+    // a viewer knows "คอร์ต 3", not a match number — the id is only the fallback when no court was chosen
     return `<button type="button" class="lv-cchip${cls}" data-mid="${escHtml(x.id)}" aria-pressed="${shown && mode !== 'auto'}"
-      onclick="arenaPick('${escHtml(x.id)}')" title="ดูคอร์ตนี้ค้างไว้">${mine(x) ? '⭐ ' : ''}${escHtml(x.id)} <b>${xs.curR}–${xs.curB}</b></button>`;
+      onclick="arenaPick('${escHtml(x.id)}')" title="ดูคอร์ตนี้ค้างไว้">${mine(x) ? '⭐ ' : ''}${escHtml(x.court ? courtLabel(x) : x.id)} <b>${xs.curR}–${xs.curB}</b></button>`;
   }).join('');
   return `<div class="lv-courts" role="group" aria-label="เลือกคอร์ต">
     <button type="button" class="lv-cchip auto${mode === 'auto' ? ' on' : ''}" aria-pressed="${mode === 'auto'}"
@@ -370,9 +371,11 @@ function _liveArenaHtml(m, live, mode) {
     <div class="lv-wrap">
       <div class="lv-top">
         <span class="lv-live"><i></i> LIVE</span>
+        ${m.court ? `<span class="lv-courtno">${escHtml(courtLabel(m))}</span>` : ''}
         <span class="lv-match">${escHtml(m.id)} · Round ${escHtml(String(m.round))}</span>
         ${m.umpire ? `<span class="lv-sep">·</span><span class="lv-ump">👔 ${escHtml(m.umpire)}</span>` : ''}
         ${mode === 'me' ? `<span class="lv-sep">·</span><span class="lv-court">⭐ แมตช์ของคุณ</span>` : ''}
+        ${matchStatusHtml(m)}
       </div>
       ${_arenaChipsHtml(m, live, mode)}
       <div class="lv-arena">
