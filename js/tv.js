@@ -385,7 +385,7 @@ function _tvVsHeroHtml(m, countHtml) {
         ${s.notStarted
           ? `<div class="tv-vs-nowplaying">NOW<br>PLAYING</div>`
           : `<div class="tv-vs-score"><span class="red">${s.cr}</span><span class="sep">:</span><span class="blue">${s.cb}</span></div>`}
-        <div class="tv-vs-g1">${s.g2on ? `G1 · ${s.g1r}–${s.g1b}` : (s.notStarted ? 'พร้อมแข่ง' : '')}</div>
+        <div class="tv-vs-g1">${s.g2on ? `เกม 1 · ${s.g1r}–${s.g1b}` : (s.notStarted ? 'พร้อมแข่ง' : '')}</div>
         ${_tvStatusHtml(m)}
       </div>
       <div class="tv-vs-side blue">
@@ -418,7 +418,7 @@ function _tvGridHtml(live) {
     const cxTag = cx === 2 ? ' · ⚡' : cx === 1 ? ' · 🔥' : '';
     return `<div class="tv-live-card${cxCls}" data-mid="${escHtml(m.id)}">
       ${_tvStatusHtml(m)}
-      <div class="tv-live-id">🟢 ${_tvCourtPill(m)}${escHtml(m.id)} · ${s.g2on ? 'G2' : 'G1'}${cxTag}</div>
+      <div class="tv-live-id">🟢 ${_tvCourtPill(m)}${escHtml(m.id)} · ${s.g2on ? 'เกม 2' : 'เกม 1'}${cxTag}</div>
       <div class="tv-live-teams">
         <div class="tv-lt red">${_tvTag('red')}<span class="tv-faces">${[m.r1, m.r2].map(id => avatarHtml(id, 44)).join('')}</span>${escHtml(_tvStrip(m.redNames))}</div>
         <div class="tv-live-score">${s.notStarted
@@ -426,7 +426,7 @@ function _tvGridHtml(live) {
           : `<span class="red">${s.cr}</span><span class="sep">:</span><span class="blue">${s.cb}</span>`}</div>
         <div class="tv-lt blue">${_tvTag('blue')}<span class="tv-faces">${[m.b1, m.b2].map(id => avatarHtml(id, 44)).join('')}</span>${escHtml(_tvStrip(m.blueNames))}</div>
       </div>
-      <div class="tv-live-games">${s.g2on ? `G1 · ${s.g1r}–${s.g1b}` : (s.notStarted ? 'พร้อมแข่ง' : '')}</div>
+      <div class="tv-live-games">${s.g2on ? `เกม 1 · ${s.g1r}–${s.g1b}` : (s.notStarted ? 'พร้อมแข่ง' : '')}</div>
     </div>`;
   };
   return `<div class="tv-panel">
@@ -482,7 +482,7 @@ function _tvPatchHero(el, m) {
   const s = _tvScore(m);
   const rEl = el.querySelector('.tv-vs-score .red');  if (rEl) rEl.textContent = s.cr;
   const bEl = el.querySelector('.tv-vs-score .blue'); if (bEl) bEl.textContent = s.cb;
-  const g1El = el.querySelector('.tv-vs-g1'); if (g1El && s.g2on) g1El.textContent = `G1 · ${s.g1r}–${s.g1b}`;
+  const g1El = el.querySelector('.tv-vs-g1'); if (g1El && s.g2on) g1El.textContent = `เกม 1 · ${s.g1r}–${s.g1b}`;
   _tvPatchStatus();
 }
 function _tvPatchGrid(el, live) {
@@ -492,7 +492,7 @@ function _tvPatchGrid(el, live) {
     const s = _tvScore(m);
     const rEl = card.querySelector('.tv-live-score .red');  if (rEl) rEl.textContent = s.cr;
     const bEl = card.querySelector('.tv-live-score .blue'); if (bEl) bEl.textContent = s.cb;
-    const gEl = card.querySelector('.tv-live-games'); if (gEl && s.g2on) gEl.textContent = `G1 · ${s.g1r}–${s.g1b}`;
+    const gEl = card.querySelector('.tv-live-games'); if (gEl && s.g2on) gEl.textContent = `เกม 1 · ${s.g1r}–${s.g1b}`;
   });
   _tvPatchStatus();
 }

@@ -172,10 +172,10 @@ function renderPublicOngoingMatches() {
 
         scoreBlockHtml = `
           <div class="court-score-block">
-            ${scoreRow('', 'G1', m.live.g1R, m.live.g1B, g1rDim, g1bDim, g1RedCB, g1BlueCB)}
+            ${scoreRow('', 'เกม 1', m.live.g1R, m.live.g1B, g1rDim, g1bDim, g1RedCB, g1BlueCB)}
             ${m.live.g1Locked
-              ? scoreRow('g2', 'G2', m.live.g2R, m.live.g2B, false, false, g2RedCB, g2BlueCB)
-              : `<div class="court-g2-placeholder">G2 ยังไม่เริ่ม</div>`}
+              ? scoreRow('g2', 'เกม 2', m.live.g2R, m.live.g2B, false, false, g2RedCB, g2BlueCB)
+              : `<div class="court-g2-placeholder">เกม 2 ยังไม่เริ่ม</div>`}
           </div>`;
       } else {
         scoreBlockHtml = `
@@ -299,7 +299,7 @@ function adminReleaseMatch(mId) {
   const seen = matchLastActivityAt(m), lv = m.live || {};
   const pts = (Number(lv.g1R) || 0) + (Number(lv.g1B) || 0) + (Number(lv.g2R) || 0) + (Number(lv.g2B) || 0);
   const score = pts
-    ? ` คะแนนที่นับไว้ (G1 ${lv.g1R || 0}–${lv.g1B || 0}${lv.g1Locked ? ` · G2 ${lv.g2R || 0}–${lv.g2B || 0}` : ''}) จะหายไป — ถ้าต้องการเก็บผล ให้ใช้ Force Result แทน`
+    ? ` คะแนนที่นับไว้ (เกม 1 ${lv.g1R || 0}–${lv.g1B || 0}${lv.g1Locked ? ` · เกม 2 ${lv.g2R || 0}–${lv.g2B || 0}` : ''}) จะหายไป — ถ้าต้องการเก็บผล ให้ใช้ Force Result แทน`
     : '';
   showConfirmDialog(`ปล่อย ${mId}${m.court ? ' (คอร์ต ' + m.court + ')' : ''} กลับเข้าคิว? กรรมการ ${m.umpire} จะหลุดจากแมตช์นี้.${score}`, () => {
     releaseMatch(mId, seen).then(r => {
@@ -405,7 +405,7 @@ function renderFinishedMatches() {
     const g2played = g2r > 0 || g2b > 0;
     const redDim = isBlueWin, blueDim = isRedWin;   // dim the losing side's numbers
     const gRow = (label, r, b) => `<div class="fmatch-g"><span class="gl">${label}</span><span class="r${redDim ? ' dim' : ''}">${r}</span><span class="sep">:</span><span class="b${blueDim ? ' dim' : ''}">${b}</span></div>`;
-    const scoreHtml = `<div class="fmatch-score">${gRow('G1', g1r, g1b)}${g2played ? gRow('G2', g2r, g2b) : ''}</div>`;
+    const scoreHtml = `<div class="fmatch-score">${gRow('เกม 1', g1r, g1b)}${g2played ? gRow('เกม 2', g2r, g2b) : ''}</div>`;
 
     const tags = (m.analysis?.tags || []).slice(0, 3)
       .map(t => `<span class="frow-tag-icon ${t.class || 'tag-normal'}">${t.label || t.id}</span>`).join('');

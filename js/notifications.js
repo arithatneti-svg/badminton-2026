@@ -56,13 +56,13 @@ function showG1DoneToast(matchId, g1r, g1b, winnerText) {
   toast.className = 'g1-toast';
   toast.innerHTML = `
     <div class="g1-toast-inner">
-      <div class="g1-toast-badge">G1 จบแล้ว</div>
+      <div class="g1-toast-badge">เกม 1 จบแล้ว</div>
       <div class="g1-toast-score">
         <span style="color:var(--red);font-family:'Bebas Neue',sans-serif;font-size:1.4em;">${g1r}</span>
         <span style="color:var(--muted);font-size:1em;margin:0 4px;">:</span>
         <span style="color:var(--blue);font-family:'Bebas Neue',sans-serif;font-size:1.4em;">${g1b}</span>
       </div>
-      <div class="g1-toast-label">${winnerText} ชนะ · รอ Game 2</div>
+      <div class="g1-toast-label">${winnerText} ชนะ · รอเกม 2</div>
     </div>
   `;
   document.body.appendChild(toast);
@@ -270,7 +270,7 @@ function buildNarrative({ rStat, isMatchEnd, tagIds, redNames, blueNames, g1r, g
     if (hasRollercoaster && hasClutch)
       gameLine = `โรลเลอร์โคสเตอร์สุดขีด! ทั้งสองทีมผลัดกันนำคนละเกม แล้วยังสูสีสุดๆในทุก set — แมตช์นี้ไม่มีผู้แพ้จริงๆ`;
     else if (hasRollercoaster)
-      gameLine = `สลับกันนำคนละเกม! ${redNames} ชนะ G1 ส่วน ${blueNames} ตีเสมอใน G2 — แต้มรวม ${totalR}:${totalB}`;
+      gameLine = `สลับกันนำคนละเกม! ${redNames} ชนะเกม 1 ส่วน ${blueNames} ตีเสมอในเกม 2 — แต้มรวม ${totalR}:${totalB}`;
     else if (hasClutch)
       gameLine = `เสมอในแบบที่ทุกคนประทับใจ — ทั้งสองทีมทุ่มสุดตัว ไม่มีใครยอมใครสักนิด`;
     else
