@@ -696,13 +696,15 @@ function renderFinishedList() {
     const _nm = s => String(s || '').split(' & ').map(n => _uEsc(n.replace(/\s*\(G\d\)/g, '').trim()));
     const [rP1, rP2] = _nm(m.redNames);
     const [bP1, bP2] = _nm(m.blueNames);
-    const rScoreColor = rWon ? 'var(--red)'  : bWon ? 'rgba(255,77,77,0.4)'  : 'var(--red)';
-    const bScoreColor = bWon ? 'var(--blue)' : rWon ? 'rgba(77,159,255,0.4)' : 'var(--blue)';
+    // the losing side's score is a quieter shade of its colour, not a see-through one: 40% opacity was
+    // 1.9-2.1:1 on the card; these are 4.6-5.1:1 and the 🏆 + the result badge still say who won
+    const rScoreColor = rWon ? 'var(--red)'  : bWon ? '#c86464' : 'var(--red)';
+    const bScoreColor = bWon ? 'var(--blue)' : rWon ? '#5090d0' : 'var(--blue)';
     // one malformed history row must not take down the whole list
     const resultLabel = _uEsc(String(m.result || '').replace(/[🔴🔵🤝]/g, '').trim());
 
     list.innerHTML += `
-      <div class="finished-card" style="border-color:${resultColor}22;">
+      <div class="finished-card" style="border-color:${rWon ? 'rgba(255,77,77,0.22)' : bWon ? 'rgba(77,159,255,0.22)' : 'rgba(240,192,64,0.22)'};">
         <div class="finished-header">
           <div style="font-family:'Bebas Neue';font-size:1.5em;color:var(--gold);letter-spacing:2px;">${m.id} · R${m.round}</div>
           <div class="result-badge" style="background:${resultColor}18;color:${resultColor};border:1px solid ${resultColor}44;">${resultLabel}</div>
@@ -717,7 +719,7 @@ function renderFinishedList() {
             <div class="team-dot red"></div>
             <div>
               <div style="color:var(--red);font-size:0.95rem;">${rP1||''}${rWon?' 🏆':''}</div>
-              ${rP2 ? `<div style="color:rgba(255,77,77,0.6);font-size:0.8rem;">${rP2}</div>` : ''}
+              ${rP2 ? `<div style="color:var(--red);font-size:0.85rem;font-weight:600;">${rP2}</div>` : ''}
             </div>
           </div>
           <div class="score-num-cell" style="background:rgba(255,77,77,0.08);color:${rScoreColor};">${g1r}</div>
@@ -728,7 +730,7 @@ function renderFinishedList() {
             <div class="team-dot blue"></div>
             <div>
               <div style="color:var(--blue);font-size:0.95rem;">${bP1||''}${bWon?' 🏆':''}</div>
-              ${bP2 ? `<div style="color:rgba(77,159,255,0.6);font-size:0.8rem;">${bP2}</div>` : ''}
+              ${bP2 ? `<div style="color:var(--blue);font-size:0.85rem;font-weight:600;">${bP2}</div>` : ''}
             </div>
           </div>
           <div class="score-num-cell" style="background:rgba(77,159,255,0.08);color:${bScoreColor};">${g1b}</div>

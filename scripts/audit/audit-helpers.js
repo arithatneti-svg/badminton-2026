@@ -124,6 +124,14 @@
     });
     return { targets: list.length, lt24: U.length, lt24_spacingFail_SC258: spacingFail, lt44: list.filter((x) => mn(x) < 44).length, lt48: list.filter((x) => mn(x) < 48).length, failTop: cnt(failList) };
   };
+  // every visible interactive element whose shorter side is under `min` px (default 48, the project rule), with its size
+  A.small = (rootSel, min) => {
+    min = min || 48;
+    const root = rootSel ? document.querySelector(rootSel) : document; if (!root) return { error: "no root" };
+    return [...root.querySelectorAll(SEL)].filter(A.vis).map((e) => ({ e, r: e.getBoundingClientRect() }))
+      .filter((x) => x.r.width >= 1 && x.r.height >= 1 && Math.min(x.r.width, x.r.height) < min)
+      .map((x) => A.sel(x.e) + " " + Math.round(x.r.width) + "x" + Math.round(x.r.height));
+  };
   A.hit = (x, y) => { const e = document.elementFromPoint(x, y); return e ? A.sel(e) : null; };
   window.__auditReady = "ok";
 })();

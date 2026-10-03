@@ -18,7 +18,9 @@
   --danger: #ff4d4d;
   --text: #f0f0f5;
   --muted: #7a7a9a;
-  --muted2: #555570;
+  /* hint lines on the page background (g1 recap, empty-state sub line, pull hint). It was #555570 = 2.79:1;
+     #7a7a9a reads 4.6-4.9:1 there. Not for use on --surface2 / --surface3 (4.3 / 4.0:1) - use --text there. */
+  --muted2: #7a7a9a;
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 22px;
@@ -404,7 +406,6 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   font-weight: 700;
   letter-spacing: 1.5px;
   padding: 6px 0 2px;
-  opacity: 0.6;
 }
 
 /* MATCH CARD */
@@ -428,7 +429,10 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 }
 .match-card:active { transform: scale(0.985); background: var(--surface2); }
 .match-card.claimed::before { background: var(--gold); }
-.match-card.locked-other { opacity: 0.45; cursor: default; }
+/* a match another umpire has taken: quiet, but never dimmed with opacity - that made the umpire's name and the
+   match id 1.85:1. Plain colours that pass 4.5:1 + the 🔒 on the badge say it is not available. */
+.match-card.locked-other { cursor: default; background: transparent; border-color: rgba(255,255,255,0.07); }
+.match-card.locked-other::before { opacity: 0.35; }
 
 /* Ripple effect on match card tap */
 .match-card .ripple {
@@ -461,7 +465,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   letter-spacing: 1px;
 }
 .badge-mine { background: rgba(46,204,113,0.18); color: var(--green); border: 1px solid rgba(46,204,113,0.4); }
-.badge-taken { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+.badge-taken { background: rgba(255,255,255,0.06); color: #a0a0be; border: 1px solid var(--border-bright); }
 .badge-court { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(240,192,64,0.35); }
 .badges { display: flex; align-items: center; gap: 8px; }
 
@@ -791,8 +795,8 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   transition: all 0.12s;
   line-height: 1;
 }
-.score-panel.red  .score-btn-minus { color: rgba(255,77,77,0.8);   border-color: rgba(255,77,77,0.45); }
-.score-panel.blue .score-btn-minus { color: rgba(77,159,255,0.8);  border-color: rgba(77,159,255,0.45); }
+.score-panel.red  .score-btn-minus { color: var(--red);  border-color: rgba(255,77,77,0.85);  background: rgba(0,0,0,0.6); }
+.score-panel.blue .score-btn-minus { color: var(--blue); border-color: rgba(77,159,255,0.85); background: rgba(0,0,0,0.6); }
 .score-panel.red  .score-btn-minus:active { background: rgba(255,77,77,0.2);  color: var(--red);  transform: scale(0.88); }
 .score-panel.blue .score-btn-minus:active { background: rgba(77,159,255,0.2); color: var(--blue); transform: scale(0.88); }
 
@@ -1356,8 +1360,8 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 /* LOCK — quiet until game 1 is a valid finish */
 #screen-scoring.active .btn-lock {
   background: var(--surface2);
-  color: rgba(255,107,107,0.65);
-  border: 1.5px solid rgba(255,77,77,0.3);
+  color: rgba(255,120,120,0.85);
+  border: 1.5px solid rgba(255,77,77,0.4);
   box-shadow: none;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
@@ -1371,8 +1375,8 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
 /* SUBMIT — quiet until game 2 is a valid finish */
 #screen-scoring.active .btn-submit {
   background: var(--surface2);
-  color: rgba(240,192,64,0.6);
-  border: 1.5px solid rgba(240,192,64,0.28);
+  color: rgba(240,192,64,0.78);
+  border: 1.5px solid rgba(240,192,64,0.4);
   box-shadow: none;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
@@ -1416,7 +1420,7 @@ h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
   display:inline-block; font-family:'Bebas Neue',sans-serif;
   font-size:var(--fs-game); letter-spacing:2px; line-height:1;
   padding:4px 9px; border-radius:8px; margin-top:0;
-  background:var(--surface2); border:1px solid var(--border); color:var(--muted);
+  background:var(--surface2); border:1px solid var(--border-bright); color:var(--text);
 }
 #screen-scoring.active .game-indicator.gp-red{ color:var(--red); border-color:rgba(255,77,77,.45); background:rgba(255,77,77,.12); }
 #screen-scoring.active .game-indicator.gp-blue{ color:var(--blue); border-color:rgba(77,159,255,.45); background:rgba(77,159,255,.12); }
