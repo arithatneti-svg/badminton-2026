@@ -29,7 +29,7 @@
 
 /* Champion label */
 #trophyWinnerLabel {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: clamp(10px, 1.6vw, 15px);
   font-weight: 700;
   letter-spacing: 8px;
@@ -51,7 +51,7 @@
 
 /* Team name */
 #trophyTeamName {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: clamp(3em, 11vw, 7em);
   line-height: 1;
   letter-spacing: 8px;
@@ -63,7 +63,7 @@
 
 /* Score */
 #trophyScore {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: clamp(1.3em, 4vw, 2.6em);
   letter-spacing: 8px;
   color: rgba(255,255,255,0.55);
@@ -119,7 +119,7 @@
 
 .award-card-icon { font-size: 2.2em; margin-bottom: 10px; display: block; }
 .award-card-title {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.2em;
   letter-spacing: 3px;
   color: var(--gold);
@@ -161,7 +161,7 @@
 .mvp-card:hover { transform: translateX(3px); }
 
 .mvp-rank {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 2.2em;
   letter-spacing: 2px;
   min-width: 44px;
@@ -175,12 +175,12 @@
 .mvp-info { flex: 1; min-width: 0; }
 .mvp-name { font-size: 18px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mvp-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.mvp-pts { font-family: 'Bebas Neue', sans-serif; font-size: 2em; letter-spacing: 1px; flex-shrink: 0; }
+.mvp-pts { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 2em; letter-spacing: 1px; flex-shrink: 0; }
 
 /* Close button */
 #trophyCloseBtn {
   margin-top: 40px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 2px;

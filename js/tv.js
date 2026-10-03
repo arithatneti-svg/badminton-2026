@@ -357,7 +357,7 @@ function _tvFitGrid(el) {
 
 function _tvFootHtml() {
   const dots = TV_PANELS.map((_, i) => `<span class="tv-dot ${i === _tvPanel ? 'on' : ''}"></span>`).join('');
-  return `<div class="tv-foot"><div class="tv-dots">${dots}</div><div class="tv-sync${_tvOfflineSince ? ' off' : ''}" id="tvSync">${_tvSyncInner()}</div><div class="tv-brand">Badminton Sports Day 2026</div></div>`;
+  return `<div class="tv-foot"><div class="tv-dots">${dots}</div><div class="tv-sync${_tvOfflineSince ? ' off' : ''}" id="tvSync">${_tvSyncInner()}</div><div class="tv-brand" lang="en">Badminton Sports Day 2026</div></div>`;
 }
 
 // Team tag: the team's name with a shape beside the colour (triangle = red, circle = blue), so a
@@ -373,7 +373,7 @@ function _tvBattleHtml() {
   const r = appState.globalScoreRed || 0, b = appState.globalScoreBlue || 0;
   const rn = appState.redTeamName || 'RED TEAM', bn = appState.blueTeamName || 'BLUE TEAM';
   return `<div class="tv-panel tv-battle">
-    <div class="tv-heading">🏸 TEAM BATTLE</div>
+    <div class="tv-heading" lang="en">🏸 TEAM BATTLE</div>
     <div class="tv-battle-row">
       <div class="tv-team red ${r > b ? 'lead' : ''}"><div class="tv-team-name">${escHtml(rn)}</div><div class="tv-team-score">${r}</div></div>
       <div class="tv-vs">VS</div>
@@ -450,7 +450,7 @@ function _tvGridHtml(live) {
     </div>`;
   };
   return `<div class="tv-panel">
-    <div class="tv-heading">🟢 LIVE · ${live.length} ${live.length > 1 ? 'COURTS' : 'COURT'}</div>
+    <div class="tv-heading" lang="en">🟢 LIVE · ${live.length} ${live.length > 1 ? 'COURTS' : 'COURT'}</div>
     <div class="tv-live-grid${plan.compact ? ' is-compact' : ''}" style="--tv-cols:${plan.cols}">${live.map(card).join('')}</div>
   </div>`;
 }
@@ -460,7 +460,7 @@ function _tvGridHtml(live) {
 function _tvBoardHtml() {
   const all = _tvStandings();
   if (!all.length) {
-    return `<div class="tv-panel"><div class="tv-heading">🏆 LEADERBOARD</div>
+    return `<div class="tv-panel"><div class="tv-heading" lang="en">🏆 LEADERBOARD</div>
       <div class="tv-board"><div class="tv-empty">ยังไม่มีข้อมูล</div></div></div>`;
   }
   const per = _tvBoardPerPage();
@@ -484,7 +484,7 @@ function _tvBoardHtml() {
     ? `<div class="tv-board-page">อันดับ ${start + 1}–${start + slice.length} จาก ${all.length} · หน้า ${_tvBoardPage + 1}/${pages}</div>`
     : '';
   return `<div class="tv-panel">
-    <div class="tv-heading">🏆 LEADERBOARD</div>${pageTag}
+    <div class="tv-heading" lang="en">🏆 LEADERBOARD</div>${pageTag}
     <div class="tv-board">${rows}</div>
   </div>`;
 }
@@ -551,7 +551,7 @@ function _tvEventHtml(ev) {
 // "RED TEAM 0 VS BLUE TEAM 0" for the moment it takes, or for good on a screen that never connects (P-21).
 function _tvLoadingHtml() {
   const stuck = typeof _dataPhase !== 'undefined' && (_dataPhase === 'slow' || _dataPhase === 'failed');
-  return `<div class="tv-panel tv-vs-panel"><div class="tv-heading">🏸 SPORTS DAY 2026</div><div class="tv-empty">${stuck ? 'ยังเชื่อมต่อไม่ได้ — กำลังลองใหม่…' : 'กำลังเชื่อมต่อ…'}</div></div>`;
+  return `<div class="tv-panel tv-vs-panel"><div class="tv-heading" lang="en">🏸 SPORTS DAY 2026</div><div class="tv-empty">${stuck ? 'ยังเชื่อมต่อไม่ได้ — กำลังลองใหม่…' : 'กำลังเชื่อมต่อ…'}</div></div>`;
 }
 
 function renderTvPanel(force) {
@@ -589,7 +589,7 @@ function renderTvPanel(force) {
     const live = _tvLiveList();
     if (!live.length) {
       key = 'live|empty';
-      html = `<div class="tv-panel tv-vs-panel"><div class="tv-heading">🟢 LIVE</div><div class="tv-empty">ยังไม่มีแมตช์กำลังแข่ง</div></div>`;
+      html = `<div class="tv-panel tv-vs-panel"><div class="tv-heading" lang="en">🟢 LIVE</div><div class="tv-empty">ยังไม่มีแมตช์กำลังแข่ง</div></div>`;
     } else if (live.length === 1) {
       const m = live[0];
       key = `hero|${_tvMKey(m)}|${_tvNamesKey()}`;

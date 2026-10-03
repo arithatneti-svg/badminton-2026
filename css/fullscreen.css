@@ -63,7 +63,7 @@ body.guest-mode .fs-admin-only { display: none !important; }
   line-height: 1;
 }
 .fs-nav-label {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -102,7 +102,7 @@ body.guest-mode .fs-admin-only { display: none !important; }
 .perf-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px; border-left: 2px solid var(--border); overflow: hidden; }
 .perf-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .perf-header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
-.perf-id { font-family: 'Bebas Neue', sans-serif; font-size: 1.3em; letter-spacing: 3px; color: var(--gold); flex-shrink: 0; }
+.perf-id { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.3em; letter-spacing: 3px; color: var(--gold); flex-shrink: 0; }
 .perf-round { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 2px; flex-shrink: 0; }
 .perf-status-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 9px; border-radius: 20px; border: 1px solid; white-space: nowrap; }
 .perf-duration { font-size: 12px; color: var(--muted); font-weight: 600; flex-shrink: 0; white-space: nowrap; }
@@ -110,14 +110,14 @@ body.guest-mode .fs-admin-only { display: none !important; }
 .perf-teams .red-text, .perf-teams .blue-text { font-weight: 700; font-size: 15px; white-space: normal; word-break: break-word; max-width: 42%; }
 .perf-teams .vs-sep { color: var(--muted); font-size: 11px; font-weight: 700; flex-shrink: 0; }
 .perf-score-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-.perf-score { font-family: 'Bebas Neue', sans-serif; font-size: 1.4em; letter-spacing: 2px; }
+.perf-score { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.4em; letter-spacing: 2px; }
 .perf-result-text { font-size: 13px; font-weight: 700; }
 .perf-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
 .perf-tag { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 20px; border: 1px solid; letter-spacing: 0.5px; }
 .perf-summary { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; border-left: 2px solid var(--border); padding-left: 10px; }
 .perf-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .perf-metric { background: var(--surface2); border-radius: 10px; padding: 10px 8px; text-align: center; }
-.perf-metric-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.7em; letter-spacing: 2px; color: var(--text); }
+.perf-metric-val { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.7em; letter-spacing: 2px; color: var(--text); }
 .perf-metric-label { font-size: 10px; color: var(--muted); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
 
 

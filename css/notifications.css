@@ -47,7 +47,7 @@
   position: relative; z-index: 1;
 }
 
-#matchNotiMatchId { font-family: 'Bebas Neue', sans-serif; font-size: 1.2em; letter-spacing: 4px; color: var(--gold); }
+#matchNotiMatchId { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.2em; letter-spacing: 4px; color: var(--gold); }
 #matchNotiStatusBadge { font-size: 10px; font-weight: 700; letter-spacing: 2px; padding: 4px 10px; border-radius: 20px; background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,230,118,0.2); text-transform: uppercase; }
 
 #matchNotiTeams {
@@ -57,7 +57,7 @@
 }
 
 .mnoti-team-name {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: clamp(1.1em, 3.5vw, 1.7em);
   letter-spacing: 2px;
   flex: 1;
@@ -67,7 +67,7 @@
 }
 .mnoti-team-name.red { color: var(--red); text-align: right; }
 .mnoti-team-name.blue { color: var(--blue); text-align: left; }
-.mnoti-vs { font-family: 'Bebas Neue', sans-serif; font-size: 1em; color: var(--muted); letter-spacing: 4px; flex-shrink: 0; }
+.mnoti-vs { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1em; color: var(--muted); letter-spacing: 4px; flex-shrink: 0; }
 
 #matchNotiScoreBoard {
   background: var(--surface2);
@@ -98,7 +98,7 @@
   text-align: left;
 }
 .mnoti-score-cell {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 3em;
   letter-spacing: 0;
   line-height: 1;
@@ -111,7 +111,7 @@
 .mnoti-score-cell.blue { color: var(--blue); }
 .mnoti-score-sep {
   color: rgba(255,255,255,0.25);
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 2em;
   flex-shrink: 0;
   line-height: 1;
@@ -134,7 +134,7 @@
 .mnoti-game-winner.blue { color: var(--blue); background: rgba(59,142,255,0.1); border: 1px solid rgba(59,142,255,0.2); }
 
 #matchNotiResultLine {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 2em;
   letter-spacing: 3px;
   margin-bottom: 12px;
@@ -185,7 +185,7 @@
   color: var(--text2);
   padding: 10px 36px;
   border-radius: 24px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -219,7 +219,7 @@
   animation: notiReactionPop .5s cubic-bezier(0.34,1.56,0.64,1) both;
 }
 .noti-reaction-text {
-  font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; letter-spacing: 2px;
   font-size: clamp(18px, 5vw, 26px); color: var(--text); text-align: center;
   animation: notiReactionRise .4s ease .15s both;
 }

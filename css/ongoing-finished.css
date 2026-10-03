@@ -14,7 +14,7 @@
 }
 
 .ongoing-live-count {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 3em;
   color: var(--green);
   line-height: 1;
@@ -53,7 +53,7 @@
   cursor: pointer;
   outline: none;
   padding: 11px 16px;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1em;
   letter-spacing: 3px;
   color: var(--gold);
@@ -98,7 +98,7 @@
 .fmatch.blue { border-left-color: var(--blue); }
 .fmatch.draw { border-left-color: var(--gold); }
 .fmatch-head { display: flex; align-items: center; gap: 9px; padding: 11px 15px 10px; border-bottom: 1px solid var(--border); }
-.fmatch-id { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; color: var(--gold); }
+.fmatch-id { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.3rem; letter-spacing: 2px; color: var(--gold); }
 .fmatch-round { font-size: 11px; font-weight: 800; letter-spacing: 0.3px; color: var(--muted); background: var(--surface3); border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; }
 .fmatch-badge { margin-left: auto; font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
 .fmatch-badge.red  { color: var(--red);  background: rgba(255,59,92,.12);  border: 1px solid rgba(255,59,92,.35); }
@@ -116,7 +116,7 @@
 .fmatch-name.lose  { color: var(--muted); font-weight: 500; }
 .fmatch-av-dim { opacity: .45; }
 .fmatch-score { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 13px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border); }
-.fmatch-g { display: flex; align-items: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.55rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.fmatch-g { display: flex; align-items: center; font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.55rem; line-height: 1; font-variant-numeric: tabular-nums; }
 .fmatch-g .gl { font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0; color: var(--text2); width: 36px; white-space: nowrap; }
 .fmatch-g .r { color: var(--red); }
 .fmatch-g .b { color: var(--blue); }
@@ -159,7 +159,7 @@
 
 .frow-id { grid-area: id; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .frow-match-id {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.15em;
   letter-spacing: 2px;
   color: var(--gold);
@@ -210,7 +210,7 @@
 }
 .frow-glabel.g2-label { color: var(--gold); background: rgba(245,200,66,0.1); }
 .frow-snum {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.7em;
   line-height: 1.05;
   min-width: 30px;
@@ -221,7 +221,7 @@
 .frow-snum.blue { color: var(--blue); }
 .frow-ssep {
   color: rgba(255,255,255,0.25);
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.3em;
   line-height: 1;
   padding: 0 2px;
@@ -329,7 +329,7 @@
 
 /* Live card score bigger on ongoing tab */
 .live-card .score-big {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 3.2em;
   line-height: 1;
 }

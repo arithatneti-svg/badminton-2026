@@ -35,7 +35,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.25em;
   letter-spacing: 3px;
   color: var(--gold);
@@ -96,7 +96,7 @@
   margin-bottom: 12px;
 }
 #report .rp-hero-title {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.15em;
   letter-spacing: 4px;
   color: var(--text2);
@@ -110,7 +110,7 @@
   white-space: nowrap;
 }
 #report .rp-hero-total b {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.7em;
   letter-spacing: 1px;
   color: var(--gold);
@@ -126,7 +126,7 @@
 }
 #report .rp-hs { text-align: center; min-width: 0; }
 #report .rp-hs-val {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: clamp(2.2em, 11vw, 3.4em);
   line-height: 0.95;
   letter-spacing: 2px;
@@ -238,7 +238,7 @@
   border: none;
   border-radius: 9px;
   color: var(--muted);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -369,7 +369,7 @@
   min-width: 0;
 }
 #report .rp-metric-val {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.55em;
   letter-spacing: 1px;
   line-height: 1.1;
@@ -448,7 +448,7 @@
 
 #report .rp-prow-pos {
   grid-area: pos;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.35em;
   text-align: center;
   color: var(--muted);
@@ -487,7 +487,7 @@
 }
 #report .rp-prow-pts b {
   display: block;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.9em;
   line-height: 0.9;
   letter-spacing: 1px;
@@ -578,7 +578,7 @@
   border-bottom: 1px solid var(--border);
 }
 #report .rp-round-no {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.45em;
   letter-spacing: 3px;
   color: var(--gold);
@@ -627,7 +627,7 @@
 #report .rp-mrow-blue { grid-area: blue; font-size: 12.5px; color: var(--blue); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
 #report .rp-mrow-score {
   grid-area: score;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.05em;
   letter-spacing: 1.5px;
   color: var(--text2);
@@ -649,7 +649,7 @@
 #report .rp-upos { font-size: 1.05em; flex-shrink: 0; min-width: 22px; }
 #report .rp-uname { font-size: 14.5px; font-weight: 700; color: var(--text); }
 #report .rp-ucount { margin-left: auto; display: flex; align-items: baseline; gap: 4px; }
-#report .rp-ucount b { font-family: 'Bebas Neue', sans-serif; font-size: 1.6em; letter-spacing: 1px; }
+#report .rp-ucount b { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.6em; letter-spacing: 1px; }
 #report .rp-ucount span { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); }
 #report .rp-ufoot { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-size: 11.5px; color: var(--muted); }
 #report .rp-ufoot b { color: var(--text); }
@@ -663,7 +663,7 @@
   margin-bottom: 0;
 }
 #report .chart-title {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.25em;
   color: var(--gold);
   letter-spacing: 3px;
@@ -714,7 +714,7 @@
   cursor: pointer;
   padding: 5px 13px;
   border-radius: 20px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -874,7 +874,7 @@
 #report .cmp-season-card.is-current { border-color: rgba(245,200,66,0.32); }
 #report .cmp-season-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 #report .cmp-year {
-  font-family: 'Bebas Neue', sans-serif; font-size: 1.5em; letter-spacing: 3px; color: var(--gold);
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.5em; letter-spacing: 3px; color: var(--gold);
 }
 #report .cmp-live {
   font-size: 8.5px; font-weight: 800; letter-spacing: 1px;
@@ -884,7 +884,7 @@
 }
 #report .cmp-name { font-size: 11px; color: var(--muted); width: 100%; }
 #report .cmp-score {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 2.4em; line-height: 1.1; letter-spacing: 2px;
   margin-top: 8px; font-variant-numeric: tabular-nums;
 }

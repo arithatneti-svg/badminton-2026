@@ -277,7 +277,7 @@
 }
 .pav img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pav-initials {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: calc(var(--pav-size) * 0.36);
   letter-spacing: 1px;
   line-height: 1;
@@ -332,7 +332,7 @@
   font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; margin-top: 4px; }
 .pod-tdot { width: 7px; height: 7px; border-radius: 50%; }
 .pod-tdot.red { background: var(--red); } .pod-tdot.blue { background: var(--blue); }
-.pod-pts { font-family: 'Bebas Neue', sans-serif; font-size: 2.6em; line-height: 0.85;
+.pod-pts { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 2.6em; line-height: 0.85;
   color: var(--gold); margin: 10px 0 8px; }
 .pod.p1 .pod-pts { font-size: 3.2em; }
 .pod-pts small { display: block; font-size: 8px; font-weight: 800; letter-spacing: 2px;
@@ -344,7 +344,7 @@
 
 /* list of ranks 4+ */
 .pdir-list-h {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: 10.5px; font-weight: 800; letter-spacing: 2.5px;
   color: var(--muted); text-transform: uppercase;
   padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
@@ -386,7 +386,7 @@
 .pdir-card.is-blue:hover { border-color: rgba(59,142,255,0.35); }
 
 .pdir-rank {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.5em;
   color: var(--muted);
   min-width: 26px;
@@ -442,7 +442,7 @@
 .pdir-pts { text-align: right; flex-shrink: 0; }
 .pdir-pts b {
   display: block;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 2.4em;
   line-height: 0.85;
   color: var(--gold);
@@ -617,7 +617,7 @@ body.tv-mode .me-bar { display: none; }
   animation: fadeUp 0.24s ease both;
 }
 .me-picker-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
-.me-picker-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5em; letter-spacing: 3px; color: var(--gold); }
+.me-picker-title { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.5em; letter-spacing: 3px; color: var(--gold); }
 .me-picker-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 .me-picker-close {
   margin-left: auto; background: none; border: none; color: var(--muted);
@@ -676,7 +676,7 @@ body.tv-mode .me-bar { display: none; }
 .court-select {
   margin-left: auto; min-height: 32px; padding: 4px 8px; border-radius: 8px;
   background: var(--surface2); color: var(--text); border: 1px solid var(--border2);
-  font: 700 12px 'Space Grotesk', sans-serif;
+  font: 700 12px 'Space Grotesk', 'Noto Sans Thai', sans-serif;
 }
 /* taken by an umpire, no first point yet — calm, not the green LIVE */
 .court-ready {

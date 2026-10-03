@@ -32,7 +32,7 @@
   width: 64px; height: 64px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.8em;
   letter-spacing: 2px;
   flex-shrink: 0;
@@ -46,7 +46,7 @@
 }
 
 .profile-name {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: clamp(2em, 6vw, 3.2em);
   letter-spacing: 4px;
   line-height: 1;
@@ -76,7 +76,7 @@
   background: linear-gradient(160deg, rgba(240,192,64,0.14), rgba(240,192,64,0.03));
   border: 1px solid rgba(240,192,64,0.3);
 }
-.pd-stat-hero .v { font-family: 'Bebas Neue', sans-serif; font-size: 3.1em; line-height: 0.82; letter-spacing: 1px; }
+.pd-stat-hero .v { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 3.1em; line-height: 0.82; letter-spacing: 1px; }
 .pd-stat-hero .l { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-top: 6px; }
 .pd-stat-hero .sub { font-size: 9px; color: var(--muted2); margin-top: 2px; letter-spacing: 0.5px; }
 .pd-stat-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -85,7 +85,7 @@
   padding: 9px 6px; text-align: center;
   display: flex; flex-direction: column; justify-content: center;
 }
-.pd-stat-tile .v { font-family: 'Bebas Neue', sans-serif; font-size: 1.55em; line-height: 1; letter-spacing: 0.5px; }
+.pd-stat-tile .v { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.55em; line-height: 1; letter-spacing: 0.5px; }
 .pd-stat-tile .l { font-size: 8.5px; font-weight: 800; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-top: 3px; }
 @media (max-width: 520px) {
   .pd-statbar { grid-template-columns: 1fr; }
@@ -165,7 +165,7 @@
 .profile-field input, .profile-field select, .profile-field textarea {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: 8px; color: var(--text);
-  font-family: 'Space Grotesk', sans-serif; font-size: 13px;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif; font-size: 13px;
   font-weight: 600; padding: 9px 12px; outline: none;
   transition: border-color 0.18s;
   resize: vertical;
@@ -327,7 +327,7 @@
 }
 .pd-career-tot b {
   display: block;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.6em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -353,11 +353,11 @@
 }
 .pd-career-row.is-current { background: rgba(245,200,66,0.05); }
 .pdc-year {
-  font-family: 'Bebas Neue', sans-serif; font-size: 1.35em; letter-spacing: 2px;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.35em; letter-spacing: 2px;
   color: var(--text); min-width: 58px; flex-shrink: 0;
 }
 .pdc-now {
-  display: block; font-family: 'Space Grotesk', sans-serif;
+  display: block; font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: 8.5px; font-weight: 800; letter-spacing: 1px; color: var(--gold);
 }
 .pdc-team { font-size: 12.5px; font-weight: 700; min-width: 92px; flex-shrink: 0; }
@@ -373,11 +373,11 @@
 .pd-past-season { margin-bottom: 14px; }
 .pd-past-head {
   display: flex; align-items: baseline; gap: 9px;
-  font-family: 'Bebas Neue', sans-serif; font-size: 1.2em; letter-spacing: 2px;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.2em; letter-spacing: 2px;
   color: var(--gold); margin-bottom: 7px;
 }
 .pd-past-head span {
-  font-family: 'Space Grotesk', sans-serif; font-size: 10.5px;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif; font-size: 10.5px;
   letter-spacing: 0; color: var(--muted); font-weight: 600;
 }
 
@@ -400,7 +400,7 @@
   background: var(--surface2);
   border: 1px solid var(--border2);
   color: var(--text2);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -443,7 +443,7 @@
   max-width: min(540px, 90vw); max-height: 72vh; border-radius: 18px; object-fit: contain;
   border: 1px solid var(--border2); box-shadow: 0 30px 80px rgba(0,0,0,.7);
 }
-.plb-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8em; letter-spacing: 2px; color: var(--text); text-align: center; }
+.plb-name { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.8em; letter-spacing: 2px; color: var(--text); text-align: center; }
 .plb-meta { font-size: 12px; font-weight: 600; letter-spacing: 1px; color: var(--muted); margin-top: 2px; text-align: center; }
 
 /* adjuster sits above the open profile overlay (z 800) */
@@ -476,5 +476,5 @@
 }
 .pd-award-star { line-height: 0; flex-shrink: 0; filter: drop-shadow(0 2px 6px rgba(240,192,64,0.35)); }
 .pd-award-txt { display: flex; flex-direction: column; line-height: 1.15; }
-.pd-award-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--gold); }
+.pd-award-title { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--gold); }
 .pd-award-sub { font-size: 0.64rem; color: var(--muted); font-weight: 600; }

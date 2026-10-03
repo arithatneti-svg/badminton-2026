@@ -74,7 +74,7 @@ html { overflow-x: clip; scrollbar-gutter: stable; }
 html:has(body.tv-mode) { scrollbar-gutter: auto; }
 
 body {
-  font-family: 'Space Grotesk', 'Rajdhani', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Thai', 'Rajdhani', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;

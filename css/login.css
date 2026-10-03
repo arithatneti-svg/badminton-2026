@@ -68,7 +68,7 @@ body.superadmin-mode .superadmin-only { display: revert !important; }
 .login-primary:active { transform: scale(0.985); }
 .login-primary-icon { font-size: 26px; line-height: 1; }
 .login-primary-main {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
   font-size: 1.9em;
   letter-spacing: 3px;
   line-height: 1.15;
