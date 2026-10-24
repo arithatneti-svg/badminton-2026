@@ -125,10 +125,10 @@
 }
 
 .live-dot {
-  width: 6px; height: 6px;
+  width: 7px; height: 7px;
   border-radius: 50%;
-  background: var(--green);
-  animation: live-blink 1.2s ease-in-out infinite;
+  background: var(--live);
+  animation: ds-pulse 1.8s ease-in-out infinite;   /* opacity only: no animated shadow */
 }
 @keyframes live-blink { 0%,100% { opacity:1; box-shadow:0 0 4px var(--green); } 50% { opacity:0.3; box-shadow:none; } }
 

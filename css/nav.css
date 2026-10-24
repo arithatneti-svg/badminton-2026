@@ -104,90 +104,83 @@
   .nav-tabs { order: 5; flex-basis: 100%; justify-content: flex-start; }
 }
 
-/* BUTTONS */
+/* BUTTONS - the legacy .btn family on the v3 tokens. New markup uses .ds-btn (css/ui.css), same look.
+   Foundation-owned: no area stylesheet edits these rules. Flat fills, a press step instead of the old ripple/glow. */
 .btn {
-  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
-  font-size: 13px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-14);
   font-weight: 600;
-  letter-spacing: 0.3px;
+  line-height: 1.25;
+  letter-spacing: 0;
   padding: 9px 18px;
-  border: none;
-  border-radius: var(--radius-sm);
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--s3);
+  color: var(--t-hi);
   cursor: pointer;
-  transition: all 0.18s;
+  transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out);
   display: inline-flex;
   align-items: center;
   gap: 6px;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
-.btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 65%);
-  transform: scale(0);
-  opacity: 0;
-  transition: transform 0.35s, opacity 0.35s;
-  border-radius: inherit;
-  pointer-events: none;
+.btn:active { transform: scale(.98); }
+.btn[disabled] { opacity: .45; pointer-events: none; }
+@media (hover: hover) { .btn:hover { background: var(--s4); } }
+
+.btn-primary { background: var(--gold); color: var(--gold-ink); border-color: transparent; }
+.btn-danger { background: transparent; color: var(--err); border-color: var(--err-line); }
+.btn-info { background: var(--blue-dim); color: var(--blue-text); border-color: rgba(77, 159, 255, .35); }
+.btn-success { background: var(--live-fill); color: var(--live); border-color: var(--live-line); }
+.btn-outline { background: transparent; color: var(--t-mid); }
+@media (hover: hover) {
+  .btn-primary:hover { background: var(--gold-hi); }
+  .btn-danger:hover { background: var(--err-fill); }
+  .btn-info:hover { background: rgba(77, 159, 255, .22); }
+  .btn-success:hover { background: rgba(52, 227, 154, .2); }
+  .btn-outline:hover { background: var(--s3); color: var(--t-hi); }
 }
-.btn:active::after {
-  transform: scale(2.5);
-  opacity: 1;
-  transition: 0s;
-}
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--gold) 0%, #e8a800 100%);
-  color: #111;
-  box-shadow: 0 4px 12px rgba(245,200,66,0.2);
-}
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,200,66,0.35); }
-
-.btn-danger { background: rgba(255,69,96,0.12); color: var(--danger); border: 1px solid rgba(255,69,96,0.2); }
-.btn-danger:hover { background: rgba(255,69,96,0.22); }
-
-.btn-info { background: rgba(59,142,255,0.1); color: var(--blue); border: 1px solid rgba(59,142,255,0.18); }
-.btn-info:hover { background: rgba(59,142,255,0.2); }
-
-.btn-success { background: rgba(0,230,118,0.1); color: var(--green); border: 1px solid rgba(0,230,118,0.18); }
-.btn-success:hover { background: rgba(0,230,118,0.2); }
-
-.btn-outline { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
-.btn-outline:hover { background: var(--surface2); border-color: var(--border2); }
-
-.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-sm { padding: 5px 12px; min-height: 32px; font-size: var(--fs-13); }
 
 .btn-reset {
   background: transparent;
-  color: var(--danger);
-  border: 1px solid rgba(255,69,96,0.25);
+  color: var(--err);
+  border: 1px solid var(--err-line);
   padding: 7px 13px;
-  border-radius: 6px;
+  min-height: 36px;
+  border-radius: var(--r-sm);
   cursor: pointer;
-  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
-  font-size: 13px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-14);
   font-weight: 600;
-  transition: all 0.2s;
+  transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
   white-space: nowrap;
 }
 
 .btn-fs {
-  background: var(--surface2);
-  color: var(--text2);
-  border: 1px solid var(--border);
+  background: var(--s3);
+  color: var(--t-mid);
+  border: 1px solid var(--line-strong);
   padding: 7px 13px;
-  border-radius: 6px;
+  min-height: 36px;
+  border-radius: var(--r-sm);
   cursor: pointer;
-  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
-  font-size: 13px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-14);
   font-weight: 600;
-  transition: all 0.2s;
+  transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
   white-space: nowrap;
 }
-.btn-fs:hover { background: var(--surface3); border-color: var(--border2); }
+@media (hover: hover) {
+  .btn-reset:hover { background: var(--err-fill); }
+  .btn-fs:hover { background: var(--s4); color: var(--t-hi); }
+}
 
 
 /* ══════════════════════════════════════════════════════════════════════

@@ -162,12 +162,12 @@ try {
   </div>
 </div>
 
-<div id="confirmDialogModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; justify-content:center; align-items:center; flex-direction:column;">
-  <div style="background:#111118; border:1px solid rgba(245,200,66,0.3); border-radius:16px; padding:36px 32px; width:min(90vw,360px); text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.8);">
-    <div id="confirmDialogMsg" style="color:#e8e8f0; font-size:1.2em; margin-bottom:24px; font-weight:600; line-height:1.5;"></div>
-    <div style="display:flex; gap:10px; justify-content:center;">
-      <button id="confirmDialogOK" class="btn btn-primary" style="flex:1; padding:12px; font-size:1.1em;">✓ OK</button>
-      <button onclick="closeConfirmDialog()" class="btn btn-danger" style="flex:1; padding:12px; font-size:1.1em;">✕ Cancel</button>
+<div id="confirmDialogModal" class="ds-scrim" role="alertdialog" aria-modal="true" aria-labelledby="confirmDialogMsg" style="display:none; z-index:calc(var(--z-modal) + 20);">
+  <div class="ds-sheet" style="text-align:center;">
+    <div id="confirmDialogMsg" class="ds-sheet-title" style="font-weight:600;"></div>
+    <div class="ds-sheet-actions">
+      <button id="confirmDialogOK" class="ds-btn ds-btn-primary ds-btn-lg" type="button">ยืนยัน</button>
+      <button onclick="closeConfirmDialog()" class="ds-btn ds-btn-lg" type="button">ยกเลิก</button>
     </div>
   </div>
 </div>
