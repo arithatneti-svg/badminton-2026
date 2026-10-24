@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Design system v3 - preview</title>
+<!-- Visual QA page for css/tokens.css + css/ui.css + shared/icons.js + shared/art.js. Not part of the app: not in sw.js, not in build.mjs. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/ui.css">
+<script defer src="../../shared/icons.js"></script>
+<script defer src="../../shared/art.js"></script>
+<style>
+  body { padding: var(--sp-5) var(--sp-4) calc(var(--sp-8) + var(--sab)); }
+  main { max-width: 980px; margin: 0 auto; display: grid; gap: var(--sp-7); }
+  h1 { font: 800 var(--fs-32)/var(--lh-tight) var(--font-ui); }
+  h2 { font: 700 var(--fs-12)/1.3 var(--font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-bottom: var(--sp-4); }
+  section > * + * { margin-top: var(--sp-4); }
+  .row { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; }
+  .grid { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .sw { border: 1px solid var(--line-strong); border-radius: var(--r-sm); overflow: hidden; background: var(--s1); font: 500 var(--fs-12)/1.4 var(--font-ui); color: var(--t-mid); }
+  .sw .chip { height: 56px; display: grid; place-items: center; font: 700 var(--fs-20)/1 var(--font-ui); }
+  .sw .meta { padding: 8px 10px; display: grid; gap: 2px; }
+  .sw b { color: var(--t-hi); font-size: var(--fs-13); }
+  .ok { color: var(--live); } .bad { color: var(--err); }
+  .ic-cell { display: grid; gap: 6px; justify-items: center; padding: 12px 6px; border: 1px solid var(--line); border-radius: var(--r-sm); font: 500 11px/1.2 var(--font-ui); color: var(--t-low); text-align: center; word-break: break-all; }
+  .ic-cell .ds-ic { font-size: 26px; color: var(--t-hi); }
+  .hero { padding: var(--sp-7) var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-lg); display: grid; justify-items: center; gap: var(--sp-3); text-align: center; background-color: var(--s1); }
+  .digits { font-size: 128px; color: var(--t-hi); }
+  .scale > div { display: flex; align-items: baseline; gap: var(--sp-4); }
+  .scale small { width: 56px; color: var(--t-low); font: 600 var(--fs-12)/1 var(--font-ui); flex: none; }
+  .tone { font: 500 var(--fs-18)/var(--lh-th) var(--font-th); }
+</style>
+</head>
+<body>
+<main>
+  <header class="row" style="gap:var(--sp-4)">
+    <span id="mark"></span>
+    <div>
+      <h1>Design system v3</h1>
+      <p class="ds-muted" style="font-size:var(--fs-14)">Badminton Sports Day 2026 · tokens.css · ui.css · icons.js · art.js</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>Colour (ratio = text colour on the surface shown)</h2>
+    <div class="grid" id="swatches"></div>
+  </section>
+
+  <section>
+    <h2>Type</h2>
+    <div class="hero ds-court-bg">
+      <div class="ds-num digits" id="digits">21</div>
+      <div class="ds-label">Bebas Neue · ตัวเลขคะแนน tabular</div>
+      <button class="ds-btn ds-btn-sm" id="popBtn" type="button">เด้งตัวเลข (ds-pop)</button>
+    </div>
+    <div class="scale">
+      <div><small>56</small><span style="font:700 var(--fs-56)/1.1 var(--font-ui)">Aa กขค</span></div>
+      <div><small>32</small><span style="font:700 var(--fs-32)/1.15 var(--font-ui)">แมตช์กำลังแข่ง Live</span></div>
+      <div><small>24</small><span style="font:700 var(--fs-24)/1.2 var(--font-ui)">แจ๊ค &amp; ออป · พบ · หญิง &amp; ริท</span></div>
+      <div><small>20</small><span style="font:600 var(--fs-20)/1.3 var(--font-ui)">เกม 1 · คอร์ต 3 · เริ่มเมื่อ 18:30</span></div>
+      <div><small>16</small><span style="font:500 var(--fs-16)/1.5 var(--font-ui)">ตัวอักษรเนื้อหาปกติ ต้องอ่านชัดบนมือถือกลางแจ้ง 0123456789</span></div>
+      <div><small>14</small><span style="font:500 var(--fs-14)/1.5 var(--font-ui)">ข้อความรอง ตารางข้อมูล และคำอธิบายใต้ปุ่ม</span></div>
+      <div><small>12</small><span style="font:600 var(--fs-12)/1.4 var(--font-ui)">ป้ายเล็กสุด — ห้ามเล็กกว่านี้</span></div>
+    </div>
+    <p class="tone">Thai tone marks need room: ที่ นี้ ผู้ชนะ ก็ ซ้อน ปู่ — line-height 1.45</p>
+  </section>
+
+  <section>
+    <h2>Buttons</h2>
+    <div class="row">
+      <button class="ds-btn ds-btn-primary" type="button"><span data-i="check"></span> ยืนยัน</button>
+      <button class="ds-btn" type="button">ปกติ</button>
+      <button class="ds-btn ds-btn-ghost" type="button">Ghost</button>
+      <button class="ds-btn ds-btn-danger" type="button"><span data-i="trash"></span> ลบ</button>
+      <button class="ds-btn ds-btn-red" type="button">ทีมแดง</button>
+      <button class="ds-btn ds-btn-blue" type="button">ทีมน้ำเงิน</button>
+      <button class="ds-btn" type="button" disabled>ปิดอยู่</button>
+    </div>
+    <div class="row">
+      <button class="ds-btn ds-btn-primary ds-btn-lg" type="button">ใหญ่ 56 px</button>
+      <button class="ds-btn ds-btn-sm" type="button">เล็ก 40 px</button>
+      <button class="ds-btn ds-btn-icon" type="button" aria-label="เพิ่ม"><span data-i="plus"></span></button>
+      <button class="ds-btn ds-btn-icon ds-btn-ghost" type="button" aria-label="เมนู"><span data-i="dots-three"></span></button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Chips · team tags · status</h2>
+    <div class="row">
+      <span class="ds-chip">ปกติ</span>
+      <span class="ds-chip ds-chip-gold"><span data-i="trophy" data-fill="1"></span> แชมป์</span>
+      <span class="ds-chip ds-chip-live"><i class="ds-dot ds-dot-live"></i> LIVE</span>
+      <span class="ds-chip ds-chip-warn"><span data-i="warning"></span> ไม่มีความเคลื่อนไหว</span>
+      <span class="ds-chip ds-chip-err"><span data-i="wifi-slash"></span> ออฟไลน์</span>
+      <span class="ds-chip ds-chip-red">ทีมแดง</span>
+      <span class="ds-chip ds-chip-blue">ทีมน้ำเงิน</span>
+      <button class="ds-chip is-btn" type="button">ตัวกรอง</button>
+      <button class="ds-chip is-btn is-on" type="button">เลือกอยู่</button>
+    </div>
+    <div class="row" style="font-size:var(--fs-20)">
+      <span class="ds-team ds-team-red">แดง</span>
+      <span class="ds-team ds-team-blue">น้ำเงิน</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cards · net divider · court hero</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+      <div class="ds-card ds-edge-red"><b>แดง</b><p class="ds-muted" style="font-size:var(--fs-14)">การ์ดมีแถบสีทีมด้านซ้าย</p></div>
+      <div class="ds-card ds-card-raised ds-edge-blue"><b>น้ำเงิน</b><p class="ds-muted" style="font-size:var(--fs-14)">ยกระดับขึ้นหนึ่งชั้น</p></div>
+      <div class="ds-card ds-edge-gold"><b>ทอง</b><p class="ds-muted" style="font-size:var(--fs-14)">ผู้ชนะ / รายการเด่น</p></div>
+    </div>
+    <div class="ds-net">VS</div>
+    <div class="hero ds-court-bg"><div id="mark2"></div><div class="ds-empty-title">Badminton Sports Day 2026</div><div class="ds-empty-text">พื้นหลังคอร์ตแบ็ดมินตันขนาดจริงอัตราส่วน 13.4 × 6.1 ม.</div></div>
+  </section>
+
+  <section>
+    <h2>Fields</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+      <div class="ds-field"><label class="ds-label" for="f1">ชื่อผู้เล่น</label><input class="ds-input" id="f1" placeholder="พิมพ์ชื่อ"><span class="ds-help">คำอธิบายใต้ช่อง</span></div>
+      <div class="ds-field"><label class="ds-label" for="f2">ทีม</label><select class="ds-select" id="f2"><option>แดง</option><option>น้ำเงิน</option></select></div>
+      <div class="ds-field is-invalid"><label class="ds-label" for="f3">รหัส</label><input class="ds-input" id="f3" value="abc"><span class="ds-help">รหัสไม่ถูกต้อง</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tabs · segmented · banners</h2>
+    <div class="ds-tabs" role="tablist"><button class="ds-tab" role="tab" aria-selected="true">ผู้เล่น</button><button class="ds-tab" role="tab" aria-selected="false">แมตช์</button><button class="ds-tab" role="tab" aria-selected="false">ตาราง</button></div>
+    <div class="ds-seg"><button class="is-on" type="button">ทั้งหมด</button><button type="button">ว่าง</button><button type="button">คุมอยู่</button></div>
+    <div class="ds-banner is-ok"><span data-i="check-circle"></span><span>ส่งแล้ว 18:42:10</span></div>
+    <div class="ds-banner is-warn"><span data-i="warning"></span><span>สัญญาณช้า — กำลังส่ง 2 รายการ</span></div>
+    <div class="ds-banner is-err"><span data-i="wifi-slash"></span><span>ออฟไลน์ · รอส่ง 3 รายการ</span></div>
+    <div class="ds-banner is-info"><span data-i="info"></span><span>มีเวอร์ชันใหม่ — แตะเพื่ออัปเดต</span></div>
+  </section>
+
+  <section>
+    <h2>Empty · loading · table · sheet</h2>
+    <div class="ds-card"><div class="ds-empty"><div class="ds-empty-art" id="art1"></div><div class="ds-empty-title">ยังไม่มีแมตช์กำลังแข่ง</div><div class="ds-empty-text">เมื่อกรรมการเริ่มนับคะแนน คอร์ตจะขึ้นที่นี่ทันที</div><button class="ds-btn ds-btn-primary" type="button">ดูคิวถัดไป</button></div></div>
+    <div class="ds-card" style="display:grid;gap:10px"><div class="ds-skel" style="height:18px;width:60%"></div><div class="ds-skel" style="height:18px;width:90%"></div><div class="ds-skel" style="height:18px;width:40%"></div></div>
+    <div style="overflow:auto"><table class="ds-table"><thead><tr><th>#</th><th>ผู้เล่น</th><th class="is-num">ชนะ</th><th class="is-num">คะแนน</th></tr></thead><tbody><tr><td>1</td><td>แจ๊ค</td><td class="is-num">3</td><td class="is-num">+42</td></tr><tr><td>2</td><td>ออป</td><td class="is-num">2</td><td class="is-num">+17</td></tr></tbody></table></div>
+    <div class="ds-sheet" style="position:static;animation:none;max-width:420px;border-radius:var(--r-lg);border-bottom:1px solid var(--line-strong)"><div class="ds-sheet-title">ส่งผลเกม 1?</div><p class="ds-muted" style="margin-top:6px">แดง 21 — น้ำเงิน 17</p><div class="ds-sheet-actions"><button class="ds-btn ds-btn-primary ds-btn-lg" type="button">ส่งผลเกม 1</button><button class="ds-btn ds-btn-lg" type="button">กลับไปแก้</button></div></div>
+    <div class="ds-bar" style="max-width:420px"><i style="width:62%"></i></div>
+  </section>
+
+  <section>
+    <h2>Icons (<span id="icount"></span>)</h2>
+    <div class="grid" id="icons" style="grid-template-columns:repeat(auto-fill,minmax(92px,1fr))"></div>
+  </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('mark').innerHTML = dsMark(56);
+  document.getElementById('mark2').innerHTML = dsMark(72);
+  document.getElementById('art1').innerHTML = dsArt('court');
+  document.querySelectorAll('[data-i]').forEach(function (el) {
+    el.outerHTML = dsIcon(el.getAttribute('data-i'), { fill: !!el.getAttribute('data-fill') });
+  });
+  document.getElementById('icons').innerHTML = DS_ICONS.map(function (k) {
+    return '<div class="ic-cell"><svg class="ds-ic" aria-hidden="true"><use href="#ic-' + k + '"/></svg>' + k + '</div>';
+  }).join('');
+  document.getElementById('icount').textContent = DS_ICONS.length;
+
+  var d = document.getElementById('digits');
+  document.getElementById('popBtn').onclick = function () {
+    d.classList.remove('ds-pop'); void d.offsetWidth; d.classList.add('ds-pop');
+    d.textContent = (+d.textContent % 30) + 1;
+  };
+
+  // swatches with live contrast ratios
+  function chan(c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  function lum(rgb) { return 0.2126 * chan(rgb[0]) + 0.7152 * chan(rgb[1]) + 0.0722 * chan(rgb[2]); }
+  function rgb(v) {
+    var t = document.createElement('i'); t.style.color = v; document.body.appendChild(t);
+    var m = getComputedStyle(t).color.match(/[\d.]+/g).map(Number); t.remove(); return m.slice(0, 3);
+  }
+  function ratio(a, b) { var x = lum(a), y = lum(b); if (x < y) { var z = x; x = y; y = z; } return (x + 0.05) / (y + 0.05); }
+  var root = getComputedStyle(document.documentElement);
+  function hex(v) { var c = rgb('var(' + v + ')'); return '#' + c.map(function (n) { return ('0' + Math.round(n).toString(16)).slice(-2); }).join(''); }
+  var rows = [
+    ['--bg', '--t-hi', 'surface 0'], ['--s1', '--t-hi', 'surface 1'], ['--s2', '--t-hi', 'surface 2'], ['--s3', '--t-hi', 'surface 3'], ['--s4', '--t-hi', 'surface 4'],
+    ['--t-hi', '--bg', 'text high'], ['--t-mid', '--bg', 'text mid'], ['--t-low', '--bg', 'text low'],
+    ['--gold', '--bg', 'gold'], ['--gold-ink', '--gold', 'ink on gold'],
+    ['--red', '--bg', 'red edge'], ['--red-text', '--s2', 'red text'], ['--red-ink', '--red-fill', 'red ink'], ['--red-fill', '--t-hi', 'red fill'], ['--red-lost', '--s2', 'red lost'],
+    ['--blue', '--bg', 'blue edge'], ['--blue-text', '--s2', 'blue text'], ['--blue-ink', '--blue-fill', 'blue ink'], ['--blue-fill', '--t-hi', 'blue fill'], ['--blue-lost', '--s2', 'blue lost'],
+    ['--live', '--bg', 'live / ok'], ['--warn', '--bg', 'warn'], ['--err', '--s2', 'error'], ['--info', '--bg', 'info']
+  ];
+  document.getElementById('swatches').innerHTML = rows.map(function (r) {
+    var isFillSwatch = /^(--bg|--s\d|--red-fill|--blue-fill)$/.test(r[0]);
+    var bg = isFillSwatch ? 'var(' + r[0] + ')' : 'var(' + r[1] + ')';
+    var fg = isFillSwatch ? 'var(' + r[1] + ')' : 'var(' + r[0] + ')';
+    var cr = ratio(rgb(isFillSwatch ? 'var(' + r[1] + ')' : 'var(' + r[0] + ')'), rgb(isFillSwatch ? 'var(' + r[0] + ')' : 'var(' + r[1] + ')'));
+    return '<div class="sw"><div class="chip" style="background:' + bg + ';color:' + fg + '">Aa 12</div><div class="meta"><b>' + r[2] + '</b><span>' + r[0] + ' ' + hex(r[0]) + '</span><span class="' + (cr >= 4.5 ? 'ok' : cr >= 3 ? '' : 'bad') + '">' + cr.toFixed(2) + ' : 1</span></div></div>';
+  }).join('');
+});
+</script>
+</body>
+</html>

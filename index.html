@@ -18,7 +18,7 @@ try {
      blocked rendering until base.css → fonts CSS → font files had all arrived) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap">
 <!-- 🔴 Firebase SDK — deferred: still runs before the app scripts (document
      order), but no longer blocks the first paint while it downloads -->
 <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -26,7 +26,7 @@ try {
 <!-- Shared Firebase config + init. defer => runs in-order in one batch with app scripts, after parse. -->
 <script defer src="shared/firebase-config.js"></script>
 <!-- PWA: installable + offline-tolerant app shell -->
-<meta name="theme-color" content="#080810">
+<meta name="theme-color" content="#07070d">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,8 +35,12 @@ try {
 <meta name="apple-mobile-web-app-title" content="Scoreboard">
 <script defer src="shared/version.js"></script>
 <script defer src="shared/pwa.js"></script>
-<!-- App styles (split from original single <style>) -->
+<script defer src="shared/icons.js"></script>
+<script defer src="shared/art.js"></script>
+<!-- App styles (split from original single <style>). tokens first (colour, type, space), then the global base and the shared ds- primitives. -->
+<link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/ui.css">
 <link rel="stylesheet" href="css/login.css">
 <link rel="stylesheet" href="css/nav.css">
 <link rel="stylesheet" href="css/scoreboard.css">

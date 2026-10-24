@@ -16,12 +16,12 @@ const DIST = join(root, 'dist');
 const ASSETS = join(DIST, 'assets');
 
 // ---- load order (must match index.html / umpire.html) ----
-const CSS = ['base','login','nav','scoreboard','match-cards','tables-modals','dashboard','picker','board',
+const CSS = ['tokens','base','ui','login','nav','scoreboard','match-cards','tables-modals','dashboard','picker','board',
   'notifications','ongoing-finished','climax','fullscreen','report','gallery','trophy',
   'responsive','profile','components','backup','qr','tv'].map(n => `css/${n}.css`);
 
 const JS = [
-  'shared/firebase-config.js',
+  'shared/firebase-config.js','shared/icons.js','shared/art.js',
   'js/utils.js','js/auth.js','shared/sync-merge.js','shared/match-time.js','js/core.js','js/ui.js',
   'js/player-photo.js','js/player-profile.js','js/me.js','js/gallery.js','js/career.js','js/season.js','js/export-import.js',
   'js/match-picker.js','js/match-render.js','js/result-entry.js','js/stats.js',
@@ -31,8 +31,8 @@ const JS = [
   'shared/version.js','shared/pwa.js',
 ];
 
-const UMP_CSS = ['css/umpire.css'];
-const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/sync-merge.js','shared/match-time.js','umpire/tap-gate.js','umpire/umpire.js'];
+const UMP_CSS = ['css/tokens.css','css/ui.css','css/umpire.css'];
+const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/icons.js','shared/art.js','shared/sync-merge.js','shared/match-time.js','umpire/tap-gate.js','umpire/umpire.js'];
 
 const ICONS = readdirSync(join(root,'icons')).filter(f => f.endsWith('.png'));
 const COPY = ['manifest.webmanifest','umpire.webmanifest', ...ICONS.map(f => `icons/${f}`)];
@@ -123,11 +123,11 @@ async function build() {
   // html
   writeFileSync(join(DIST, 'index.html'), rewriteHtml('index.html', {
     cssHref: 'assets/app.css', jsHref: 'assets/app.js',
-    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|shared\/match-time\.js|js\/[^"]+\.js)"><\/script>$/,
+    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/icons\.js|shared\/art\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|shared\/match-time\.js|js\/[^"]+\.js)"><\/script>$/,
   }));
   writeFileSync(join(DIST, 'umpire.html'), rewriteHtml('umpire.html', {
     cssHref: 'assets/umpire.css', jsHref: 'assets/umpire.js',
-    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|shared\/match-time\.js|umpire\/tap-gate\.js|umpire\/umpire\.js)"><\/script>$/,
+    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/icons\.js|shared\/art\.js|shared\/version\.js|shared\/pwa\.js|shared\/sync-merge\.js|shared\/match-time\.js|umpire\/tap-gate\.js|umpire\/umpire\.js)"><\/script>$/,
   }));
 
   // static copies + generated sw

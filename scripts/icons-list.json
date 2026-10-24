@@ -1,0 +1,21 @@
+{
+  "version": "2.1.1",
+  "regular": [
+    "house", "trophy", "users", "user", "user-circle", "images", "chart-bar", "gear-six", "sliders-horizontal",
+    "dots-three", "list", "x", "magnifying-glass", "funnel", "sign-out",
+    "caret-left", "caret-right", "caret-up", "caret-down", "arrow-left", "arrow-clockwise",
+    "arrow-counter-clockwise", "arrows-out", "arrows-left-right",
+    "check", "check-circle", "x-circle", "warning", "warning-circle", "info", "wifi-high", "wifi-slash",
+    "arrows-clockwise", "broadcast",
+    "clock", "timer", "pause", "play", "hourglass-medium",
+    "lock-simple", "lock-simple-open", "eye", "eye-slash", "key",
+    "plus", "minus", "pencil-simple", "trash", "copy", "qr-code", "download-simple", "upload-simple",
+    "camera", "share-network", "floppy-disk", "shuffle",
+    "medal", "crown", "star", "fire", "lightning", "target", "flag", "bell", "television", "device-mobile",
+    "map-pin", "calendar-blank", "chart-line-up"
+  ],
+  "fill": [
+    "house", "trophy", "users", "images", "chart-bar", "gear-six", "star", "check-circle", "warning",
+    "play", "pause", "bell", "flag", "crown"
+  ]
+}

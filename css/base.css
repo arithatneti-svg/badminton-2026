@@ -1,109 +1,51 @@
-/* Fonts are linked from index.html <head> (with preconnect) — an @import here
-   chained them behind this stylesheet and blocked the first paint. */
-
-:root {
-  --bg: #080810;
-  --surface: #0e0e1a;
-  --surface2: #161625;
-  --surface3: #1e1e30;
-  --border: rgba(255,255,255,0.06);
-  --border2: rgba(255,255,255,0.12);
-  --red: #ff3b5c;
-  --red-glow: rgba(255,59,92,0.45);
-  --red-dim: rgba(255,59,92,0.1);
-  --blue: #3b8eff;
-  --blue-glow: rgba(59,142,255,0.45);
-  --blue-dim: rgba(59,142,255,0.1);
-  --gold: #f5c842;
-  --gold-dim: rgba(245,200,66,0.12);
-  --gold2: #ffd700;
-
-  /* ── Theme accent (default = gold) ── */
-  --accent:       #f5c842;
-  --accent-dim:   rgba(245,200,66,0.12);
-  --accent-glow:  rgba(245,200,66,0.35);
-  --accent-grad:  linear-gradient(135deg, #f5c842 0%, #ffa040 100%);
-}
-
-:root {
-  /* team colours for TEXT on the dark panels: --red / --blue are 4.2:1 and 4.7:1 at best on --surface2, and the
-     "RED" / "BLUE" labels were drawn at 65% of them (2.8 and 3.1:1). These two clear 4.5:1 on every surface (P-33). */
-  --red-text: #ff6a82;
-  --blue-text: #6aa9ff;
-  /* a lost game's score, quieter than the winner's but a solid colour (it was the winner's colour at 30-40% opacity:
-     1.55-1.9:1 for a 22-60 px number; these are about 3.3-3.7:1, the large-text minimum) */
-  --red-lost: #b8445d;
-  --blue-lost: #3f70b8;
-  --green: #00e676;
-  --green-dim: rgba(0,230,118,0.1);
-  --purple: #a855f7;
-  --text: #e8e8f0;
-  --text2: #b0b0c8;
-  /* Lightened to meet WCAG AA contrast on the dark surfaces (were #5a5a78 =
-     3.01 and #454560 = 2.07, both failing 4.5). Still read as "quiet" greys. */
-  --muted: #8a8aa2;
-  --muted2: #7c7c94;   /* dimmer than --muted; used by directory/profile/arena */
-  --danger: #ff4560;
-  --radius: 14px;
-  --radius-sm: 8px;
-}
+/* ============================================================
+   Global base - reset, document, focus, motion preference.
+   Colours, type and spacing are tokens in css/tokens.css (linked first).
+   Fonts are linked from <head> (with preconnect): an @import here would
+   chain them behind this stylesheet and block the first paint.
+   ============================================================ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* UX-13: keyboard focus ring for accessibility */
+/* keyboard focus: a white ring is visible on gold, red, blue and dark surfaces alike */
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 button:focus:not(:focus-visible) { outline: none; }
 
-/* overflow-x on body alone does not clip: the html element keeps its own
-   scroll area, so the decorative flame canvases (504px inside a 360px ring)
-   still let the whole page be dragged sideways on the scoreboard. */
-/* Reserve the vertical scrollbar's space at all times so switching between a
-   tall tab (scrollbar) and a short one (no scrollbar) never changes the content
-   width — that width jump was the "layout shifts briefly on tab switch". */
-/* overflow-x: clip (not hidden) — still blocks the sideways drag from the
-   decorative flame canvases, but does NOT turn html into a scroll container,
-   which would break position:sticky (tab toolbars) and it keeps overflow-y
-   visible so scrollbar-gutter works. */
-html { overflow-x: clip; scrollbar-gutter: stable; }
-/* TV / projector fills the screen with a fixed overlay — no page scroll, so
-   drop the reserved gutter to avoid a sliver on the right. */
+/* overflow-x: clip (not hidden) blocks the sideways drag from decorative canvases but does NOT turn <html> into a
+   scroll container, which would break position:sticky (tab toolbars). scrollbar-gutter keeps the content width
+   the same on a tall tab (scrollbar) and a short one (none) - that jump was the "layout shifts on tab switch". */
+html {
+  overflow-x: clip;
+  scrollbar-gutter: stable;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--s4) transparent;
+}
+/* TV / projector fills the screen with a fixed overlay: no page scroll, so no reserved gutter */
 html:has(body.tv-mode) { scrollbar-gutter: auto; }
 
 body {
-  font-family: 'Space Grotesk', 'Noto Sans Thai', 'Rajdhani', sans-serif;
+  font-family: var(--font-ui);
   background: var(--bg);
-  color: var(--text);
+  color: var(--t-hi);
   min-height: 100vh;
   overflow-x: clip;
   padding-bottom: 60px;
+  -webkit-tap-highlight-color: rgba(240, 192, 64, .16);
 }
 
-/* Subtle grid background */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
-  background-size: 60px 60px;
-  pointer-events: none;
-  z-index: 0;
-}
+::selection { background: var(--gold-dim); color: var(--t-hi); }
 
-/* Ambient glow blobs */
-body::after {
-  content: '';
-  position: fixed;
-  width: 600px; height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(59,142,255,0.04) 0%, transparent 70%);
-  top: -200px; right: -200px;
-  pointer-events: none;
-  z-index: 0;
+/* the same preference the tokens already honour: animations and transitions collapse to ~0 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
-
