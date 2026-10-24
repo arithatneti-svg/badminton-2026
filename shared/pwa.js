@@ -18,8 +18,8 @@ var _appNewVersion = false;
   var st = document.createElement('style');
   st.textContent =
     '#appUpdate{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:3500;' +
-    'max-width:92vw;min-height:48px;padding:12px 18px;border-radius:14px;border:1px solid rgba(245,200,66,.55);background:#1b1b2b;' +
-    'color:#f5c842;font-family:inherit;font-size:14px;font-weight:700;line-height:1.3;box-shadow:0 8px 30px rgba(0,0,0,.55);cursor:pointer}' +
+    'max-width:92vw;min-height:48px;padding:12px 18px;border-radius:var(--r-sm,10px);border:1px solid var(--gold-line,rgba(240,192,64,.42));background:var(--s3,#1e1e30);' +
+    'color:var(--gold,#f0c040);font-family:inherit;font-size:14px;font-weight:700;line-height:1.45;box-shadow:var(--shadow-pop,0 8px 30px rgba(0,0,0,.55));cursor:pointer}' +
     'body.tv-mode #appUpdate{display:none}' +
     '.app-version{margin-top:10px;font-size:11px;letter-spacing:1px;color:var(--muted,#8a8aa0);text-align:center;opacity:.85}';
   document.head.appendChild(st);

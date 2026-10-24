@@ -1,8 +1,13 @@
 // ============================================================
 // Service Worker — Badminton Sports Day 2026 (PWA)
 // Precaches the app shell so it loads instantly and survives
-// network blips. Same-origin GET uses stale-while-revalidate,
-// so a new deploy is picked up automatically on the next load.
+// network blips.
+//   - html: network-first (the document says which files exist), cache = offline fallback
+//   - css/js requested as <file>?v=<APP_VERSION>: cache-first. The URL exists for exactly
+//     one release, so the entry can never be stale, and NEW html can never be paired with
+//     OLD css/js (the half-updated umpire screen of 2026-10-24). scripts/stamp-version.mjs
+//     writes the ?v= on the tags; scripts/test-stamp.mjs fails the build when one is missing.
+//   - everything else same-origin: stale-while-revalidate
 // NOTE: Firebase Realtime DB traffic is WebSocket (not fetch),
 // so live data still needs a connection — this only caches the shell.
 // ============================================================
@@ -11,6 +16,8 @@
 // follows it, so every release starts from a fresh cache and the old one is deleted on activate.
 importScripts('shared/version.js');
 const CACHE = 'bdm2026-shell-' + APP_VERSION;
+const VERSION_QS = '?v=' + APP_VERSION;
+const isAsset = (path) => /\.(?:css|js)$/.test(path);
 
 const SHELL = [
     "./",
@@ -88,7 +95,8 @@ const SHELL = [
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE)
-      .then((c) => Promise.allSettled(SHELL.map((u) => c.add(u))))
+      // css/js are stored under the same ?v= URL the pages ask for
+      .then((c) => Promise.allSettled(SHELL.map((u) => c.add(isAsset(u) ? u + VERSION_QS : u))))
       .then(() => self.skipWaiting())
   );
 });
@@ -133,6 +141,19 @@ self.addEventListener('fetch', (e) => {
           return res;
         })
         .catch(() => caches.open(CACHE).then((c) => c.match(req).then((hit) => hit || c.match('index.html'))))
+    );
+    return;
+  }
+
+  // css/js asked for with THIS release's number → cache-first, fetch (and keep) only when missing.
+  if (isAsset(url.pathname) && url.searchParams.get('v') === APP_VERSION) {
+    e.respondWith(
+      caches.open(CACHE).then((c) =>
+        c.match(req).then((hit) => hit || fetch(req).then((res) => {
+          if (res && res.status === 200 && res.type === 'basic') c.put(req, res.clone());
+          return res;
+        }))
+      )
     );
     return;
   }

@@ -6,7 +6,8 @@
     "build": "node build.mjs",
     "dev": "node scripts/serve.mjs . 5173",
     "preview": "npm run build && node scripts/serve.mjs dist 4173",
-    "test": "node scripts/test-sync-merge.mjs && node scripts/test-match-time.mjs && node scripts/test-tap-gate.mjs"
+    "test": "node scripts/test-sync-merge.mjs && node scripts/test-match-time.mjs && node scripts/test-tap-gate.mjs && node scripts/test-stamp.mjs",
+    "stamp": "node scripts/stamp-version.mjs"
   },
   "repository": {
     "type": "git",
