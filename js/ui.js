@@ -162,6 +162,9 @@ function updateUI() {
 
   document.getElementById('redTeamName').value = appState.redTeamName || 'RED TEAM';
   document.getElementById('blueTeamName').value = appState.blueTeamName || 'BLUE TEAM';
+  // only staff rename the teams: for everyone else the name is plain text, not a field to land on with the keyboard
+  const staff = userRole === 'admin' || userRole === 'superadmin';
+  ['redTeamName', 'blueTeamName'].forEach(id => { const el = document.getElementById(id); el.readOnly = !staff; el.tabIndex = staff ? 0 : -1; });
 
   // "นำ" (ahead) and "นำขาด" (6+ ahead) badges: only the leading side's is visible (css/scoreboard.css .idl-lead)
   rPanel.classList.remove('leading','dominant'); bPanel.classList.remove('leading','dominant');

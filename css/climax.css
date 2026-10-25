@@ -1,6 +1,6 @@
 /* ============================================================
    COURT CARDS (A2 viewer) — the Ongoing tab: one card per court being played or about to be, then the queue.
-   A card = header (court, match, LIVE, clock) · who is off/looks off · the score per game on two colour plates
+   A card = header (court, match, clock) · LIVE, round, umpire, anything that looks off · the score per game on two colour plates
    (red = deep red with a red edge, blue likewise) · the players with their faces. A close finish (18+ and 3 apart)
    outlines the card in gold, a deuce in amber: a crisp outline, no glow, no pulse. The LIVE dot is the only loop.
    Frozen: #pubTimer-<id> is rewritten every second by js/match-render.js (text + data-tone).

@@ -80,8 +80,8 @@
 }
 .role-chip[data-role="superadmin"] { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
 .nav-season {
-  min-height: 30px; padding: 0 var(--sp-3); border: 1px solid var(--line-strong); border-radius: var(--r-pill);
-  background: var(--s2); color: var(--t-mid); font: 700 var(--fs-12)/28px var(--font-ui); white-space: nowrap;
+  height: var(--tap); padding: 0 var(--sp-3); border: 1px solid var(--line-strong); border-radius: var(--r-pill);
+  background: var(--s2); color: var(--t-mid); font: 700 var(--fs-12)/42px var(--font-ui); white-space: nowrap;
   cursor: pointer; touch-action: manipulation;
 }
 @media (hover: hover) { .nav-season:hover { background: var(--s3); color: var(--t-hi); } }
@@ -98,7 +98,7 @@
 @media (hover: hover) { .nav-more:hover { background: var(--s3); color: var(--t-hi); } }
 
 .nav-actions {
-  display: none; position: absolute; top: calc(100% + 6px); right: max(var(--sp-4), var(--sar)); z-index: 3;
+  display: none; position: absolute; top: calc(100% + 6px); right: max(var(--sp-4), var(--sar)); z-index: var(--z-sticky);
   flex-direction: column; gap: var(--sp-1); min-width: 248px; max-width: calc(100vw - 16px); padding: var(--sp-2);
   background: var(--s2); border: 1px solid var(--line-strong); border-radius: var(--r-md); box-shadow: var(--shadow-pop);
 }
@@ -217,7 +217,7 @@
 
   /* the connection light: a dot on the corner of the ⋯ button (the word is read aloud, the bar below says it in full) */
   #mainNav .nav-live {
-    position: absolute; top: 8px; right: calc(max(var(--sp-2), var(--sar)) + 3px); z-index: 3;
+    position: absolute; top: 8px; right: calc(max(var(--sp-2), var(--sar)) + 3px); z-index: var(--z-sticky);
     min-height: 0; padding: 0; background: transparent; border: 0; pointer-events: none;
   }
   #mainNav #dbDot { width: 10px; height: 10px; box-shadow: 0 0 0 2px var(--s2); }

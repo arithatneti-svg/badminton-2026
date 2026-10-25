@@ -35,7 +35,7 @@
 }
 .fin-search:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
 .fin-search #finishedSearch {
-  flex: 1; min-width: 0; min-height: 40px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+  flex: 1; min-width: 0; min-height: var(--tap); padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
   color: var(--t-hi); font: 500 var(--fs-16)/var(--lh-th) var(--font-ui);
 }
 .fin-controls #finishedFilterRound { min-height: var(--tap); font-size: var(--fs-16); }

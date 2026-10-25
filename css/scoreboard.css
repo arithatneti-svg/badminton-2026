@@ -280,7 +280,7 @@ select option { background: var(--s2); }
 
 /* faces: the players are the story at a sports day. Sized on the element itself (avatarHtml writes an inline --pav-size). */
 .lv-faces { display: flex; justify-content: center; gap: var(--sp-2); }
-.lv-faces .pav { --lv-face: clamp(60px, 17vw, 76px); width: var(--lv-face); height: var(--lv-face); border-width: 3px; }
+.lv-faces .pav { --lv-face: clamp(60px, 18vw, 80px); width: var(--lv-face); height: var(--lv-face); border-width: 3px; }
 .lv-faces .pav-initials { font-size: calc(var(--lv-face) * .36); }
 @media (min-width: 640px) { .lv-faces { gap: var(--sp-3); } .lv-faces .pav { --lv-face: clamp(84px, 11vw, 150px); } }
 
@@ -291,7 +291,7 @@ select option { background: var(--s2); }
 .lv-score { margin-top: auto; padding-top: var(--sp-2); display: flex; justify-content: center; }
 .lv-snum {
   color: var(--t-hi); font-family: var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0;
-  font-size: clamp(5.5rem, 30vw, 7.5rem); line-height: var(--lh-num);
+  font-size: clamp(6rem, 34vw, 8.5rem); line-height: var(--lh-num);
 }
 @media (min-width: 640px) { .lv-snum { font-size: clamp(7.5rem, 15vw, 12.5rem); } }
 
@@ -349,7 +349,7 @@ select option { background: var(--s2); }
 .idl-head { display: flex; align-items: center; justify-content: center; gap: var(--sp-2); width: 100%; color: var(--word); }
 /* the name is an input (staff rename the teams): it must look like a heading, so it beats the global input rule */
 .idl-team .idl-tname {
-  flex: 0 1 auto; width: auto; min-width: 0; max-width: 100%; field-sizing: content; min-height: 0; padding: 2px 4px; text-align: center;
+  flex: 0 1 auto; width: auto; min-width: 0; max-width: 100%; field-sizing: content; min-height: var(--tap); padding: 2px 4px; text-align: center;
   background: transparent; border: 0; border-bottom: 1px dashed transparent; border-radius: 0; box-shadow: none; outline: none;
   color: var(--word); font: 800 var(--fs-16)/var(--lh-th) var(--font-ui); letter-spacing: .02em;
 }
