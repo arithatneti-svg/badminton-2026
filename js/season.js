@@ -367,7 +367,7 @@ function renderPlayersTab() {
       + (fTeam ? `<span>${escHtml(optText('playersTabFilterTeam'))}</span>` : '')
       + (fGroup ? `<span>${escHtml(optText('playersTabFilterGroup'))}</span>` : '')
       + `<span>${escHtml(optText('playersTabSortBy'))}</span>`
-      + (filtered ? `<button type="button" class="ds-btn ds-btn-ghost pdir-clear" onclick="clearPlayersFilters()">ล้างตัวกรอง</button>` : '');
+      + (filtered && players.length ? `<button type="button" class="ds-btn ds-btn-ghost pdir-clear" onclick="clearPlayersFilters()">ล้างตัวกรอง</button>` : '');
   }
   const badge = document.getElementById('playersFilterBadge');
   if (badge) { const n = (fTeam ? 1 : 0) + (fGroup ? 1 : 0) + (sortBy !== 'pts' ? 1 : 0); badge.hidden = !n; badge.textContent = n || ''; }

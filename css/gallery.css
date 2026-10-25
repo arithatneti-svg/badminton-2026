@@ -64,7 +64,7 @@
   .gal-del:hover { color: var(--err); }
 }
 /* select mode: a tick on the corner, a gold frame on what is chosen */
-.gal-check { position: absolute; top: var(--sp-2); left: var(--sp-2); z-index: 1; display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--t-hi); border-radius: 50%; background: rgba(7, 7, 13, .7); color: transparent; font-size: 16px; pointer-events: none; }
+.gal-check { position: absolute; top: var(--sp-2); left: var(--sp-2); z-index: var(--z-sticky); display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--t-hi); border-radius: 50%; background: rgba(7, 7, 13, .7); color: transparent; font-size: 16px; pointer-events: none; }
 .gal-item.selected { outline: 3px solid var(--gold); outline-offset: -3px; }
 .gal-item.selected img { opacity: .8; }
 .gal-item.selected .gal-check { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
@@ -90,7 +90,15 @@
 .gal-sel-count b { margin: 0 2px; color: var(--gold); font: 400 var(--fs-24)/1 var(--font-num); }
 .gal-sel-hint { color: var(--t-low); font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); }
 .gal-sel-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); }
-@media (max-width: 639px) { .gal-selbar { bottom: calc(78px + var(--sab)); } .gal-sel-hint { display: none; } }
+/* in fullscreen the app's bottom nav (about 72 px) sits where this bar would */
+:fullscreen .gal-selbar { bottom: calc(78px + var(--sab)); }
+:-webkit-full-screen .gal-selbar { bottom: calc(78px + var(--sab)); }
+@media (max-width: 639px) {
+  .gal-selbar { left: var(--sp-3); right: var(--sp-3); width: auto; max-width: none; transform: none; }
+  .gal-sel-hint { display: none; }
+  .gal-sel-actions { display: grid; grid-template-columns: 1.5fr 1fr 1fr; width: 100%; }
+  .gal-sel-actions .ds-btn { gap: 6px; padding: 0 var(--sp-2); }
+}
 
 /* move-to-album dialog */
 .gal-move-box { width: min(480px, 100%); display: grid; gap: var(--sp-4); text-align: left; }
@@ -111,11 +119,11 @@
 /* ══ lightbox: swipe, arrows or keys; counter, caption, delete for staff ══ */
 .gal-lightbox { display: none; position: fixed; inset: 0; z-index: var(--z-overlay); background: var(--bg); flex-direction: column; align-items: center; justify-content: center; }
 .gal-lightbox.open { display: flex; }
-.gal-lb-top { position: absolute; top: 0; left: 0; right: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: calc(var(--sp-3) + var(--sat)) var(--sp-3) var(--sp-3) var(--sp-4); }
+.gal-lb-top { position: absolute; top: 0; left: 0; right: 0; z-index: var(--z-sticky); display: flex; align-items: center; justify-content: space-between; padding: calc(var(--sp-3) + var(--sat)) var(--sp-3) var(--sp-3) var(--sp-4); }
 .gal-lb-counter { color: var(--t-hi); font: 400 var(--fs-24)/1 var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .gal-lb-stage { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: calc(var(--tap-lg) + var(--sat)) var(--sp-3) calc(var(--tap-xl) + var(--sp-5) + var(--sab)); }
 .gal-lb-stage img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: var(--r-sm); }
-.gal-lb-arrow { position: absolute; bottom: calc(var(--sp-4) + var(--sab)); z-index: 2; width: var(--tap-lg); min-height: var(--tap-lg); border-radius: 50%; }
+.gal-lb-arrow { position: absolute; bottom: calc(var(--sp-4) + var(--sab)); z-index: var(--z-sticky); width: var(--tap-lg); min-height: var(--tap-lg); border-radius: 50%; }
 .gal-lb-prev { left: var(--sp-4); }
 .gal-lb-next { right: var(--sp-4); }
 .gal-lb-bar { position: absolute; left: calc(var(--tap-lg) + var(--sp-6)); right: calc(var(--tap-lg) + var(--sp-6)); bottom: calc(var(--sp-4) + var(--sab)); min-height: var(--tap-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-2); pointer-events: none; }

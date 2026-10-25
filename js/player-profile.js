@@ -122,7 +122,7 @@ function openPlayerProfile(playerId) {
         ${earned.length ? `<span class="pf-star" role="img" aria-label="มีรางวัล ${earned.length} รายการ">${dsIcon('star', { fill: true })}</span>` : ''}
       </div>
       <div class="pf-who">
-        <h2 class="profile-name">${escHtml(p.name)}</h2>
+        <h2 class="profile-name${String(p.name).length > 20 ? ' is-long' : ''}">${escHtml(p.name)}</h2>
         <div class="pf-tags">
           <span class="ds-team ds-team-${isRed ? 'red' : 'blue'}">${isRed ? 'RED' : 'BLUE'}</span>
           <span class="ds-chip">G${p.group}</span>
