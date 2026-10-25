@@ -829,364 +829,165 @@ body > .net-banner:not(:empty) { position: sticky; top: calc(var(--bar-h) + var(
   font-size: 0.88rem;
   color: var(--muted);
 }
-/* ---- old: pause overlay ---- */
-/* PAUSE OVERLAY — above the scoring screen (z 1000) and the landscape bar (2000); below the VS intro (3000)
-   and the dialogs. It used to sit at z 500 - behind the scoring screen - so a pause showed nothing but a
-   gold clock and +1 / − taps did nothing without a word. Only the ▶ button resumes: a palm on the screen
-   while the phone is down must not restart play. */
+/* ── 4a. PAUSE ───────────────────────────────────────────────
+   A solid screen over the scoring screen. Only the ▶ button resumes: a palm on the glass while the phone is down must not
+   restart play. Above the scoring screen, below the dialogs (a leave question opens from here). */
 #pauseOverlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 2500;
-  background: var(--bg);              /* solid: no ghost of the scoring screen showing through */
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: calc(16px + var(--sat)) 20px calc(16px + var(--sab));
-  overflow-y: auto;
+  display: none; position: fixed; inset: 0; z-index: calc(var(--z-overlay) + 500);
+  flex-direction: column; justify-content: space-between; align-items: center; gap: var(--sp-5);
+  padding: calc(var(--sat) + var(--sp-5)) calc(var(--sar) + var(--sp-4)) max(var(--sp-5), var(--sab)) calc(var(--sal) + var(--sp-4));
+  background: var(--bg); overflow-y: auto;
 }
-#pauseOverlay.show { display: flex; animation: fadeUp 0.2s ease both; }
+#pauseOverlay.show { display: flex; }
+.pause-top { flex: 1; display: grid; align-content: center; justify-items: center; gap: var(--sp-2); text-align: center; }
+.pause-title { display: inline-flex; align-items: center; gap: var(--sp-2); font: 800 var(--fs-32)/var(--lh-th) var(--font-ui); color: var(--gold); }
+.pause-current-label { margin-top: var(--sp-4); font: 600 var(--fs-16)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.pause-current-timer { font: 400 clamp(96px, 30vw, 176px)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--gold); }
+.pause-bottom { width: min(100%, 420px); display: grid; gap: var(--sp-3); }
+.pause-meta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.pause-meta > span {
+  display: grid; gap: 2px; padding: var(--sp-3); text-align: center; border-radius: var(--r-md);
+  background: var(--s2); border: 1px solid var(--line); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid);
+}
+.pause-meta b { font: 400 var(--fs-40)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--t-hi); }
+.pause-resume { min-height: 72px; border-radius: var(--r-md); font-size: var(--fs-24); font-weight: 800; }
+.pause-exit { min-height: var(--tap-md); border-radius: var(--r-md); --btn-bg: transparent; --btn-fg: var(--t-mid); }
+@media (orientation: landscape) and (max-height: 520px) {      /* two columns: the clock on the left, the controls on the right */
+  #pauseOverlay { flex-direction: row; padding-top: calc(var(--sat) + var(--sp-3)); padding-bottom: max(var(--sp-3), var(--sab)); }
+  .pause-top, .pause-bottom { flex: 1 1 0; min-width: 0; align-self: center; }
+  .pause-title { font-size: var(--fs-24); }
+  .pause-current-label { margin-top: var(--sp-2); }
+  .pause-current-timer { font-size: clamp(80px, 24vh, 140px); }
+  .pause-resume { min-height: var(--tap-xl); }
+}
 
-.pause-title {
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 2.1rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--gold);
-  line-height: 1;
-}
-.pause-current-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(240,192,64,0.07);
-  border: 1.5px solid rgba(240,192,64,0.3);
-  border-radius: var(--radius-xl);
-  padding: 14px 44px 12px;
-  min-width: 240px;
-}
-.pause-current-label {
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--gold);
-}
-.pause-current-timer {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(4rem, 18vw, 7rem);
-  letter-spacing: 4px;
-  line-height: 1;
-  color: var(--gold);
-  text-shadow: 0 0 50px rgba(240,192,64,0.55);
-}
-.pause-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 22px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.pause-meta b { font-family: 'Bebas Neue', sans-serif; font-size: 1.5em; letter-spacing: 2px; color: var(--gold); margin-left: 4px; }
-.pause-resume {
-  width: min(100%, 360px);
-  min-height: 72px;
-  margin-top: 6px;
-  border: none;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #2ecc71, #1a9e55);
-  color: #04130a;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  touch-action: manipulation;
-  box-shadow: 0 6px 24px rgba(46,204,113,0.3);
-}
-.pause-resume:active { transform: scale(0.97); filter: brightness(0.9); }
-.pause-exit {
-  width: min(100%, 360px);
-  min-height: 52px;
-  border: 1.5px solid var(--border-bright);
-  border-radius: var(--radius-lg);
-  background: transparent;
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.pause-exit:active { background: var(--surface2); }
-/* landscape phones are short: tighten so title, clock, buttons all fit (320 px high is the floor) */
-@media (max-height: 480px) {
-  #pauseOverlay { gap: 8px; padding-top: calc(8px + var(--sat)); padding-bottom: calc(8px + var(--sab)); }
-  .pause-title { font-size: 1.5rem; letter-spacing: 1px; }
-  .pause-current-block { padding: 6px 36px 4px; }
-  .pause-current-timer { font-size: 3rem; }
-  .pause-resume { min-height: 56px; margin-top: 0; font-size: 1.3rem; }
-  .pause-exit { min-height: 48px; }
-}
-@media (prefers-reduced-motion: reduce) { #pauseOverlay.show { animation: none; } }
-/* ---- old: custom modal, court picker ---- */
-/* ── CUSTOM MODAL (replaces alert/confirm to keep fullscreen) ── */
-#customModal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: rgba(7,7,13,0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  justify-content: center;
-  padding: 24px;
-  /* a box taller than the screen (a landscape phone) scrolls instead of losing its buttons off the edge;
-     the auto margin on .modal-box centres it whenever there is room */
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-#customModal.open { display: flex; animation: popIn 0.22s ease both; }
-
-.modal-box {
-  background: var(--surface);
-  border: 1px solid var(--border-bright);
-  border-radius: var(--radius-xl);
-  padding: 28px 24px 24px;
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin: auto;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
-  /* taller than the screen: the box scrolls inside itself and the buttons stay pinned at its bottom edge
-     (the worst submit box - two warnings and the result - is taller than a 568 px phone) */
-  max-height: calc(100vh - 48px);
-  max-height: calc(100dvh - 48px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
+/* ── 4b. DIALOGS ─────────────────────────────────────────────
+   One sheet for every question and message (showAlert / showConfirm / showCourtPicker): ds-scrim + ds-sheet from
+   css/ui.css - a bottom sheet on a phone, centred from 640 px. The buttons live outside the scrolling part, so they are
+   always on screen, however long the text. */
+.modal-box { display: flex; flex-direction: column; gap: var(--sp-4); overflow: hidden; }
+@media (max-width: 400px) { .modal-box { padding-left: var(--sp-4); padding-right: var(--sp-4); } }
+.modal-scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--sp-3); }
 .modal-icon {
-  font-size: 2.4rem;
-  text-align: center;
-  margin-bottom: 10px;
-  line-height: 1;
+  flex: none; display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto; border-radius: 50%;
+  background: var(--s3); color: var(--t-hi); font-size: 28px;
 }
-.modal-title {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.7em;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  text-align: center;
-  color: var(--text);
-  margin-bottom: 10px;
-  line-height: 1.3;
-}
-.modal-body {
-  font-size: 1rem;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.6;
-  margin-bottom: 14px;
-  white-space: pre-line;
-}
-.modal-score-preview {
-  background: var(--surface2);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
-}
-.modal-score-game {
-  text-align: center;
-}
-.modal-score-label {
-  font-size: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  color: #b4b4cc;          /* --muted is 4.3:1 on this panel; this is 8:1 */
-  margin-bottom: 4px;
-}
-.modal-score-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2em;
-  letter-spacing: 2px;
-  line-height: 1;
-}
-.modal-score-sep {
-  color: var(--muted2);
-  font-size: 1.5rem;
-  font-weight: 300;
-  align-self: center;
-}
-.msv-dash { color: #9a9ab8; font-size: 0.7em; margin: 0 4px; }
-/* the sides named under each score, so colour is never the only thing telling red from blue */
-.modal-score-sides { margin-top: 4px; font-size: 0.82rem; font-weight: 700; color: #b4b4cc; }
-/* what sending will record, in words — the line to read before pressing the gold button */
-.modal-result { text-align: center; margin: -6px 0 20px; font-size: 1.1rem; font-weight: 800; line-height: 1.4; color: var(--gold); }
-.modal-result small { display: block; margin-bottom: 2px; font-size: 0.82rem; font-weight: 700; color: #b4b4cc; }
-/* two buttons at least 16px apart (a thumb that lands between them hits neither); the safe one first, plain and
-   readable, the one that does something coloured by what it does (gold = sends, red = leaves / discards). */
-.modal-btns {
-  display: grid;
-  gap: 16px;
-  position: sticky;
-  bottom: 0;             /* the bottom of the box's content area: its own 24px padding stays under the buttons */
-  background: var(--surface);
-  padding-top: 10px;
-  /* the 10px of padding is a cushion in the box colour, so scrolled text never touches the buttons;
-     the margins above them (.modal-body, .court-grid) are 10px smaller to make up for it */
-  box-shadow: 0 24px 0 0 var(--surface);   /* paints the box padding under the buttons so scrolled text never shows there */
-}
+.modal-icon:empty { display: none; }
+.modal-icon .ds-ic { width: 1em; height: 1em; }
+.modal-icon.tone-warn { background: var(--warn-fill); color: var(--warn); }
+.modal-icon.tone-err { background: var(--err-fill); color: var(--err); }
+.modal-icon.tone-ok { background: var(--live-fill); color: var(--live); }
+.modal-icon.tone-info { background: var(--blue-dim); color: var(--info); }
+.modal-icon.tone-gold { background: var(--gold-dim); color: var(--gold); }
+.modal-title { font: 700 var(--fs-24)/var(--lh-th) var(--font-ui); text-align: center; color: var(--t-hi); overflow-wrap: anywhere; }
+.modal-body { font: 500 var(--fs-16)/var(--lh-th) var(--font-ui); text-align: center; color: var(--t-mid); white-space: pre-line; overflow-wrap: anywhere; }
+.modal-body:empty { display: none; }
+#modalScorePreview { display: none; }
+.modal-warn { white-space: pre-line; overflow-wrap: anywhere; }
+.modal-warn[hidden] { display: none; }
+.modal-btns { flex: none; display: grid; gap: var(--sp-3); }
 .modal-btns.two-col { grid-template-columns: 1fr 1fr; }
 .modal-btns.stack { grid-template-columns: 1fr; }
-.modal-btn {
-  min-height: 56px;
-  padding: 12px 14px;
-  border: none;
-  border-radius: var(--radius-lg);
-  font-family: 'Noto Sans Thai', 'Rajdhani', sans-serif;
-  font-size: 1.2rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.25;
-  cursor: pointer;
-  transition: all 0.15s;
+.modal-btn { min-width: 0; padding: 0 var(--sp-3); }
+/* a submit box reads title, scores, note, words: the numbers come first, so on a small phone they are what is on screen */
+#modalBox.has-score .modal-icon { order: -4; }
+#modalBox.has-score .modal-title { order: -3; }
+#modalBox.has-score #modalScorePreview { order: -2; }
+#modalBox.has-score .modal-warn { order: -1; }
+
+/* the scores about to be sent / just sent: a row per side (shape + word), a column per game, the higher number in gold */
+.modal-score { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+.modal-score th, .modal-score td { padding: var(--sp-2) var(--sp-3); }
+.modal-score thead th { font: 600 var(--fs-13)/1.3 var(--font-ui); color: var(--t-mid); text-align: center; }
+.modal-score tbody th { text-align: left; font-size: var(--fs-16); white-space: nowrap; }
+.modal-score tbody tr + tr > * { border-top: 1px solid var(--line); }
+.modal-score td { text-align: center; font: 400 var(--fs-56)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--t-mid); }
+.modal-score td.win { color: var(--gold); }
+.modal-result { margin-top: var(--sp-3); text-align: center; font: 700 var(--fs-18)/var(--lh-th) var(--font-ui); color: var(--gold); }
+.modal-result small { display: block; font: 600 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+/* "ส่งผลแล้ว": who won, in the team's field, above the scores */
+.result-win {
+  --edge: var(--gold); --fill: var(--gold-dim); --ink: var(--gold);
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-3); margin-bottom: var(--sp-3); padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md); border-left: 6px solid var(--edge); background: var(--fill); color: var(--ink);
+  font: 700 var(--fs-18)/var(--lh-th) var(--font-ui); text-align: left;
 }
-.modal-btn:active { transform: scale(0.96); }
-.modal-btn:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
-.modal-btn-cancel {
-  background: var(--surface3);
-  color: var(--text);
-  border: 2px solid var(--border-bright);
+.result-win.red { --edge: var(--red); --fill: var(--red-fill); --ink: var(--red-ink); }
+.result-win.blue { --edge: var(--blue); --fill: var(--blue-fill); --ink: var(--blue-ink); }
+.result-win .ds-ic { flex: none; width: 32px; height: 32px; color: var(--gold); }
+.result-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--sp-1) var(--sp-4); margin-top: var(--sp-3); list-style: none; font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.result-meta li { display: inline-flex; align-items: center; gap: 6px; }
+.result-meta li:last-child .ds-ic { color: var(--live); }
+
+/* court picker: ten chips, five a row; the court you are on = gold + a check; a court with a match on it = dashed + that
+   match's id (it warns and still allows: a match nobody closed must not lock a court) */
+.court-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-2); }
+.court-chip {
+  position: relative; min-height: var(--tap-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: var(--s3); color: var(--t-hi); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  font: 400 var(--fs-32)/1 var(--font-num); letter-spacing: 0;
+  transition: background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out);
 }
-.modal-btn-cancel:active { background: var(--surface2); }
-.modal-btn-confirm {
-  background: linear-gradient(135deg, var(--gold), #d4a000);
-  color: #000;
-  box-shadow: 0 4px 16px rgba(240,192,64,0.3);
-}
-.modal-btn-ok {
-  background: var(--surface3);
-  color: var(--text);
-  border: 1.5px solid var(--border-bright);
-}
-.modal-btn-danger {
-  background: linear-gradient(135deg, var(--red), #cc2222);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(255,77,77,0.3);
-}
-.modal-btn-success {
-  background: linear-gradient(135deg, #2ecc71, #1a9e55);
-  color: #000;
-  box-shadow: 0 4px 16px rgba(46,204,113,0.3);
-}
-/* a submit box reads title -> the scores and what they record -> the warnings -> buttons: the numbers come first,
-   so on a small phone they are what is on screen when the rest has to scroll */
-#modalBox.has-score .modal-icon { order: -3; }
-#modalBox.has-score .modal-title { order: -2; }
-#modalBox.has-score #modalScorePreview { order: -1; }
-#modalBox.has-score .modal-body { margin-bottom: 10px; }
-/* a short phone (a 568 px iPhone SE, a 640 px Android): no big icon, so the common box fits without scrolling */
+.court-chip:active { transform: scale(.96); }
+.court-chip small { font: 700 var(--fs-12)/1 var(--font-ui); color: var(--warn); }
+.court-chip.taken { border-style: dashed; border-color: var(--warn-line); }
+.court-chip.on { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.court-chip.on small { color: var(--gold-ink); }
+.court-chip.on .ds-ic { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; }
+
+/* short phones: no big icon, smaller numbers; a phone on its side: less air, the ten courts in one row */
 @media (max-height: 640px) {
   .modal-icon { display: none; }
-  .modal-box { padding-top: 22px; }
+  .modal-box { padding-top: var(--sp-4); gap: var(--sp-3); }
+  .modal-title { font-size: var(--fs-20); }
+  .modal-body { font-size: var(--fs-14); }
+  .modal-btn { min-height: var(--tap-md); }
+  .modal-score td { font-size: var(--fs-32); }
+  .modal-score th, .modal-score td { padding-top: var(--sp-1); padding-bottom: var(--sp-1); }
 }
-/* a landscape phone: less air and no big icon, so most boxes fit without scrolling (the rest scroll) */
 @media (max-height: 480px) {
-  #customModal { padding: 12px; }
-  .modal-box { padding: 14px 20px 16px; max-width: 520px; max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); }
-  .modal-icon { display: none; }
-  .modal-title { margin-bottom: 6px; }
-  .modal-body { margin-bottom: 2px; }
-  .modal-score-preview { margin-bottom: 12px; padding: 8px 12px; }
-  .modal-result { margin-bottom: 12px; }
+  .modal-box { padding: var(--sp-3) var(--sp-5); gap: var(--sp-2); }
+  .modal-scroll { gap: var(--sp-2); }
+  .modal-title { font-size: var(--fs-20); }
+  .modal-btn { min-height: var(--tap-md); }
+  .modal-score td { font-size: var(--fs-32); }
+  #modalBox.is-courts { max-width: 760px; }
+  #modalBox.is-courts .court-grid { grid-template-columns: repeat(10, minmax(0, 1fr)); }
 }
 
-/* ── COURT PICKER (inside #customModal) ── */
-/* ten chips, five a row; the negative margin takes back some of the box padding so a 360px phone
-   still gets ≥48px chips (four a row under 340px) */
-.court-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin: 0 -8px 10px;
+/* ── 4c. VS INTRO ────────────────────────────────────────────
+   The two pairs, ~3 s when a fresh match opens. The same orientation as the scoring screen: red above, blue below
+   (landscape: red left, blue right). */
+#vsIntro {
+  display: none; position: fixed; inset: 0; z-index: calc(var(--z-overlay) + 500);
+  flex-direction: column; padding-top: var(--sat); background: var(--bg); cursor: pointer;
 }
-.court-chip {
-  min-height: 56px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px;
-  background: var(--surface3);
-  color: var(--text);
-  border: 1.5px solid var(--border-bright);
-  border-radius: var(--radius-md);
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.9em;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform 0.12s, background 0.12s;
+#vsIntro.show { display: flex; animation: ump-fade var(--dur-in) var(--ease-out); }
+@keyframes ump-fade { from { opacity: 0; } to { opacity: 1; } }
+.vsi-court { padding: var(--sp-4) var(--sp-4) var(--sp-3); text-align: center; font: 700 var(--fs-20)/var(--lh-th) var(--font-ui); color: var(--gold); }
+.vsi-row { flex: 1; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); }
+.vsi-side {
+  --fill: var(--red-fill); --edge: var(--red); --ink: var(--red-ink);
+  position: relative; display: grid; align-content: center; justify-items: center; gap: var(--sp-3); min-width: 0;
+  padding: var(--sp-4) var(--sp-5); text-align: center; background: var(--fill);
 }
-.court-chip small { font: 700 0.7rem 'Noto Sans Thai', sans-serif; letter-spacing: 0; color: var(--gold); }
-.court-chip:active { transform: scale(0.94); }
-.court-chip.on { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
-.court-chip.taken { border-style: dashed; color: var(--muted); }
-@media (max-width: 339px) { .court-grid { grid-template-columns: repeat(4, 1fr); } }
-/* a landscape phone is too short for the stacked dialog: ten chips in one row, no icon */
-@media (max-height: 480px) {
-  #modalBox.is-courts { max-width: 760px; padding: 12px 20px 14px; }
-  #modalBox.is-courts .modal-icon { display: none; }
-  #modalBox.is-courts .modal-title { font-size: 1.5em; margin-bottom: 4px; }
-  #modalBox.is-courts .modal-body { margin-bottom: 10px; }
-  #modalBox.is-courts .court-grid { grid-template-columns: repeat(10, 1fr); margin: 0 0 2px; }
-  #modalBox.is-courts .modal-btn { padding: 10px; font-size: 1.3em; }
+.vsi-side.blue { --fill: var(--blue-fill); --edge: var(--blue); --ink: var(--blue-ink); }
+.vsi-side::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 6px; background: var(--edge); }
+.vsi-side .ds-team { font-size: var(--fs-16); }
+.vsi-faces .uavatar { --ua: clamp(64px, 22vw, 104px); }
+.vsi-faces .uface-pair { gap: var(--sp-3); }
+.vsi-names { font: 800 clamp(var(--fs-24), 7vw, var(--fs-40))/var(--lh-th) var(--font-ui); color: var(--ink); overflow-wrap: anywhere; }
+.vsi-vs { padding: var(--sp-2) 0; text-align: center; font: 400 var(--fs-40)/1 var(--font-num); letter-spacing: 0; color: var(--t-mid); }
+.vsi-ready { margin: var(--sp-4) var(--sp-4) max(var(--sp-4), var(--sab)); }
+@media (orientation: landscape) and (min-width: 560px) {
+  .vsi-row { grid-template-rows: none; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .vsi-vs { align-self: center; padding: 0 var(--sp-4); }
+  .vsi-court { padding: var(--sp-2) var(--sp-4); }
+  .vsi-faces .uavatar { --ua: clamp(56px, 16vh, 96px); }
+  .vsi-names { font-size: clamp(var(--fs-20), 5vh, var(--fs-32)); }
+  .vsi-ready { align-self: center; min-width: 280px; margin: var(--sp-2) 0 max(var(--sp-2), var(--sab)); }
 }
-/* ---- old: VS intro ---- */
-/* ══════════════════════════════════════════════════════════════
-   VS INTRO — pair-vs-pair reveal shown ~3s when a fresh match opens
-   (over the scoring screen; tap to skip). z above scoring + landscape.
-   ══════════════════════════════════════════════════════════════ */
-#vsIntro{
-  position:fixed; inset:0; z-index:3000; display:none;
-  flex-direction:column; align-items:center; justify-content:center;
-  gap:clamp(18px,4vh,40px); padding:24px; cursor:pointer;
-  background:
-    radial-gradient(ellipse at 20% 20%, rgba(255,77,77,.18), transparent 55%),
-    radial-gradient(ellipse at 80% 80%, rgba(77,159,255,.18), transparent 55%),
-    #07070d;
-}
-#vsIntro.show{ display:flex; animation:vsiFade .25s ease; }
-@keyframes vsiFade{ from{ opacity:0 } to{ opacity:1 } }
-.vsi-court{
-  font-family:'Bebas Neue','Noto Sans Thai',sans-serif; font-size:clamp(22px,6vw,40px);
-  letter-spacing:1.5px; color:var(--gold); text-shadow:0 0 24px rgba(240,192,64,.4);
-}
-.vsi-row{ display:flex; align-items:center; justify-content:center; gap:clamp(12px,4vw,40px); width:100%; }
-.vsi-side{ display:flex; flex-direction:column; align-items:center; gap:14px; flex:1; min-width:0; }
-/* faces scale to the phone so 2-per-side never overflow (override umpireAvatar's inline px) */
-.vsi-faces{ gap:clamp(4px,1.5vw,10px); }
-.vsi-faces .uavatar{ width:clamp(50px,15vw,100px)!important; height:clamp(50px,15vw,100px)!important; }
-.vsi-faces .uavatar.ua-initials{ font-size:clamp(16px,4.4vw,32px)!important; }
-.vsi-side.red { animation:vsiInL .45s cubic-bezier(.2,.8,.2,1) both; }
-.vsi-side.blue{ animation:vsiInR .45s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes vsiInL{ from{ opacity:0; transform:translateX(-40px) } to{ opacity:1; transform:none } }
-@keyframes vsiInR{ from{ opacity:0; transform:translateX(40px) }  to{ opacity:1; transform:none } }
-.vsi-side.red  .uavatar{ border-color:var(--red);  box-shadow:0 0 26px rgba(255,77,77,.35); }
-.vsi-side.blue .uavatar{ border-color:var(--blue); box-shadow:0 0 26px rgba(77,159,255,.35); }
-.vsi-names{ font-size:clamp(18px,5vw,30px); font-weight:800; text-align:center; line-height:1.15; }
-.vsi-side.red  .vsi-names{ color:var(--red); }
-.vsi-side.blue .vsi-names{ color:var(--blue); }
-.vsi-vs{ font-family:'Bebas Neue',sans-serif; font-size:clamp(26px,7vw,64px); letter-spacing:2px; color:var(--muted); flex-shrink:0; }
-.vsi-ready{
-  font-size:clamp(13px,3.6vw,18px); letter-spacing:0.5px; font-weight:700; color:var(--gold);
-  background:rgba(240,192,64,.1); border:1px solid rgba(240,192,64,.3); border-radius:40px;
-  padding:10px 24px; animation:pulse 1.5s ease infinite;
-}
-@media (prefers-reduced-motion:reduce){ #vsIntro, #vsIntro *{ animation:none !important; } }
+
 /* ---- old: nav fullscreen button ---- */
 .btn-nav-fs {
   flex-shrink: 0; min-height: 52px; min-width: 52px; padding: 0;

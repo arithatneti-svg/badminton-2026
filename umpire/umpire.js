@@ -174,7 +174,7 @@ async function _sendResult(entry, pRed, pBlue) {
     const slow = new Promise(res => setTimeout(() => res({ slow: true }), UMP_TIMING.finalizeTimeoutMs));
     const first = await Promise.race([late, slow]);
     if (first.done) return first.done;
-    const question = showConfirm('⏳', 'ส่งนานกว่าปกติ',
+    const question = showConfirm('hourglass-medium', 'ส่งนานกว่าปกติ',
       'สัญญาณอาจไม่ดี — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้\nถ้าออกตอนนี้ ระบบจะส่งต่อเองเมื่อสัญญาณกลับ',
       { confirmLabel: 'ลองใหม่', cancelLabel: 'ออก — ส่งต่อเอง', noEscape: true });   // leaving here is a real choice, so Esc must not make it
     const out = await Promise.race([question.then(choice => ({ choice })), late]);
@@ -190,10 +190,10 @@ let _uClosedShown = false;
 function _uMatchClosed() {
   if (_uClosedShown || _isConfirming) return;
   _uClosedShown = true;
-  showAlert('⚠️', 'แมตช์นี้ปิดแล้ว', 'ทีมงานบันทึกผลหรือปิดแมตช์นี้แล้ว\nคะแนนที่กดต่อจากนี้จะไม่ถูกนับ', 'กลับไปรายการ').then(() => exitMatch());
+  showAlert('warning', 'แมตช์นี้ปิดแล้ว', 'ทีมงานบันทึกผลหรือปิดแมตช์นี้แล้ว\nคะแนนที่กดต่อจากนี้จะไม่ถูกนับ', 'กลับไปรายการ').then(() => exitMatch());
 }
 // "somebody else got this match first" — the same words wherever a claim loses the race
-const _uTakenFirst = name => showAlert('🔒', `${name} รับแมตช์นี้ไปก่อนแล้ว`, 'เลือกแมตช์อื่นได้', 'กลับไปรายการ');
+const _uTakenFirst = name => showAlert('lock-simple', `${name} รับแมตช์นี้ไปก่อนแล้ว`, 'เลือกแมตช์อื่นได้', 'กลับไปรายการ');
 // "This match is no longer yours" — an admin gave it back to the queue (an umpire walked away), or
 // someone else took it afterwards. Same once-only rule. Every write is also refused on the server
 // while the match belongs to someone else, so a phone that has not heard yet cannot write into it.
@@ -201,7 +201,7 @@ function _uMatchReleased(m) {
   if (_uClosedShown || _isConfirming) return;
   _uClosedShown = true;
   const back = !m.umpire;
-  showAlert(back ? '↩️' : '🔒',
+  showAlert(back ? 'arrow-counter-clockwise' : 'lock-simple',
     back ? 'แมตช์นี้ถูกปล่อยแล้ว' : 'แมตช์นี้มีกรรมการคนอื่นแล้ว',
     back ? 'ทีมงานปล่อยแมตช์นี้กลับเข้าคิว\nคะแนนที่นับไว้ไม่ถูกบันทึก\nถ้ายังต้องคุม เลือกแมตช์นี้ใหม่จากรายการ'
          : `${m.umpire} กำลังคุมแมตช์นี้อยู่\nคะแนนจากเครื่องนี้จะไม่ถูกส่ง`,
@@ -612,7 +612,7 @@ function updateLoginReady() {
 }
 function processLogin() {
   currentUmpire = document.getElementById('umpireSelect').value;
-  if (!currentUmpire) { vibrateDevice([80, 40, 80]); showAlert('⚠️', 'ยังไม่ได้เลือกชื่อ', 'เลือกชื่อของคุณจากรายการก่อนเข้าระบบ', 'เลือกชื่อ'); return; }
+  if (!currentUmpire) { vibrateDevice([80, 40, 80]); showAlert('warning', 'ยังไม่ได้เลือกชื่อ', 'เลือกชื่อของคุณจากรายการก่อนเข้าระบบ', 'เลือกชื่อ'); return; }
   localStorage.setItem('bdm_umpire_name', currentUmpire);
   goToTab('live');
 }
@@ -620,7 +620,7 @@ function processLogin() {
 async function logoutUmpire() {
   // matches stay in this name's hands: nothing is released by leaving (the same name on any phone carries on)
   const held = ((appState && appState.ongoingMatches) || []).filter(m => m && m.umpire === currentUmpire).map(m => m.id);
-  const ok = await showConfirm('🚪', `ออกจากชื่อ ${currentUmpire}?`,
+  const ok = await showConfirm('sign-out', `ออกจากชื่อ ${currentUmpire}?`,
     held.length ? `แมตช์ ${held.join(', ')} จะยังเป็นของ ${currentUmpire}\nเข้าชื่อเดิมเพื่อคุมต่อ หรือให้ทีมงานปล่อย`
                 : 'เลือกชื่อใหม่ได้ที่หน้าแรก', {
     confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ'
@@ -743,6 +743,28 @@ let _modalResolve = null;
 let _modalReturnFocus = null;   // what had the focus before the box opened (it gets it back)
 let _modalEscape = null;        // { v } — what Esc answers; null = Esc does nothing (a question with no safe way out)
 
+// the icon of a box, in the colour of what it says (amber = careful, rose = offline, green = done ...). `icon` is a
+// dsIcon name; an empty key shows none
+const _MODAL_TONE = { 'warning': 'warn', 'lock-simple': 'warn', 'hourglass-medium': 'warn', 'wifi-slash': 'err', 'check-circle': 'ok',
+  'info': 'info', 'arrow-counter-clockwise': 'info', 'flag': 'gold', 'map-pin': 'gold' };
+function _modalIcon(icon) {
+  const el = document.getElementById('modalIcon');
+  el.className = 'modal-icon tone-' + (_MODAL_TONE[icon] || 'plain');
+  el.innerHTML = icon ? dsIcon(icon, { fill: icon === 'check-circle' || icon === 'warning' }) : '';
+}
+// the amber note above the buttons ("this does not look like a finished game"); '' hides it
+function _modalWarn(text) {
+  const el = document.getElementById('modalWarn');
+  el.hidden = !text;
+  el.innerHTML = text ? dsIcon('warning') + '<span>' + _uEsc(text) + '</span>' : '';
+}
+// the block between the title and the buttons (the court grid, the scores about to be sent, the result); '' hides it
+function _modalPreview(html) {
+  const p = document.getElementById('modalScorePreview');
+  p.innerHTML = html || '';
+  p.style.display = html ? 'block' : 'none';
+}
+
 // Every box goes through here: the screen reader is told it is a dialog (role/aria-modal/labels are on #modalBox
 // in umpire.html), the focus moves INTO it — onto the SAFE button, so Enter is never "yes, do it" — Tab stays
 // inside, and Esc answers `escapeWith` when given. Before, the focus stayed on the page behind and the
@@ -751,7 +773,7 @@ function _modalOpen(escapeWith) {
   const a = document.activeElement;
   _modalReturnFocus = a && a !== document.body ? a : null;
   _modalEscape = escapeWith === undefined ? null : { v: escapeWith };
-  document.getElementById('customModal').classList.add('open');
+  document.getElementById('customModal').classList.add('open', 'is-open');   // is-open: the ds-scrim of css/ui.css
   const box = document.getElementById('modalBox');
   // a score box (not the court picker, which shares the same slot) reads scores-first — see css .has-score
   box.classList.toggle('has-score', document.getElementById('modalScorePreview').style.display === 'block' && !box.classList.contains('is-courts'));
@@ -773,20 +795,22 @@ document.addEventListener('keydown', e => {
 });
 
 /**
- * showAlert(icon, title, body, okLabel) → Promise<void>   (Esc = the OK button)
- * showConfirm(icon, title, body, {confirmLabel, confirmClass, cancelLabel, scoreHtml, noEscape}) → Promise<bool>
- *   the cancel button is the safe one: first, plain, and it has the focus. Esc cancels, unless noEscape.
+ * showAlert(icon, title, body, okLabel, {scoreHtml}) → Promise<void>   (Esc = the OK button)
+ * showConfirm(icon, title, body, {confirmLabel, confirmClass, cancelLabel, scoreHtml, warn, noEscape}) → Promise<bool>
+ *   icon = a dsIcon name. The cancel button is the safe one: first, plain, and it has the focus. Esc cancels, unless
+ *   noEscape. `warn` is the amber note that comes with a score that does not look like a finished game.
  */
-function showAlert(icon, title, body, okLabel) {
+function showAlert(icon, title, body, okLabel, opts = {}) {
   return new Promise(resolve => {
     _modalResolve = resolve;
-    document.getElementById('modalIcon').textContent = icon;
+    _modalIcon(icon);
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').textContent = body;
-    document.getElementById('modalScorePreview').style.display = 'none';
+    _modalPreview(opts.scoreHtml);
+    _modalWarn('');
     const btns = document.getElementById('modalBtns');
     btns.className = 'modal-btns';
-    btns.innerHTML = `<button class="modal-btn modal-btn-ok" data-safe onclick="_modalDone(true)">${_uEsc(okLabel || 'ตกลง')}</button>`;
+    btns.innerHTML = `<button class="ds-btn ds-btn-primary ds-btn-lg modal-btn modal-btn-ok" data-safe onclick="_modalDone(true)">${_uEsc(okLabel || 'ตกลง')}</button>`;
     _modalOpen(true);
   });
 }
@@ -794,17 +818,11 @@ function showAlert(icon, title, body, okLabel) {
 function showConfirm(icon, title, body, opts = {}) {
   return new Promise(resolve => {
     _modalResolve = resolve;
-    document.getElementById('modalIcon').textContent = icon;
+    _modalIcon(icon);
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').textContent = body;
-
-    const preview = document.getElementById('modalScorePreview');
-    if (opts.scoreHtml) {
-      preview.innerHTML = opts.scoreHtml;
-      preview.style.display = 'block';
-    } else {
-      preview.style.display = 'none';
-    }
+    _modalPreview(opts.scoreHtml);
+    _modalWarn(opts.warn);
 
     const confirmLabel = opts.confirmLabel || 'ยืนยัน';
     const confirmClass = opts.confirmClass || 'modal-btn-confirm';
@@ -815,22 +833,22 @@ function showConfirm(icon, title, body, opts = {}) {
     const stack = window.innerWidth < 340 || (Math.max(cancelLabel.length, confirmLabel.length) > 9 && window.innerWidth < 500);
     const btns = document.getElementById('modalBtns');
     btns.className = 'modal-btns two-col' + (stack ? ' stack' : '');
+    const confirmKind = confirmClass === 'modal-btn-danger' ? 'ds-btn-danger' : 'ds-btn-primary';   // gold = sends, rose = leaves / discards
     btns.innerHTML = `
-      <button class="modal-btn modal-btn-cancel" data-safe onclick="_modalDone(false)">${_uEsc(cancelLabel)}</button>
-      <button class="modal-btn ${confirmClass}" onclick="_modalDone(true)">${_uEsc(confirmLabel)}</button>
+      <button class="ds-btn ds-btn-lg modal-btn modal-btn-cancel" data-safe onclick="_modalDone(false)">${_uEsc(cancelLabel)}</button>
+      <button class="ds-btn ds-btn-lg ${confirmKind} modal-btn ${confirmClass}" onclick="_modalDone(true)">${_uEsc(confirmLabel)}</button>
     `;
     _modalOpen(opts.noEscape ? undefined : false);
   });
 }
 
 function _modalDone(result) {
-  document.getElementById('customModal').classList.remove('open');
+  document.getElementById('customModal').classList.remove('open', 'is-open');
   document.getElementById('modalBox').classList.remove('is-courts', 'has-score');
   const back = _modalReturnFocus; _modalReturnFocus = null; _modalEscape = null;
   if (back && document.contains(back) && back.offsetParent !== null) back.focus({ preventScroll: true });
   if (_modalResolve) { _modalResolve(result); _modalResolve = null; }
 }
-
 // ==========================================
 // 4. UMPIRE LIST
 // ==========================================
@@ -1042,21 +1060,20 @@ function _courtTakenBy(n, exceptId) {
 function showCourtPicker(m, current, cancelLabel) {
   return new Promise(resolve => {
     _modalResolve = resolve;            // _modalDone(n) resolves it: a court number, or 0 to cancel
-    document.getElementById('modalIcon').textContent = '🏸';
+    _modalIcon('map-pin');
     document.getElementById('modalTitle').textContent = `${m.id} แข่งที่คอร์ตไหน?`;
     document.getElementById('modalBody').textContent = 'แตะเลขคอร์ตที่คุณคุมอยู่';
     const chips = [];
     for (let n = 1; n <= COURT_COUNT; n++) {
       const other = _courtTakenBy(n, m.id);
-      chips.push(`<button type="button" class="court-chip${n === current ? ' on' : ''}${other ? ' taken' : ''}" onclick="_modalDone(${n})" aria-label="คอร์ต ${n}${other ? ' มี ' + _uEsc(other.id) + ' อยู่' : ''}">${n}${other ? `<small>${_uEsc(other.id)}</small>` : ''}</button>`);
+      chips.push(`<button type="button" class="court-chip${n === current ? ' on' : ''}${other ? ' taken' : ''}" onclick="_modalDone(${n})" aria-label="คอร์ต ${n}${other ? ' มี ' + _uEsc(other.id) + ' อยู่' : ''}">${n === current ? dsIcon('check') : ''}<span>${n}</span>${other ? `<small>${_uEsc(other.id)}</small>` : ''}</button>`);
     }
-    const preview = document.getElementById('modalScorePreview');
-    preview.innerHTML = `<div class="court-grid">${chips.join('')}</div>`;
-    preview.style.display = 'block';
+    _modalPreview(`<div class="court-grid">${chips.join('')}</div>`);
+    _modalWarn('');
     document.getElementById('modalBox').classList.add('is-courts');   // wide + short layout on a landscape phone
     const btns = document.getElementById('modalBtns');
     btns.className = 'modal-btns';
-    btns.innerHTML = `<button class="modal-btn modal-btn-cancel" data-safe onclick="_modalDone(0)">${_uEsc(cancelLabel || 'ยกเลิก')}</button>`;
+    btns.innerHTML = `<button class="ds-btn ds-btn-lg modal-btn modal-btn-cancel" data-safe onclick="_modalDone(0)">${_uEsc(cancelLabel || 'ยกเลิก')}</button>`;
     _modalOpen(0);
   });
 }
@@ -1067,7 +1084,7 @@ async function chooseCourt(m, current, cancelLabel) {
     if (!n) return 0;
     const other = _courtTakenBy(n, m.id);
     if (!other) return n;
-    const ok = await showConfirm('⚠️', `คอร์ต ${n} มีแมตช์อยู่แล้ว`,
+    const ok = await showConfirm('warning', `คอร์ต ${n} มีแมตช์อยู่แล้ว`,
       `${other.id} ยังอยู่ในคอร์ตนี้\nถ้าจบไปแล้ว ให้แจ้งทีมงานปิดแมตช์นั้น\nใช้คอร์ต ${n} ต่อไหม?`,
       { confirmLabel: `ใช้คอร์ต ${n}`, cancelLabel: 'เลือกใหม่' });
     if (ok) return n;
@@ -1100,7 +1117,7 @@ async function selectMatch(mId) {
   let m = appState.ongoingMatches.find(x => x.id === mId);
   if (!m) return;
   if (m.umpire && m.umpire !== currentUmpire) {
-    showAlert('🔒', `${m.umpire} คุมแมตช์ ${m.id} อยู่`, 'ถ้าต้องรับช่วงต่อ ให้ติดต่อทีมงาน', 'กลับ');
+    showAlert('lock-simple', `${m.umpire} คุมแมตช์ ${m.id} อยู่`, 'ถ้าต้องรับช่วงต่อ ให้ติดต่อทีมงาน', 'กลับ');
     return;
   }
   // A second match while one is still yours is allowed (some umpires run two courts) but is rarely what a
@@ -1108,7 +1125,7 @@ async function selectMatch(mId) {
   if (!m.umpire) {
     const held = appState.ongoingMatches.filter(x => x.id !== mId && x.umpire === currentUmpire);
     if (held.length) {
-      const more = await showConfirm('❓', `คุณคุม ${held.map(x => x.id).join(', ')} อยู่แล้ว`,
+      const more = await showConfirm('info', `คุณคุม ${held.map(x => x.id).join(', ')} อยู่แล้ว`,
         `รับ ${mId} เพิ่มอีกแมตช์จริงไหม?`, { confirmLabel: 'รับเพิ่ม', cancelLabel: 'กลับ' });
       if (!more) return;
       m = appState.ongoingMatches.find(x => x.id === mId);          // the data moved while the dialog was open
@@ -1406,13 +1423,18 @@ function _uResultLabel(h) {
   return String(h.result || '').replace(/[🔴🔵🤝]/g, '').trim();
 }
 
-// The score box in the submit boxes: each game as "21 – 15" with the sides named under it (colour is never the
-// only cue), and — when given — the result that sending will record, in words.
+// The score table in the submit boxes: a row per side (shape + word, colour is never the only cue), a column per game,
+// the higher number of each game in gold — and, when given, the result that sending will record, in words.
+function _scoreTableHtml(games) {
+  const row = (side, word) => `<tr><th scope="row"><span class="ds-team ds-team-${side}">${word}</span></th>${games.map(g => {
+    const mine = side === 'red' ? g.r : g.b, other = side === 'red' ? g.b : g.r;
+    return `<td${mine > other ? ' class="win"' : ''}>${mine}</td>`;
+  }).join('')}</tr>`;
+  return `<table class="modal-score"><thead><tr><td></td>${games.map(g => `<th scope="col">${g.label}</th>`).join('')}</tr></thead>`
+    + `<tbody>${row('red', 'แดง')}${row('blue', 'น้ำเงิน')}</tbody></table>`;
+}
 function _scorePreviewHtml(games, resultLabel) {
-  const cell = g => `<div class="modal-score-game"><div class="modal-score-label">${g.label}</div>
-      <div class="modal-score-val"><span style="color:var(--red)">${g.r}</span><span class="msv-dash">–</span><span style="color:var(--blue)">${g.b}</span></div>
-      <div class="modal-score-sides"><span style="color:var(--red)">แดง</span> – <span style="color:var(--blue)">น้ำเงิน</span></div></div>`;
-  return `<div class="modal-score-preview">${games.map(cell).join('<div class="modal-score-sep">·</div>')}</div>`
+  return _scoreTableHtml(games)
     + (resultLabel ? `<div class="modal-result"><small>ผลที่จะบันทึก</small>${_uEsc(resultLabel)}</div>` : '');
 }
 
@@ -1434,8 +1456,9 @@ async function lockGame1() {
   if (warn) vibrateDevice([60, 30, 60]);
 
   // says that it cannot be undone from here (an admin fixes it), shows what is being sent, names the sides
-  const ok = await showConfirm('🏁', 'ส่งผลเกม 1?',
-    (warn ? `⚠️ ${warn}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ\n` : '') + 'ส่งแล้วแก้เกม 1 เองไม่ได้\nจากนั้นเริ่มเกม 2 ทันที', {
+  const ok = await showConfirm('flag', 'ส่งผลเกม 1?',
+    'ส่งแล้วแก้เกม 1 เองไม่ได้\nจากนั้นเริ่มเกม 2 ทันที', {
+    warn: warn ? `${warn}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ` : '',
     scoreHtml: _scorePreviewHtml([{ label: 'เกม 1', r: g1r, b: g1b }]),
     confirmLabel: 'ส่งผลเกม 1',
     confirmClass: 'modal-btn-confirm',
@@ -1478,6 +1501,7 @@ function togglePause() {
     if (totalEl) totalEl.textContent = formatTimer(match.live.totalPauseMs);
 
     document.getElementById('pauseOverlay').classList.remove('show');
+    document.getElementById('btnPause').focus({ preventScroll: true });   // the focus goes back where it came from
   } else {
     // ── Pause ──
     const now = Date.now();
@@ -1491,6 +1515,7 @@ function togglePause() {
     if (totalEl) totalEl.textContent = formatTimer(match.live.totalPauseMs || 0);
 
     document.getElementById('pauseOverlay').classList.add('show');
+    document.getElementById('btnResume').focus({ preventScroll: true });  // the break screen is a dialog: the focus moves in
   }
 
   // write just the pause fields, on this match (found by id); pausing and resuming both count as activity
@@ -1532,10 +1557,10 @@ async function confirmExit() {
   const offline = !_uOnline && (_uEverOnline || Date.now() - _uLoadedAt > 3000);
   const waiting = offline || _uPending > 0;
   const ok = waiting
-    ? await showConfirm('📶', 'ออกตอนที่ยังส่งไม่ครบ?',
+    ? await showConfirm('wifi-slash', 'ออกตอนที่ยังส่งไม่ครบ?',
         `${_uPending > 0 ? `ยังมี ${_uPending} รายการรอส่ง` : 'ตอนนี้ไม่มีสัญญาณ'}\nอย่าปิดหน้านี้จนกว่าสัญญาณกลับ\nระบบจะส่งต่อเองเมื่อสัญญาณกลับ`,
         { confirmLabel: 'ออกทั้งที่ยังไม่ส่ง', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' })
-    : await showConfirm('🚪', 'ออกจากหน้านี้?',
+    : await showConfirm('sign-out', 'ออกจากหน้านี้?',
         `คะแนน ${score} ถูกบันทึกแล้ว\nแตะ ▶ คุมต่อ ที่รายการเพื่อกลับมา`,
         { confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' });
   if (ok) exitMatch();
@@ -1591,8 +1616,9 @@ async function confirmMatch() {
   // what sending will record, worked out once: shown in the box, then written
   const { pRed, pBlue, rStat, bStat, resText, label: resLabel } = _uOutcome(g1r, g1b, g2r, g2b);
 
-  const ok = await showConfirm('🏁', 'ส่งผลแมตช์?',
-    (_warns.length ? `⚠️ ${_warns.join('\n')}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ\n` : '') + 'ส่งแล้วแก้เองไม่ได้\nต้องให้ทีมงานแก้', {
+  const ok = await showConfirm('flag', 'ส่งผลแมตช์?',
+    'ส่งแล้วแก้เองไม่ได้\nต้องให้ทีมงานแก้', {
+    warn: _warns.length ? `${_warns.join('\n')}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ` : '',
     scoreHtml: _scorePreviewHtml([{ label: 'เกม 1', r: g1r, b: g1b }, { label: 'เกม 2', r: g2r, b: g2b }], resLabel),
     confirmLabel: 'ส่งผลแมตช์',
     confirmClass: 'modal-btn-confirm',
@@ -1603,13 +1629,13 @@ async function confirmMatch() {
     // An earlier send of THIS match may still arrive (it timed out, the umpire left, it is queued in this
     // page). Sending the same scores again is safe; different scores would race it, so wait for it.
     if (_uSubmitPending && _uSubmitPending.id === m.id && (_uSubmitPending.game1 !== `${g1r}:${g1b}` || _uSubmitPending.game2 !== `${g2r}:${g2b}`)) {
-      await showAlert('⏳', 'ผลก่อนหน้านี้ยังส่งค้างอยู่', `ผลที่ส่งไปก่อน (เกม 1 ${_uSubmitPending.game1.replace(':', '–')} · เกม 2 ${_uSubmitPending.game2.replace(':', '–')})\nยังส่งไม่ถึงระบบ — รอให้ส่งเสร็จก่อน แล้วค่อยแก้`);
+      await showAlert('hourglass-medium', 'ผลก่อนหน้านี้ยังส่งค้างอยู่', `ผลที่ส่งไปก่อน (เกม 1 ${_uSubmitPending.game1.replace(':', '–')} · เกม 2 ${_uSubmitPending.game2.replace(':', '–')})\nยังส่งไม่ถึงระบบ — รอให้ส่งเสร็จก่อน แล้วค่อยแก้`);
       return;
     }
     // Finalizing needs the server: a queued offline result would be lost if the
     // phone is locked or the page closed before the signal returns.
     if (!_uOnline) {
-      await showAlert('📶', 'ยังส่งผลไม่ได้', 'ไม่มีสัญญาณ — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้\nเมื่อสัญญาณกลับ กด “ส่งผลแมตช์” อีกครั้ง');
+      await showAlert('wifi-slash', 'ยังส่งผลไม่ได้', 'ไม่มีสัญญาณ — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้\nเมื่อสัญญาณกลับ กด “ส่งผลแมตช์” อีกครั้ง');
       return;
     }
     _isConfirming = true; // ป้องกัน updateCurrentScreen แสดง modal ซ้ำ
@@ -1637,7 +1663,7 @@ async function confirmMatch() {
     while (!r.ok && !['already', 'missing', 'taken', 'abandoned'].includes(r.reason)) {
       _isConfirming = false;
       renderGameUI();
-      const again = await showConfirm('⚠️', 'ส่งผลไม่สำเร็จ', 'คะแนนยังอยู่ครบในเครื่องนี้\nตรวจสัญญาณแล้วลองส่งอีกครั้ง\nถ้ายังไม่ได้ แจ้งทีมงาน',
+      const again = await showConfirm('warning', 'ส่งผลไม่สำเร็จ', 'คะแนนยังอยู่ครบในเครื่องนี้\nตรวจสัญญาณแล้วลองส่งอีกครั้ง\nถ้ายังไม่ได้ แจ้งทีมงาน',
         { confirmLabel: 'ลองส่งอีกครั้ง', cancelLabel: 'ปิด' });
       if (!again) return;
       _isConfirming = true;
@@ -1648,23 +1674,28 @@ async function confirmMatch() {
 
     if (r.ok || (r.reason === 'already' && sameResult)) {
       vibrateDevice([60, 40, 60, 40, 120]);
-      await showAlert('✅', 'ส่งผลแล้ว ✓', `${m.id} · ${resLabel}`, 'กลับไปรายการ');
+      // the result as the viewers will see it: who won, both games, how long it took, and that it is in the system
+      const side = rStat === 'W' ? 'red' : bStat === 'W' ? 'blue' : 'draw';
+      const resultHtml = `<div class="result-win ${side}">${dsIcon(side === 'draw' ? 'medal' : 'trophy', { fill: side !== 'draw' })}<span>${_uEsc(resLabel)}</span></div>`
+        + _scoreTableHtml([{ label: 'เกม 1', r: g1r, b: g1b }, { label: 'เกม 2', r: g2r, b: g2b }])
+        + `<ul class="result-meta"><li>${_uEsc(m.id)}</li><li>${dsIcon('timer')}เวลาเล่น ${formatTimer(matchDuration)}</li><li>${dsIcon('check-circle', { fill: true })}ส่งแล้ว</li></ul>`;
+      await showAlert('check-circle', 'ส่งผลแล้ว', '', 'กลับไปรายการ', { scoreHtml: resultHtml });
       _isConfirming = false;
       exitMatch();
     } else if (r.reason === 'already') {
       // recorded by someone else first; when their scores are not the ones pressed here, say both
       const both = x => `${String(x.game1).replace(':', '–')} · ${String(x.game2).replace(':', '–')}`;
-      await showAlert('ℹ️', 'แมตช์นี้ถูกบันทึกผลไปแล้ว',
+      await showAlert('info', 'แมตช์นี้ถูกบันทึกผลไปแล้ว',
         'ทีมงานบันทึกผลไว้ก่อน — ผลจากเครื่องนี้ไม่ถูกส่งซ้ำ' + (r.existing ? `\nผลที่บันทึก ${both(r.existing)}\nต่างจากที่คุณกด ${both(entry)}\nแจ้งทีมงานหากไม่ถูกต้อง` : ''), 'กลับไปรายการ');
       _isConfirming = false;
       exitMatch();
     } else if (r.reason === 'missing') {
       // gone from the court list without a result in the history: nothing was recorded anywhere
-      await showAlert('ℹ️', 'แมตช์นี้ถูกปิดไปแล้ว', 'ทีมงานปิดแมตช์นี้ไปก่อน — ผลจากเครื่องนี้จึงไม่ถูกส่ง\nถ้ายังต้องบันทึกผล แจ้งทีมงาน', 'กลับไปรายการ');
+      await showAlert('info', 'แมตช์นี้ถูกปิดไปแล้ว', 'ทีมงานปิดแมตช์นี้ไปก่อน — ผลจากเครื่องนี้จึงไม่ถูกส่ง\nถ้ายังต้องบันทึกผล แจ้งทีมงาน', 'กลับไปรายการ');
       _isConfirming = false;
       exitMatch();
     } else if (r.reason === 'taken') {
-      await showAlert('🔒', 'แมตช์นี้ไม่ได้อยู่กับคุณแล้ว', 'ทีมงานปล่อยแมตช์นี้ หรือกรรมการคนอื่นรับไปแล้ว\nผลจากเครื่องนี้จึงไม่ถูกส่ง', 'กลับไปรายการ');
+      await showAlert('lock-simple', 'แมตช์นี้ไม่ได้อยู่กับคุณแล้ว', 'ทีมงานปล่อยแมตช์นี้ หรือกรรมการคนอื่นรับไปแล้ว\nผลจากเครื่องนี้จึงไม่ถูกส่ง', 'กลับไปรายการ');
       _isConfirming = false;
       exitMatch();
     } else {

@@ -33,20 +33,20 @@
 
 <!-- ── PAUSE OVERLAY — sits above the scoring screen; only the ▶ button resumes ── -->
 <div id="pauseOverlay" role="dialog" aria-modal="true" aria-label="พักเกม">
-  <div class="pause-title">⏸ พักเกม</div>
-
-  <div class="pause-current-block">
+  <div class="pause-top">
+    <div class="pause-title"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-pause-fill"/></svg>พักเกม</div>
     <div class="pause-current-label">พักครั้งนี้</div>
     <div class="pause-current-timer" id="pauseTimerBig">0:00</div>
   </div>
 
-  <div class="pause-meta">
-    <span>พักสะสม <b id="pauseTimerTotal">0:00</b></span>
-    <span>คะแนน <b id="pauseScore">0 – 0</b></span>
+  <div class="pause-bottom">
+    <div class="pause-meta">
+      <span>พักสะสม <b id="pauseTimerTotal">0:00</b></span>
+      <span>คะแนน <b id="pauseScore">0 – 0</b></span>
+    </div>
+    <button type="button" class="ds-btn ds-btn-primary pause-resume" id="btnResume" onclick="togglePause()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-play-fill"/></svg>เล่นต่อ</button>
+    <button type="button" class="ds-btn pause-exit" onclick="confirmExit()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sign-out"/></svg>ออกจากแมตช์</button>
   </div>
-
-  <button type="button" class="pause-resume" id="btnResume" onclick="togglePause()">▶ เล่นต่อ</button>
-  <button type="button" class="pause-exit" onclick="confirmExit()">← ออกจากแมตช์</button>
 </div>
 
 <!-- ── FULLSCREEN INDICATOR ── -->
@@ -207,33 +207,40 @@
 
 </div>
 
-<!-- ── VS INTRO — big pair-vs-pair reveal shown ~3s when a fresh match opens ── -->
+<!-- ── VS INTRO — the two pairs, shown ~3 s when a fresh match opens (a tap or the button skips it).
+     Same orientation as the scoring screen: red above, blue below (landscape: red left, blue right). ── -->
 <div id="vsIntro" onclick="dismissVsIntro()">
   <div class="vsi-court" id="vsiCourt"></div>
   <div class="vsi-row">
     <div class="vsi-side red">
+      <span class="ds-team ds-team-red">แดง</span>
       <div class="vsi-faces" id="vsiRedFaces"></div>
       <div class="vsi-names" id="vsiRedNames"></div>
     </div>
-    <div class="vsi-vs">VS</div>
+    <div class="vsi-vs" aria-hidden="true">VS</div>
     <div class="vsi-side blue">
+      <span class="ds-team ds-team-blue">น้ำเงิน</span>
       <div class="vsi-faces" id="vsiBlueFaces"></div>
       <div class="vsi-names" id="vsiBlueNames"></div>
     </div>
   </div>
-  <div class="vsi-ready">พร้อมแข่ง · แตะเพื่อเริ่ม</div>
+  <button type="button" class="ds-btn ds-btn-primary ds-btn-lg vsi-ready" onclick="dismissVsIntro()">พร้อมแข่ง · แตะเพื่อเริ่ม</button>
 </div>
 
 <!-- ── NOTICE — a message that never blocks a tap (a send that failed, "all sent ✓") ── -->
 <div id="umpNotice" role="status" aria-live="polite"></div>
 
-<!-- ── CUSTOM MODAL (fullscreen-safe แทน alert/confirm) ── -->
-<div id="customModal">
-  <div class="modal-box" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
-    <div class="modal-icon" id="modalIcon"></div>
-    <div class="modal-title" id="modalTitle"></div>
-    <div class="modal-body" id="modalBody"></div>
-    <div id="modalScorePreview" style="display:none;"></div>
+<!-- ── DIALOG — every question and message (js: showAlert / showConfirm / showCourtPicker). ds-scrim + ds-sheet; the
+     buttons sit outside the scrolling part, so they are always on screen ── -->
+<div id="customModal" class="ds-scrim">
+  <div class="modal-box ds-sheet" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
+    <div class="modal-scroll">
+      <div class="modal-icon" id="modalIcon"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-body" id="modalBody"></div>
+      <div id="modalScorePreview"></div>
+      <div class="ds-banner is-warn modal-warn" id="modalWarn" hidden></div>
+    </div>
     <div class="modal-btns" id="modalBtns"></div>
   </div>
 </div>
