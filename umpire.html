@@ -49,26 +49,8 @@
   <button type="button" class="pause-exit" onclick="confirmExit()">← ออกจากแมตช์</button>
 </div>
 
-<!-- ── FULLSCREEN FLOATING BUTTON (non-scoring screens) ── -->
-<button id="fsBtn" onclick="toggleFullScreen()" title="เต็มจอ">⛶</button>
-
-<!-- ── WAKE LOCK BADGE ── -->
-<div id="wakeLockBadge">🔒 หน้าจอติด</div>
-
 <!-- ── FULLSCREEN INDICATOR ── -->
 <div id="fsIndicator">⛶ เต็มจอแล้ว — แตะ 2 ครั้งเพื่อออก</div>
-
-<!-- ── UNDO TOAST ── -->
-<div id="undoToast">↩ ยกเลิกคะแนนล่าสุด</div>
-
-<!-- ── LANDSCAPE FLOATING BAR ── -->
-<div id="landscapeInfo">
-  <button class="li-btn danger" onclick="confirmExit()">← ออก</button>
-  <button class="li-btn" onclick="togglePause()" id="liPauseBtn">⏸ พัก</button>
-  <div class="li-timer" id="liTimer">0:00</div>
-  <div style="font-family:'Bebas Neue','Noto Sans Thai',sans-serif;font-weight:700;font-size:1em;color:var(--muted);letter-spacing:1px;" id="liGameInd">เกม 1</div>
-  <button class="li-btn" onclick="toggleFullScreen()" id="liFsBtn">⛶</button>
-</div>
 
 <!-- ── NAVBAR ── -->
 <div id="umpireNav">
@@ -163,59 +145,65 @@
 </div>
 
 <!-- ============================================================
-     🏸 SCORING SCREEN
+     SCORING SCREEN — a grid with NAMED AREAS (css/umpire.css): info · banner · red · net · blue · deck.
+     Portrait stacks them; landscape puts RED | centre column (info, net, deck) | BLUE.
      ============================================================ -->
 <div id="screen-scoring" class="screen">
 
-  <!-- TOP BAR — information only (court, clock, game): nothing here can be tapped by accident except the court -->
-  <div class="scoring-topbar">
-    <div class="scoring-center">
-      <div class="match-info-text" id="activeMatchInfo">—</div>
-      <div class="center-row">
-        <div class="timer-display" id="umpireTimerDisplay">0:00</div>
-        <div class="game-indicator" id="gameIndicator">เกม 1</div>
-      </div>
-      <div class="g1line" id="g1Line" style="display:none;"></div>
-    </div>
-  </div>
+  <!-- INFO — court (the one tappable thing here), clock, send state -->
+  <header class="scoring-topbar">
+    <div class="match-info-text" id="activeMatchInfo">—</div>
+    <div class="timer-display idle" id="umpireTimerDisplay">0:00</div>
+    <div class="sync-strip sync-ok" id="syncStrip" role="status" aria-live="off"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg><span class="ss-text"><span>เชื่อมต่อแล้ว</span></span></div>
+  </header>
+  <!-- offline / slow: empty (and so hidden) unless something is wrong -->
   <div class="net-banner" role="status" aria-live="polite"></div>
 
-  <!-- RED PANEL -->
+  <!-- RED -->
   <div class="score-panel red" id="redPanel">
-    <button class="score-btn-plus" id="btnRedPlus" onclick="updateScore('red',1)" aria-label="เพิ่มคะแนนทีมแดง"></button>
+    <button type="button" class="score-btn-plus" id="btnRedPlus" onclick="updateScore('red',1)" aria-label="เพิ่มคะแนนทีมแดง"></button>
     <div class="score-center-col">
-      <div class="team-name-score" style="color:var(--red);" id="redNames">RED TEAM</div>
-      <div class="score-number" style="color:var(--red);" id="scoreRed">0</div>
+      <div class="panel-head">
+        <span class="ds-team ds-team-red">แดง</span>
+        <div class="team-name-score" id="redNames">RED TEAM</div>
+      </div>
+      <div class="digit-zone"><div class="score-number" id="scoreRed">0</div></div>
       <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
-    <button class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนนทีมแดง">−</button>
+    <button type="button" class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนนทีมแดง"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
   </div>
 
-  <!-- SUBMIT — single button; label switches "ส่งผลเกม 1" / "ส่งผลแมตช์" -->
-  <div class="scoring-actions">
-    <button class="btn-action btn-submit" id="btnSubmitGame" onclick="submitGame()">ส่งผลเกม 1</button>
+  <!-- NET — read-only: the game, game 1's score in game 2, DEUCE / GAME POINT -->
+  <div class="net-strip">
+    <span class="net-chip" id="gameIndicator">เกม 1</span>
+    <span class="net-chip g1line" id="g1Line" hidden></span>
+    <span class="net-chip sit-chip" id="sitChip" hidden></span>
   </div>
 
-  <!-- BLUE PANEL -->
+  <!-- BLUE -->
   <div class="score-panel blue" id="bluePanel">
-    <button class="score-btn-plus" id="btnBluePlus" onclick="updateScore('blue',1)" aria-label="เพิ่มคะแนนทีมน้ำเงิน"></button>
+    <button type="button" class="score-btn-plus" id="btnBluePlus" onclick="updateScore('blue',1)" aria-label="เพิ่มคะแนนทีมน้ำเงิน"></button>
     <div class="score-center-col">
-      <div class="team-name-score" style="color:var(--blue);" id="blueNames">BLUE TEAM</div>
-      <div class="score-number" style="color:var(--blue);" id="scoreBlue">0</div>
+      <div class="panel-head">
+        <span class="ds-team ds-team-blue">น้ำเงิน</span>
+        <div class="team-name-score" id="blueNames">BLUE TEAM</div>
+      </div>
+      <div class="digit-zone"><div class="score-number" id="scoreBlue">0</div></div>
       <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
-    <button class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนนทีมน้ำเงิน">−</button>
+    <button type="button" class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนนทีมน้ำเงิน"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
   </div>
 
-  <!-- BOTTOM BAR — leave / pause, well away from both +1 areas (a guard strip sits above it) -->
+  <!-- DECK — leave · submit · pause. A guard strip above it holds no button. Submit stays one button: its label and
+       its "ready" look follow the game (ส่งผลเกม 1 / ส่งผลแมตช์) -->
   <div class="scoring-bottombar">
-    <div class="sync-strip sync-ok" id="syncStrip" role="status" aria-live="off">✓ เชื่อมต่อแล้ว</div>
-    <button class="bar-btn danger" id="btnBack" onclick="confirmExit()">← ออก</button>
-    <button class="bar-btn" id="btnPause" onclick="togglePause()">⏸ พัก</button>
+    <button type="button" class="ds-btn bar-btn" id="btnBack" onclick="confirmExit()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sign-out"/></svg><span>ออก</span></button>
+    <button type="button" class="ds-btn btn-submit" id="btnSubmitGame" onclick="submitGame()"><span>ส่งผลเกม 1</span></button>
+    <button type="button" class="ds-btn bar-btn" id="btnPause" onclick="togglePause()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-pause-fill"/></svg><span>พัก</span></button>
   </div>
 
-  <!-- safe area bottom -->
-  <div class="scoring-bottom-safe"></div>
+  <!-- the score, said once the taps have settled (a screen reader does not read the digits) -->
+  <div class="ds-sr-only" id="scoreLive" role="status" aria-atomic="true"></div>
 
 </div>
 
