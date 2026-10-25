@@ -1,0 +1,128 @@
+﻿board-login                                  board   390x844 1280x800
+board-login-staff                            board   390x844 1280x800
+board-login-passcode                         board   390x844 1280x800
+board-guest-scoreboard-ongoing               board   390x844 1280x800 768x1024
+board-guest-scoreboard-live                  board   390x844 1280x800 768x1024
+board-guest-scoreboard-idle                  board   390x844 1280x800 768x1024
+board-guest-scoreboard-empty                 board   390x844 1280x800
+board-guest-scoreboard-finished              board   390x844 1280x800 768x1024
+board-guest-players                          board   390x844 1280x800 768x1024
+board-guest-profile                          board   390x844 1280x800
+board-guest-profile-edit                     board   390x844 1280x800
+board-guest-gallery                          board   390x844 1280x800
+board-guest-gallery-lightbox                 board   390x844 1280x800
+board-guest-me-picker                        board   390x844 1280x800
+board-guest-more-menu                        board   390x844 1280x800
+board-guest-popup                            board   390x844 1280x800
+board-guest-toast                            board   390x844 1280x800
+board-guest-offline                          board   390x844 1280x800
+board-guest-loading                          board   390x844 1280x800
+board-guest-loading-slow                     board   390x844 1280x800
+board-guest-loading-failed                   board   390x844 1280x800
+board-admin-scoreboard-ongoing               board   390x844 1280x800 768x1024
+board-admin-scoreboard-live                  board   390x844 1280x800 768x1024
+board-admin-scoreboard-idle                  board   390x844 1280x800 768x1024
+board-admin-scoreboard-empty                 board   390x844 1280x800
+board-admin-scoreboard-finished              board   390x844 1280x800 768x1024
+board-admin-players                          board   390x844 1280x800 768x1024
+board-admin-profile                          board   390x844 1280x800
+board-admin-profile-edit                     board   390x844 1280x800
+board-admin-gallery                          board   390x844 1280x800
+board-admin-more-menu                        board   390x844 1280x800
+board-admin-popup                            board   390x844 1280x800
+board-admin-toast                            board   390x844 1280x800
+board-admin-offline                          board   390x844 1280x800
+board-admin-loading                          board   390x844 1280x800
+board-admin-loading-slow                     board   390x844 1280x800
+board-admin-loading-failed                   board   390x844 1280x800
+board-admin-dashboard                        board   390x844 1280x800
+board-admin-reports-players                  board   390x844 1280x800
+board-admin-reports-matches                  board   390x844 1280x800
+board-admin-admin                            board   390x844 1280x800
+board-admin-admin-board-filled               board   390x844 1280x800
+board-admin-admin-player-mgmt                board   390x844 1280x800
+board-admin-result-modal                     board   390x844 1280x800
+board-admin-player-edit                      board   390x844 1280x800
+board-admin-qr                               board   390x844 1280x800
+board-admin-trophy                           board   390x844 1280x800
+board-superadmin-scoreboard-ongoing          board   390x844 1280x800 768x1024
+board-superadmin-scoreboard-live             board   390x844 1280x800 768x1024
+board-superadmin-scoreboard-idle             board   390x844 1280x800 768x1024
+board-superadmin-scoreboard-empty            board   390x844 1280x800
+board-superadmin-scoreboard-finished         board   390x844 1280x800 768x1024
+board-superadmin-players                     board   390x844 1280x800 768x1024
+board-superadmin-profile                     board   390x844 1280x800
+board-superadmin-profile-edit                board   390x844 1280x800
+board-superadmin-gallery                     board   390x844 1280x800
+board-superadmin-more-menu                   board   390x844 1280x800
+board-superadmin-popup                       board   390x844 1280x800
+board-superadmin-toast                       board   390x844 1280x800
+board-superadmin-offline                     board   390x844 1280x800
+board-superadmin-loading                     board   390x844 1280x800
+board-superadmin-loading-slow                board   390x844 1280x800
+board-superadmin-loading-failed              board   390x844 1280x800
+board-superadmin-dashboard                   board   390x844 1280x800
+board-superadmin-reports-players             board   390x844 1280x800
+board-superadmin-reports-matches             board   390x844 1280x800
+board-superadmin-admin                       board   390x844 1280x800
+board-superadmin-admin-board-filled          board   390x844 1280x800
+board-superadmin-admin-player-mgmt           board   390x844 1280x800
+board-superadmin-result-modal                board   390x844 1280x800
+board-superadmin-player-edit                 board   390x844 1280x800
+board-superadmin-qr                          board   390x844 1280x800
+board-superadmin-trophy                      board   390x844 1280x800
+board-superadmin-extras                      board   390x844 1280x800
+board-superadmin-quickscore                  board   390x844 1280x800
+board-superadmin-edit-result                 board   390x844 1280x800
+board-superadmin-backup                      board   390x844 1280x800
+board-superadmin-reset-menu                  board   390x844 1280x800
+board-superadmin-season-wizard               board   390x844 1280x800
+board-superadmin-season-archive              board   390x844 1280x800
+tv-battle                                    tv      1920x1080 1280x720
+tv-vs                                        tv      1920x1080 1280x720
+tv-live-grid                                 tv      1920x1080 1280x720
+tv-live-quiet                                tv      1920x1080 1280x720
+tv-live-6                                    tv      1920x1080 1280x720
+tv-10-courts                                 tv      1920x1080 1280x720
+tv-board                                     tv      1920x1080 1280x720
+tv-idle                                      tv      1920x1080 1280x720
+tv-climax                                    tv      1920x1080 1280x720
+tv-event-finished                            tv      1920x1080 1280x720
+tv-event-game1                               tv      1920x1080 1280x720
+tv-stale                                     tv      1920x1080 1280x720
+tv-loading                                   tv      1920x1080 1280x720
+umpire-login                                 umpire  390x844 360x740 320x568
+umpire-login-ready                           umpire  390x844 360x740 320x568
+umpire-login-loading                         umpire  390x844 360x740 320x568
+umpire-login-slow                            umpire  390x844 360x740 320x568
+umpire-list                                  umpire  390x844 360x740 320x568
+umpire-list-onlyfree                         umpire  390x844 360x740 320x568
+umpire-list-empty                            umpire  390x844 360x740 320x568
+umpire-alert-taken                           umpire  390x844 360x740 320x568
+umpire-logout-confirm                        umpire  390x844 360x740 320x568
+umpire-court-picker                          umpire  390x844 360x740 320x568
+umpire-second-match-confirm                  umpire  390x844 360x740 320x568
+umpire-vs-intro                              umpire  390x844 360x740 320x568
+umpire-scoring-0-0                           umpire  390x844 360x740 320x568 844x390
+umpire-scoring-0-0-running                   umpire  390x844 360x740 320x568 844x390
+umpire-scoring-mid                           umpire  390x844 360x740 320x568 844x390
+umpire-scoring-gamepoint                     umpire  390x844 360x740 320x568 844x390
+umpire-scoring-deuce                         umpire  390x844 360x740 320x568 844x390
+umpire-scoring-ready                         umpire  390x844 360x740 320x568 844x390
+umpire-scoring-g2                            umpire  390x844 360x740 320x568 844x390
+umpire-scoring-scored                        umpire  390x844 360x740 320x568 844x390
+umpire-scoring-two-line-names                umpire  390x844 360x740 320x568
+umpire-submit-confirm                        umpire  390x844 360x740 320x568
+umpire-submit-confirm-warn                   umpire  390x844 360x740 320x568
+umpire-submit-confirm-match                  umpire  390x844 360x740 320x568
+umpire-exit-confirm                          umpire  390x844 360x740 320x568
+umpire-pause                                 umpire  390x844 360x740 320x568 844x390
+umpire-result-sent                           umpire  390x844 360x740 320x568
+umpire-result                                umpire  390x844 360x740 320x568
+umpire-result-empty                          umpire  390x844 360x740 320x568
+umpire-offline                               umpire  390x844 360x740 320x568
+umpire-sending                               umpire  390x844 360x740 320x568
+umpire-error-notice                          umpire  390x844 360x740 320x568
+umpire-notice-ok                             umpire  390x844 360x740 320x568
+
+126 scenarios
