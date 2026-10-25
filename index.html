@@ -233,28 +233,28 @@ try {
   </div>
 </div>
 
-<!-- ⭐ Photo lightbox — click any real photo to view it full-size -->
-<div id="photoLightbox" class="plb" onclick="if(event.target===this)closePhotoLightbox()">
-  <button class="plb-close" onclick="closePhotoLightbox()" title="ปิด">✕</button>
-  <div class="plb-box">
+<!-- Photo lightbox — tap any real photo to see it full-size -->
+<div id="photoLightbox" class="plb" role="dialog" aria-modal="true" aria-label="รูปผู้เล่น" onclick="if(event.target===this)closePhotoLightbox()">
+  <button type="button" class="ds-btn ds-btn-icon plb-close" onclick="closePhotoLightbox()" aria-label="ปิด" title="ปิด"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+  <figure class="plb-box">
     <img class="plb-img" src="" alt="">
-    <div class="plb-cap"><div class="plb-name"></div><div class="plb-meta"></div></div>
-  </div>
+    <figcaption class="plb-cap"><div class="plb-name"></div><div class="plb-meta"></div></figcaption>
+  </figure>
 </div>
 
-<!-- ⭐ Photo focal-point adjuster (admin) -->
-<div id="photoAdjustModal" class="modal-overlay">
-  <div class="modal-box" style="width:min(340px,92vw);">
-    <div class="modal-title" style="font-size:1.3em;">🎯 จัดตำแหน่งรูป</div>
-    <div style="font-size:12px;color:var(--muted);margin:6px 0 16px;">ลากรูปเพื่อเลือกส่วนที่จะโชว์ในวงกลม</div>
+<!-- Photo focal-point adjuster (staff) -->
+<div id="photoAdjustModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="padjTitle">
+  <div class="modal-box padj-box">
+    <h3 class="modal-title" id="padjTitle">จัดตำแหน่งรูป</h3>
+    <p class="ds-help">ลากรูปเพื่อเลือกส่วนที่จะโชว์ในวงกลม</p>
     <div class="padj-frame"
          onmousedown="photoAdjustStart(event)" onmousemove="photoAdjustMove(event)" onmouseup="photoAdjustEnd()" onmouseleave="photoAdjustEnd()"
          ontouchstart="photoAdjustStart(event)" ontouchmove="photoAdjustMove(event)" ontouchend="photoAdjustEnd()">
       <img class="padj-img" src="" alt="" draggable="false">
     </div>
-    <div class="modal-actions" style="margin-top:18px;">
-      <button class="btn btn-primary" onclick="savePhotoAdjust()">💾 บันทึก</button>
-      <button class="btn btn-outline" onclick="closePhotoAdjust()">ยกเลิก</button>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="savePhotoAdjust()">บันทึก</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closePhotoAdjust()">ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -541,22 +541,28 @@ try {
 </div>
 
 <!-- ── PLAYERS TAB ── -->
-<div id="players" class="container" style="max-width:1340px;">
-  <div class="tab-toolbar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-    <div class="section-title th" style="margin:0;">👤 รายชื่อผู้เล่น</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <input type="text" id="playersTabSearch" placeholder="🔍 ค้นหาชื่อ..." style="width:140px;font-size:13px;padding:7px 12px;" oninput="renderPlayersTab()">
-      <select id="playersTabFilterTeam" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
-        <option value="">ทุกทีม</option><option value="Red">🔴 Red</option><option value="Blue">🔵 Blue</option>
+<div id="players" class="container">
+  <h2 class="section-title th">รายชื่อผู้เล่น</h2>
+  <div class="pdir-tools">
+    <div class="pdir-search">
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+      <input type="search" id="playersTabSearch" class="ds-input" placeholder="ค้นหาชื่อ" aria-label="ค้นหาผู้เล่น" autocomplete="off" enterkeyhint="search" oninput="renderPlayersTab()">
+    </div>
+    <button type="button" id="playersFilterBtn" class="ds-btn pdir-filter-btn" aria-expanded="false" aria-controls="playersFilterPanel" onclick="togglePlayersFilters()">
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sliders-horizontal"/></svg>ตัวกรอง<span class="pdir-badge" id="playersFilterBadge" hidden></span>
+    </button>
+    <div class="pdir-filters" id="playersFilterPanel">
+      <select id="playersTabFilterTeam" class="ds-select" aria-label="ทีม" onchange="renderPlayersTab()">
+        <option value="">ทุกทีม</option><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option>
       </select>
-      <select id="playersTabFilterGroup" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
-        <option value="">ทุกกลุ่ม</option><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option>
+      <select id="playersTabFilterGroup" class="ds-select" aria-label="กลุ่ม" onchange="renderPlayersTab()">
+        <option value="">ทุกกลุ่ม</option><option value="1">กลุ่ม G1</option><option value="2">กลุ่ม G2</option><option value="3">กลุ่ม G3</option>
       </select>
-      <select id="playersTabSortBy" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
-        <option value="pts">↓ Points</option>
-        <option value="winRate">↓ Win Rate</option>
-        <option value="pointDiff">↓ Point Diff</option>
-        <option value="name">A–Z Name</option>
+      <select id="playersTabSortBy" class="ds-select pdir-sort" aria-label="เรียงตาม" onchange="renderPlayersTab()">
+        <option value="pts">เรียงตามคะแนน</option>
+        <option value="winRate">เรียงตามอัตราชนะ</option>
+        <option value="pointDiff">เรียงตามผลต่างคะแนน</option>
+        <option value="name">เรียงตามชื่อ</option>
       </select>
     </div>
   </div>
@@ -590,57 +596,67 @@ try {
     <span id="champStatus" style="font-size:11px;color:var(--gold);font-weight:700;"></span>
   </div>
 
+  <div class="pdir-meta" id="playersTabMeta" role="status"></div>
   <div id="playersTabGrid"></div>
 </div>
 
 <!-- ── GALLERY TAB (everyone) ── -->
 <div id="gallery" class="container">
-  <div class="gal-header">
-    <div class="section-title" style="margin:0;">📷 บรรยากาศงาน</div>
-    <div id="galleryAdminBar" class="gal-admin-bar" style="display:none;">
-      <input type="text" id="galEventInput" class="gal-event-input" placeholder="ชื่องาน (เช่น ต้นปี / ปลายปี)" maxlength="40">
-      <button class="btn btn-primary btn-sm" onclick="pickGalleryPhotos()">⬆ เพิ่มรูป</button>
-      <button class="btn btn-outline btn-sm" id="galSelectToggle" onclick="toggleGalSelect()">☑️ เลือก/ย้าย</button>
+  <h2 class="section-title th">บรรยากาศงาน</h2>
+  <!-- staff: upload (the event name is the album the photos go into) and multi-select -->
+  <div id="galleryAdminBar" class="gal-admin-bar" hidden>
+    <label class="ds-field gal-event">
+      <span class="ds-label">ชื่องาน</span>
+      <input type="text" id="galEventInput" class="ds-input" placeholder="เช่น ต้นปี / ปลายปี" maxlength="40" autocomplete="off">
+    </label>
+    <div class="gal-admin-actions">
+      <button type="button" class="ds-btn ds-btn-primary" onclick="pickGalleryPhotos()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-upload-simple"/></svg>เพิ่มรูป</button>
+      <button type="button" class="ds-btn" id="galSelectToggle" aria-pressed="false" onclick="toggleGalSelect()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg>เลือก/ย้าย</button>
     </div>
   </div>
+  <div id="galleryNotice" class="gal-notice" role="status" aria-live="polite"></div>
   <div id="galleryYears" class="gal-years"></div>
   <div id="galleryYearTitle" class="gal-year-title"></div>
   <div id="galleryGrid" class="gal-grid"></div>
 </div>
 
 <!-- gallery multi-select action bar (floating) -->
-<div id="galSelectBar" class="gal-selbar" style="display:none;">
+<div id="galSelectBar" class="gal-selbar" hidden role="region" aria-label="เลือกรูป">
   <span class="gal-sel-count">เลือก <b id="galSelCount">0</b> รูป</span>
   <span class="gal-sel-hint">แตะรูปเพื่อเลือก · ลากรูปไปหัวอัลบั้มก็ได้ (บนคอม)</span>
-  <button class="btn btn-primary btn-sm" onclick="openGalMove()">📁 ย้ายไปอัลบั้ม</button>
-  <button class="btn btn-danger btn-sm" onclick="galDeleteSelected()">🗑 ลบ</button>
-  <button class="btn btn-outline btn-sm" onclick="toggleGalSelect()">✕ เสร็จ</button>
+  <div class="gal-sel-actions">
+    <button type="button" class="ds-btn ds-btn-primary" onclick="openGalMove()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-images"/></svg>ย้ายไปอัลบั้ม</button>
+    <button type="button" class="ds-btn ds-btn-danger" onclick="galDeleteSelected()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg>ลบ</button>
+    <button type="button" class="ds-btn" onclick="toggleGalSelect()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check"/></svg>เสร็จ</button>
+  </div>
 </div>
 
 <!-- move-to-album picker -->
-<div id="galMoveModal" class="modal-overlay">
-  <div class="modal-box" style="width:min(440px,93vw);text-align:left;">
-    <div class="modal-title" style="font-size:1.3em;text-align:center;">📁 ย้ายไปอัลบั้ม</div>
+<div id="galMoveModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="galMoveTitle">
+  <div class="modal-box gal-move-box">
+    <h3 class="modal-title" id="galMoveTitle">ย้ายไปอัลบั้ม</h3>
     <div id="galMoveTargets" class="gal-move-targets"></div>
     <div class="gal-move-new">
-      <input type="text" id="galMoveNewName" class="gal-event-input" placeholder="อัลบั้มใหม่ (ชื่องาน)" maxlength="40">
-      <button class="btn btn-primary btn-sm" onclick="galMoveToNew()">＋ สร้าง &amp; ย้าย</button>
+      <input type="text" id="galMoveNewName" class="ds-input" placeholder="อัลบั้มใหม่ (ชื่องาน)" maxlength="40" aria-label="ชื่ออัลบั้มใหม่" autocomplete="off">
+      <button type="button" class="ds-btn ds-btn-primary" onclick="galMoveToNew()">สร้างและย้าย</button>
     </div>
-    <div class="modal-actions" style="margin-top:16px;"><button class="btn btn-outline" onclick="closeGalMove()">ยกเลิก</button></div>
+    <div class="ds-sheet-actions"><button type="button" class="ds-btn" onclick="closeGalMove()">ยกเลิก</button></div>
   </div>
 </div>
 
 <!-- ── GALLERY LIGHTBOX ── -->
-<div id="galleryLightbox" class="gal-lightbox" onclick="if(event.target===this)closeLightbox()"
+<div id="galleryLightbox" class="gal-lightbox" role="dialog" aria-modal="true" aria-label="ดูรูป" onclick="if(event.target===this)closeLightbox()"
      ontouchstart="lbTouchStart(event)" ontouchend="lbTouchEnd(event)">
-  <button class="gal-lb-close" onclick="closeLightbox()" aria-label="ปิด">✕</button>
-  <button class="gal-lb-arrow gal-lb-prev" onclick="lightboxNav(-1)" aria-label="ก่อนหน้า">←</button>
+  <div class="gal-lb-top">
+    <span id="lbCounter" class="gal-lb-counter" role="status">0 / 0</span>
+    <button type="button" class="ds-btn ds-btn-icon gal-lb-close" onclick="closeLightbox()" aria-label="ปิด" title="ปิด"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+  </div>
+  <button type="button" class="ds-btn ds-btn-icon gal-lb-arrow gal-lb-prev" onclick="lightboxNav(-1)" aria-label="ก่อนหน้า"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-caret-left"/></svg></button>
   <div class="gal-lb-stage"><img id="lbImg" src="" alt=""></div>
-  <button class="gal-lb-arrow gal-lb-next" onclick="lightboxNav(1)" aria-label="ถัดไป">→</button>
+  <button type="button" class="ds-btn ds-btn-icon gal-lb-arrow gal-lb-next" onclick="lightboxNav(1)" aria-label="ถัดไป"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg></button>
   <div class="gal-lb-bar">
-    <span id="lbCounter" class="gal-lb-counter">0 / 0</span>
     <span id="lbCaption" class="gal-lb-caption"></span>
-    <button id="lbDelete" class="gal-lb-del" onclick="lightboxDelete()" style="display:none;">🗑 ลบรูปนี้</button>
+    <button type="button" id="lbDelete" class="ds-btn ds-btn-danger gal-lb-del" onclick="lightboxDelete()" hidden><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg>ลบรูปนี้</button>
   </div>
 </div>
 
@@ -1103,37 +1119,55 @@ try {
   </div>
 </div>
 
-<!-- AWARD CRITERIA INFO MODAL -->
-<div id="awardInfoModal" class="modal-overlay" style="z-index: 3000;">
-  <div class="modal-box" style="text-align: left; max-width: 600px;">
-    <div class="modal-title" style="text-align:center;">ℹ️ กติกาการตัดสินรางวัล</div>
-    <div style="margin-top:20px; line-height:1.6; font-size:14px; color:var(--text);">
-        <b style="color:var(--gold);">🏆 MVP Top 5 (ผู้ทำแต้มสูงสุด):</b><br>
-        เรียงจากผู้ที่สะสมแต้มทีมได้มากที่สุด<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Points → Point Diff → Game Wins</span><br><br>
-        
-        <b style="color:var(--gold);">🛡️ Toughest Player (ผู้เล่นเคี้ยวยาก):</b><br>
-        ผู้เล่นที่พาทีมเสมอได้บ่อยที่สุด สะท้อนความสมดุลและความสม่ำเสมอ<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Draws มากสุด → |Point Diff| ใกล้ 0 มากสุด</span><br><br>
-        
-        <b style="color:var(--gold);">🔥 Epic Comeback Kings (ราชาพลิกนรก):</b><br>
-        ตามหลัง 4+ แต้มช่วงท้ายในขณะที่คู่ต่อสู้มีแต้ม 17 ขึ้นไป แล้วพลิกชนะได้<br>
-        เกิดได้ 2 ครั้งต่อ Match · ได้รับเฉพาะทีมที่พลิกชนะ<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → Wins → Point Diff</span><br><br>
-        
-        <b style="color:var(--gold);">⚔️ The Gladiators (นักสู้หัวใจเพชร):</b><br>
-        แต้มรวม 2 เกมของทั้งแมตช์ห่างกันไม่เกิน 5 แต้ม — เกมสูสีสุดขีด<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → |Point Diff| ใกล้ 0 → Draws</span><br><br>
-        
-        <b style="color:var(--gold);">🏃‍♂️ Iron Lungs (ปอดเหล็ก):</b><br>
-        ผ่านเกมที่มีดิวซ์ยาวนานถึง 22 แต้มขึ้นไป ทดสอบความอดทนสูงสุด<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → Wins → Point Diff</span><br><br>
-
-        <hr style="border-color:var(--border);margin:12px 0;">
-        <b style="color:var(--muted);font-size:12px;">📌 หมายเหตุ: รางวัล Rollercoaster และ Blowout ไม่มีในพิธีมอบรางวัล แต่ยังปรากฏใน Match History</b>
-    </div>
-    <div class="modal-actions" style="margin-top: 24px;">
-      <button class="btn btn-primary" onclick="document.getElementById('awardInfoModal').classList.remove('open')">✓ ปิดหน้าต่าง</button>
+<!-- AWARD CRITERIA INFO MODAL (opened from the trophy ceremony) -->
+<div id="awardInfoModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="awardInfoTitle">
+  <div class="modal-box awi-box">
+    <h3 class="modal-title" id="awardInfoTitle">กติกาการตัดสินรางวัล</h3>
+    <ul class="awi-list" role="list">
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-crown-fill"/></svg></span>
+        <div class="awi-txt">
+          <b>MVP Top 5 <span>(ผู้ทำคะแนนสูงสุด)</span></b>
+          <p>เรียงจากผู้ที่สะสมคะแนนทีมได้มากที่สุด</p>
+          <small>ตัดเชือก: Points → Point Diff → Game Wins</small>
+        </div>
+      </li>
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-target"/></svg></span>
+        <div class="awi-txt">
+          <b>Toughest Player <span>(ผู้เล่นเคี้ยวยาก)</span></b>
+          <p>ผู้เล่นที่พาทีมเสมอได้บ่อยที่สุด สะท้อนความสมดุลและความสม่ำเสมอ</p>
+          <small>ตัดเชือก: Draws มากสุด → |Point Diff| ใกล้ 0 มากสุด</small>
+        </div>
+      </li>
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-counter-clockwise"/></svg></span>
+        <div class="awi-txt">
+          <b>Epic Comeback Kings <span>(ราชาพลิกนรก)</span></b>
+          <p>ตามหลัง 4+ คะแนนช่วงท้ายในขณะที่คู่ต่อสู้มีคะแนน 17 ขึ้นไป แล้วพลิกชนะได้ เกิดได้ 2 ครั้งต่อ Match · ได้รับเฉพาะทีมที่พลิกชนะ</p>
+          <small>ตัดเชือก: Tags → Wins → Point Diff</small>
+        </div>
+      </li>
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-lightning"/></svg></span>
+        <div class="awi-txt">
+          <b>The Gladiators <span>(นักสู้หัวใจเพชร)</span></b>
+          <p>คะแนนรวม 2 เกมของทั้งแมตช์ห่างกันไม่เกิน 5 คะแนน — เกมสูสีสุดขีด</p>
+          <small>ตัดเชือก: Tags → |Point Diff| ใกล้ 0 → Draws</small>
+        </div>
+      </li>
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-timer"/></svg></span>
+        <div class="awi-txt">
+          <b>Iron Lungs <span>(ปอดเหล็ก)</span></b>
+          <p>ผ่านเกมที่มีดิวซ์ยาวนานถึง 22 คะแนนขึ้นไป ทดสอบความอดทนสูงสุด</p>
+          <small>ตัดเชือก: Tags → Wins → Point Diff</small>
+        </div>
+      </li>
+    </ul>
+    <div class="ds-banner is-info"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-info"/></svg><span>รางวัล Rollercoaster และ Blowout ไม่มีในพิธีมอบรางวัล แต่ยังปรากฏใน Match History</span></div>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="document.getElementById('awardInfoModal').classList.remove('open')">ปิดหน้าต่าง</button>
     </div>
   </div>
 </div>
@@ -1391,31 +1425,35 @@ try {
 </div>
 
 <!-- ══ PLAYER PROFILE OVERLAY ══ -->
-<div id="playerProfileOverlay">
-  <button class="profile-back-btn" onclick="closePlayerProfile()">← กลับ</button>
-  <button class="profile-close-btn" onclick="closePlayerProfile()" title="ปิด (Esc)">✕</button>
+<div id="playerProfileOverlay" role="dialog" aria-modal="true" aria-label="โปรไฟล์ผู้เล่น">
+  <div class="pf-bar">
+    <button type="button" class="ds-btn pf-back" onclick="closePlayerProfile()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-left"/></svg>กลับ</button>
+    <button type="button" class="ds-btn ds-btn-icon pf-close" onclick="closePlayerProfile()" aria-label="ปิด" title="ปิด"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+  </div>
   <div class="profile-wrap" id="playerProfileWrap">
-    <!-- Header -->
-    <div class="profile-header" id="profileHeader"></div>
-    <!-- Stats bar -->
+    <!-- Hero: face, name, team, points, rank (+ the staff tools) -->
+    <div class="profile-header ds-court-bg" id="profileHeader"></div>
+    <!-- Stat strip -->
     <div class="profile-stats-bar" id="profileStatBar"></div>
-    <!-- Body -->
-    <!-- Single page: identity chips → scout notes → match history → H2H.
-         (Career tab removed: seasons_archive is empty, so it only ever
-         repeated the stat bar above.) -->
+    <!-- Single page, no tabs (the Career tab was removed: seasons_archive is empty, it only ever repeated the stats).
+         Facts, awards and notes sit beside the match history on a laptop and above it on a phone. -->
     <div class="profile-body">
-      <!-- read mode -->
-      <div id="pdReadView">
-        <div id="pdAwards"></div>
-        <div id="pdIdentityRow" class="pd-identity"></div>
-        <div id="pdScoutNotes"></div>
+      <div class="pf-aside">
+        <!-- read mode -->
+        <div id="pdReadView">
+          <div id="pdAwards"></div>
+          <div id="pdIdentityRow"></div>
+          <div id="pdScoutNotes"></div>
+        </div>
+        <!-- edit mode (staff) — swaps in place, no modal over the overlay -->
+        <div id="pdEditView" hidden></div>
       </div>
-      <!-- edit mode (admin) — swaps in place, no modal over the overlay -->
-      <div id="pdEditView" hidden></div>
-      <div id="pdMatchHistory"></div>
-      <div id="pdH2H"></div>
-      <div id="pdCareer"></div>
-      <div id="pdPastMatches"></div>
+      <div class="pf-main">
+        <div id="pdMatchHistory"></div>
+        <div id="pdH2H"></div>
+        <div id="pdCareer"></div>
+        <div id="pdPastMatches"></div>
+      </div>
     </div>
   </div>
 </div>

@@ -2,6 +2,7 @@
 // PLAYER PROFILE SYSTEM
 // ══════════════════════════════════════════
 let _pdCurrentId = null;
+let _pdOpener = null;   // what had focus when the profile opened: focus goes back there on close
 
 // ══════════════════════════════════════════
 // AWARDS — a player's medals, shown in an "Awards" showcase on the profile.
@@ -71,14 +72,14 @@ function playerAwards(p) {
 
 // ── Superadmin: declare the season champion (team + optional label) ──
 function declareChampion(team) {
-  if (userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Super Admin', 'error');
+  if (userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Super Admin', 'error');
   const label = (document.getElementById('champLabel')?.value || '').trim();
   appState.champion = { team: team || '', label };   // team '' = cleared (persists)
   saveKeys(['champion'], true);
   updateChampControls();
   if (typeof renderPlayersTab === 'function') renderPlayersTab();
   if (_pdCurrentId) openPlayerProfile(_pdCurrentId);   // repaint an open profile
-  showToast(team ? `🏆 ประกาศแชมป์: ทีม${team === 'Red' ? 'แดง' : 'น้ำเงิน'}${label ? ' · ' + label : ''}` : '✖ ล้างแชมป์แล้ว', 'success');
+  showToast(team ? `ประกาศแชมป์: ทีม${team === 'Red' ? 'แดง' : 'น้ำเงิน'}${label ? ' · ' + label : ''}` : 'ล้างแชมป์แล้ว', 'success');
 }
 function updateChampControls() {
   const st = document.getElementById('champStatus');
@@ -88,18 +89,11 @@ function updateChampControls() {
   if (lbl && ch && ch.label && !lbl.value) lbl.value = ch.label;
 }
 
-// Reusable gold star (SVG, crisp at any size, no image asset). Unique gradient
-// id per call so multiple stars on the page never collide.
-let _awStarSeq = 0;
-function awardStarSvg(size) {
-  const g = 'awGold' + (++_awStarSeq);
-  return `<svg class="award-star" width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">`
-    + `<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1">`
-    + `<stop offset="0" stop-color="#ffe89a"/><stop offset=".48" stop-color="#f0c040"/><stop offset="1" stop-color="#c8901a"/>`
-    + `</linearGradient></defs>`
-    + `<path d="M50 6 L60.6 35.4 L91.8 36.4 L67.1 55.6 L75.9 85.6 L50 68 L24.1 85.6 L32.9 55.6 L8.2 36.4 L39.4 35.4 Z" `
-    + `fill="url(#${g})" stroke="#8a5e10" stroke-width="2" stroke-linejoin="round"/>`
-    + `<path d="M50 14 L58 34 L50 40 L42 34 Z" fill="rgba(255,255,255,.35)"/></svg>`;
+// one icon per award (names stay English on purpose; a future award falls back to a medal)
+const AWARD_ICON = { 'Champion': 'trophy', 'MVP': 'crown', 'Marathon Fighter': 'timer' };
+function awardIcon(a) {
+  const k = AWARD_ICON[a.title] || 'medal';
+  return dsIcon(k, { fill: k === 'trophy' || k === 'crown' });
 }
 
 function openPlayerProfile(playerId) {
@@ -111,60 +105,63 @@ function openPlayerProfile(playerId) {
   const stats = getPlayerStats();
   const s = stats[playerId] || {};
   const isRed = p.team === 'Red';
-  const teamColor = isRed ? 'var(--red)' : 'var(--blue)';
   const canEdit = userRole === 'admin' || userRole === 'superadmin';
   const hasPhoto = !!playerPhoto(p.id);
-  const teamChipBorder = isRed ? 'rgba(255,77,94,0.42)' : 'rgba(77,159,255,0.42)';
+  const earned = playerAwards(p);
+  // rank = this player's place in the directory's default order (points, then group)
+  const ranking = (appState.players || []).slice().sort((a, b) => (stats[b.id]?.pts || 0) - (stats[a.id]?.pts || 0) || a.group - b.group);
+  const rank = ranking.findIndex(x => x.id === playerId) + 1;
   const hdr = document.getElementById('profileHeader');
-  // subtle team-colour wash behind the header (no corner award star)
-  hdr.style.background = isRed
-    ? 'linear-gradient(135deg, rgba(255,77,94,0.13), rgba(255,77,94,0.01) 62%), var(--surface)'
-    : 'linear-gradient(135deg, rgba(77,159,255,0.15), rgba(77,159,255,0.01) 62%), var(--surface)';
+  hdr.classList.toggle('is-red', isRed);
+  hdr.classList.toggle('is-blue', !isRed);
+  const tool = (cls, onclick, icon, label) => `<button type="button" class="ds-btn pf-tool${cls}" onclick="${onclick}">${dsIcon(icon)}${label}</button>`;
   hdr.innerHTML = `
-    <div class="pd-avatar-wrap">
-      <div class="pd-avatar-click${hasPhoto ? ' zoomable' : ''}" ${hasPhoto ? `onclick="openPhotoLightbox('${p.id}')" tabindex="0" role="button" aria-label="ดูรูปเต็ม" title="ดูรูปเต็ม"` : ''}>${avatarHtml(p, 170)}</div>
-      ${canEdit ? `<button class="pd-avatar-btn" title="${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}" onclick="event.stopPropagation();pickPlayerPhoto('${p.id}')">📷</button>` : ''}
+    <div class="pf-id">
+      <div class="pd-avatar-wrap">
+        <div class="pd-avatar-click${hasPhoto ? ' zoomable' : ''}" ${hasPhoto ? `onclick="openPhotoLightbox('${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPhotoLightbox('${p.id}')}" tabindex="0" role="button" aria-label="ดูรูปเต็ม" title="ดูรูปเต็ม"` : ''}>${avatarHtml(p, 112)}</div>
+        ${earned.length ? `<span class="pf-star" role="img" aria-label="มีรางวัล ${earned.length} รายการ">${dsIcon('star', { fill: true })}</span>` : ''}
+      </div>
+      <div class="pf-who">
+        <h2 class="profile-name${String(p.name).length > 20 ? ' is-long' : ''}">${escHtml(p.name)}</h2>
+        <div class="pf-tags">
+          <span class="ds-team ds-team-${isRed ? 'red' : 'blue'}">${isRed ? 'RED' : 'BLUE'}</span>
+          <span class="ds-chip">G${p.group}</span>
+          <span class="ds-chip">${p.id}</span>
+          ${(typeof isMe === 'function' && isMe(p.id)) ? '<span class="ds-chip ds-chip-gold">คุณ</span>' : ''}
+        </div>
+      </div>
     </div>
-    <div style="flex:1;min-width:0;">
-      <div class="profile-name" style="color:${teamColor};">${escHtml(p.name)}</div>
-      <div class="profile-meta-chips">
-        <span class="profile-meta-chip">${p.id}</span>
-        <span class="profile-meta-chip" style="color:${teamColor};border-color:${teamChipBorder};">${isRed?'🔴 RED':'🔵 BLUE'}</span>
-        <span class="profile-meta-chip">GROUP ${p.group}</span>
-      </div>
-      ${canEdit ? `<div class="pd-admin-row">
-        <button class="btn btn-outline btn-sm" onclick="pickPlayerPhoto('${p.id}')">📷 ${hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป'}</button>
-        ${hasPhoto ? `<button class="btn btn-outline btn-sm" onclick="openPhotoAdjust('${p.id}')">🎯 จัดตำแหน่ง</button>` : ''}
-        ${hasPhoto ? `<button class="btn btn-outline btn-sm" onclick="removePlayerPhoto('${p.id}')">🗑 ลบรูป</button>` : ''}
-        <button class="btn btn-outline btn-sm" onclick="togglePdEdit(true)">📝 แก้ไขโปรไฟล์</button>
-        <button class="btn btn-outline btn-sm" onclick="closePlayerProfile();openPlayerEdit('${p.id}')">✏️ ชื่อ/ทีม/กลุ่ม</button>
-      </div>` : ''}
-    </div>`;
+    <div class="pf-kpis">
+      <div class="pf-kpi"><b class="ds-num">${s.pts || 0}</b><span>คะแนน</span></div>
+      <div class="pf-kpi"><b class="ds-num">${rank}<small>/${ranking.length}</small></b><span>อันดับ</span></div>
+    </div>
+    ${canEdit ? `<div class="pf-tools" role="group" aria-label="เครื่องมือทีมงาน">
+      ${tool('', `pickPlayerPhoto('${p.id}')`, 'camera', hasPhoto ? 'เปลี่ยนรูป' : 'เพิ่มรูป')}
+      ${hasPhoto ? tool('', `openPhotoAdjust('${p.id}')`, 'target', 'จัดตำแหน่ง') : ''}
+      ${tool('', 'togglePdEdit(true)', 'pencil-simple', 'แก้ไขโปรไฟล์')}
+      ${tool('', `closePlayerProfile();openPlayerEdit('${p.id}')`, 'users', 'ชื่อ/ทีม/กลุ่ม')}
+      ${hasPhoto ? tool(' ds-btn-danger', `removePlayerPhoto('${p.id}')`, 'trash', 'ลบรูป') : ''}
+    </div>` : ''}`;
 
-  // Hero = win rate across every match; the rest ride as compact tiles.
-  const wrColor = s.winRate>=70?'var(--green)':s.winRate>=40?'var(--gold)':s.total>0?'var(--danger)':'var(--muted)';
-  const pdVal = s.pointDiff||0;
-  const pdColor = pdVal>0?'var(--green)':pdVal<0?'var(--danger)':'var(--muted)';
+  // Stat strip: win rate over every game, then the counts. (Points and rank are in the hero.)
+  const pdVal = s.pointDiff || 0;
   document.getElementById('profileStatBar').innerHTML = `
-    <div class="pd-statbar">
-      <div class="pd-stat-hero">
-        <div class="v" style="color:${wrColor}">${s.total>0?s.winRate+'%':'—'}</div>
-        <div class="l">Win Rate</div>
-        <div class="sub">จากทุกแมตช์</div>
-      </div>
-      <div class="pd-stat-tiles">
-        <div class="pd-stat-tile"><div class="v" style="color:var(--gold)">${s.pts||0}</div><div class="l">Points</div></div>
-        <div class="pd-stat-tile"><div class="v" style="color:var(--green)">${s.w||0}</div><div class="l">Game Win</div></div>
-        <div class="pd-stat-tile"><div class="v" style="color:var(--danger)">${s.l||0}</div><div class="l">Game Lose</div></div>
-        <div class="pd-stat-tile"><div class="v">${s.matchesPlayed||0}</div><div class="l">Matches</div></div>
-        <div class="pd-stat-tile"><div class="v" style="color:var(--gold)">${s.matchDraw||0}</div><div class="l">Match Draw</div></div>
-        <div class="pd-stat-tile"><div class="v" style="color:${pdColor}">${pdVal>0?'+':''}${pdVal}</div><div class="l">Point Diff</div></div>
-      </div>
-    </div>`;
+    <dl class="pd-statbar">
+      <div class="pd-stat"><dt>อัตราชนะ<small>จากทุกแมตช์</small></dt><dd class="ds-num">${s.total > 0 ? s.winRate + '%' : '—'}</dd></div>
+      <div class="pd-stat"><dt>แมตช์</dt><dd class="ds-num">${s.matchesPlayed || 0}</dd></div>
+      <div class="pd-stat"><dt>เกมชนะ</dt><dd class="ds-num">${s.w || 0}</dd></div>
+      <div class="pd-stat"><dt>เกมแพ้</dt><dd class="ds-num">${s.l || 0}</dd></div>
+      <div class="pd-stat"><dt>แมตช์เสมอ</dt><dd class="ds-num">${s.matchDraw || 0}</dd></div>
+      <div class="pd-stat"><dt>ผลต่างคะแนน</dt><dd class="ds-num">${pdVal > 0 ? '+' : ''}${pdVal}</dd></div>
+    </dl>`;
   // one page — everything renders up front, no tabs to switch
   renderPdAwards(p);
   renderPdIdentity(prof);
   renderPdScoutNotes(prof);
+  // staff, a player nobody has written anything about yet: say where to start
+  if (canEdit && ['pdAwards', 'pdIdentityRow', 'pdScoutNotes'].every(id => !document.getElementById(id)?.innerHTML.trim())) {
+    document.getElementById('pdScoutNotes').innerHTML = `<section class="pd-sec"><div class="ds-banner is-info">${dsIcon('info')}<span>ยังไม่มีข้อมูลผู้เล่น แตะ “แก้ไขโปรไฟล์” เพื่อเพิ่มเพศ มือถนัด จุดแข็ง และโน้ต</span></div></section>`;
+  }
   renderPdMatchHistory(playerId);
   renderPdH2H(playerId);
   renderPdCareer(playerId);
@@ -172,9 +169,11 @@ function openPlayerProfile(playerId) {
   const _rv = document.getElementById('pdReadView'), _ev = document.getElementById('pdEditView');
   if (_rv && _ev) { _rv.hidden = false; _ev.hidden = true; }
   const wasOpen = overlay.classList.contains('open');
+  if (!wasOpen) _pdOpener = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
   overlay.classList.add('open');
   overlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
+  if (!wasOpen) overlay.querySelector('.pf-back')?.focus({ preventScroll: true });   // keyboard users land inside the dialog
   // Push a history entry the first time we open, so the phone/browser Back
   // button closes the profile instead of leaving the app (which dumped the
   // user back on the Scoreboard). A re-render of an already-open profile
@@ -185,10 +184,13 @@ function openPlayerProfile(playerId) {
 // Hide the overlay only — no history changes (used by the popstate handler).
 function _pdCloseUI() {
   const overlay = document.getElementById('playerProfileOverlay');
+  const wasOpen = overlay && overlay.classList.contains('open');
   if (overlay) overlay.classList.remove('open');
   document.body.style.overflow = '';
   togglePdEdit(false);
   _pdCurrentId = null;
+  if (wasOpen && _pdOpener && _pdOpener.isConnected) { try { _pdOpener.focus({ preventScroll: true }); } catch (e) {} }
+  _pdOpener = null;
 }
 function closePlayerProfile() {
   const overlay = document.getElementById('playerProfileOverlay');
@@ -207,38 +209,40 @@ window.addEventListener('popstate', () => {
   if (lb && lb.classList.contains('open') && typeof _lbCloseUI === 'function') { _lbCloseUI(); return; }
 });
 
-// Awards showcase — the player's medals (gold star + English title/subtitle).
+// Awards showcase — one medal per award the player holds (English titles/subtitles).
 // Hidden entirely when the player has no awards.
 function renderPdAwards(p) {
   const el = document.getElementById('pdAwards');
   if (!el) return;
   const earned = playerAwards(p);
   if (!earned.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="profile-section-title">🏅 Awards</div>
-    <div class="pd-awards-row">${earned.map(a => `
-      <div class="pd-award-chip">
-        <span class="pd-award-star">${awardStarSvg(24)}</span>
-        <div class="pd-award-txt">
+  el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">รางวัล</h3>
+    <ul class="pd-awards" role="list">${earned.map(a => `
+      <li class="pd-award">
+        <span class="pd-award-ic">${awardIcon(a)}</span>
+        <span class="pd-award-txt">
           <span class="pd-award-title">${escHtml(a.title)}</span>
           <span class="pd-award-sub">${escHtml(a.subtitle)}</span>
-        </div>
-      </div>`).join('')}</div>`;
+        </span>
+      </li>`).join('')}</ul></section>`;
 }
 
-// เพศ / มือถนัด / ตำแหน่ง — three short values, so they ride as inline
-// chips rather than a grid of boxed form fields
+// เพศ / มือถนัด / ตำแหน่ง / ลูกถนัด — four short values as small cells, the play styles as chips
 function renderPdIdentity(prof) {
   const el = document.getElementById('pdIdentityRow');
   if (!el) return;
-  const chips = [
-    { icon:'⚧', label:'เพศ',     value: prof.gender },
-    { icon:'✋', label:'มือถนัด', value: prof.hand },
-    { icon:'📍', label:'ตำแหน่ง', value: prof.position },
-    { icon:'🏸', label:'ลูกถนัด', value: prof.dominantShot },
+  const facts = [
+    { label: 'เพศ',     value: prof.gender },
+    { label: 'มือถนัด', value: prof.hand },
+    { label: 'ตำแหน่ง', value: prof.position },
+    { label: 'ลูกถนัด', value: prof.dominantShot },
   ].filter(c => c.value);
   const styles = (Array.isArray(prof.styles) ? prof.styles : []).filter(Boolean);
-  const styleChips = styles.map(id => `<span class="pd-chip pd-chip-style">${pdStyleLabel(id)}</span>`).join('');
-  el.innerHTML = chips.map(c => `<span class="pd-chip"><span class="pd-chip-lbl">${c.icon} ${c.label}</span><b>${escHtml(c.value)}</b></span>`).join('') + styleChips;
+  if (!facts.length && !styles.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">ข้อมูลผู้เล่น</h3>
+    ${facts.length ? `<dl class="pd-facts">${facts.map(c => `<div class="pd-fact"><dt>${c.label}</dt><dd>${escHtml(c.value)}</dd></div>`).join('')}</dl>` : ''}
+    ${styles.length ? `<div class="pd-styles">${styles.map(id => `<span class="ds-chip">${escHtml(pdStyleLabel(id))}</span>`).join('')}</div>` : ''}
+  </section>`;
 }
 
 // จุดแข็ง / จุดอ่อน / โน้ต — free text the desk wrote per player.
@@ -247,55 +251,68 @@ function renderPdScoutNotes(prof) {
   const el = document.getElementById('pdScoutNotes');
   if (!el) return;
   const blocks = [
-    { cls:'good', icon:'💪', title:'จุดแข็ง',  text: prof.strengths },
-    { cls:'bad',  icon:'🎯', title:'จุดอ่อน',  text: prof.weakness },
-    { cls:'note', icon:'📝', title:'โน้ต',     text: prof.notes },
+    { cls:'good', icon:'check-circle',  title:'จุดแข็ง',  text: prof.strengths },
+    { cls:'bad',  icon:'target',        title:'จุดอ่อน',  text: prof.weakness },
+    { cls:'note', icon:'pencil-simple', title:'โน้ต',     text: prof.notes },
   ].filter(b => b.text && String(b.text).trim());
   if (!blocks.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="profile-section-title">📝 Note</div>
+  el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">โน้ตจากทีมงาน</h3>
     <div class="pd-notes">${blocks.map(b => `
       <div class="pd-note pd-note-${b.cls}">
-        <div class="pd-note-title">${b.icon} ${b.title}</div>
+        <div class="pd-note-title">${dsIcon(b.icon)}${b.title}</div>
         <div class="pd-note-text">${escHtml(String(b.text).trim())}</div>
-      </div>`).join('')}</div>`;
+      </div>`).join('')}</div></section>`;
+}
+
+// one game of a match as "เกม 1  21:15" — the left number is the red side, the right one the blue side (as stored)
+function pdGameHtml(label, raw) {
+  const m = /^(\d+):(\d+)$/.exec(String(raw || ''));
+  return `<span class="pd-game"><i>${label}</i><b>${m ? `<s class="r">${m[1]}</s>:<s class="b">${m[2]}</s>` : escHtml(raw || '—')}</b></span>`;
+}
+// a team as word + shape, coloured (circle = red, diamond = blue)
+function pdTeamTag(team) {
+  return team === 'Red' ? '<span class="ds-team ds-team-red">RED</span>' : '<span class="ds-team ds-team-blue">BLUE</span>';
 }
 
 function renderPdMatchHistory(playerId) {
   const el = document.getElementById('pdMatchHistory');
   if (!el) return;
   const matches = appState.matchHistory.filter(h=>[h.r1,h.r2,h.b1,h.b2].includes(playerId)).slice(-10).reverse();
-  if (!matches.length) { el.innerHTML = ''; return; }
+  if (!matches.length) {
+    el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">ประวัติการแข่ง</h3>
+      <div class="ds-card"><div class="ds-empty">
+        <div class="ds-empty-art">${dsArt('court')}</div>
+        <div class="ds-empty-title">ยังไม่ลงแข่ง</div>
+        <div class="ds-empty-text">ผลแมตช์ของผู้เล่นคนนี้จะแสดงที่นี่</div>
+      </div></div></section>`;
+    return;
+  }
   const nameOf = id => (appState.players || []).find(p => p.id === id)?.name || id;
-  el.innerHTML = `<div class="profile-section-title">📋 ประวัติการแข่ง (${matches.length} ล่าสุด)</div>` +
+  el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">ประวัติการแข่ง<span class="pd-h-sub">${matches.length} ล่าสุด</span></h3>
+    <ol class="pd-hist" role="list">` +
     matches.map(h => {
       const isRed=[h.r1,h.r2].includes(playerId);
       const stat=isRed?h.rStat:h.bStat;
-      const sc=stat==='W'?'var(--green)':stat==='L'?'var(--danger)':'var(--gold)';
-      const sl=stat==='W'?'WIN':stat==='L'?'LOSE':'DRAW';
+      const res=stat==='W'?'ชนะ':stat==='L'?'แพ้':'เสมอ';
       // the other player on this player's own side
       const mateId = isRed ? (h.r1 === playerId ? h.r2 : h.r1)
                            : (h.b1 === playerId ? h.b2 : h.b1);
       const oppIds = isRed ? [h.b1, h.b2] : [h.r1, h.r2];
-      const sideColor = isRed ? 'var(--red)' : 'var(--blue)';
-      const oppColor  = isRed ? 'var(--blue)' : 'var(--red)';
+      const side = isRed ? 'red' : 'blue', opp = isRed ? 'blue' : 'red';
       const tags=(h.analysis?.tags||[]).map(t=>`<span class="finished-tag tag-${t.id||'normal'}">${t.label||t.id}</span>`).join('');
-      return `<div class="profile-match-row">
-        <div class="profile-match-id">${h.id}</div>
-        <div class="profile-match-result" style="background:${sc}22;color:${sc};border:1px solid ${sc}44;">${sl}</div>
-        <div class="profile-match-pair">
-          <div class="pmr-line">
-            <span class="pmr-lbl">คู่กับ</span>
-            <b style="color:${sideColor};">${escHtml(mateId ? nameOf(mateId) : '—')}</b>
-          </div>
-          <div class="pmr-line">
-            <span class="pmr-lbl">พบ</span>
-            <b style="color:${oppColor};">${escHtml(oppIds.filter(Boolean).map(nameOf).join(' & '))}</b>
-          </div>
+      return `<li class="pd-match${stat==='W' ? ' is-win' : ''}">
+        <div class="pd-match-head">
+          <span class="pd-match-id">${h.id}</span>
+          <span class="ds-chip pd-res${stat==='W' ? ' ds-chip-gold' : ''}">${res}</span>
+          <span class="pd-games">${pdGameHtml('เกม 1', h.game1)}${pdGameHtml('เกม 2', h.game2)}</span>
         </div>
-        <div class="profile-match-score">${h.game1} / ${h.game2||'—'}</div>
-        ${tags?`<div class="profile-match-tags">${tags}</div>`:''}
-      </div>`;
-    }).join('');
+        <div class="pd-who">
+          <div class="pd-line"><span class="pd-k">คู่กับ</span><b class="ds-team ds-team-${side}">${escHtml(mateId ? nameOf(mateId) : '—')}</b></div>
+          <div class="pd-line"><span class="pd-k">พบ</span><b class="ds-team ds-team-${opp}">${escHtml(oppIds.filter(Boolean).map(nameOf).join(' & '))}</b></div>
+        </div>
+        ${tags ? `<div class="pd-tags">${tags}</div>` : ''}
+      </li>`;
+    }).join('') + `</ol></section>`;
 }
 
 function renderPdH2H(playerId) {
@@ -324,28 +341,20 @@ function renderPdH2H(playerId) {
   });
   const entries = Object.entries(h2h).filter(([,r]) => r.w + r.l > 0);
   if (!entries.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="profile-section-title">⚔️ Head-to-Head <span style="font-weight:400;letter-spacing:1px;">(นับรายเกม)</span></div>` +
+  el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">ผลเจอกัน<span class="pd-h-sub">นับรายเกม</span></h3>
+    <ul class="pd-h2h" role="list">` +
     entries.sort((a,b) => b[1].w - a[1].w).map(([oId,rec]) => {
       const op = ( appState.players || [] ).find(x=>x.id===oId);
       if (!op) return '';
       const total = rec.w + rec.l;
       const wr = total > 0 ? Math.round(rec.w/total*100) : 0;
-      const wrc = wr>=60?'var(--green)':wr>=40?'var(--gold)':'var(--danger)';
-      return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          ${avatarHtml(op, 26)}
-          <div style="flex:1;font-size:14px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(op.name)}</div>
-          <div style="font-size:11px;font-weight:700;color:var(--green);">${rec.w}W</div>
-          <div style="font-size:11px;color:var(--muted);">/</div>
-          <div style="font-size:11px;font-weight:700;color:var(--danger);">${rec.l}L</div>
-          <div style="font-size:13px;font-weight:800;min-width:38px;text-align:right;color:${wrc};">${wr}%</div>
-        </div>
-        <div style="display:flex;height:5px;border-radius:3px;overflow:hidden;background:var(--surface3);">
-          <div style="width:${wr}%;background:var(--green);transition:width 0.4s;"></div>
-          <div style="width:${100-wr}%;background:var(--danger);transition:width 0.4s;"></div>
-        </div>
-      </div>`;
-    }).join('');
+      return `<li class="pd-h2h-row">
+        ${avatarHtml(op, 36)}
+        <span class="pd-h2h-name"><b>${escHtml(op.name)}</b><span>ชนะ ${rec.w} · แพ้ ${rec.l}</span></span>
+        <b class="pd-h2h-pct ds-num">${wr}%</b>
+        <span class="ds-bar" role="img" aria-label="ชนะ ${wr}%"><i style="width:${wr}%"></i></span>
+      </li>`;
+    }).join('') + `</ul></section>`;
 }
 
 // ══════════════════════════════════════════
@@ -354,14 +363,14 @@ function renderPdH2H(playerId) {
 // keep their own modal (openPlayerEdit).
 // ══════════════════════════════════════════
 const PD_STYLES = [
-  { id:'attacker',   label:'⚔️ Attacker' },
-  { id:'defender',   label:'🛡️ Defender' },
-  { id:'allround',   label:'🎯 All-Round' },
-  { id:'controller', label:'🧠 Controller' },
-  { id:'speed',      label:'⚡ Speed Runner' },
-  { id:'deceptive',  label:'🔮 Deceptive' },
-  { id:'power',      label:'💪 Power Hitter' },
-  { id:'netmaster',  label:'🕸️ Net Master' },
+  { id:'attacker',   label:'Attacker' },
+  { id:'defender',   label:'Defender' },
+  { id:'allround',   label:'All-Round' },
+  { id:'controller', label:'Controller' },
+  { id:'speed',      label:'Speed Runner' },
+  { id:'deceptive',  label:'Deceptive' },
+  { id:'power',      label:'Power Hitter' },
+  { id:'netmaster',  label:'Net Master' },
 ];
 const PD_HANDS     = ['ขวา', 'ซ้าย', 'ถนัดสองมือ'];
 const PD_GENDERS   = ['ชาย', 'หญิง'];
@@ -374,7 +383,7 @@ function togglePdEdit(on) {
   const edit = document.getElementById('pdEditView');
   if (!read || !edit) return;
   if (on) {
-    if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+    if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
     renderPdEditForm((appState.playerProfiles || {})[_pdCurrentId] || {});
     read.hidden = true; edit.hidden = false;
   } else {
@@ -386,60 +395,62 @@ function renderPdEditForm(prof) {
   const el = document.getElementById('pdEditView');
   if (!el) return;
   const sel = (id, label, options, value) => `
-    <div class="profile-field">
-      <label>${label}</label>
-      <select id="${id}">
+    <div class="ds-field">
+      <label class="ds-label" for="${id}">${label}</label>
+      <select id="${id}" class="ds-select">
         <option value="">— ไม่ระบุ —</option>
         ${options.map(o => `<option value="${escHtml(o)}"${o === value ? ' selected' : ''}>${escHtml(o)}</option>`).join('')}
       </select>
     </div>`;
   const txt = (id, label, value, ph) => `
-    <div class="profile-field">
-      <label>${label}</label>
-      <input type="text" id="${id}" value="${escHtml(value || '')}" placeholder="${ph || ''}">
+    <div class="ds-field">
+      <label class="ds-label" for="${id}">${label}</label>
+      <input type="text" id="${id}" class="ds-input" value="${escHtml(value || '')}" placeholder="${ph || ''}" autocomplete="off">
     </div>`;
-  const area = (id, label, value, ph) => `
-    <div class="profile-field">
-      <label>${label}</label>
-      <textarea id="${id}" placeholder="${ph || ''}">${escHtml(value || '')}</textarea>
+  const area = (id, icon, label, value, ph) => `
+    <div class="ds-field">
+      <label class="ds-label" for="${id}">${dsIcon(icon)}${label}</label>
+      <textarea id="${id}" class="ds-textarea" placeholder="${ph || ''}">${escHtml(value || '')}</textarea>
     </div>`;
 
   const styles = Array.isArray(prof.styles) ? prof.styles : [];
   el.innerHTML = `
-    <div class="profile-section-title">📝 แก้ไขโปรไฟล์</div>
-    <div class="profile-field-grid">
-      ${sel('pdfGender',   'เพศ',       PD_GENDERS,   prof.gender)}
-      ${sel('pdfHand',     'มือถนัด',   PD_HANDS,     prof.hand)}
-      ${sel('pdfPosition', 'ตำแหน่ง',   PD_POSITIONS, prof.position)}
-      ${txt('pdfShot',     'ลูกถนัด',   prof.dominantShot, 'เช่น ตบ, หยอด, ดาด')}
-    </div>
-
-    <div class="profile-field" style="margin-top:14px;">
-      <label>สไตล์การเล่น (เลือกได้หลายอย่าง)</label>
-      <div class="pd-style-picker" id="pdfStyles">
-        ${PD_STYLES.map(s => `
-          <label class="pd-style-opt${styles.includes(s.id) ? ' on' : ''}">
-            <input type="checkbox" value="${s.id}"${styles.includes(s.id) ? ' checked' : ''}
-                   onchange="this.closest('.pd-style-opt').classList.toggle('on', this.checked)">
-            <span>${s.label}</span>
-          </label>`).join('')}
+    <section class="pd-sec pd-form">
+      <h3 class="pd-h">แก้ไขโปรไฟล์</h3>
+      <div class="pd-form-grid">
+        ${sel('pdfGender',   'เพศ',       PD_GENDERS,   prof.gender)}
+        ${sel('pdfHand',     'มือถนัด',   PD_HANDS,     prof.hand)}
+        ${sel('pdfPosition', 'ตำแหน่ง',   PD_POSITIONS, prof.position)}
+        ${txt('pdfShot',     'ลูกถนัด',   prof.dominantShot, 'เช่น ตบ, หยอด, ดาด')}
       </div>
-    </div>
 
-    <div class="pd-edit-notes">
-      ${area('pdfStrengths', '💪 จุดแข็ง', prof.strengths, 'เช่น ลูกเซฟดี วางลูกแม่น ใจเย็น')}
-      ${area('pdfWeakness',  '🎯 จุดอ่อน', prof.weakness,  'เช่น แบ็คแฮนด์ไม่ถึงหลัง เหนื่อยง่าย')}
-      ${area('pdfNotes',     '📝 โน้ต',    prof.notes,     'บันทึกอื่น ๆ ที่อยากจำ')}
-    </div>
+      <div class="ds-field">
+        <span class="ds-label" id="pdfStylesLbl">สไตล์การเล่น (เลือกได้หลายอย่าง)</span>
+        <div class="pd-style-picker" id="pdfStyles" role="group" aria-labelledby="pdfStylesLbl">
+          ${PD_STYLES.map(s => `
+            <label class="pd-style-opt${styles.includes(s.id) ? ' on' : ''}">
+              <input type="checkbox" value="${s.id}"${styles.includes(s.id) ? ' checked' : ''}
+                     onchange="this.closest('.pd-style-opt').classList.toggle('on', this.checked)">
+              <span>${s.label}</span>
+            </label>`).join('')}
+        </div>
+      </div>
 
-    <div class="profile-save-row">
-      <button class="btn btn-primary" onclick="savePdProfile()">💾 บันทึก</button>
-      <button class="btn btn-outline" onclick="togglePdEdit(false)">ยกเลิก</button>
-    </div>`;
+      <div class="pd-form-notes">
+        ${area('pdfStrengths', 'check-circle',  'จุดแข็ง', prof.strengths, 'เช่น ลูกเซฟดี วางลูกแม่น ใจเย็น')}
+        ${area('pdfWeakness',  'target',        'จุดอ่อน', prof.weakness,  'เช่น แบ็คแฮนด์ไม่ถึงหลัง เหนื่อยง่าย')}
+        ${area('pdfNotes',     'pencil-simple', 'โน้ต',    prof.notes,     'บันทึกอื่น ๆ ที่อยากจำ')}
+      </div>
+
+      <div class="profile-save-row">
+        <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="savePdProfile()">${dsIcon('floppy-disk')}บันทึก</button>
+        <button type="button" class="ds-btn ds-btn-lg" onclick="togglePdEdit(false)">ยกเลิก</button>
+      </div>
+    </section>`;
 }
 
 function savePdProfile() {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   const id = _pdCurrentId;
   if (!id) return;
   const v = elId => document.getElementById(elId)?.value.trim() || '';
@@ -463,5 +474,5 @@ function savePdProfile() {
   dbRef.child(`playerProfiles/${id}`).update(fields);
   togglePdEdit(false);
   openPlayerProfile(id);          // repaint the read view with the new values
-  showToast('✅ บันทึกโปรไฟล์แล้ว', 'success');
+  showToast('บันทึกโปรไฟล์แล้ว', 'success');
 }

@@ -90,14 +90,29 @@ function openPhotoLightbox(id) {
   if (!p || !photo) return;
   const ov = document.getElementById('photoLightbox');
   if (!ov) return;
-  ov.querySelector('.plb-img').src = photo;
+  const img = ov.querySelector('.plb-img');
+  img.src = photo; img.alt = p.name;
   ov.querySelector('.plb-name').textContent = p.name;
-  ov.querySelector('.plb-meta').textContent = `${p.id} · ${p.team === 'Red' ? '🔴' : '🔵'} ${p.team} · Group ${p.group}`;
+  ov.querySelector('.plb-meta').innerHTML = `${p.team === 'Red' ? '<span class="ds-team ds-team-red">RED</span>' : '<span class="ds-team ds-team-blue">BLUE</span>'}<span>G${escHtml(p.group)}</span><span>${escHtml(p.id)}</span>`;
+  if (!ov.classList.contains('open')) _plbOpener = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
   ov.classList.add('open');
+  ov.querySelector('.plb-close')?.focus({ preventScroll: true });   // keyboard users land inside the dialog
 }
+let _plbOpener = null;
 function closePhotoLightbox() {
-  document.getElementById('photoLightbox')?.classList.remove('open');
+  const ov = document.getElementById('photoLightbox');
+  const wasOpen = ov && ov.classList.contains('open');
+  ov?.classList.remove('open');
+  if (wasOpen && _plbOpener && _plbOpener.isConnected) { try { _plbOpener.focus({ preventScroll: true }); } catch (e) {} }
+  _plbOpener = null;
 }
+// Esc closes the photo lightbox - and only it: this listener registers before the global Escape handler (js/export-import.js),
+// so stopping the event here keeps the profile open underneath
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const ov = document.getElementById('photoLightbox');
+  if (ov && ov.classList.contains('open')) { e.stopImmediatePropagation(); closePhotoLightbox(); }
+});
 
 // ── Upload ────────────────────────────────────────────────
 function compressImage(file) {
@@ -133,7 +148,7 @@ function compressImage(file) {
 // ── Reposition: drag the photo inside the circle to set its focal point ──
 let _adjPid = null, _adjX = 50, _adjY = 30, _adjDrag = null;
 function openPhotoAdjust(id) {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   const photo = playerPhoto(id);
   if (!photo) return showToast('ยังไม่มีรูป', 'error');
   _adjPid = id;
@@ -179,7 +194,7 @@ function savePhotoAdjust() {
   closePhotoAdjust();
   document.querySelectorAll(`.pav[data-pid="${CSS.escape(id)}"] img`).forEach(im => { im.style.objectPosition = pos; });
   refreshPlayerVisuals(id);
-  showToast('✅ ปรับตำแหน่งรูปแล้ว', 'success');
+  showToast('ปรับตำแหน่งรูปแล้ว', 'success');
 }
 function closePhotoAdjust() {
   document.getElementById('photoAdjustModal')?.classList.remove('open');
@@ -187,7 +202,7 @@ function closePhotoAdjust() {
 }
 
 function pickPlayerPhoto(playerId) {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
@@ -198,11 +213,11 @@ function pickPlayerPhoto(playerId) {
     if (!file) return;
     if (!file.type.startsWith('image/')) return showToast('เลือกไฟล์รูปภาพเท่านั้น', 'error');
     try {
-      showToast('⏳ กำลังย่อรูป...', 'info');
+      showToast('กำลังย่อรูป...', 'info');
       const dataUrl = await compressImage(file);
       savePlayerPhoto(playerId, dataUrl);
     } catch (e) {
-      showToast('❌ ' + e.message, 'error');
+      showToast(e.message, 'error');
     }
   };
   document.body.appendChild(input);
@@ -227,11 +242,11 @@ async function savePlayerPhoto(playerId, dataUrl) {
   }
   _paintAvatars(playerId);
   refreshPlayerVisuals(playerId);
-  showToast('✅ อัปเดตรูปแล้ว', 'success');
+  showToast('อัปเดตรูปแล้ว', 'success');
 }
 
 function removePlayerPhoto(playerId) {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   if (!playerPhoto(playerId)) return;
   showConfirmDialog('ลบรูปผู้เล่นคนนี้?', async () => {
     try { await photosRef.child(playerId).remove(); } catch (e) { /* not there / refused */ }
@@ -253,13 +268,13 @@ function removePlayerPhoto(playerId) {
 // data untouched. Idempotent: re-running with nothing left is a no-op, and a
 // photo already at the new path (e.g. a newer upload) is never overwritten.
 function migratePlayerPhotos() {
-  if (userRole !== 'superadmin') return showToast('⛔ เฉพาะ Super Admin', 'error');
+  if (userRole !== 'superadmin') return showToast('เฉพาะ Super Admin', 'error');
   const legacy = Object.entries(appState.playerProfiles || {}).filter(([, p]) => p && p.photo);
-  if (!legacy.length) return showToast('✅ รูปทั้งหมดอยู่นอกข้อมูลหลักแล้ว ไม่มีอะไรต้องย้าย', 'success');
+  if (!legacy.length) return showToast('รูปทั้งหมดอยู่นอกข้อมูลหลักแล้ว ไม่มีอะไรต้องย้าย', 'success');
   const kb = Math.round(legacy.reduce((s, [, p]) => s + p.photo.length, 0) / 1024);
   showConfirmDialog(`ย้ายรูปผู้เล่น ${legacy.length} รูป (${kb} KB) ออกจากข้อมูลหลัก?\nระบบจะ backup ให้ก่อน`, async () => {
     try {
-      showToast('⏳ 1/3 กำลัง backup...', 'info');
+      showToast('1/3 กำลัง backup...', 'info');
       // written directly (not via backupState, which swallows errors) so a
       // failed backup stops the migration before anything is touched
       await backupsRef.push({
@@ -272,7 +287,7 @@ function migratePlayerPhotos() {
         state: appState,
       });
 
-      showToast('⏳ 2/3 กำลังคัดลอกรูป...', 'info');
+      showToast('2/3 กำลังคัดลอกรูป...', 'info');
       const existing = (await photosRef.once('value')).val() || {};
       const copy = {};
       legacy.forEach(([id, p]) => {
@@ -286,18 +301,18 @@ function migratePlayerPhotos() {
         !(after[id] && after[id].photo) || (copy[id] && after[id].photo !== copy[id].photo));
       if (bad.length) throw new Error(`ตรวจสอบไม่ผ่าน ${bad.length} รูป (${bad.map(([id]) => id).join(', ')})`);
 
-      showToast('⏳ 3/3 กำลังลบรูปออกจากข้อมูลหลัก...', 'info');
+      showToast('3/3 กำลังลบรูปออกจากข้อมูลหลัก...', 'info');
       const strip = {};
       legacy.forEach(([id]) => { strip[`playerProfiles/${id}/photo`] = null; });
       await dbRef.update(strip);
 
       legacy.forEach(([id]) => { _photos[id] = after[id].photo; if (!_photoReq.has(id)) _watchPhoto(id); });
       const blobKB = Math.round(JSON.stringify(appState).length / 1024);
-      showToast(`✅ ย้ายแล้ว ${legacy.length} รูป — ข้อมูลหลักเหลือ ~${blobKB} KB`, 'success');
+      showToast(`ย้ายแล้ว ${legacy.length} รูป — ข้อมูลหลักเหลือ ~${blobKB} KB`, 'success');
       if (typeof renderPhotoMigrationStatus === 'function') renderPhotoMigrationStatus();
     } catch (e) {
       console.error('photo migration failed:', e);
-      showToast('❌ ย้ายไม่สำเร็จ: ' + (e.message || e) + ' — ข้อมูลเดิมยังอยู่ครบ', 'error');
+      showToast('ย้ายไม่สำเร็จ: ' + (e.message || e) + ' — ข้อมูลเดิมยังอยู่ครบ', 'error');
     }
   });
 }
@@ -308,13 +323,12 @@ function renderPhotoMigrationStatus() {
   if (!el) return;
   const legacy = Object.values(appState.playerProfiles || {}).filter(p => p && p.photo);
   if (!legacy.length) {
-    el.innerHTML = `<span style="color:var(--green);">✅ รูปผู้เล่นแยกออกจากข้อมูลหลักแล้ว</span>`;
+    el.innerHTML = `<div class="ds-banner is-ok">${dsIcon('check-circle')}<span>รูปผู้เล่นแยกออกจากข้อมูลหลักแล้ว</span></div>`;
     return;
   }
   const kb = Math.round(legacy.reduce((s, p) => s + p.photo.length, 0) / 1024);
-  el.innerHTML = `<div style="margin-bottom:8px;">🖼️ ยังมีรูป <b>${legacy.length}</b> รูป (${kb} KB) ฝังอยู่ในข้อมูลหลัก —
-      ทุกจอต้องโหลดก้อนนี้ก่อนเห็นคะแนน</div>
-    <button class="btn btn-primary btn-sm" onclick="migratePlayerPhotos()">🚚 ย้ายรูปออกจากข้อมูลหลัก</button>`;
+  el.innerHTML = `<div class="ds-banner is-warn">${dsIcon('images')}<span>ยังมีรูป <b>${legacy.length}</b> รูป (${kb} KB) ฝังอยู่ในข้อมูลหลัก — ทุกจอต้องโหลดก้อนนี้ก่อนเห็นคะแนน</span></div>
+    <button type="button" class="ds-btn ds-btn-primary" onclick="migratePlayerPhotos()">${dsIcon('upload-simple')}ย้ายรูปออกจากข้อมูลหลัก</button>`;
 }
 
 // Repaint every surface a face can appear on, without a full reload.
