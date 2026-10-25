@@ -207,38 +207,6 @@
   }
 }
 
-/* ── Fix 3: Profile Scout tab radar + bars — stack on mobile ── */
-@media (max-width: 520px) {
-  /* Radar + bars container — was flex-row, force column */
-  #pdTabScout .profile-body > div > div[style*="display:flex"],
-  #pdTabScout [style*="flex-wrap:wrap"][style*="gap:28px"] {
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 16px !important;
-  }
-  #pdRadarSvg {
-    width: 180px !important;
-    height: 180px !important;
-  }
-  #pdAbilityBars {
-    min-width: 0 !important;
-    width: 100% !important;
-  }
-  /* Profile body padding: reduce from 28px to 14px on mobile */
-  .profile-body {
-    padding: 18px 14px !important;
-  }
-  /* Profile header padding */
-  .profile-header {
-    padding: 18px 14px 14px !important;
-  }
-  /* Profile stats bar — allow 2 cols instead of 4 */
-  .profile-stats-bar {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .profile-stat-cell:nth-child(2) { border-right: none; }
-  .profile-stat-cell:nth-child(3) { border-top: 1px solid var(--border); }
-}
 
 /* ── Fix 4: Navbar — hide non-critical elements on small screens ── */
 @media (max-width: 480px) {
@@ -266,217 +234,151 @@
 :-webkit-full-screen-ancestor .container { padding-bottom: 72px !important; }
 
 
-/* ══════════════════════════════════════════
-   PLAYER AVATAR — one look everywhere a face appears
-   ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   PLAYER AVATAR - one look everywhere a face appears.
+   Contract (js/player-photo.js, never rename): .pav .pav-red .pav-blue .pav-initials .has-photo [data-pid], and the inline
+   --pav-size that avatarHtml() writes. An area that needs another size sets --pav-box on a container: no !important.
+   ══════════════════════════════════════════════════════════════ */
 .pav {
   --pav-size: 38px;
-  width: var(--pav-size);
-  height: var(--pav-size);
-  border-radius: 50%;
-  flex-shrink: 0;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid;
-  background: var(--surface2);
-  vertical-align: middle;
-  position: relative;
+  --pav-d: var(--pav-box, var(--pav-size));
+  position: relative; flex: none; display: inline-grid; place-items: center; overflow: hidden;
+  width: var(--pav-d); height: var(--pav-d);
+  border: max(1.5px, min(4px, calc(var(--pav-d) * .035))) solid; border-radius: 50%;
+  background: var(--s3); vertical-align: middle;
 }
 .pav img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pav-initials {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: calc(var(--pav-size) * 0.36);
-  letter-spacing: 1px;
-  line-height: 1;
-}
-.pav-red   { border-color: var(--red);  color: var(--red);  background: rgba(255,59,92,0.1); }
-.pav-blue  { border-color: var(--blue); color: var(--blue); background: rgba(59,142,255,0.1); }
+.pav-initials { font-family: var(--font-num); font-size: calc(var(--pav-d) * .38); line-height: 1; letter-spacing: .02em; }
+.pav-red { border-color: var(--red); color: var(--red-text); background: var(--red-dim); }
+.pav-blue { border-color: var(--blue); color: var(--blue-text); background: var(--blue-dim); }
 /* inline in a sentence / table cell */
-.pav-inline { --pav-size: 22px; border-width: 1px; margin-right: 6px; }
+.pav-inline { --pav-size: 22px; border-width: 1px; margin-right: var(--sp-2); }
 
-/* ══════════════════════════════════════════
-   PLAYER DIRECTORY CARD
-   One accent per card, not six: the photo is the anchor, PTS is the
-   only large number, and the secondary stats sit on one quiet line.
-   ══════════════════════════════════════════ */
-#playersTabGrid { display: block; }
+/* ══════════════════════════════════════════════════════════════
+   PLAYERS DIRECTORY - a ranked list of people (renderPlayersTab in js/season.js).
+   Rank, face, name, quiet meta and ONE big number: the metric the list is sorted by. Team = word + shape + edge.
+   ══════════════════════════════════════════════════════════════ */
 
-/* ── Podium: top 3 of the current ranking ── */
-.pdir-podium {
-  display: grid;
-  grid-template-columns: 1fr 1.12fr 1fr;
-  gap: 12px;
-  align-items: end;
-  margin-bottom: 18px;
+/* toolbar: search + one filter button on a phone (the filters open under it), everything inline from 640 px up.
+   Sticky under the nav; the shadow trick lets its background bleed into the page gutters so rows never show beside it. */
+.pdir-tools {
+  position: sticky; top: var(--nav-h, 0px); z-index: var(--z-sticky);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-2);
+  padding: var(--sp-2) 0 var(--sp-3);
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  box-shadow: 0 0 0 100vmax var(--bg); clip-path: inset(0 -100vmax);
 }
-.pod {
-  position: relative;
-  border-radius: 16px;
-  padding: 18px 14px 15px;
-  text-align: center;
-  overflow: hidden;
-  cursor: pointer;
-  background: linear-gradient(170deg, var(--surface2), var(--surface));
-  border: 1px solid var(--border);
-  transition: transform 0.14s, border-color 0.18s;
-}
-.pod:hover { transform: translateY(-2px); }
-.pod::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; }
-.pod.p1 { padding-top: 24px; border-color: rgba(255,213,74,0.4);
-  background: linear-gradient(170deg, rgba(255,213,74,0.1), var(--surface));
-  box-shadow: 0 0 40px -12px rgba(255,213,74,0.4); }
-.pod.p1::before { background: linear-gradient(90deg, transparent, #ffd54a, transparent); }
-.pod.p2::before { background: linear-gradient(90deg, transparent, #cfd3dc, transparent); }
-.pod.p3::before { background: linear-gradient(90deg, transparent, #d98a4b, transparent); }
-.pod-medal { font-size: 1.5em; line-height: 1; margin-bottom: 6px; }
-.pod-av { margin-bottom: 9px; }
-.pod-av .pav { border-width: 2.5px; }
-.pod.is-red  .pod-av .pav { box-shadow: 0 0 20px rgba(255,59,92,0.28); }
-.pod.is-blue .pod-av .pav { box-shadow: 0 0 20px rgba(59,142,255,0.28); }
-.pod-name { font-size: 1.15em; font-weight: 800; line-height: 1.1; }
-.pod.p1 .pod-name { font-size: 1.35em; }
-.pod-sub { display: inline-flex; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; margin-top: 4px; }
-.pod-tdot { width: 7px; height: 7px; border-radius: 50%; }
-.pod-tdot.red { background: var(--red); } .pod-tdot.blue { background: var(--blue); }
-.pod-pts { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 2.6em; line-height: 0.85;
-  color: var(--gold); margin: 10px 0 8px; }
-.pod.p1 .pod-pts { font-size: 3.2em; }
-.pod-pts small { display: block; font-size: 8px; font-weight: 800; letter-spacing: 2px;
-  color: var(--muted); margin-top: 3px; }
-.pod-pills { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
-.pod-pills .pill { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
-  background: var(--surface3); border: 1px solid var(--border); }
-.pod .pdir-actions { position: absolute; top: 8px; right: 8px; }
-
-/* list of ranks 4+ */
-.pdir-list-h {
-  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
-  font-size: 10.5px; font-weight: 800; letter-spacing: 2.5px;
-  color: var(--muted); text-transform: uppercase;
-  padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
-}
-.pdir-list {
-  display: grid;
-  /* 340px min → 2 columns on a tablet (~700-1000px) instead of one very wide,
-     sparse card per row; still 3 across on desktop and 1 on a phone. */
-  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
-  gap: 10px;
-}
-@media (max-width: 640px) {
-  .pdir-podium { grid-template-columns: 1fr; align-items: stretch; }
-  /* Desktop shows big faces, but a phone lists ~54 players — shrink the
-     avatars so it isn't an endless scroll, and drop the row edit/delete
-     controls (edit a player from their profile instead). */
-  #playersTabGrid .pdir-list .pav { --pav-size: 56px !important; }
-  #playersTabGrid .pod-av .pav { --pav-size: 84px !important; }
-  .pdir-card { padding: 12px 14px; gap: 12px; }
-  #playersTabGrid .pdir-actions { display: none !important; }
-}
-.pdir-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--border);
-  border-radius: 16px;
-  padding: 16px 20px;
-  cursor: pointer;
-  transition: border-color 0.18s, background 0.18s, transform 0.14s;
-}
-.pdir-card:hover { background: var(--surface2); transform: translateY(-1px); }
-.pdir-card:active { transform: scale(0.995); }
-.pdir-card.is-red  { border-left-color: rgba(255,59,92,0.55); }
-.pdir-card.is-blue { border-left-color: rgba(59,142,255,0.55); }
-.pdir-card.is-red:hover  { border-color: rgba(255,59,92,0.35); }
-.pdir-card.is-blue:hover { border-color: rgba(59,142,255,0.35); }
-
-.pdir-rank {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.5em;
-  color: var(--muted);
-  min-width: 26px;
-  text-align: center;
-  flex-shrink: 0;
-}
-.pdir-rank.r1 { color: #FFD700; }
-.pdir-rank.r2 { color: #C0C0C0; }
-.pdir-rank.r3 { color: #CD7F32; }
-
-.pdir-body { flex: 1; min-width: 0; }
-.pdir-name {
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.25;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.pdir-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 5px;
-  font-size: 12px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-.pdir-unit { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted2); text-transform: uppercase; margin-left: -2px; }
-.pdir-meta .sep { color: var(--border2); }
-.pdir-tag {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  padding: 1px 6px;
-  border-radius: 9px;
-  background: var(--surface3);
-  color: var(--text2);
-}
-.pdir-hot { background: rgba(255,107,53,0.12); color: #ff6b35; }
-.pdir-cold { background: rgba(96,165,250,0.12); color: #60a5fa; }
-.pdir-stat { font-weight: 700; font-variant-numeric: tabular-nums; }
-.pdir-wait { font-size: 10.5px; color: var(--muted2); font-style: italic; }
-.pdir-you {
-  display: inline-block; vertical-align: middle;
-  font-size: 8.5px; font-weight: 800; letter-spacing: 1px;
-  color: #14140c; background: var(--gold);
-  border-radius: 5px; padding: 1px 6px; margin-left: 6px;
-}
-/* YOU pill already marks "me" here, so drop the global ⭐ badge */
-.pdir-card.is-mine::after, .pod.is-mine::after { content: none; }
-
-.pdir-pts { text-align: right; flex-shrink: 0; }
-.pdir-pts b {
-  display: block;
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 2.4em;
-  line-height: 0.85;
-  color: var(--gold);
-}
-.pdir-pts.zero b { color: var(--muted2); }
-.pdir-pts span {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  color: var(--muted);
+.pdir-search { position: relative; min-width: 0; }
+.pdir-search > .ds-ic { position: absolute; left: var(--sp-3); top: 50%; transform: translateY(-50%); color: var(--t-low); pointer-events: none; }
+.pdir-search > .ds-input { padding-left: calc(var(--sp-3) + 1.25em + var(--sp-2)); }
+.pdir-filter-btn { padding: 0 var(--sp-4); }
+.pdir-filter-btn[aria-expanded="true"] { --btn-bg: var(--s4); --btn-line: var(--gold-line); }
+.pdir-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--r-pill); background: var(--gold); color: var(--gold-ink); font: 800 var(--fs-12)/20px var(--font-ui); text-align: center; }
+.pdir-badge[hidden] { display: none; }
+.pdir-filters { grid-column: 1 / -1; display: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+.pdir-filters.is-open { display: grid; }
+.pdir-filters .pdir-sort { grid-column: 1 / -1; }
+@media (min-width: 640px) {
+  .pdir-tools { display: flex; align-items: center; }
+  .pdir-search { flex: 1 1 160px; max-width: 380px; }
+  .pdir-filter-btn { display: none; }
+  .pdir-filters, .pdir-filters.is-open { display: flex; flex: 0 0 auto; }
+  .pdir-filters .ds-select { width: auto; min-width: 116px; }
+  .pdir-filters .pdir-sort { min-width: 176px; }
 }
 
-/* Row actions live on the card only for admins, and stay quiet until
-   the card is hovered/focused so 54 cards are not 108 loud buttons. */
-.pdir-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.16s;
+/* "54 คน · เรียงตามคะแนน" - or, when a filter is on, "12 จาก 54 คน" with the way out */
+.pdir-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); margin: var(--sp-3) 0 var(--sp-4); min-height: 24px; color: var(--t-mid); font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); }
+.pdir-meta:empty { display: none; }
+.pdir-meta b { color: var(--t-hi); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pdir-meta > span + span::before { content: '·'; margin-right: var(--sp-3); color: var(--t-low); }
+.pdir-clear { min-height: var(--tap); padding: 0 var(--sp-3); }
+
+/* ── top 3: a compact podium (champion in the middle, taller). DOM order is 1-2-3 for screen readers; CSS sets the look. ── */
+.pdir-podium { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); align-items: end; max-width: 960px; margin: 0 auto var(--sp-5); }
+.pdir-pod {
+  --pav-box: 64px;
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: inset 0 4px 0 var(--edge);
 }
-.pdir-card:hover .pdir-actions,
-.pdir-card:focus-within .pdir-actions { opacity: 1; }
-@media (hover: none) { .pdir-actions { opacity: 0.55; } }
-.pdir-actions .btn { font-size: 11px; padding: 4px 7px; }
+.pdir-pod.p1 { --pav-box: 80px; order: 2; background: var(--s2); border-color: var(--gold-line); }
+.pdir-pod.p2 { order: 1; }
+.pdir-pod.p3 { order: 3; }
+.pdir-pod .pdir-open { flex-direction: column; justify-content: flex-start; gap: var(--sp-2); min-height: 0; padding: var(--sp-5) var(--sp-2) var(--sp-3); text-align: center; }
+.pdir-pod.p1 .pdir-open { padding-top: var(--sp-6); }
+.pdir-medal { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--s4); color: var(--t-hi); font: 400 var(--fs-20)/1 var(--font-num); }
+.pdir-pod.p1 .pdir-medal { background: var(--gold); color: var(--gold-ink); }
+.pdir-pod.p3 .pdir-medal { background: var(--s3); color: var(--t-mid); }
+.pdir-pod .pdir-body { flex: none; width: 100%; justify-items: center; }
+.pdir-pod .pdir-name { justify-content: center; text-align: center; font-size: var(--fs-14); }
+.pdir-pod .pdir-sub { justify-content: center; }
+.pdir-pod .pdir-pts { justify-items: center; text-align: center; }
+.pdir-pod .pdir-pts b { font-size: var(--fs-40); }
+.pdir-pod.p1 .pdir-pts b { font-size: var(--fs-56); }
+.pdir-pod .pdir-stats { display: none; justify-content: center; }
+.pdir-pod .pdir-actions { position: absolute; top: var(--sp-1); right: var(--sp-1); padding: 0; }
+@media (min-width: 640px) {
+  .pdir-podium { gap: var(--sp-4); max-width: 840px; }
+  .pdir-pod { --pav-box: 80px; }
+  .pdir-pod.p1 { --pav-box: 104px; }
+  .pdir-pod .pdir-open { gap: var(--sp-2); padding: var(--sp-5) var(--sp-3) var(--sp-4); }
+  .pdir-pod.p1 .pdir-open { padding-top: var(--sp-5); }
+  .pdir-pod .pdir-name { font-size: var(--fs-18); }
+  .pdir-pod.p1 .pdir-name { font-size: var(--fs-20); }
+  .pdir-pod .pdir-pts b { font-size: var(--fs-32); }
+  .pdir-pod.p1 .pdir-pts b { font-size: var(--fs-40); }
+  .pdir-pod .pdir-stats { display: flex; }
+}
+
+/* ── the list (rank 4+, or everyone when there is no podium) ── */
+.pdir-list-h { margin: 0 0 var(--sp-2); color: var(--t-mid); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); }
+/* as many columns as fit (1 on a phone, 2 on a tablet, 3 on a laptop); staff rows carry two action buttons, so they ask for more room */
+.pdir-list { --col: 340px; list-style: none; display: grid; gap: var(--sp-2); grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--col)), 1fr)); }
+body.admin-mode .pdir-list { --col: 480px; }
+@media (min-width: 640px) { .pdir-list { gap: var(--sp-3); } }
+
+.pdir-row {
+  --pav-box: 52px;
+  display: flex; align-items: stretch; min-width: 0;
+  background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: inset 4px 0 0 var(--edge);
+  transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
+}
+.pdir-row.is-red, .pdir-pod.is-red { --edge: var(--red); }
+.pdir-row.is-blue, .pdir-pod.is-blue { --edge: var(--blue); }
+.pdir-row.is-me, .pdir-pod.is-me { border-color: var(--gold-line); background: var(--gold-dim); }
+@media (min-width: 640px) { .pdir-row { --pav-box: 60px; } }
+@media (hover: hover) { .pdir-row:hover, .pdir-pod:hover { background: var(--s2); } }
+
+/* the whole row is one real button (the staff actions are its siblings, so no nested interactive content) */
+.pdir-open {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--sp-3);
+  min-height: 72px; padding: var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-4);
+  background: none; border: 0; border-radius: inherit; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  touch-action: manipulation; transition: background-color var(--dur-press) var(--ease-out);
+}
+.pdir-open:active { background: var(--s3); }
+.pdir-rank { flex: none; width: 28px; text-align: center; color: var(--t-low); font: 400 var(--fs-24)/1 var(--font-num); font-variant-numeric: tabular-nums; }
+.pdir-rank.is-top { color: var(--t-hi); }
+.pdir-body { flex: 1 1 0; min-width: 0; display: grid; gap: 2px; }
+.pdir-name { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--sp-2); color: var(--t-hi); font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); overflow-wrap: anywhere; }
+.pdir-you { min-height: 22px; padding: 0 var(--sp-2); font-size: var(--fs-12); }
+.pdir-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--sp-3); color: var(--t-mid); font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); }
+.pdir-sub .ds-team { gap: 6px; font-size: var(--fs-13); }
+.pdir-stats { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--sp-3); color: var(--t-low); font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); }
+.pdir-stats b { color: var(--t-mid); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pdir-streak { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+.pdir-streak.is-hot { color: var(--warn); }
+.pdir-streak.is-cold { color: var(--info); }
+.pdir-pts { flex: none; display: grid; justify-items: end; gap: 2px; min-width: 52px; text-align: right; }
+.pdir-pts b { color: var(--gold); font: 400 var(--fs-32)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; }
+.pdir-pts span { color: var(--t-low); font: 600 var(--fs-12)/1.2 var(--font-ui); }
+.pdir-pts.is-zero b { color: var(--t-low); }
+
+/* staff: edit / delete beside a row, laptop only (on a phone a player is edited from the profile) */
+.pdir-actions { display: none; flex: none; align-items: center; gap: var(--sp-1); padding-right: var(--sp-2); }
+.pdir-actions .ds-btn { --btn-fg: var(--t-low); width: var(--tap); min-height: var(--tap); }
+@media (hover: hover) { .pdir-actions .pdir-act-del:hover { --btn-fg: var(--err); } }
+@media (min-width: 900px) { .pdir-actions { display: flex; } }
 
 /* ══ SEASON WIZARD — step 3 (roster for the new season) ══ */
 .wz-keep-count { font-size: 11px; color: var(--muted); font-weight: 700; }

@@ -311,11 +311,30 @@ async function wzLoadArchivePlayers(year) {
 // เพิ่ม season modals ใน Escape handler
 
 
+// ══════════════════════════════════════════
+// PLAYERS DIRECTORY — a ranked list of people: rank, face, name, quiet meta and ONE big number (the metric the
+// list is sorted by). The toolbar (search / filters / sort) is static markup in index.html and is never repainted,
+// so typing in the search box keeps its focus. Gold = the key number; team = word + shape + edge.
+// ══════════════════════════════════════════
+// phone: the three filters live behind one button next to the search box (from 640 px they are always visible)
+function togglePlayersFilters(force) {
+  const panel = document.getElementById('playersFilterPanel'), btn = document.getElementById('playersFilterBtn');
+  if (!panel || !btn) return;
+  const open = typeof force === 'boolean' ? force : !panel.classList.contains('is-open');
+  panel.classList.toggle('is-open', open);
+  btn.setAttribute('aria-expanded', String(open));
+}
+function clearPlayersFilters() {
+  ['playersTabSearch', 'playersTabFilterTeam', 'playersTabFilterGroup'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  renderPlayersTab();
+}
+
 function renderPlayersTab() {
   const grid = document.getElementById('playersTabGrid');
   if (!grid) return;
   if (typeof updateChampControls === 'function') updateChampControls();
-  const search = (document.getElementById('playersTabSearch')?.value || '').toLowerCase();
+  const searchRaw = document.getElementById('playersTabSearch')?.value || '';
+  const search = searchRaw.toLowerCase();
   const fTeam  = document.getElementById('playersTabFilterTeam')?.value || '';
   const fGroup = document.getElementById('playersTabFilterGroup')?.value || '';
   const stats  = getPlayerStats();
@@ -335,95 +354,114 @@ function renderPlayersTab() {
     return (stats[b.id]?.pts || 0) - (stats[a.id]?.pts || 0) || a.group - b.group;
   });
 
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+  const total = appState.players.length;
+  const filtered = !!(fTeam || fGroup || searchRaw);
+
+  // the line above the list ("54 คน · เรียงตามคะแนน", or "12 จาก 54 คน" with the way out) and the badge on the phone's filter button
+  const optText = id => { const el = document.getElementById(id); return (el && el.selectedOptions && el.selectedOptions[0]) ? el.selectedOptions[0].textContent : ''; };
+  const meta = document.getElementById('playersTabMeta');
+  if (meta) {
+    meta.innerHTML = !total ? '' :
+      (filtered ? `<span><b>${players.length}</b> จาก ${total} คน</span>` : `<span><b>${total}</b> คน</span>`)
+      + (fTeam ? `<span>${escHtml(optText('playersTabFilterTeam'))}</span>` : '')
+      + (fGroup ? `<span>${escHtml(optText('playersTabFilterGroup'))}</span>` : '')
+      + `<span>${escHtml(optText('playersTabSortBy'))}</span>`
+      + (filtered ? `<button type="button" class="ds-btn ds-btn-ghost pdir-clear" onclick="clearPlayersFilters()">ล้างตัวกรอง</button>` : '');
+  }
+  const badge = document.getElementById('playersFilterBadge');
+  if (badge) { const n = (fTeam ? 1 : 0) + (fGroup ? 1 : 0) + (sortBy !== 'pts' ? 1 : 0); badge.hidden = !n; badge.textContent = n || ''; }
+
   if (!players.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted);font-size:14px;background:var(--surface2);border-radius:12px;border:1px dashed var(--border);">ไม่พบผู้เล่น</div>`;
+    grid.innerHTML = `<div class="ds-card"><div class="ds-empty">
+      <div class="ds-empty-art">${dsArt('court')}</div>
+      <div class="ds-empty-title">${total ? 'ไม่พบผู้เล่น' : 'ยังไม่มีผู้เล่น'}</div>
+      <div class="ds-empty-text">${total ? 'ลองเปลี่ยนคำค้นหาหรือตัวกรอง' : (isAdmin ? 'เพิ่มผู้เล่นได้ที่แท็บ Admin' : 'รายชื่อผู้เล่นจะแสดงที่นี่')}</div>
+      ${total ? '<button type="button" class="ds-btn" onclick="clearPlayersFilters()">ล้างตัวกรอง</button>' : ''}
+    </div></div>`;
     return;
   }
 
-  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
-
-  // colour only carries meaning where it changes: win rate and +/- PD.
-  const wrColor = s => s.winRate >= 70 ? 'var(--green)'
-                     : s.winRate >= 40 ? 'var(--text2)'
-                     : s.total > 0     ? 'var(--danger)' : 'var(--muted)';
-  const pdColor = pd => pd > 0 ? 'var(--green)' : pd < 0 ? 'var(--danger)' : 'var(--muted)';
   const mine    = p => (typeof isMe === 'function' && isMe(p.id));
-  const youTag  = p => mine(p) ? `<span class="pdir-you">YOU</span>` : '';
+  const youTag  = p => mine(p) ? `<span class="ds-chip ds-chip-gold pdir-you">คุณ</span>` : '';
+  const teamTag = p => p.team === 'Red' ? `<span class="ds-team ds-team-red">RED</span>` : `<span class="ds-team ds-team-blue">BLUE</span>`;
   const actionsHtml = p => isAdmin
     ? `<div class="pdir-actions">
-         <button class="btn btn-outline btn-sm" title="แก้ไขผู้เล่น" onclick="event.stopPropagation();openPlayerEdit('${p.id}')">✏️</button>
-         <button class="btn btn-danger btn-sm" title="ลบผู้เล่น" onclick="event.stopPropagation();deletePlayer('${p.id}')">🗑</button>
+         <button type="button" class="ds-btn ds-btn-icon ds-btn-ghost" aria-label="แก้ไข ${escHtml(p.name)}" title="แก้ไขผู้เล่น" onclick="openPlayerEdit('${p.id}')">${dsIcon('pencil-simple')}</button>
+         <button type="button" class="ds-btn ds-btn-icon ds-btn-ghost pdir-act-del" aria-label="ลบ ${escHtml(p.name)}" title="ลบผู้เล่น" onclick="deletePlayer('${p.id}')">${dsIcon('trash')}</button>
        </div>`
     : '';
+  const streakHtml = id => {
+    const st = getPlayerStreak(id);
+    if (!st) return '';
+    return st.type === 'hot'
+      ? `<span class="pdir-streak is-hot">${dsIcon('fire')}ฟอร์มร้อน</span>`
+      : `<span class="pdir-streak is-cold">${dsIcon('caret-down')}ฟอร์มตก</span>`;
+  };
 
-  // The headline number on every card follows the active sort — switch to
-  // Win-Rate and win-rate becomes the big number (Points / PD likewise); the
-  // other two ride along as the small stats.
+  // The headline number follows the active sort: switch to อัตราชนะ and the win rate becomes the big number
+  // (คะแนน / ผลต่าง likewise); the other two ride along as the quiet stats.
   const metric = {
-    pts: s => ({ v: s.pts || 0,                          c: 'var(--gold)', dim: !s.pts,   big: 'PTS',  pill: 'PTS', unit: 'pts' }),
-    wr:  s => ({ v: s.total > 0 ? s.winRate + '%' : '—', c: wrColor(s),    dim: !s.total, big: 'WIN%', pill: 'WR',  unit: ''    }),
-    pd:  s => { const pd = s.pointDiff || 0; return { v: (pd > 0 ? '+' : '') + pd, c: pdColor(pd), dim: !s.total, big: 'PD', pill: 'PD', unit: 'pd' }; },
+    pts: s => ({ v: s.pts || 0,                          dim: !s.pts,   name: 'คะแนน' }),
+    wr:  s => ({ v: s.total > 0 ? s.winRate + '%' : '—', dim: !s.total, name: 'อัตราชนะ' }),
+    pd:  s => { const pd = s.pointDiff || 0; return { v: (pd > 0 ? '+' : '') + pd, dim: !s.total, name: 'ผลต่าง' }; },
   };
   const heroKey   = sortBy === 'winRate' ? 'wr' : sortBy === 'pointDiff' ? 'pd' : 'pts';
   const otherKeys = ['pts', 'wr', 'pd'].filter(k => k !== heroKey);
+  const statsHtml = s => s.total > 0
+    ? otherKeys.map(k => { const o = metric[k](s); return `<span>${o.name} <b>${o.v}</b></span>`; }).join('')
+    : `<span>ยังไม่ลงแข่ง</span>`;
 
-  // ── Podium: top 3 of the current ranking (skip when sorting A–Z,
-  //    where "1st/2nd/3rd" would just mean "earliest alphabetically") ──
+  // ── Podium: top 3 of the current ranking (skipped when sorting by name, where "1st/2nd/3rd" would just mean
+  //    "earliest alphabetically"). DOM order is 1-2-3 (screen readers); CSS puts the champion in the middle. ──
   const showPodium = players.length >= 3 && sortBy !== 'name';
-  const MEDAL = ['🥇', '🥈', '🥉'];
-  const podCard = (p, rank) => {
+  const podHtml = (p, rank) => {
     const s = stats[p.id] || {};
-    const isRed = p.team === 'Red';
     const hero = metric[heroKey](s);
-    return `<div class="pod p${rank + 1} ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" tabindex="0" role="button" aria-label="ดูโปรไฟล์ ${escHtml(p.name)}" title="ดูโปรไฟล์">
-      <div class="pod-medal">${MEDAL[rank]}</div>
+    const label = `อันดับ ${rank + 1} ${p.name} · ${hero.v} ${hero.name} · ดูโปรไฟล์`;
+    return `<li class="pdir-pod p${rank + 1} ${p.team === 'Red' ? 'is-red' : 'is-blue'}${mine(p) ? ' is-me' : ''}">
+      <button type="button" class="pdir-open" onclick="openPlayerProfile('${p.id}')" aria-label="${escHtml(label)}">
+        <span class="pdir-medal">${rank === 0 ? dsIcon('crown', { fill: true }) : rank + 1}</span>
+        ${avatarHtml(p, rank === 0 ? 80 : 64)}
+        <span class="pdir-body">
+          <span class="pdir-name">${escHtml(p.name)}${youTag(p)}</span>
+          <span class="pdir-sub">${teamTag(p)}<span>G${p.group}</span></span>
+        </span>
+        <span class="pdir-pts${hero.dim ? ' is-zero' : ''}"><b class="ds-num">${hero.v}</b><span>${hero.name}</span></span>
+        <span class="pdir-stats">${statsHtml(s)}</span>
+      </button>
       ${actionsHtml(p)}
-      <div class="pod-av">${avatarHtml(p, rank === 0 ? 124 : 104)}</div>
-      <div class="pod-name">${escHtml(p.name)}${youTag(p)}</div>
-      <div class="pod-sub"><span class="pod-tdot ${isRed ? 'red' : 'blue'}"></span>${isRed ? 'RED' : 'BLUE'} · G${p.group}</div>
-      <div class="pod-pts" style="color:${hero.dim ? 'var(--muted2)' : hero.c}">${hero.v}<small>${hero.big}</small></div>
-      <div class="pod-pills">${otherKeys.map(k => { const o = metric[k](s); return `<span class="pill" style="color:${o.c}">${o.v} ${o.pill}</span>`; }).join('')}</div>
-    </div>`;
+    </li>`;
   };
 
   // ── List row (rank 4+, or everyone when there is no podium) ──
-  const listRow = (p, rank) => {
+  const rowHtml = (p, rank, ranked) => {
     const s = stats[p.id] || {};
-    const isRed = p.team === 'Red';
     const hero = metric[heroKey](s);
-    const streak = getPlayerStreak(p.id);
-    const streakHtml = streak
-      ? `<span class="pdir-tag ${streak.type === 'hot' ? 'pdir-hot' : 'pdir-cold'}">${streak.label}</span>`
-      : '';
-    const rankCls = rank === 0 ? 'r1' : rank === 1 ? 'r2' : rank === 2 ? 'r3' : '';
-    const statsHtml = s.total > 0
-      ? otherKeys.map(k => { const o = metric[k](s); return `<span class="pdir-stat" style="color:${o.c}">${o.v}</span>${o.unit ? `<span class="pdir-unit">${o.unit}</span>` : ''}`; }).join('')
-      : `<span class="pdir-wait">ยังไม่ลงแข่ง</span>`;
-    return `<div class="pdir-card ${isRed ? 'is-red' : 'is-blue'}${mine(p) ? ' is-mine' : ''}" onclick="openPlayerProfile('${p.id}')" tabindex="0" role="button" aria-label="ดูโปรไฟล์ ${escHtml(p.name)}" title="ดูโปรไฟล์">
-      <div class="pdir-rank ${rankCls}">${rank + 1}</div>
-      ${avatarHtml(p, 96)}
-      <div class="pdir-body">
-        <div class="pdir-name">${escHtml(p.name)}${youTag(p)}</div>
-        <div class="pdir-meta">
-          <span class="pdir-tag">${p.id} · G${p.group}</span>
-          ${streakHtml}${statsHtml}
-        </div>
-      </div>
+    const label = `${ranked ? 'อันดับ ' + (rank + 1) + ' ' : ''}${p.name} · ${hero.v} ${hero.name} · ดูโปรไฟล์`;
+    return `<li class="pdir-row ${p.team === 'Red' ? 'is-red' : 'is-blue'}${mine(p) ? ' is-me' : ''}">
+      <button type="button" class="pdir-open" onclick="openPlayerProfile('${p.id}')" aria-label="${escHtml(label)}">
+        ${ranked ? `<span class="pdir-rank${rank < 3 ? ' is-top' : ''}">${rank + 1}</span>` : ''}
+        ${avatarHtml(p, 56)}
+        <span class="pdir-body">
+          <span class="pdir-name">${escHtml(p.name)}${youTag(p)}</span>
+          <span class="pdir-sub">${teamTag(p)}<span>G${p.group}</span><span>${p.id}</span></span>
+          <span class="pdir-stats">${statsHtml(s)}${streakHtml(p.id)}</span>
+        </span>
+        <span class="pdir-pts${hero.dim ? ' is-zero' : ''}"><b class="ds-num">${hero.v}</b><span>${hero.name}</span></span>
+      </button>
       ${actionsHtml(p)}
-      <div class="pdir-pts${hero.dim ? ' zero' : ''}"><b${hero.dim ? '' : ` style="color:${hero.c}"`}>${hero.v}</b><span>${hero.big}</span></div>
-    </div>`;
+    </li>`;
   };
 
   let html = '';
   if (showPodium) {
-    const top = players.slice(0, 3);
-    // centre the champion: display order is 2nd · 1st · 3rd
-    html += `<div class="pdir-podium">${podCard(top[1], 1)}${podCard(top[0], 0)}${podCard(top[2], 2)}</div>`;
+    html += `<ol class="pdir-podium" role="list" aria-label="3 อันดับแรก">${players.slice(0, 3).map((p, i) => podHtml(p, i)).join('')}</ol>`;
   }
   const rest = showPodium ? players.slice(3) : players;
   if (rest.length) {
-    html += `<div class="pdir-list-h">${showPodium ? 'อันดับ 4 ขึ้นไป' : `ผู้เล่นทั้งหมด · ${players.length} คน`}</div>`;
-    html += `<div class="pdir-list">${rest.map((p, j) => listRow(p, (showPodium ? 3 : 0) + j)).join('')}</div>`;
+    if (showPodium) html += `<h3 class="pdir-list-h">อันดับ 4 ขึ้นไป</h3>`;
+    html += `<ul class="pdir-list" role="list">${rest.map((p, j) => rowHtml(p, (showPodium ? 3 : 0) + j, sortBy !== 'name')).join('')}</ul>`;
   }
   grid.innerHTML = html;
 }

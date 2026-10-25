@@ -541,22 +541,28 @@ try {
 </div>
 
 <!-- ── PLAYERS TAB ── -->
-<div id="players" class="container" style="max-width:1340px;">
-  <div class="tab-toolbar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-    <div class="section-title th" style="margin:0;">👤 รายชื่อผู้เล่น</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <input type="text" id="playersTabSearch" placeholder="🔍 ค้นหาชื่อ..." style="width:140px;font-size:13px;padding:7px 12px;" oninput="renderPlayersTab()">
-      <select id="playersTabFilterTeam" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
-        <option value="">ทุกทีม</option><option value="Red">🔴 Red</option><option value="Blue">🔵 Blue</option>
+<div id="players" class="container">
+  <h2 class="section-title th">รายชื่อผู้เล่น</h2>
+  <div class="pdir-tools">
+    <div class="pdir-search">
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+      <input type="search" id="playersTabSearch" class="ds-input" placeholder="ค้นหาชื่อ" aria-label="ค้นหาผู้เล่น" autocomplete="off" enterkeyhint="search" oninput="renderPlayersTab()">
+    </div>
+    <button type="button" id="playersFilterBtn" class="ds-btn pdir-filter-btn" aria-expanded="false" aria-controls="playersFilterPanel" onclick="togglePlayersFilters()">
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sliders-horizontal"/></svg>ตัวกรอง<span class="pdir-badge" id="playersFilterBadge" hidden></span>
+    </button>
+    <div class="pdir-filters" id="playersFilterPanel">
+      <select id="playersTabFilterTeam" class="ds-select" aria-label="ทีม" onchange="renderPlayersTab()">
+        <option value="">ทุกทีม</option><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option>
       </select>
-      <select id="playersTabFilterGroup" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
-        <option value="">ทุกกลุ่ม</option><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option>
+      <select id="playersTabFilterGroup" class="ds-select" aria-label="กลุ่ม" onchange="renderPlayersTab()">
+        <option value="">ทุกกลุ่ม</option><option value="1">กลุ่ม G1</option><option value="2">กลุ่ม G2</option><option value="3">กลุ่ม G3</option>
       </select>
-      <select id="playersTabSortBy" style="font-size:13px;padding:7px 12px;" onchange="renderPlayersTab()">
-        <option value="pts">↓ Points</option>
-        <option value="winRate">↓ Win Rate</option>
-        <option value="pointDiff">↓ Point Diff</option>
-        <option value="name">A–Z Name</option>
+      <select id="playersTabSortBy" class="ds-select pdir-sort" aria-label="เรียงตาม" onchange="renderPlayersTab()">
+        <option value="pts">เรียงตามคะแนน</option>
+        <option value="winRate">เรียงตามอัตราชนะ</option>
+        <option value="pointDiff">เรียงตามผลต่างคะแนน</option>
+        <option value="name">เรียงตามชื่อ</option>
       </select>
     </div>
   </div>
@@ -590,6 +596,7 @@ try {
     <span id="champStatus" style="font-size:11px;color:var(--gold);font-weight:700;"></span>
   </div>
 
+  <div class="pdir-meta" id="playersTabMeta" role="status"></div>
   <div id="playersTabGrid"></div>
 </div>
 
