@@ -4,12 +4,8 @@
    top is the winner's colour and drains as the time to close itself runs out (js drives #matchNotiProgressBar).
    Emoji stay in exactly one place here: the reaction burst, which IS the content of that block.
    ============================================================ */
-#matchNotiOverlay {
-  position: fixed; inset: 0; z-index: var(--z-modal); display: none; align-items: flex-end; justify-content: center;
-  background: rgba(3, 3, 8, .86);
-}
+/* the scrim, its stacking and its centring are .ds-scrim (css/ui.css, set in index.html); js toggles .open */
 #matchNotiOverlay.open { display: flex; }
-@media (min-width: 640px) { #matchNotiOverlay { align-items: center; padding: var(--sp-5); } }
 
 #matchNotiBox {
   --noti-edge: var(--t-low);

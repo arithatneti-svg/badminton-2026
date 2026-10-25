@@ -58,7 +58,7 @@ out.push(mk('viewer-empty-guest-idle', 'guest', ['390x844', '1280x800'], async (
   await page.run(async () => { const A = __audit; await A.wp5Setup(); A.board.server.matchHistory = []; A.boardMock([], 'guest'); __setRole('guest'); switchTab('scoreboard', document.getElementById('tab-scoreboard')); await new Promise(r => setTimeout(r, 500)); });
 }));
 out.push(mk('viewer-empty-admin-idle', 'admin', ['390x844'], async (page) => {
-  await page.run(async () => { const A = __audit; await A.wp5Setup(); A.boardMock([], 'guest'); __setRole('admin'); switchTab('scoreboard', document.getElementById('tab-scoreboard')); await new Promise(r => setTimeout(r, 500)); });
+  await page.run(async () => { const A = __audit; await A.wp5Setup(); A.boardMock([], 'guest'); __setRole('admin'); updateUI(); switchTab('scoreboard', document.getElementById('tab-scoreboard')); await new Promise(r => setTimeout(r, 500)); });
 }));
 out.push(mk('viewer-empty-guest-ongoing', 'guest', ['390x844', '1280x800'], async (page) => {
   await page.run(async () => { const A = __audit; await A.wp5Setup(); A.boardMock([], 'guest'); __setRole('guest'); switchTab('ongoing', document.getElementById('tab-ongoing')); await new Promise(r => setTimeout(r, 500)); });

@@ -37,9 +37,9 @@
 }
 .nav-tabs::-webkit-scrollbar { display: none; }
 /* a fade on the edge that has more tabs behind it (data-fade, set by _navFade in ui.js) */
-.nav-tabs[data-fade="r"]  { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
-.nav-tabs[data-fade="l"]  { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
-.nav-tabs[data-fade="lr"] { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+.nav-tabs[data-fade="r"]  { -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent); mask-image: linear-gradient(to right, black calc(100% - 28px), transparent); }
+.nav-tabs[data-fade="l"]  { -webkit-mask-image: linear-gradient(to left, black calc(100% - 28px), transparent); mask-image: linear-gradient(to left, black calc(100% - 28px), transparent); }
+.nav-tabs[data-fade="lr"] { -webkit-mask-image: linear-gradient(to right, transparent, black 28px, black calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, black 28px, black calc(100% - 28px), transparent); }
 
 /* NOTE: a tab tagged admin-only is display:revert for a super admin (css/login.css), so the button cannot be the flex
    box: .tab-in inside it is */
