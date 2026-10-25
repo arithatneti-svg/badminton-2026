@@ -1,108 +1,129 @@
-/* ── NAVIGATION ── */
+/* ============================================================
+   TOP BAR (A2 viewer) — brand · connection · tabs · role · the ⋯ menu
+   Laptop: one 60 px bar, a word beside every icon, a gold underline under the page you are on; the rare actions
+   (QR, full screen, reset, leave) sit in the ⋯ menu. Phone: see PHONE NAV below.
+   js/ui.js keeps --nav-h (the sticky tab toolbars park under the bar) and sets data-fade on the tab strip.
+   ============================================================ */
 .nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(8,8,16,0.95);
-  backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border);
-  padding: 9px 18px;
-  display: flex; align-items: center; gap: 12px; flex-wrap: nowrap;
+  position: sticky; top: 0; z-index: var(--z-nav);
+  display: flex; align-items: center; gap: var(--sp-3);
+  min-height: 60px;
+  padding: var(--sat) max(var(--sp-4), var(--sar)) 0 max(var(--sp-4), var(--sal));
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
 }
 
-/* live/connection badge, left of the tabs */
+.nav-brand { flex: none; display: flex; align-items: center; gap: var(--sp-2); }
+.nav-mark { width: 30px; height: 30px; flex: none; }
+.nav-title { font: 400 1.375rem/1 var(--font-num); letter-spacing: .06em; color: var(--t-hi); white-space: nowrap; }
+
+/* connection: a chip with a dot and a word (LIVE) or an icon and a word (offline); data-state is set by js/core.js */
 .nav-live {
-  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted);
-  padding: 5px 10px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border);
+  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 var(--sp-3);
+  border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--s1);
+  color: var(--t-low); font: 700 var(--fs-12)/1 var(--font-ui); letter-spacing: .08em;
 }
-.nav-live #dbDot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: background 0.4s; flex-shrink: 0; }
+#dbDot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.nav-live-off { display: none; width: 16px; height: 16px; }
+.nav-live[data-state="live"] { color: var(--live); border-color: var(--live-line); background: var(--live-fill); }
+.nav-live[data-state="offline"] { color: var(--err); border-color: var(--err-line); background: var(--err-fill); letter-spacing: 0; }
+.nav-live[data-state="offline"] #dbDot { display: none; }
+.nav-live[data-state="offline"] .nav-live-off { display: block; }
 
-.nav-title {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.35em;
-  letter-spacing: 4px;
-  background: var(--accent-grad);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-right: 8px;
-  white-space: nowrap;
-  transition: background 0.4s;
-}
-
-/* Tabs live in the middle and scroll sideways if they run out of room, so the
-   brand (left) and action icons (right) never collide with them. */
+/* the tabs: they live in the middle and scroll sideways when the role has more of them than the bar can hold */
 .nav-tabs {
-  display: flex; gap: 3px; flex: 1 1 auto; min-width: 0;
-  flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+  flex: 1 1 auto; min-width: 0; align-self: stretch; display: flex; gap: 2px;
+  overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
 }
 .nav-tabs::-webkit-scrollbar { display: none; }
+/* a fade on the edge that has more tabs behind it (data-fade, set by _navFade in ui.js) */
+.nav-tabs[data-fade="r"]  { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.nav-tabs[data-fade="l"]  { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+.nav-tabs[data-fade="lr"] { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 
+/* NOTE: a tab tagged admin-only is display:revert for a super admin (css/login.css), so the button cannot be the flex
+   box: .tab-in inside it is */
 .tab-btn {
-  background: transparent;
-  color: var(--muted);
-  border: none;
-  padding: 10px 18px;
-  cursor: pointer;
-  border-radius: 8px;
-  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  transition: all 0.18s;
-  white-space: nowrap;
-  position: relative;
+  position: relative; flex: none; align-self: stretch; min-height: var(--tap); padding: 0 var(--sp-3);
+  background: none; border: 0; color: var(--t-mid);
+  font: 600 var(--fs-14)/1.2 var(--font-ui); white-space: nowrap; cursor: pointer; touch-action: manipulation;
+  transition: color var(--dur-state) var(--ease-out), background-color var(--dur-state) var(--ease-out);
 }
-
+.tab-in { display: flex; align-items: center; justify-content: center; gap: var(--sp-2); height: 100%; }
+.tab-ico { width: 20px; height: 20px; }
 .tab-btn::after {
-  content: '';
-  position: absolute;
-  bottom: -1px; left: 50%; right: 50%;
-  height: 3px;
-  background: var(--accent);
-  border-radius: 2px;
-  transition: left 0.2s, right 0.2s, background 0.4s;
+  content: ''; position: absolute; left: var(--sp-2); right: var(--sp-2); bottom: 0; height: 3px;
+  border-radius: 3px 3px 0 0; background: var(--gold);
+  transform: scaleX(0); transition: transform var(--dur-state) var(--ease-out);
 }
+.tab-btn.active { color: var(--t-hi); }
+.tab-btn.active .tab-ico { color: var(--gold); }
+.tab-btn.active::after { transform: scaleX(1); }
+.tab-btn:focus-visible { outline-offset: -3px; }
+@media (hover: hover) { .tab-btn:hover { color: var(--t-hi); background: var(--s1); } }
+.tab-btn:active { background: var(--s2); }
 
-.tab-btn:hover { color: var(--text2); background: rgba(255,255,255,0.04); }
-.tab-btn.active { color: var(--accent); background: var(--accent-dim); }
-.tab-btn.active::after { left: 8px; right: 8px; }
-.tab-btn:active { transform: scale(0.94); opacity: 0.85; transition: transform 0.08s, opacity 0.08s; }
+/* the counts on Ongoing / Finished */
+.tab-count {
+  flex: none; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--r-pill);
+  background: var(--s4); color: var(--t-hi);
+  font: 700 var(--fs-12)/22px var(--font-ui); text-align: center; font-variant-numeric: tabular-nums;
+}
+.tab-count-live { background: var(--live); color: var(--bg); }
+
+/* role + season (laptop only; the ⋯ menu is the phone's whole right side) */
+.nav-meta { flex: none; display: flex; align-items: center; gap: var(--sp-2); }
+.role-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 var(--sp-3);
+  border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--s2); color: var(--t-mid);
+  font: 700 var(--fs-12)/1 var(--font-ui); white-space: nowrap;
+}
+.role-chip[data-role="superadmin"] { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
+.nav-season {
+  min-height: 30px; padding: 0 var(--sp-3); border: 1px solid var(--line-strong); border-radius: var(--r-pill);
+  background: var(--s2); color: var(--t-mid); font: 700 var(--fs-12)/28px var(--font-ui); white-space: nowrap;
+  cursor: pointer; touch-action: manipulation;
+}
+@media (hover: hover) { .nav-season:hover { background: var(--s3); color: var(--t-hi); } }
+
+/* the ⋯ button and its menu (both widths) */
+.nav-more {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--tap); height: var(--tap); padding: 0;
+  background: var(--s2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); color: var(--t-mid);
+  cursor: pointer; touch-action: manipulation;
+  transition: background-color var(--dur-state) var(--ease-out), color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
+}
+.nav-more .ds-ic { width: 22px; height: 22px; }
+#mainNav.menu-open .nav-more { background: var(--s4); color: var(--t-hi); border-color: var(--t-low); }
+@media (hover: hover) { .nav-more:hover { background: var(--s3); color: var(--t-hi); } }
 
 .nav-actions {
-  display: flex; gap: 6px;
-  flex-shrink: 0; flex-wrap: nowrap;
-  justify-content: flex-end;
-  align-items: center;
+  display: none; position: absolute; top: calc(100% + 6px); right: max(var(--sp-4), var(--sar)); z-index: 3;
+  flex-direction: column; gap: var(--sp-1); min-width: 248px; max-width: calc(100vw - 16px); padding: var(--sp-2);
+  background: var(--s2); border: 1px solid var(--line-strong); border-radius: var(--r-md); box-shadow: var(--shadow-pop);
 }
-
-/* Compact icon buttons — Full / Reset / QR / New Season / Exit collapse to
-   icons + tooltip so the action bar stops overflowing into the tabs. */
+#mainNav.menu-open .nav-actions { display: flex; animation: nav-pop var(--dur-in) var(--ease-out); }
+@keyframes nav-pop { from { transform: translateY(-6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.nav-grp { display: grid; gap: 2px; }
+.nav-grp-end { margin-top: var(--sp-1); padding-top: var(--sp-1); border-top: 1px solid var(--line); }
+/* NOTE: an item tagged admin-only / superadmin-only is display:revert (css/login.css), so it cannot be a flex box:
+   .nav-ic-in inside it lays out the icon and the word */
 .nav-ic {
-  width: 36px; height: 36px; flex-shrink: 0; padding: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 15px; line-height: 1; cursor: pointer;
-  background: var(--surface2); border: 1px solid var(--border); border-radius: 9px;
-  color: var(--text2); transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.1s;
+  width: 100%; min-height: var(--tap-md); padding: 0 var(--sp-3);
+  background: transparent; border: 0; border-radius: var(--r-sm); color: var(--t-hi);
+  font: 600 var(--fs-14)/1.2 var(--font-ui); text-align: left; cursor: pointer; touch-action: manipulation;
 }
-.nav-ic:hover { background: var(--surface3); border-color: var(--border2); color: var(--text); }
-.nav-ic:active { transform: scale(0.92); }
-.nav-ic.reset { color: var(--danger); border-color: rgba(255,69,96,0.25); }
-.nav-ic.reset:hover { background: rgba(255,69,96,0.1); }
-.nav-ic.exit:hover { background: rgba(255,159,64,0.1); border-color: rgba(255,159,64,0.3); }
+.nav-ic-in { display: flex; align-items: center; gap: var(--sp-3); min-height: var(--tap-md); }
+.nav-ic-ico { flex: none; width: 22px; height: 22px; color: var(--t-low); }
+.nav-ic:active { background: var(--s4); }
+@media (hover: hover) { .nav-ic:hover { background: var(--s3); } }
+.nav-ic.reset, .nav-ic.reset .nav-ic-ico { color: var(--err); }
 
-/* ── Tabs get their own full-width row when the bar is tight ──
-   A superadmin has 8 tabs plus a wide action cluster (season badge, role,
-   5 icons); on a single row the tab strip is flex-crushed to a sliver and the
-   last tabs (Admin / Reports) fall off the right edge — unreachable on a TV or
-   any non-touch screen that can't scroll the hidden strip. Dropping the strip
-   onto its own row keeps every tab visible. The single-row layout stays only on
-   very wide screens where the whole bar genuinely fits. (Phones ≤768px already
-   do this, and additionally hide the badges — see components.css.) */
-@media (max-width: 1600px) {
-  .nav { flex-wrap: wrap; row-gap: 8px; }
-  .nav-actions { margin-left: auto; }
-  .nav-tabs { order: 5; flex-basis: 100%; justify-content: flex-start; }
-}
+/* tablet and small laptop: the brand's words give way first, then the chip's */
+@media (max-width: 1099px) { .nav-title { display: none; } }
+@media (max-width: 1439px) { body.admin-mode .nav-title { display: none; } }
+@media (max-width: 899px) { .tab-btn { padding: 0 var(--sp-2); } .tab-in { gap: 6px; } }
+
 
 /* BUTTONS - the legacy .btn family on the v3 tokens. New markup uses .ds-btn (css/ui.css), same look.
    Foundation-owned: no area stylesheet edits these rules. Flat fills, a press step instead of the old ripple/glow. */
@@ -184,81 +205,34 @@
 
 
 /* ══════════════════════════════════════════════════════════════════════
-   PHONE NAV — one row, 55 px (P-13 · S-07 A-11 S-11)
-   The bar used to be two rows (brand + status + icons, then the tabs): 91-97 px, 11-16% of a
-   phone screen, with 31 px tabs and 36 px icons. Now it is one row: [status dot] [tabs, scrolling
-   sideways with a fade on the edge that has more] [⋯]. The rare actions (full screen, QR, reset,
-   leave) live in the ⋯ menu as full-width 48 px rows with a word each. The brand is not repeated
-   here: the Scoreboard tab carries the event title. Every target is 44 px.
-   Each tab is an icon over a word (so all five viewer tabs are on screen at once on a 360-390 px phone
-   instead of two and a half); the connection dot sits on the corner of the ⋯ button.
+   PHONE NAV — one row, 55 px (P-13 · S-07 A-11 S-11), restyled on the v3 tokens
+   [tabs, scrolling sideways with a fade on the edge that has more] [⋯]. Each tab is an icon over a word, so all five
+   viewer tabs are on screen at once on a 360-390 px phone. The brand is not repeated (the Scoreboard tab carries the
+   event title); the connection is a small light on the corner of the ⋯ button, its words are in the offline bar and
+   read aloud. Every target is 44 px. Also a landscape phone: a 390 px high screen cannot spare 94 px.
    ══════════════════════════════════════════════════════════════════════ */
-.nav-more { display: none; }
-.nav-ic-label { display: none; }
-.nav-ic-in { display: contents; }     /* an icon button looks exactly as before; in the phone menu it lays out its icon + word */
-.tab-ico-phone { display: none; }     /* the Scoreboard tab has no icon on a wide screen */
-
-/* any touch screen, any width (a tablet too): thumbs, in glare */
-@media (pointer: coarse) {
-  .tab-btn { min-height: 44px; }
-  .nav-ic { width: 44px; height: 44px; }
-}
-
-/* phones, and landscape phones (a 390 px high screen cannot spare 94 px) */
 @media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
-  #mainNav { flex-wrap: nowrap; align-items: center; gap: 6px; padding: 5px 8px; }
-  #mainNav .nav-title { display: none; }
-  /* the connection dot: a small light on the corner of the ⋯ button (its word is in the offline bar) */
+  #mainNav { min-height: 55px; gap: 6px; padding-left: max(var(--sp-2), var(--sal)); padding-right: max(var(--sp-2), var(--sar)); }
+  #mainNav .nav-brand, #mainNav .nav-meta, #mainNav .nav-desk { display: none; }
+
+  /* the connection light: a dot on the corner of the ⋯ button (the word is read aloud, the bar below says it in full) */
   #mainNav .nav-live {
-    position: absolute; top: 8px; right: 11px; z-index: 3; margin: 0; padding: 0;
-    background: transparent; border: 0; pointer-events: none;
+    position: absolute; top: 8px; right: calc(max(var(--sp-2), var(--sar)) + 3px); z-index: 3;
+    min-height: 0; padding: 0; background: transparent; border: 0; pointer-events: none;
   }
-  #mainNav .nav-live #dbDot { width: 9px; height: 9px; box-shadow: 0 0 0 2px var(--surface2); }
-  #mainNav .nav-live #dbDotLabel { display: none; }
-  #mainNav .nav-tabs {
-    order: 1; flex: 1 1 0; flex-basis: 0; min-width: 0; gap: 2px; align-items: stretch;
-    overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start;
-  }
-  #mainNav .tab-btn {
-    flex: 1 0 auto; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-    min-height: 44px; min-width: 44px; padding: 3px 4px; font-size: 12px; line-height: 1.2;
-  }
-  #mainNav .tab-ico, #mainNav .tab-ico-phone { display: block; font-size: 17px; line-height: 1.15; }
-  #mainNav .tab-lbl { display: block; font-size: 12px; letter-spacing: 0; white-space: nowrap; }
+  #mainNav #dbDot { width: 10px; height: 10px; box-shadow: 0 0 0 2px var(--s2); }
+  #mainNav #dbDotLabel, #mainNav .nav-live-off { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #mainNav .nav-live[data-state="offline"] #dbDot { display: block; }
+
+  #mainNav .nav-tabs { order: 1; flex: 1 1 0; gap: 2px; }
+  #mainNav .tab-btn { flex: 1 0 auto; min-width: var(--tap); padding: 0 var(--sp-1); }
+  #mainNav .tab-in { flex-direction: column; gap: 1px; padding-top: 2px; }
+  #mainNav .tab-ico { width: 22px; height: 22px; }
+  #mainNav .tab-lbl { font-size: var(--fs-12); line-height: 1.2; }
   /* the count on Ongoing / Finished rides on the icon's corner */
-  #mainNav #navOngoingBadge, #mainNav #navFinishedBadge {
-    position: absolute; top: 0; right: 1px; margin: 0 !important; padding: 0 5px !important; font-size: 12px !important; line-height: 16px;
-  }
-  /* a fade on the edge that has more tabs behind it (set by _navFade in ui.js) */
-  #mainNav .nav-tabs[data-fade="r"]  { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
-  #mainNav .nav-tabs[data-fade="l"]  { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
-  #mainNav .nav-tabs[data-fade="lr"] { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+  #mainNav .tab-count { position: absolute; top: 3px; left: calc(50% + 4px); min-width: 20px; height: 20px; padding: 0 5px; font-size: var(--fs-12); line-height: 20px; }
+  #mainNav .tab-btn::after { left: var(--sp-1); right: var(--sp-1); }
 
-  #mainNav .nav-more {
-    order: 2; display: inline-flex; align-items: center; justify-content: center; flex: none;
-    width: 44px; height: 44px; padding: 0; cursor: pointer;
-    font-size: 22px; line-height: 1; color: var(--text2);
-    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
-  }
-  #mainNav.menu-open .nav-more { background: var(--surface3); border-color: var(--border2); color: var(--text); }
-
-  /* the actions become a menu under the bar */
-  #mainNav .nav-actions {
-    display: none; order: 3; position: absolute; top: calc(100% + 6px); right: 8px; margin: 0; z-index: 101;
-    flex-direction: column; align-items: stretch; flex-wrap: nowrap; justify-content: flex-start; gap: 2px;
-    min-width: 230px; max-width: calc(100vw - 16px); padding: 6px;
-    background: var(--surface); border: 1px solid var(--border2); border-radius: 14px;
-    box-shadow: 0 16px 40px rgba(0,0,0,.6);
-  }
-  #mainNav.menu-open .nav-actions { display: flex; }
-  /* NOTE: a button tagged admin-only / superadmin-only is display:revert (login.css), so it cannot be a flex box
-     here — the layout is the inner span's job */
-  #mainNav .nav-actions .nav-ic {
-    width: 100%; height: 48px; padding: 0 12px; text-align: left;
-    font-size: 17px; border-radius: 10px; background: transparent; border-color: transparent;
-  }
-  #mainNav .nav-ic-in { display: flex; align-items: center; gap: 12px; width: 100%; height: 100%; }
-  #mainNav .nav-actions .nav-ic:active { background: var(--surface3); }
-  #mainNav .nav-ic-ico { width: 24px; text-align: center; flex: none; }
-  #mainNav .nav-ic-label { display: inline; font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0; }
+  #mainNav .nav-more { order: 2; }
+  #mainNav .nav-actions { right: max(var(--sp-2), var(--sar)); }
 }

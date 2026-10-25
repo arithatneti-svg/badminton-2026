@@ -1,104 +1,49 @@
 /* ══════════════════════════════════════
-   FULLSCREEN BOTTOM NAV — Auto-hide
+   FULLSCREEN BOTTOM NAV — shows in full screen only, hides itself after a few seconds (js/ui.js)
+   The same pages as the top bar, as icons over words, 56 px tall; safe-area padding for the home indicator.
    ══════════════════════════════════════ */
 .fs-bottom-nav {
-  display: none; /* ซ่อนอยู่ — แสดงเฉพาะตอน fullscreen */
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 56px;
-  background: rgba(10,10,15,0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255,255,255,0.07);
-  z-index: 99999;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 0 16px;
-
-  /* Auto-hide — slide ลงหายเมื่อ idle */
-  transform: translateY(0);
-  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s;
-  opacity: 1;
+  display: none; /* hidden until the page is in full screen */
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-overlay);
+  align-items: center; justify-content: center; gap: var(--sp-1);
+  min-height: 56px; padding: var(--sp-1) max(var(--sp-4), var(--sar)) calc(var(--sp-1) + var(--sab)) max(var(--sp-4), var(--sal));
+  background: var(--s1); border-top: 1px solid var(--line-strong);
+  transform: translateY(0); opacity: 1;
+  transition: transform var(--dur-in) var(--ease-out), opacity var(--dur-in) var(--ease-out);
 }
-.fs-bottom-nav.hidden {
-  transform: translateY(100%);
-  opacity: 0;
-}
-/* แสดงเฉพาะตอน fullscreen */
+.fs-bottom-nav.hidden { transform: translateY(100%); opacity: 0; }
 :fullscreen .fs-bottom-nav,
-:-webkit-full-screen .fs-bottom-nav {
-  display: flex;
-}
+:-webkit-full-screen .fs-bottom-nav,
+:-webkit-full-screen-ancestor .fs-bottom-nav { display: flex; }
 
 /* the Dashboard is a staff screen: a viewer in full screen used to get a button that opened an empty page (S-06).
    Not .admin-only: that one is display:revert for a super-admin, which would drop this button's flex layout. */
 body.guest-mode .fs-admin-only { display: none !important; }
 .fs-nav-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 18px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.18s;
-  flex-shrink: 0;
+  flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-width: 64px; min-height: var(--tap); padding: 4px var(--sp-3);
+  background: transparent; border: 0; border-radius: var(--r-sm); color: var(--t-mid); cursor: pointer; touch-action: manipulation;
+  transition: background-color var(--dur-state) var(--ease-out), color var(--dur-state) var(--ease-out);
 }
-.fs-nav-btn:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.1);
-}
-.fs-nav-btn.active {
-  background: rgba(245,200,66,0.1);
-  border-color: rgba(245,200,66,0.25);
-}
-.fs-nav-icon {
-  font-size: 16px;
-  line-height: 1;
-}
-.fs-nav-label {
-  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-.fs-nav-btn.active .fs-nav-label { color: var(--gold); }
-.fs-nav-btn:hover .fs-nav-label  { color: var(--text); }
+.fs-nav-icon { width: 22px; height: 22px; }
+.fs-nav-label { font: 600 var(--fs-12)/1.2 var(--font-ui); letter-spacing: 0; }
+@media (hover: hover) { .fs-nav-btn:hover { background: var(--s3); color: var(--t-hi); } }
+.fs-nav-btn.active { color: var(--gold); background: var(--gold-dim); }
 
-.fs-nav-exit {
-  margin-left: 16px;
-  border-left: 1px solid rgba(255,255,255,0.06);
-  padding-left: 20px;
-}
-.fs-nav-exit .fs-nav-label { color: rgba(255,100,100,0.6); }
-.fs-nav-exit:hover .fs-nav-label { color: var(--danger); }
+.fs-nav-exit { position: relative; margin-left: var(--sp-4); }
+.fs-nav-exit::before { content: ''; position: absolute; left: calc(-1 * var(--sp-3)); top: var(--sp-2); bottom: var(--sp-2); width: 1px; background: var(--line-strong); }
+.fs-nav-exit, .fs-nav-exit .fs-nav-label { color: var(--err); }
 
-/* trigger zone — invisible strip ที่ขอบล่าง ให้ mouse hover แล้ว nav โผล่ */
-.fs-trigger-zone {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 24px;
-  z-index: 99998;
-}
+/* trigger zone — an invisible strip along the bottom edge: the mouse reaches it and the bar slides in */
+.fs-trigger-zone { display: none; position: fixed; left: 0; right: 0; bottom: 0; height: 24px; z-index: var(--z-overlay); }
 :fullscreen .fs-trigger-zone,
-:-webkit-full-screen .fs-trigger-zone { display: block; }
+:-webkit-full-screen .fs-trigger-zone,
+:-webkit-full-screen-ancestor .fs-trigger-zone { display: block; }
 
-/* ── padding ล่าง content ตอน fullscreen ป้องกัน nav บัง ── */
+/* room under the content so the bar does not cover its last line */
 :fullscreen .container,
-:-webkit-full-screen .container {
-  padding-bottom: 72px !important;
-}
+:-webkit-full-screen .container,
+:-webkit-full-screen-ancestor .container { padding-bottom: calc(72px + var(--sab)); }
 .perf-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px; border-left: 2px solid var(--border); overflow: hidden; }
 .perf-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .perf-header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }

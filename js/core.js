@@ -78,6 +78,7 @@ function _dataShow() {
   if (!card) return;
   const stuck = _dataPhase === 'slow' || _dataPhase === 'failed';
   card.classList.toggle('is-stuck', stuck);
+  card.dataset.phase = _dataPhase;     // loading / slow / failed: css/components.css picks the picture for each
   const msg = document.getElementById('dsMsg'), sub = document.getElementById('dsSub'), retry = document.getElementById('dsRetry');
   if (msg) msg.textContent = _dataPhase === 'failed' ? 'โหลดข้อมูลไม่ได้' : _dataPhase === 'slow' ? 'ยังเชื่อมต่อไม่ได้' : 'กำลังโหลดคะแนน…';
   if (sub) sub.textContent = _dataPhase === 'failed' ? 'ตรวจสัญญาณแล้วลองใหม่ ถ้ายังไม่ได้ แจ้งทีมงาน'
@@ -260,16 +261,17 @@ function _dbRenderConn() {
   const lbl = document.getElementById('dbDotLabel');
   if (!dot || !lbl) return;
   const state = _dbOnline ? 'live' : dbIsOffline() ? 'offline' : 'connecting';
-  dot.style.background = state === 'live' ? 'var(--green)' : state === 'offline' ? 'var(--danger)' : 'var(--muted)';
   lbl.textContent = state === 'live' ? 'LIVE' : state === 'offline' ? 'ออฟไลน์' : '...';
-  dot.style.boxShadow = state === 'live' ? '0 0 6px var(--green)' : state === 'offline' ? '0 0 6px var(--danger)' : 'none';
   const dotBox = document.getElementById('dbStatusDot');
-  if (dotBox) dotBox.title = state === 'live' ? 'เชื่อมต่อแล้ว' : state === 'offline' ? 'สัญญาณหลุด' : 'กำลังเชื่อมต่อ';
+  if (dotBox) {
+    dotBox.dataset.state = state;      // the colour, the dot or the icon follow this (css/nav.css .nav-live)
+    dotBox.title = state === 'live' ? 'เชื่อมต่อแล้ว' : state === 'offline' ? 'สัญญาณหลุด' : 'กำลังเชื่อมต่อ';
+  }
   const bar = document.getElementById('connBar');
   if (bar) {
     const show = state === 'offline' && _dataReady && !(typeof _tvActive !== 'undefined' && _tvActive);
     bar.hidden = !show;
-    if (show) bar.textContent = '📶 สัญญาณหลุด — ข้อมูลเมื่อ ' + _hms(_lastSnapshotAt || Date.now()) + ' · กำลังเชื่อมต่อ…';
+    if (show) bar.innerHTML = dsIcon('wifi-slash') + '<span>สัญญาณหลุด — ข้อมูลเมื่อ ' + _hms(_lastSnapshotAt || Date.now()) + ' · กำลังเชื่อมต่อ…</span>';
     if (!show && _dbBarShown && state === 'live') showToast('✓ เชื่อมต่อกลับมาแล้ว', 'success');
     _dbBarShown = show;
   }
