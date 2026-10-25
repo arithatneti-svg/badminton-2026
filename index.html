@@ -361,97 +361,106 @@ try {
 </div>
 
 <!-- DASHBOARD TAB (Admin) -->
-<div id="dashboard" class="container admin-only">
-  <!-- ── DASHBOARD LEGEND ── (shared .rp-legend explainer component) -->
+<div id="dashboard" class="container admin-only rp-page">
+  <h2 class="ds-sr-only">Dashboard</h2>
+
+  <!-- ── LEGEND: what the cards mean (shared .rp-legend component) ── -->
   <details class="rp-legend">
-    <summary>📖 ความหมายของตัวชี้วัดใน Dashboard</summary>
+    <summary><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-info"/></svg><span>ความหมายตัวชี้วัดใน Dashboard</span><svg class="ds-ic rp-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg></summary>
     <div class="rp-legend-body">
       <div class="rp-legend-col">
-        <h5>KPI Cards</h5>
-        <p>
-          <b>Total Matches</b> = จำนวนแมตช์ที่จบแล้ว<br>
-          <b>Avg Score/Match</b> = แต้มรวมเฉลี่ยต่อแมตช์<br>
-          <b>Deuce Rate</b> = % เกมที่เข้าดิวซ์ (≥21 แต้ม)<br>
-          <b>Epic Comebacks</b> = จำนวนครั้งที่พลิกแพ้จากตาม 4+ แต้ม
-        </p>
+        <h3>KPI Cards</h3>
+        <dl>
+          <dt>แมตช์เสร็จ</dt><dd>จำนวนแมตช์ที่จบแล้ว (ใต้ตัวเลข = ที่กำลังแข่ง)</dd>
+          <dt>คะแนน RED / BLUE</dt><dd>คะแนนรวมของทีม (ชนะ +3, เสมอ +1) · ใต้ตัวเลข = จำนวนแมตช์ที่ชนะ</dd>
+          <dt>ผู้นำ</dt><dd>ทีมที่คะแนนรวมสูงกว่า และห่างกันกี่คะแนน</dd>
+          <dt>เสมอ</dt><dd>จำนวนแมตช์ที่เสมอ</dd>
+        </dl>
       </div>
       <div class="rp-legend-col">
-        <h5>Match Quality</h5>
-        <p>
-          <b>Evenly Matched</b> = ผล WL ใกล้เคียง ไม่มีทีมครอง<br>
-          <b>Competitive Edge</b> = ทีมนึงเหนือกว่าเล็กน้อย<br>
-          <b>Superior</b> = ทีมนึงเหนือกว่าชัดเจน<br>
-          <b>Outclassed</b> = ห่างกันมาก ไม่สูสีเลย<br>
-          <b>True Tie / Close Encounter / Deceptive Draw</b> = ประเภทการเสมอ
-        </p>
+        <h3>Match Quality</h3>
+        <dl>
+          <dt>Evenly Matched</dt><dd>ผล WL ใกล้เคียง ไม่มีทีมครอง</dd>
+          <dt>Competitive Edge</dt><dd>ทีมนึงเหนือกว่าเล็กน้อย</dd>
+          <dt>Superior</dt><dd>ทีมนึงเหนือกว่าชัดเจน</dd>
+          <dt>Outclassed</dt><dd>ห่างกันมาก ไม่สูสีเลย</dd>
+          <dt>True Tie · Close Encounter · Deceptive Draw</dt><dd>ประเภทการเสมอ</dd>
+        </dl>
       </div>
       <div class="rp-legend-col">
-        <h5>Momentum Chart</h5>
-        <p>
-          กราฟแสดง <b style="color:var(--red);">คะแนนทีมแดง</b> vs <b style="color:var(--blue);">คะแนนทีมน้ำเงิน</b> สะสมรายแมตช์<br>
-          เส้นที่พุ่งขึ้นแรง = ทีมนั้นมีแมตช์ชนะติดต่อกัน<br>
-          จุดที่เส้นตัดกัน = ทีมพลิกขึ้นมานำ
-        </p>
+        <h3>Momentum Chart</h3>
+        <p class="rp-legend-note">กราฟแสดงคะแนนสะสมรายแมตช์ของ <span class="ds-team ds-team-red">RED</span> และ <span class="ds-team ds-team-blue">BLUE</span><br>เส้นที่พุ่งขึ้นแรง = ทีมนั้นมีแมตช์ชนะติดต่อกัน<br>จุดที่เส้นตัดกัน = ทีมพลิกขึ้นมานำ</p>
       </div>
     </div>
   </details>
-  <div class="db-kpi-row" id="dbKpiRow"></div>
-  <div class="db-grid-2" style="margin-top:20px;">
-    <div class="db-card">
-      <div class="db-card-title">📈 Momentum — คะแนนสะสม
-        <span class="db-legend">
-          <span class="db-legend-item"><i style="background:#ff3b3b"></i>RED</span>
-          <span class="db-legend-item"><i style="background:#3b8eff"></i>BLUE</span>
-        </span>
-      </div>
-      <div style="position:relative;">
-        <canvas id="momentumChart" height="200" style="width:100%;display:block;"></canvas>
-        <div id="momentumEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-weight:600;">ยังไม่มีข้อมูลแมตช์</div>
-      </div>
-    </div>
-    <div class="db-card">
-      <div class="db-card-title">📊 Match Quality Distribution</div>
-      <div id="dbMatchDist" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;min-height:80px;"></div>
-    </div>
-  </div>
-  <div class="db-grid-2" style="margin-top:20px;">
-    <div class="db-card">
-      <div class="db-card-title">⭐ Top Players — Real-time</div>
-      <div id="dbTopPlayers"></div>
-    </div>
-    <div class="db-card">
-      <div class="db-card-title">🏁 Recent Matches</div>
-      <div id="dbRecentMatches"></div>
-    </div>
-  </div>
 
-  <!-- ── NEW ROW: Raw Score Battle + Match Duration ── -->
-  <div class="db-grid-2" style="margin-top:20px;">
-    <div class="db-card">
-      <div class="db-card-title">🎯 Raw Score Battle — คะแนนดิบรวม</div>
+  <!-- ── KPI tiles (drawn by renderDashboard) ── -->
+  <section class="db-kpis" id="dbKpiRow" aria-label="ตัวชี้วัดหลัก">
+    <div class="ds-skel db-skel"></div><div class="ds-skel db-skel"></div><div class="ds-skel db-skel"></div><div class="ds-skel db-skel"></div><div class="ds-skel db-skel"></div>
+  </section>
+
+  <div class="db-grid">
+    <!-- Momentum: cumulative points per finished match -->
+    <section class="db-card db-c-momentum" aria-labelledby="dbTitleMomentum">
+      <header class="db-card-head">
+        <h3 class="db-card-title" id="dbTitleMomentum"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-chart-line-up"/></svg><span>Momentum — คะแนนสะสม</span></h3>
+        <div class="db-legend" aria-hidden="true"><span class="ds-team ds-team-red">RED</span><span class="ds-team ds-team-blue">BLUE</span></div>
+      </header>
+      <div class="db-chart">
+        <canvas id="momentumChart" role="img" aria-label="กราฟคะแนนสะสมของ RED และ BLUE"></canvas>
+        <div class="db-empty" id="momentumEmpty" hidden><svg class="ds-ic ds-ic-lg" aria-hidden="true" focusable="false"><use href="#ic-chart-line-up"/></svg><span>ยังไม่มีข้อมูลแมตช์</span></div>
+      </div>
+      <p class="ds-sr-only" id="momentumText"></p>
+    </section>
+
+    <!-- Match quality: how close the finished matches were -->
+    <section class="db-card db-c-quality" aria-labelledby="dbTitleQuality">
+      <header class="db-card-head">
+        <h3 class="db-card-title" id="dbTitleQuality"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-chart-bar"/></svg><span>Match Quality Distribution</span></h3>
+      </header>
+      <div id="dbMatchDist"></div>
+    </section>
+
+    <section class="db-card db-c-top" aria-labelledby="dbTitleTop">
+      <header class="db-card-head">
+        <h3 class="db-card-title" id="dbTitleTop"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-star"/></svg><span>Top Players — Real-time</span></h3>
+      </header>
+      <div id="dbTopPlayers"><div class="ds-skel db-skel-row"></div><div class="ds-skel db-skel-row"></div><div class="ds-skel db-skel-row"></div></div>
+    </section>
+
+    <section class="db-card db-c-recent" aria-labelledby="dbTitleRecent">
+      <header class="db-card-head">
+        <h3 class="db-card-title" id="dbTitleRecent"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg><span>Recent Matches</span></h3>
+      </header>
+      <div id="dbRecentMatches"><div class="ds-skel db-skel-row"></div><div class="ds-skel db-skel-row"></div><div class="ds-skel db-skel-row"></div></div>
+    </section>
+
+    <!-- Raw score battle: every point scored, per match and in total -->
+    <section class="db-card db-c-raw" aria-labelledby="dbTitleRaw">
+      <header class="db-card-head">
+        <h3 class="db-card-title" id="dbTitleRaw"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-target"/></svg><span>Raw Score Battle — คะแนนดิบรวม</span></h3>
+        <div class="db-legend" aria-hidden="true"><span class="ds-team ds-team-red">RED</span><span class="ds-team ds-team-blue">BLUE</span></div>
+      </header>
       <div id="dbRawScoreSection">
-        <!-- KPI summary -->
-        <div id="dbRawScoreKpi" style="display:flex;gap:10px;margin-bottom:14px;"></div>
-        <!-- Canvas bar per match -->
-        <div style="position:relative;">
-          <canvas id="rawScoreChart" height="200" style="width:100%;display:block;"></canvas>
-          <div id="rawScoreEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-weight:600;">ยังไม่มีข้อมูลแมตช์</div>
+        <div class="db-mini" id="dbRawScoreKpi"></div>
+        <div class="db-chart">
+          <canvas id="rawScoreChart" role="img" aria-label="กราฟคะแนนดิบต่อแมตช์ของ RED และ BLUE"></canvas>
+          <div class="db-empty" id="rawScoreEmpty" hidden><svg class="ds-ic ds-ic-lg" aria-hidden="true" focusable="false"><use href="#ic-chart-bar"/></svg><span>ยังไม่มีข้อมูลแมตช์</span></div>
         </div>
-        <div style="display:flex;gap:16px;margin-top:8px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);">
-          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);margin-right:4px;vertical-align:middle;"></span>RED</span>
-          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--blue);margin-right:4px;vertical-align:middle;"></span>BLUE</span>
-        </div>
+        <p class="ds-sr-only" id="rawScoreText"></p>
       </div>
-    </div>
-    <div class="db-card">
-      <div class="db-card-title">⏱ Match Duration — เวลาเฉลี่ย</div>
+    </section>
+
+    <!-- Match duration: how long matches take (newest first) -->
+    <section class="db-card db-c-dur" aria-labelledby="dbTitleDur">
+      <header class="db-card-head">
+        <h3 class="db-card-title" id="dbTitleDur"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-timer"/></svg><span>Match Duration — เวลาเฉลี่ย</span></h3>
+      </header>
       <div id="dbDurationSection">
-        <!-- KPI summary -->
-        <div id="dbDurationKpi" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"></div>
-        <!-- Duration per match list -->
-        <div id="dbDurationList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
+        <div class="db-mini" id="dbDurationKpi"></div>
+        <div class="db-dur-list" id="dbDurationList" role="region" aria-label="เวลาแข่งรายแมตช์" tabindex="0"></div>
       </div>
-    </div>
+    </section>
   </div>
 </div>
 
@@ -661,157 +670,173 @@ try {
 </div>
 
 <!-- REPORTS TAB (Admin) -->
-<div id="report" class="container admin-only">
+<div id="report" class="container admin-only rp-page">
 
-  <!-- ── HERO — one summary banner (red / draws / blue + win-share bar) ── -->
-  <div class="rp-hero" id="rptHeroRow">
+  <!-- ── HERO: red wins / draws / blue wins + win-share bar ── -->
+  <section class="rp-hero" id="rptHeroRow" aria-labelledby="rptHeroTitle">
     <div class="rp-hero-top">
-      <div class="rp-hero-title">MATCH SUMMARY</div>
-      <div class="rp-hero-total"><b id="rptHeroMatches">—</b>แมตช์ที่จบแล้ว</div>
+      <h2 class="rp-hero-title" id="rptHeroTitle">MATCH SUMMARY</h2>
+      <div class="rp-hero-total"><b id="rptHeroMatches">—</b> แมตช์ที่จบแล้ว</div>
     </div>
     <div class="rp-hero-scores">
       <div class="rp-hs rp-hs-red">
         <div class="rp-hs-val" id="rptHeroRedWins">—</div>
-        <div class="rp-hs-lbl">🔴 RED WINS</div>
+        <div class="rp-hs-lbl"><span class="ds-team ds-team-red">RED</span> ชนะ</div>
       </div>
       <div class="rp-hs rp-hs-draw">
         <div class="rp-hs-val" id="rptHeroDraws">—</div>
-        <div class="rp-hs-lbl">🤝 DRAWS</div>
+        <div class="rp-hs-lbl">เสมอ</div>
       </div>
       <div class="rp-hs rp-hs-blue">
         <div class="rp-hs-val" id="rptHeroBlueWins">—</div>
-        <div class="rp-hs-lbl">🔵 BLUE WINS</div>
+        <div class="rp-hs-lbl"><span class="ds-team ds-team-blue">BLUE</span> ชนะ</div>
       </div>
     </div>
-    <div class="rp-hero-bar" id="rptHeroBar"></div>
-  </div>
+    <div class="rp-hero-bar" id="rptHeroBar" aria-hidden="true"></div>
+  </section>
 
-  <!-- ── REPORT LEGEND BANNER ── -->
+  <!-- ── LEGEND: what the columns and tags mean ── -->
   <details class="rp-legend">
-    <summary>📖 ความหมายตัวชี้วัดใน Report</summary>
+    <summary><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-info"/></svg><span>ความหมายตัวชี้วัดใน Report</span><svg class="ds-ic rp-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg></summary>
     <div class="rp-legend-body">
       <div class="rp-legend-col">
-        <h5>คอลัมน์ผู้เล่น</h5>
-        <p>
-          <b>PTS</b> = Match Points (ชนะ +3, เสมอ +1, แพ้ +0)<br>
-          <b>PERF</b> = คะแนนที่ปรับตามความยากของคู่แข่ง — ชนะคู่แกร่งได้เยอะกว่า<br>
-          <b>±PD</b> = แต้มได้รวม − แต้มเสียรวม (ใช้ตัดสินเมื่อ PTS เท่ากัน)<br>
-          <b>ผลแมตช์</b> = ชนะ / แพ้ / เสมอ ระดับแมตช์<br>
-          <b>WR%</b> = อัตราชนะระดับเกม (เกมที่ชนะ ÷ เกมที่เล่น)
-        </p>
+        <h3>คอลัมน์ผู้เล่น</h3>
+        <dl>
+          <dt>PTS</dt><dd>Match Points (ชนะ +3, เสมอ +1, แพ้ +0)</dd>
+          <dt>PERF</dt><dd>คะแนนที่ปรับตามความยากของคู่แข่ง — ชนะคู่แกร่งได้เยอะกว่า</dd>
+          <dt>±PD</dt><dd>คะแนนได้รวม − คะแนนเสียรวม (ใช้ตัดสินเมื่อ PTS เท่ากัน)</dd>
+          <dt>ผลแมตช์</dt><dd>ชนะ / แพ้ / เสมอ ระดับแมตช์</dd>
+          <dt>WR%</dt><dd>อัตราชนะระดับเกม (เกมที่ชนะ ÷ เกมที่เล่น)</dd>
+        </dl>
       </div>
       <div class="rp-legend-col">
-        <h5>แท็กพิเศษ</h5>
-        <p>
-          <b>🔥</b> Epic Comeback · <b>⚔️</b> The Gladiators<br>
-          <b>🏃</b> Marathon Match · <b>🎢</b> Rollercoaster<br>
-          <span style="color:var(--text2);">แตะแถวแมตช์ในแท็บ 📋 แมตช์ เพื่อดูการวิเคราะห์รายแมตช์</span>
-        </p>
+        <h3>แท็กพิเศษ</h3>
+        <dl>
+          <dt><span class="rp-tag"><svg class="ds-ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#ic-fire"/></svg></span></dt><dd>Epic Comeback</dd>
+          <dt><span class="rp-tag"><svg class="ds-ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#ic-target"/></svg></span></dt><dd>The Gladiators</dd>
+          <dt><span class="rp-tag"><svg class="ds-ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#ic-timer"/></svg></span></dt><dd>Marathon Match</dd>
+          <dt><span class="rp-tag"><svg class="ds-ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#ic-arrows-left-right"/></svg></span></dt><dd>Rollercoaster</dd>
+        </dl>
+        <p class="rp-legend-note">แตะแถวแมตช์ในแท็บแมตช์ เพื่อดูการวิเคราะห์รายแมตช์</p>
       </div>
     </div>
   </details>
 
   <!-- ── REPORT SUB-TABS ──
-       Two tabs, one per dataset: 54 players and 39 matches. Points chart,
-       PERF ranking, round summary, match analysis and umpire load are all
-       views of those two, so they live inside the tab they belong to. -->
-  <div class="rpt-tab-bar">
-    <button class="rpt-tab active" id="rtab-players" onclick="switchReportTab('players',this)">👥 ผู้เล่น</button>
-    <button class="rpt-tab"        id="rtab-matches" onclick="switchReportTab('matches',this)">📋 แมตช์</button>
-    <button class="rpt-tab"        id="rtab-compare" onclick="switchReportTab('compare',this)">🗓️ ซีซั่น</button>
+       Tab 1 and 2 are the two datasets: 54 players and 39 matches. The points chart, PERF ranking,
+       round summary, match analysis and umpire load are views of those two, so they live inside
+       the tab they belong to. Tab 3 compares seasons. -->
+  <div class="ds-tabs rpt-tab-bar" role="tablist" aria-label="หมวดรายงาน">
+    <button type="button" class="ds-tab rpt-tab active" id="rtab-players" role="tab" aria-selected="true" aria-controls="rpanel-players" onclick="switchReportTab('players',this)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-users"/></svg>ผู้เล่น</button>
+    <button type="button" class="ds-tab rpt-tab" id="rtab-matches" role="tab" aria-selected="false" aria-controls="rpanel-matches" onclick="switchReportTab('matches',this)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-list"/></svg>แมตช์</button>
+    <button type="button" class="ds-tab rpt-tab" id="rtab-compare" role="tab" aria-selected="false" aria-controls="rpanel-compare" onclick="switchReportTab('compare',this)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-calendar-blank"/></svg>ซีซั่น</button>
   </div>
 
   <!-- ─────────── TAB: PLAYERS ─────────── -->
-  <div class="rpt-panel active" id="rpanel-players">
-    <div class="rpt-panel-toolbar">
-      <input type="text" id="reportSearch" placeholder="🔍 ค้นหาผู้เล่น..." class="rpt-search" oninput="renderReports()">
-      <select id="reportFilterTeam" class="rpt-select" onchange="renderReports()">
-        <option value="">ทุกทีม</option>
-        <option value="Red">🔴 Red</option>
-        <option value="Blue">🔵 Blue</option>
-      </select>
-      <div class="rpt-group-pills">
-        <button class="filter-pill active" id="gpAll" onclick="setGroupFilter('')">All</button>
-        <button class="filter-pill" id="gp1" onclick="setGroupFilter('1')">G1</button>
-        <button class="filter-pill" id="gp2" onclick="setGroupFilter('2')">G2</button>
-        <button class="filter-pill" id="gp3" onclick="setGroupFilter('3')">G3</button>
-      </div>
-      <details class="rp-export">
-        <summary>⬇ Export</summary>
+  <div class="rpt-panel active" id="rpanel-players" role="tabpanel" aria-labelledby="rtab-players">
+    <div class="rp-toolbar">
+      <label class="rp-search rp-a-search">
+        <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+        <input type="text" id="reportSearch" class="ds-input" placeholder="ค้นหาผู้เล่น" aria-label="ค้นหาผู้เล่น" autocomplete="off" enterkeyhint="search" oninput="renderReports()">
+      </label>
+      <details class="rp-export rp-a-act">
+        <summary class="ds-btn"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg><span>ส่งออก</span></summary>
         <div class="rp-export-menu">
-          <button class="btn btn-success btn-sm" onclick="exportReportToCSV()">📥 CSV</button>
-          <button class="btn btn-info btn-sm" onclick="printReport()">🖨 Print</button>
-          <button class="btn btn-outline btn-sm" onclick="exportSummaryPDF()">📄 Summary PDF</button>
+          <button type="button" class="ds-btn" onclick="exportReportToCSV()">ไฟล์ CSV</button>
+          <button type="button" class="ds-btn" onclick="printReport()">พิมพ์</button>
+          <button type="button" class="ds-btn" onclick="exportSummaryPDF()">สรุป PDF</button>
           <div class="rp-export-group">
-            <span class="rp-export-group-lbl">👤 Player PDF</span>
-            <div class="rp-export-row">
-              <select id="pdfFilterMode" class="rpt-select" onchange="renderPlayerPdfControls()">
-                <option value="all">ทั้งหมด</option>
-                <option value="player">ผู้เล่น</option>
-                <option value="group">กลุ่ม</option>
-                <option value="team">สี/ทีม</option>
-              </select>
-              <select id="pdfFilterValue" class="rpt-select" style="display:none;"></select>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="exportPlayerPDF()">📄 Export PDF</button>
+            <span class="ds-label">PDF รายผู้เล่น</span>
+            <select id="pdfFilterMode" class="ds-select" aria-label="เลือกผู้เล่นที่จะส่งออก" onchange="renderPlayerPdfControls()">
+              <option value="all">ทั้งหมด</option>
+              <option value="player">ผู้เล่น</option>
+              <option value="group">กลุ่ม</option>
+              <option value="team">สี/ทีม</option>
+            </select>
+            <select id="pdfFilterValue" class="ds-select" aria-label="ค่าที่เลือก" style="display:none;"></select>
+            <button type="button" class="ds-btn ds-btn-primary" onclick="exportPlayerPDF()">ส่งออก PDF</button>
           </div>
         </div>
       </details>
+      <select id="reportFilterTeam" class="ds-select rp-a-f1" aria-label="ทีม" onchange="renderReports()">
+        <option value="">ทุกทีม</option>
+        <option value="Red">Red</option>
+        <option value="Blue">Blue</option>
+      </select>
+      <select id="reportSort" class="ds-select rp-a-f2 rp-sortsel" aria-label="เรียงตาม" onchange="sortPlayers(this.value)">
+        <option value="pts">เรียง: PTS</option>
+        <option value="perf">เรียง: PERF</option>
+        <option value="pointDiff">เรียง: ±PD</option>
+        <option value="matchWin">เรียง: ผลแมตช์</option>
+        <option value="winRate">เรียง: WR%</option>
+        <option value="epicTags">เรียง: แท็ก</option>
+        <option value="name">เรียง: ชื่อ</option>
+        <option value="id">เรียง: ID</option>
+        <option value="team">เรียง: ทีม</option>
+        <option value="group">เรียง: กลุ่ม</option>
+      </select>
+      <div class="ds-seg rp-a-f3" role="group" aria-label="กลุ่ม">
+        <button type="button" id="gpAll" class="active" aria-pressed="true" onclick="setGroupFilter('')">ทั้งหมด</button>
+        <button type="button" id="gp1" aria-pressed="false" onclick="setGroupFilter('1')">G1</button>
+        <button type="button" id="gp2" aria-pressed="false" onclick="setGroupFilter('2')">G2</button>
+        <button type="button" id="gp3" aria-pressed="false" onclick="setGroupFilter('3')">G3</button>
+      </div>
     </div>
 
-    <!-- Stat card summary row above the list -->
-    <div id="playerStatCards" class="rp-metrics"></div>
+    <!-- numbers for the players currently shown -->
+    <div id="playerStatCards" class="rp-kpis" aria-label="สรุปผู้เล่นที่แสดง"></div>
 
-    <!-- Phone: card list. Laptop: the full sortable table. CSS picks one. -->
+    <!-- Phone and tablet: ranked cards. Laptop (900 px and up): the sortable table. CSS picks one. -->
     <div class="rp-plist" id="statsCardList"></div>
 
     <div class="rp-ptable-wrap">
-    <div class="table-wrap">
-      <table id="playerStatsTable">
+      <table id="playerStatsTable" class="ds-table rp-ptable">
+        <caption class="ds-sr-only">ตารางผู้เล่น เรียงได้ทุกคอลัมน์</caption>
+        <colgroup><col class="c-id"><col class="c-name"><col class="c-team"><col class="c-grp"><col class="c-pts"><col class="c-perf"><col class="c-pd"><col class="c-res"><col class="c-wr"><col class="c-tag"></colgroup>
         <thead>
           <tr>
-            <th class="sortable" onclick="sortPlayers('id')">ID <span class="sort-icon" data-col="id">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('name')">ชื่อ <span class="sort-icon" data-col="name">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('team')">ทีม <span class="sort-icon" data-col="team">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('group')">กลุ่ม <span class="sort-icon" data-col="group">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('pts')" title="Match Points — ชนะ +3 / เสมอ +1 / แพ้ 0">PTS <span class="sort-icon" data-col="pts">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('perf')" title="Performance Score — ปรับตามความยากของคู่แข่ง">PERF <span class="sort-icon" data-col="perf">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('pointDiff')" title="Point Differential — แต้มได้รวม − แต้มเสียรวม">±PD <span class="sort-icon" data-col="pointDiff">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('matchWin')" title="ผลระดับแมตช์ — ชนะ / แพ้ / เสมอ">ผลแมตช์ <span class="sort-icon" data-col="matchWin">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('winRate')" title="Game Win Rate — เกมที่ชนะ ÷ เกมที่เล่น">WR% <span class="sort-icon" data-col="winRate">⇅</span></th>
-            <th class="sortable" onclick="sortPlayers('epicTags')" title="แท็กพิเศษที่ได้รับ">แท็ก <span class="sort-icon" data-col="epicTags">⇅</span></th>
+            <th scope="col" class="sortable" aria-sort="none"><button type="button" class="rp-th" onclick="sortPlayers('id')">ID<span class="sort-icon" data-col="id" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable" aria-sort="none"><button type="button" class="rp-th" onclick="sortPlayers('name')">ชื่อ<span class="sort-icon" data-col="name" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable" aria-sort="none"><button type="button" class="rp-th" onclick="sortPlayers('team')">ทีม<span class="sort-icon" data-col="team" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable" aria-sort="none"><button type="button" class="rp-th" onclick="sortPlayers('group')">กลุ่ม<span class="sort-icon" data-col="group" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable is-num" aria-sort="none" title="Match Points — ชนะ +3 / เสมอ +1 / แพ้ 0"><button type="button" class="rp-th" onclick="sortPlayers('pts')">PTS<span class="sort-icon" data-col="pts" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable is-num" aria-sort="none" title="Performance Score — ปรับตามความยากของคู่แข่ง"><button type="button" class="rp-th" onclick="sortPlayers('perf')">PERF<span class="sort-icon" data-col="perf" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable is-num" aria-sort="none" title="Point Differential — คะแนนได้รวม − คะแนนเสียรวม"><button type="button" class="rp-th" onclick="sortPlayers('pointDiff')">±PD<span class="sort-icon" data-col="pointDiff" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable" aria-sort="none" title="ผลระดับแมตช์ — ชนะ / แพ้ / เสมอ"><button type="button" class="rp-th" onclick="sortPlayers('matchWin')">ผลแมตช์<span class="sort-icon" data-col="matchWin" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable is-num" aria-sort="none" title="Game Win Rate — เกมที่ชนะ ÷ เกมที่เล่น"><button type="button" class="rp-th" onclick="sortPlayers('winRate')">WR%<span class="sort-icon" data-col="winRate" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
+            <th scope="col" class="sortable" aria-sort="none" title="แท็กพิเศษที่ได้รับ"><button type="button" class="rp-th" onclick="sortPlayers('epicTags')">แท็ก<span class="sort-icon" data-col="epicTags" aria-hidden="true"><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-up"/></svg><svg class="ds-ic" width="10" height="10"><use href="#ic-caret-down"/></svg></span></button></th>
           </tr>
         </thead>
         <tbody id="statsTableBody"></tbody>
       </table>
     </div>
-    </div>
 
-    <!-- Points chart = the PTS column above, drawn. Folded so it does not
-         take a whole tab for one column of data. -->
+    <!-- Points chart = the PTS column, drawn. Folded so it does not take a whole tab for one column. -->
     <details class="rp-fold">
-      <summary>📊 กราฟคะแนน — 20 อันดับแรก</summary>
+      <summary><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-chart-bar"/></svg><span>กราฟคะแนน — 20 อันดับแรก</span><svg class="ds-ic rp-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg></summary>
       <div class="rp-fold-body">
-        <div class="chart-container">
-          <div class="chart-bars" id="statsChart"><div class="chart-axis"></div></div>
-        </div>
+        <div class="rp-chart" id="statsChart"></div>
+        <div class="rp-chart-key"><span class="ds-team ds-team-red">RED</span><span class="ds-team ds-team-blue">BLUE</span><span class="ds-muted">คะแนน PTS ของผู้เล่น</span></div>
       </div>
     </details>
   </div>
 
   <!-- ─────────── TAB: MATCHES ───────────
-       Round summary, match list and per-match analysis merged: they were
-       three tabs over the same matchHistory rows. Tap a row for detail. -->
-  <div class="rpt-panel" id="rpanel-matches">
-    <div class="rpt-panel-toolbar">
-      <input type="text" id="matchSearch" class="rpt-search" placeholder="🔍 ค้นหา ID / ชื่อผู้เล่น..." oninput="renderMatchesPanel()">
-      <select id="perfFilterRound" class="rpt-select" onchange="renderMatchesPanel()">
+       Round summary, match list and per-match analysis in one place. Tap a row for the detail. -->
+  <div class="rpt-panel" id="rpanel-matches" role="tabpanel" aria-labelledby="rtab-matches">
+    <div class="rp-toolbar rp-toolbar-m">
+      <label class="rp-search rp-a-search">
+        <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+        <input type="text" id="matchSearch" class="ds-input" placeholder="ค้นหา ID / ชื่อผู้เล่น" aria-label="ค้นหาแมตช์" autocomplete="off" enterkeyhint="search" oninput="renderMatchesPanel()">
+      </label>
+      <button type="button" class="ds-btn rp-a-act" onclick="exportRoundsPDF()" aria-label="ส่งออก PDF สรุปรายรอบ"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg><span>PDF</span></button>
+      <select id="perfFilterRound" class="ds-select rp-a-f1" aria-label="รอบ" onchange="renderMatchesPanel()">
         <option value="">ทุกรอบ</option>
-        <option value="1">Round 1</option>
-        <option value="2">Round 2</option>
-        <option value="3">Round 3</option>
+        <option value="1">รอบ 1</option>
+        <option value="2">รอบ 2</option>
+        <option value="3">รอบ 3</option>
       </select>
-      <select id="perfFilterStatus" class="rpt-select" onchange="renderMatchesPanel()">
+      <select id="perfFilterStatus" class="ds-select rp-a-f2" aria-label="ลักษณะเกม" onchange="renderMatchesPanel()">
         <option value="">ทุกลักษณะเกม</option>
         <option value="Evenly Matched">Evenly Matched</option>
         <option value="Competitive Edge">Competitive Edge</option>
@@ -821,25 +846,24 @@ try {
         <option value="Close Encounter">Close Encounter</option>
         <option value="Deceptive Draw">Deceptive Draw</option>
       </select>
-      <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="exportRoundsPDF()">📄 PDF</button>
     </div>
 
-    <div id="perfTagFilterRow" class="rp-tagfilter"></div>
+    <div id="perfTagFilterRow" class="rp-tagfilter" role="group" aria-label="กรองตามแท็ก"></div>
     <div id="matchesPanelContent" class="rp-rounds"></div>
 
     <details class="rp-fold">
-      <summary>👔 ภาระงานกรรมการ</summary>
+      <summary><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-user"/></svg><span>ภาระงานกรรมการ</span><svg class="ds-ic rp-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg></summary>
       <div class="rp-fold-body">
-        <div class="rp-sec-sub" id="umpireWorkloadSub"></div>
+        <p class="rp-sec-sub" id="umpireWorkloadSub"></p>
         <div id="umpireWorkloadContent"></div>
       </div>
     </details>
   </div>
 
   <!-- ─────────── TAB: SEASON COMPARE ─────────── -->
-  <div class="rpt-panel" id="rpanel-compare">
-    <div class="rp-sec-title">SEASON COMPARE</div>
-    <div class="rp-sec-sub">เทียบผลรวมแต่ละซีซั่น และผู้เล่นที่เล่นข้ามซีซั่น</div>
+  <div class="rpt-panel" id="rpanel-compare" role="tabpanel" aria-labelledby="rtab-compare">
+    <h2 class="rp-sec-title">SEASON COMPARE</h2>
+    <p class="rp-sec-sub">เทียบผลรวมแต่ละซีซั่น และผู้เล่นที่เล่นข้ามซีซั่น</p>
     <div id="cmpContent"></div>
   </div>
 </div>
