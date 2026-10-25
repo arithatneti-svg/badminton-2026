@@ -136,9 +136,6 @@ function seasonStatsFor(jerseyId, matchHistory) {
 // they faced is structural in an archived match (r1/r2 = red slots,
 // b1/b2 = blue), so it needs no extra storage.
 // ══════════════════════════════════════════════════════════════
-const TEAM_COLOR = { Red: 'var(--red)', Blue: 'var(--blue)' };
-const TEAM_LABEL = { Red: '🔴 Red', Blue: '🔵 Blue' };
-
 function renderPdCareer(playerId) {
   const el = document.getElementById('pdCareer');
   if (!el) return;
@@ -177,35 +174,32 @@ function renderPdCareer(playerId) {
   }), { pts: 0, matches: 0, mw: 0, ml: 0, md: 0, pd: 0 });
 
   const switched = new Set(rows.map(r => r.team)).size > 1;
+  const sgn = n => (n > 0 ? '+' : '') + n;
 
   el.innerHTML = `
-    <div class="profile-section-title">🏆 Career — ${rows.length} ซีซั่น</div>
-    <div class="pd-career-tot">
-      <div><b>${tot.pts}</b><span>TOTAL PTS</span></div>
-      <div><b>${tot.matches}</b><span>MATCHES</span></div>
-      <div><b style="color:var(--green);">${tot.mw}</b><span>WIN</span></div>
-      <div><b style="color:var(--danger);">${tot.ml}</b><span>LOSE</span></div>
-      <div><b style="color:${tot.pd >= 0 ? 'var(--green)' : 'var(--danger)'};">${tot.pd > 0 ? '+' : ''}${tot.pd}</b><span>±PD</span></div>
-    </div>
-    ${switched ? `<div class="pd-career-note">↔ เคยเล่นทั้งสองสี — ดูรายซีซั่นด้านล่าง</div>` : ''}
-    <div class="pd-career-list">
-      ${rows.map(r => {
-        const tc = TEAM_COLOR[r.team] || 'var(--muted)';
-        return `<div class="pd-career-row${r.isCurrent ? ' is-current' : ''}" style="border-left-color:${tc};">
+    <section class="pd-sec">
+      <h3 class="pd-h">สถิติทุกซีซั่น<span class="pd-h-sub">${rows.length} ซีซั่น</span></h3>
+      <div class="pd-career-tot">
+        <div><b>${tot.pts}</b><span>คะแนนรวม</span></div>
+        <div><b>${tot.matches}</b><span>แมตช์</span></div>
+        <div><b>${tot.mw}</b><span>ชนะ</span></div>
+        <div><b>${tot.ml}</b><span>แพ้</span></div>
+        <div><b>${sgn(tot.pd)}</b><span>ผลต่าง</span></div>
+      </div>
+      ${switched ? `<div class="ds-banner is-info pd-career-note">${dsIcon('arrows-left-right')}<span>เคยเล่นทั้งสองสี — ดูรายซีซั่นด้านล่าง</span></div>` : ''}
+      <ul class="pd-career-list" role="list">
+        ${rows.map(r => `<li class="pd-career-row${r.team === 'Red' ? ' is-red' : r.team === 'Blue' ? ' is-blue' : ''}${r.isCurrent ? ' is-current' : ''}">
           <div class="pdc-year">${r.year}${r.isCurrent ? '<span class="pdc-now">กำลังเล่น</span>' : ''}</div>
-          <div class="pdc-team" style="color:${tc};">${TEAM_LABEL[r.team] || '—'}<span>G${r.group || '—'} · ${escHtml(r.jersey || '')}</span></div>
+          <div class="pdc-team">${r.team ? pdTeamTag(r.team) : '—'}<span>G${r.group || '—'} · ${escHtml(r.jersey || '')}</span></div>
           <div class="pdc-stats">
-            <span><b style="color:var(--gold);">${r.pts || 0}</b> pts</span>
-            <span class="sep">·</span>
-            <span>${r.matchWin || 0}W ${r.matchLose || 0}L${r.matchDraw ? ' ' + r.matchDraw + 'D' : ''}</span>
-            <span class="sep">·</span>
-            <span>${r.matches || 0} แมตช์</span>
-            <span class="sep">·</span>
-            <span style="color:${(r.pointDiff || 0) >= 0 ? 'var(--green)' : 'var(--danger)'};">${(r.pointDiff || 0) > 0 ? '+' : ''}${r.pointDiff || 0} PD</span>
+            <span>คะแนน <b>${r.pts || 0}</b></span>
+            <span>ชนะ <b>${r.matchWin || 0}</b> แพ้ <b>${r.matchLose || 0}</b>${r.matchDraw ? ' เสมอ <b>' + r.matchDraw + '</b>' : ''}</span>
+            <span><b>${r.matches || 0}</b> แมตช์</span>
+            <span>ผลต่าง <b>${sgn(r.pointDiff || 0)}</b></span>
           </div>
-        </div>`;
-      }).join('')}
-    </div>`;
+        </li>`).join('')}
+      </ul>
+    </section>`;
 }
 
 // ── Past-season match log: which colour they wore, which they faced ──
@@ -222,8 +216,8 @@ async function renderPdPastMatches(playerId) {
   const past = Object.keys(seasons).filter(y => !(y === curYear && liveMatches > 0)).sort().reverse();
   if (!past.length) { el.innerHTML = ''; return; }
 
-  el.innerHTML = `<div class="profile-section-title">📜 แมตช์ซีซั่นก่อน</div>
-    <div class="rp-empty" style="padding:20px;">⏳ กำลังโหลด archive...</div>`;
+  el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">แมตช์ซีซั่นก่อน</h3>
+    <div class="ds-card pd-load" role="status" aria-label="กำลังโหลด"><div class="ds-skel"></div><div class="ds-skel"></div><div class="ds-skel"></div></div></section>`;
   const archives = await loadSeasonArchives();
 
   const blocks = past.map(year => {
@@ -234,32 +228,34 @@ async function renderPdPastMatches(playerId) {
     const ms = (arch.matchHistory || []).filter(h => [h.r1, h.r2, h.b1, h.b2].includes(jersey));
     if (!ms.length) return '';
     return `<div class="pd-past-season">
-      <div class="pd-past-head">${year}<span>${ms.length} แมตช์ · ใส่เสื้อ ${TEAM_LABEL[seasons[year].team] || ''}</span></div>
+      <div class="pd-past-head">${year}<span>${ms.length} แมตช์ · ใส่เสื้อ</span>${seasons[year].team ? pdTeamTag(seasons[year].team) : ''}</div>
+      <ol class="pd-hist" role="list">
       ${ms.slice(-12).reverse().map(h => {
         const onRed = [h.r1, h.r2].includes(jersey);
         const stat = onRed ? h.rStat : h.bStat;
-        const sc = stat === 'W' ? 'var(--green)' : stat === 'L' ? 'var(--danger)' : 'var(--gold)';
-        const sl = stat === 'W' ? 'WIN' : stat === 'L' ? 'LOSE' : 'DRAW';
+        const res = stat === 'W' ? 'ชนะ' : stat === 'L' ? 'แพ้' : 'เสมอ';
         const mate = onRed ? (h.r1 === jersey ? h.r2 : h.r1) : (h.b1 === jersey ? h.b2 : h.b1);
         const opp = (onRed ? [h.b1, h.b2] : [h.r1, h.r2]).filter(Boolean).map(nameIn).join(' & ');
-        const myColor = onRed ? 'var(--red)' : 'var(--blue)';
-        const oppColor = onRed ? 'var(--blue)' : 'var(--red)';
-        return `<div class="profile-match-row">
-          <div class="profile-match-id">${h.id}</div>
-          <div class="profile-match-result" style="background:${sc}22;color:${sc};border:1px solid ${sc}44;">${sl}</div>
-          <div class="profile-match-pair">
-            <div class="pmr-line"><span class="pmr-lbl">ใส่</span><b style="color:${myColor};">${onRed ? '🔴 Red' : '🔵 Blue'}</b>
-              <span class="pmr-lbl" style="min-width:0;margin-left:6px;">คู่กับ</span><b style="color:${myColor};">${escHtml(mate ? nameIn(mate) : '—')}</b></div>
-            <div class="pmr-line"><span class="pmr-lbl">พบ</span><b style="color:${oppColor};">${escHtml(opp)}</b></div>
+        const side = onRed ? 'red' : 'blue', oppSide = onRed ? 'blue' : 'red';
+        return `<li class="pd-match${stat === 'W' ? ' is-win' : ''}">
+          <div class="pd-match-head">
+            <span class="pd-match-id">${h.id}</span>
+            <span class="ds-chip pd-res${stat === 'W' ? ' ds-chip-gold' : ''}">${res}</span>
+            <span class="pd-games">${pdGameHtml('เกม 1', h.game1)}${pdGameHtml('เกม 2', h.game2)}</span>
           </div>
-          <div class="profile-match-score">${h.game1} / ${h.game2 || '—'}</div>
-        </div>`;
+          <div class="pd-who">
+            <div class="pd-line"><span class="pd-k">ใส่</span>${pdTeamTag(onRed ? 'Red' : 'Blue')}</div>
+            <div class="pd-line"><span class="pd-k">คู่กับ</span><b class="ds-team ds-team-${side}">${escHtml(mate ? nameIn(mate) : '—')}</b></div>
+            <div class="pd-line"><span class="pd-k">พบ</span><b class="ds-team ds-team-${oppSide}">${escHtml(opp)}</b></div>
+          </div>
+        </li>`;
       }).join('')}
+      </ol>
     </div>`;
   }).filter(Boolean).join('');
 
   el.innerHTML = blocks
-    ? `<div class="profile-section-title">📜 แมตช์ซีซั่นก่อน</div>${blocks}`
+    ? `<section class="pd-sec"><h3 class="pd-h">แมตช์ซีซั่นก่อน</h3>${blocks}</section>`
     : '';
 }
 

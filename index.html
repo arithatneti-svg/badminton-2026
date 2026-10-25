@@ -233,28 +233,28 @@ try {
   </div>
 </div>
 
-<!-- ⭐ Photo lightbox — click any real photo to view it full-size -->
-<div id="photoLightbox" class="plb" onclick="if(event.target===this)closePhotoLightbox()">
-  <button class="plb-close" onclick="closePhotoLightbox()" title="ปิด">✕</button>
-  <div class="plb-box">
+<!-- Photo lightbox — tap any real photo to see it full-size -->
+<div id="photoLightbox" class="plb" role="dialog" aria-modal="true" aria-label="รูปผู้เล่น" onclick="if(event.target===this)closePhotoLightbox()">
+  <button type="button" class="ds-btn ds-btn-icon plb-close" onclick="closePhotoLightbox()" aria-label="ปิด" title="ปิด"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+  <figure class="plb-box">
     <img class="plb-img" src="" alt="">
-    <div class="plb-cap"><div class="plb-name"></div><div class="plb-meta"></div></div>
-  </div>
+    <figcaption class="plb-cap"><div class="plb-name"></div><div class="plb-meta"></div></figcaption>
+  </figure>
 </div>
 
-<!-- ⭐ Photo focal-point adjuster (admin) -->
-<div id="photoAdjustModal" class="modal-overlay">
-  <div class="modal-box" style="width:min(340px,92vw);">
-    <div class="modal-title" style="font-size:1.3em;">🎯 จัดตำแหน่งรูป</div>
-    <div style="font-size:12px;color:var(--muted);margin:6px 0 16px;">ลากรูปเพื่อเลือกส่วนที่จะโชว์ในวงกลม</div>
+<!-- Photo focal-point adjuster (staff) -->
+<div id="photoAdjustModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="padjTitle">
+  <div class="modal-box padj-box">
+    <h3 class="modal-title" id="padjTitle">จัดตำแหน่งรูป</h3>
+    <p class="ds-help">ลากรูปเพื่อเลือกส่วนที่จะโชว์ในวงกลม</p>
     <div class="padj-frame"
          onmousedown="photoAdjustStart(event)" onmousemove="photoAdjustMove(event)" onmouseup="photoAdjustEnd()" onmouseleave="photoAdjustEnd()"
          ontouchstart="photoAdjustStart(event)" ontouchmove="photoAdjustMove(event)" ontouchend="photoAdjustEnd()">
       <img class="padj-img" src="" alt="" draggable="false">
     </div>
-    <div class="modal-actions" style="margin-top:18px;">
-      <button class="btn btn-primary" onclick="savePhotoAdjust()">💾 บันทึก</button>
-      <button class="btn btn-outline" onclick="closePhotoAdjust()">ยกเลิก</button>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="savePhotoAdjust()">บันทึก</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closePhotoAdjust()">ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -1110,37 +1110,55 @@ try {
   </div>
 </div>
 
-<!-- AWARD CRITERIA INFO MODAL -->
-<div id="awardInfoModal" class="modal-overlay" style="z-index: 3000;">
-  <div class="modal-box" style="text-align: left; max-width: 600px;">
-    <div class="modal-title" style="text-align:center;">ℹ️ กติกาการตัดสินรางวัล</div>
-    <div style="margin-top:20px; line-height:1.6; font-size:14px; color:var(--text);">
-        <b style="color:var(--gold);">🏆 MVP Top 5 (ผู้ทำแต้มสูงสุด):</b><br>
-        เรียงจากผู้ที่สะสมแต้มทีมได้มากที่สุด<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Points → Point Diff → Game Wins</span><br><br>
-        
-        <b style="color:var(--gold);">🛡️ Toughest Player (ผู้เล่นเคี้ยวยาก):</b><br>
-        ผู้เล่นที่พาทีมเสมอได้บ่อยที่สุด สะท้อนความสมดุลและความสม่ำเสมอ<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Draws มากสุด → |Point Diff| ใกล้ 0 มากสุด</span><br><br>
-        
-        <b style="color:var(--gold);">🔥 Epic Comeback Kings (ราชาพลิกนรก):</b><br>
-        ตามหลัง 4+ แต้มช่วงท้ายในขณะที่คู่ต่อสู้มีแต้ม 17 ขึ้นไป แล้วพลิกชนะได้<br>
-        เกิดได้ 2 ครั้งต่อ Match · ได้รับเฉพาะทีมที่พลิกชนะ<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → Wins → Point Diff</span><br><br>
-        
-        <b style="color:var(--gold);">⚔️ The Gladiators (นักสู้หัวใจเพชร):</b><br>
-        แต้มรวม 2 เกมของทั้งแมตช์ห่างกันไม่เกิน 5 แต้ม — เกมสูสีสุดขีด<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → |Point Diff| ใกล้ 0 → Draws</span><br><br>
-        
-        <b style="color:var(--gold);">🏃‍♂️ Iron Lungs (ปอดเหล็ก):</b><br>
-        ผ่านเกมที่มีดิวซ์ยาวนานถึง 22 แต้มขึ้นไป ทดสอบความอดทนสูงสุด<br>
-        <span style="color:var(--muted);font-size:12px;">ตัดเชือก: Tags → Wins → Point Diff</span><br><br>
-
-        <hr style="border-color:var(--border);margin:12px 0;">
-        <b style="color:var(--muted);font-size:12px;">📌 หมายเหตุ: รางวัล Rollercoaster และ Blowout ไม่มีในพิธีมอบรางวัล แต่ยังปรากฏใน Match History</b>
-    </div>
-    <div class="modal-actions" style="margin-top: 24px;">
-      <button class="btn btn-primary" onclick="document.getElementById('awardInfoModal').classList.remove('open')">✓ ปิดหน้าต่าง</button>
+<!-- AWARD CRITERIA INFO MODAL (opened from the trophy ceremony) -->
+<div id="awardInfoModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="awardInfoTitle">
+  <div class="modal-box awi-box">
+    <h3 class="modal-title" id="awardInfoTitle">กติกาการตัดสินรางวัล</h3>
+    <ul class="awi-list" role="list">
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-crown-fill"/></svg></span>
+        <div class="awi-txt">
+          <b>MVP Top 5 <span>(ผู้ทำคะแนนสูงสุด)</span></b>
+          <p>เรียงจากผู้ที่สะสมคะแนนทีมได้มากที่สุด</p>
+          <small>ตัดเชือก: Points → Point Diff → Game Wins</small>
+        </div>
+      </li>
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-target"/></svg></span>
+        <div class="awi-txt">
+          <b>Toughest Player <span>(ผู้เล่นเคี้ยวยาก)</span></b>
+          <p>ผู้เล่นที่พาทีมเสมอได้บ่อยที่สุด สะท้อนความสมดุลและความสม่ำเสมอ</p>
+          <small>ตัดเชือก: Draws มากสุด → |Point Diff| ใกล้ 0 มากสุด</small>
+        </div>
+      </li>
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-counter-clockwise"/></svg></span>
+        <div class="awi-txt">
+          <b>Epic Comeback Kings <span>(ราชาพลิกนรก)</span></b>
+          <p>ตามหลัง 4+ คะแนนช่วงท้ายในขณะที่คู่ต่อสู้มีคะแนน 17 ขึ้นไป แล้วพลิกชนะได้ เกิดได้ 2 ครั้งต่อ Match · ได้รับเฉพาะทีมที่พลิกชนะ</p>
+          <small>ตัดเชือก: Tags → Wins → Point Diff</small>
+        </div>
+      </li>
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-lightning"/></svg></span>
+        <div class="awi-txt">
+          <b>The Gladiators <span>(นักสู้หัวใจเพชร)</span></b>
+          <p>คะแนนรวม 2 เกมของทั้งแมตช์ห่างกันไม่เกิน 5 คะแนน — เกมสูสีสุดขีด</p>
+          <small>ตัดเชือก: Tags → |Point Diff| ใกล้ 0 → Draws</small>
+        </div>
+      </li>
+      <li class="awi-item">
+        <span class="awi-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-timer"/></svg></span>
+        <div class="awi-txt">
+          <b>Iron Lungs <span>(ปอดเหล็ก)</span></b>
+          <p>ผ่านเกมที่มีดิวซ์ยาวนานถึง 22 คะแนนขึ้นไป ทดสอบความอดทนสูงสุด</p>
+          <small>ตัดเชือก: Tags → Wins → Point Diff</small>
+        </div>
+      </li>
+    </ul>
+    <div class="ds-banner is-info"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-info"/></svg><span>รางวัล Rollercoaster และ Blowout ไม่มีในพิธีมอบรางวัล แต่ยังปรากฏใน Match History</span></div>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="document.getElementById('awardInfoModal').classList.remove('open')">ปิดหน้าต่าง</button>
     </div>
   </div>
 </div>
@@ -1398,31 +1416,35 @@ try {
 </div>
 
 <!-- ══ PLAYER PROFILE OVERLAY ══ -->
-<div id="playerProfileOverlay">
-  <button class="profile-back-btn" onclick="closePlayerProfile()">← กลับ</button>
-  <button class="profile-close-btn" onclick="closePlayerProfile()" title="ปิด (Esc)">✕</button>
+<div id="playerProfileOverlay" role="dialog" aria-modal="true" aria-label="โปรไฟล์ผู้เล่น">
+  <div class="pf-bar">
+    <button type="button" class="ds-btn pf-back" onclick="closePlayerProfile()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-left"/></svg>กลับ</button>
+    <button type="button" class="ds-btn ds-btn-icon pf-close" onclick="closePlayerProfile()" aria-label="ปิด" title="ปิด (Esc)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+  </div>
   <div class="profile-wrap" id="playerProfileWrap">
-    <!-- Header -->
-    <div class="profile-header" id="profileHeader"></div>
-    <!-- Stats bar -->
+    <!-- Hero: face, name, team, points, rank (+ the staff tools) -->
+    <div class="profile-header ds-court-bg" id="profileHeader"></div>
+    <!-- Stat strip -->
     <div class="profile-stats-bar" id="profileStatBar"></div>
-    <!-- Body -->
-    <!-- Single page: identity chips → scout notes → match history → H2H.
-         (Career tab removed: seasons_archive is empty, so it only ever
-         repeated the stat bar above.) -->
+    <!-- Single page, no tabs (the Career tab was removed: seasons_archive is empty, it only ever repeated the stats).
+         Facts, awards and notes sit beside the match history on a laptop and above it on a phone. -->
     <div class="profile-body">
-      <!-- read mode -->
-      <div id="pdReadView">
-        <div id="pdAwards"></div>
-        <div id="pdIdentityRow" class="pd-identity"></div>
-        <div id="pdScoutNotes"></div>
+      <div class="pf-aside">
+        <!-- read mode -->
+        <div id="pdReadView">
+          <div id="pdAwards"></div>
+          <div id="pdIdentityRow"></div>
+          <div id="pdScoutNotes"></div>
+        </div>
+        <!-- edit mode (staff) — swaps in place, no modal over the overlay -->
+        <div id="pdEditView" hidden></div>
       </div>
-      <!-- edit mode (admin) — swaps in place, no modal over the overlay -->
-      <div id="pdEditView" hidden></div>
-      <div id="pdMatchHistory"></div>
-      <div id="pdH2H"></div>
-      <div id="pdCareer"></div>
-      <div id="pdPastMatches"></div>
+      <div class="pf-main">
+        <div id="pdMatchHistory"></div>
+        <div id="pdH2H"></div>
+        <div id="pdCareer"></div>
+        <div id="pdPastMatches"></div>
+      </div>
     </div>
   </div>
 </div>
