@@ -1,27 +1,96 @@
+/* ============================================================
+   LOGIN + ROLE GATING (A2 viewer)
+   The login overlay: a court-line hero, the brand mark, one dominant gold choice for a spectator and two quiet
+   rows for the staff. The passcode box is a .ds-sheet (css/ui.css); its logic is in js/auth.js.
+   ============================================================ */
+
+/* the brand mark drawn once in index.html (#ds-mark-sym): the login screen and the top bar both <use> it */
+.mk-bg { fill: var(--gold); }
+.mk-ink { fill: var(--gold-ink); }
+.mk-line { fill: none; stroke: var(--gold); stroke-width: 1.7; stroke-linecap: round; }
+
 /* ── LOGIN OVERLAY ── */
 #loginOverlay {
-  position: fixed; inset: 0;
-  background: radial-gradient(ellipse at 30% 20%, rgba(59,142,255,0.08) 0%, transparent 60%),
-              radial-gradient(ellipse at 70% 80%, rgba(255,59,92,0.06) 0%, transparent 60%),
-              var(--bg);
-  z-index: 9999;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: fixed; inset: 0; z-index: var(--z-overlay);
+  display: flex; flex-direction: column; align-items: center;
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: calc(var(--sp-5) + var(--sat)) max(var(--sp-4), var(--sar)) calc(var(--sp-5) + var(--sab)) max(var(--sp-4), var(--sal));
+  background-color: var(--bg);
+  background-size: min(1200px, 170%) auto;     /* the court from css/ui.css .ds-court-bg, scaled up into a hero */
+  background-position: center 22%;
 }
 #loginOverlay.modal-open { pointer-events: none; }
 /* set by the pre-paint script in index.html for returning roles / TV / QR links;
    logout() sets an inline display:flex, which still wins over this */
 html.skip-login #loginOverlay { display: none; }
 
-.login-card {
-  background: rgba(14,14,26,0.9);
-  backdrop-filter: blur(20px);
-  padding: 44px 40px;
-  border-radius: 24px;
-  border: 1px solid var(--border2);
-  width: min(92vw, 420px);
-  text-align: center;
-  box-shadow: 0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset;
+.login-wrap { margin: auto; width: min(100%, 440px); display: grid; gap: var(--sp-6); justify-items: center; }
+.login-brand { display: grid; justify-items: center; gap: var(--sp-3); text-align: center; }
+.login-mark { width: 72px; height: 72px; }
+.login-title {
+  font: 400 clamp(2.5rem, 13vw, 3.5rem)/.9 var(--font-num); letter-spacing: .04em; color: var(--t-hi);
+  overflow-wrap: anywhere;
 }
+
+.login-card {
+  width: 100%; display: grid; gap: var(--sp-4);
+  background: var(--s1); border: 1px solid var(--line-strong); border-radius: var(--r-lg);
+  padding: var(--sp-5);
+}
+.login-lead { color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); text-align: center; }
+
+/* the one big button: a spectator / player */
+.login-primary {
+  display: flex; align-items: center; gap: var(--sp-3); width: 100%; min-height: 72px;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--gold); color: var(--gold-ink); border: 0; border-radius: var(--r-md);
+  text-align: left; cursor: pointer; touch-action: manipulation;
+  transition: background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out);
+}
+.login-primary:active { transform: scale(.98); }
+@media (hover: hover) { .login-primary:hover { background: var(--gold-hi); } }
+.login-primary-ic { width: 32px; height: 32px; }
+.login-primary-txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.login-primary-main { font: 800 var(--fs-20)/var(--lh-th) var(--font-ui); }
+.login-primary-sub { font: 600 var(--fs-13)/var(--lh-th) var(--font-ui); opacity: .82; }
+.login-go { flex: none; width: 20px; height: 20px; }
+
+/* staff: two rows, each a full 56 px target */
+.login-staff { display: grid; gap: var(--sp-2); }
+.login-staff-h {
+  display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-1);
+  color: var(--t-low); font: 600 var(--fs-13)/1.3 var(--font-ui);
+}
+.login-staff-h::before, .login-staff-h::after { content: ''; flex: 1; height: 1px; background: var(--line-strong); }
+.login-role {
+  display: flex; align-items: center; gap: var(--sp-3); width: 100%; min-height: var(--tap-lg);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--s2); color: var(--t-hi); border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  text-align: left; cursor: pointer; touch-action: manipulation;
+  transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
+}
+.login-role:active { background: var(--s4); }
+@media (hover: hover) { .login-role:hover { background: var(--s3); border-color: var(--t-low); } }
+.login-role-ic { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--s3); color: var(--gold); }
+.login-role-txt { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.login-role-main { font: 700 var(--fs-16)/1.3 var(--font-ui); }
+.login-role-sub { font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-low); }
+.login-role .login-go { color: var(--t-low); }
+
+/* the version line (js injects the text; shared/pwa.js carries a smaller default for it) */
+.login-card .app-version { margin: 0; font-size: var(--fs-12); letter-spacing: 0; opacity: 1; color: var(--t-low); }
+
+/* a short landscape phone: brand on the left, the card on the right, nothing to scroll */
+@media (max-height: 520px) and (min-width: 640px) {
+  .login-wrap { width: min(100%, 880px); grid-template-columns: 1fr 1fr; gap: var(--sp-6); align-items: center; }
+}
+
+/* ── PASSCODE SHEET ── */
+.passcode-box { display: grid; gap: var(--sp-3); align-content: start; }
+.passcode-box .ds-sheet-title { display: flex; align-items: center; gap: var(--sp-2); }
+.passcode-box .ds-sheet-title .ds-ic { color: var(--gold); }
+.passcode-box .ds-sheet-actions { margin-top: var(--sp-2); }
+.passcode-field .ds-input { letter-spacing: .2em; }
 
 /* ── ROLE-BASED VISIBILITY ──
    Hide first, reveal per role. The old rules only hid .admin-only from
@@ -36,65 +105,3 @@ body.admin-mode .superadmin-only { display: none !important; }
 /* superadmin เห็น UI เหมือน admin แต่ container (.container) คุมด้วย .active class เท่านั้น */
 body.superadmin-mode .admin-only:not(.container) { display: revert !important; }
 body.superadmin-mode .superadmin-only { display: revert !important; }
-
-
-/* ══ LOGIN — guest is the default path, staff is the exception ══ */
-.login-lead {
-  color: var(--text2);
-  font-size: 13.5px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  text-align: center;
-}
-.login-primary {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  width: 100%;
-  padding: 18px 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(245,200,66,0.35);
-  background: linear-gradient(135deg, rgba(245,200,66,0.16), rgba(255,160,64,0.08));
-  color: var(--gold);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
-}
-.login-primary:hover {
-  transform: translateY(-2px);
-  border-color: var(--gold);
-  box-shadow: 0 12px 30px rgba(245,200,66,0.18);
-}
-.login-primary:active { transform: scale(0.985); }
-.login-primary-icon { font-size: 26px; line-height: 1; }
-.login-primary-main {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.9em;
-  letter-spacing: 3px;
-  line-height: 1.15;
-}
-.login-primary-sub {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-}
-
-.login-staff { margin-top: 14px; }
-.login-staff > summary {
-  list-style: none;
-  cursor: pointer;
-  outline: none;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--muted);
-  padding: 9px;
-  border-radius: 10px;
-  transition: color 0.18s, background 0.18s;
-}
-.login-staff > summary::-webkit-details-marker { display: none; }
-.login-staff > summary:hover { color: var(--text2); background: rgba(255,255,255,0.03); }
-.login-staff-body { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-.login-staff-body .btn { width: 100%; justify-content: center; font-size: 13px; padding: 11px; }

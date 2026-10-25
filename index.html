@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Badminton Sports Day 2026 - Scoreboard</title>
 <!-- Returning viewers / TV / QR links never see the login screen: decide before
      first paint instead of waiting for window load (which flashed the login). -->
@@ -92,43 +92,70 @@ try {
 <script defer src="js/tv.js?v=2026.10.04.1"></script>
 <body class="data-loading">
 
+<!-- the brand mark (a gold tile and a shuttlecock), drawn once: the login screen and the top bar both <use> it -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="ds-mark-sym" viewBox="0 0 64 64">
+    <rect class="mk-bg" width="64" height="64" rx="16"/>
+    <g transform="translate(32 32) rotate(-32) scale(.95) translate(-32 -29)">
+      <path class="mk-ink" d="M24 41 13 14Q32 7 51 14L40 41Z"/>
+      <path class="mk-ink" d="M23 41h18a9 9 0 0 1-18 0z"/>
+      <path class="mk-line" d="M28.6 41 22.6 11.5M32 41V9.5M35.4 41l6-29.5M17.5 26.5Q32 31 46.5 26.5"/>
+    </g>
+  </symbol>
+</svg>
+
 <!-- ── LOGIN OVERLAY ── -->
-<div id="loginOverlay">
-  <h1 style="font-family:'Bebas Neue',sans-serif; color:var(--gold); font-size:clamp(3em, 8vw, 4em); letter-spacing:4px; margin-bottom:20px; text-shadow:0 0 20px rgba(245,200,66,0.3);">🏸 SPORTS DAY 2026</h1>
-  <div class="login-card" style="position:relative; z-index:10000;">
-    <!-- Almost everyone opening this is a spectator or a player, so that is
-         the one big button. Staff sign-in is a quiet second row. -->
-    <p class="login-lead">เข้าดูคะแนนสดได้เลย ไม่ต้องใส่รหัส</p>
-    <button type="button" class="login-primary" onclick="loginGuest()">
-      <span class="login-primary-icon">🏸</span>
-      <span class="login-primary-main">เข้าดูคะแนนสด</span>
-      <span class="login-primary-sub">ผลแมตช์ · ตารางคะแนน · สถิติผู้เล่น</span>
-    </button>
+<div id="loginOverlay" class="ds-court-bg">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <svg class="login-mark" width="72" height="72" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><use href="#ds-mark-sym"/></svg>
+      <h1 class="login-title" lang="en">SPORTS DAY 2026</h1>
+    </div>
+    <div class="login-card">
+      <!-- Almost everyone opening this is a spectator or a player, so that is
+           the one big button. Staff sign-in is the second step: two quiet rows. -->
+      <p class="login-lead">เข้าดูคะแนนสดได้เลย ไม่ต้องใส่รหัส</p>
+      <button type="button" class="login-primary" onclick="loginGuest()">
+        <svg class="ds-ic login-primary-ic" aria-hidden="true" focusable="false"><use href="#ic-broadcast"/></svg>
+        <span class="login-primary-txt">
+          <span class="login-primary-main">เข้าดูคะแนนสด</span>
+          <span class="login-primary-sub">ผลแมตช์ · ตารางคะแนน · สถิติผู้เล่น</span>
+        </span>
+        <svg class="ds-ic login-go" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg>
+      </button>
 
-    <details class="login-staff">
-      <summary>🔑 เข้าสำหรับทีมงาน</summary>
-      <div class="login-staff-body">
-        <button type="button" class="btn btn-outline" onclick="loginAdmin()">⚙️ Admin — สร้างแมตช์ / จัดการผู้เล่น</button>
-        <button type="button" class="btn btn-outline" onclick="loginSuperAdmin()">👑 Super Admin — แก้ผล / คะแนน</button>
+      <div class="login-staff">
+        <div class="login-staff-h">สำหรับทีมงาน</div>
+        <button type="button" class="login-role" onclick="loginAdmin()">
+          <span class="login-role-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-gear-six"/></svg></span>
+          <span class="login-role-txt"><span class="login-role-main">Admin</span><span class="login-role-sub">สร้างแมตช์ · จัดการผู้เล่น</span></span>
+          <svg class="ds-ic login-go" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg>
+        </button>
+        <button type="button" class="login-role" onclick="loginSuperAdmin()">
+          <span class="login-role-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-crown"/></svg></span>
+          <span class="login-role-txt"><span class="login-role-main">Super Admin</span><span class="login-role-sub">แก้ผล · แก้คะแนน</span></span>
+          <svg class="ds-ic login-go" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg>
+        </button>
       </div>
-    </details>
 
-    <div class="app-version" data-app-version></div>
+      <div class="app-version" data-app-version></div>
+    </div>
   </div>
 </div>
 
-<!-- ── ADMIN / SUPERADMIN PASSCODE MODAL ── -->
-<div id="passcodeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; justify-content:center; align-items:center; flex-direction:column; gap:16px; flex-wrap:nowrap;">
-  <div style="background:#111118; border:1px solid rgba(245,200,66,0.3); border-radius:16px; padding:36px 32px; width:min(90vw,360px); text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.8);">
-    <div id="passcodeModalTitle" style="font-family:'Bebas Neue',sans-serif; font-size:1.8em; letter-spacing:4px; color:#f5c842; margin-bottom:6px;">&#x1F510; ADMIN LOGIN</div>
-    <div id="passcodeModalSub" style="color:#6b6b80; font-size:13px; margin-bottom:20px;">Enter Passcode</div>
-    <input type="password" id="passcodeInput" placeholder="Passcode..."
-      style="width:100%; padding:12px 16px; background:#1a1a24; border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#e8e8f0; font-size:1.2em; text-align:center; font-family:Rajdhani,sans-serif; outline:none; margin-bottom:16px; letter-spacing:4px;"
-      onkeydown="if(event.key==='Enter') submitPasscode()">
-    <div id="passcodeError" style="color:#e74c3c; font-size:13px; font-weight:700; margin-bottom:12px; display:none;">&#x274C; รหัสผ่านไม่ถูกต้อง</div>
-    <div style="display:flex; gap:10px;">
-      <button onclick="submitPasscode()" style="flex:1; padding:13px; background:#f5c842; color:#111; border:none; border-radius:8px; font-family:'Bebas Neue',sans-serif; font-size:1.3em; letter-spacing:2px; cursor:pointer;">&#x2713; CONFIRM</button>
-      <button onclick="closePasscodeModal()" style="padding:13px 16px; background:rgba(255,255,255,0.06); color:#6b6b80; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-family:Rajdhani,sans-serif; font-size:1em; font-weight:700; cursor:pointer;">&#x2715;</button>
+<!-- ── ADMIN / SUPERADMIN PASSCODE SHEET (the sign-in logic is in js/auth.js; this is only how it looks) ── -->
+<div id="passcodeModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="passcodeModalTitle" style="display:none;">
+  <div class="ds-sheet passcode-box">
+    <div id="passcodeModalTitle" class="ds-sheet-title">Admin</div>
+    <div id="passcodeModalSub" class="ds-help">ใส่รหัสผ่าน</div>
+    <div class="ds-field passcode-field">
+      <label class="ds-label" for="passcodeInput">รหัสผ่าน</label>
+      <input type="password" id="passcodeInput" class="ds-input ds-input-lg" autocomplete="off" onkeydown="if(event.key==='Enter') submitPasscode()">
+    </div>
+    <div id="passcodeError" class="ds-banner is-err" role="alert" style="display:none;"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-warning-circle"/></svg><span>รหัสผ่านไม่ถูกต้อง</span></div>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="submitPasscode()">ยืนยัน</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closePasscodeModal()">ยกเลิก</button>
     </div>
   </div>
 </div>
