@@ -1,3 +1,9 @@
+// The pictures (icons, brand mark, line art) come from shared/icons.js and shared/art.js. If one of them did not load
+// (a blip on the hall Wi-Fi) the page must still score: the helpers then draw nothing instead of throwing.
+if (typeof dsIcon !== 'function') window.dsIcon = function () { return ''; };
+if (typeof dsArt !== 'function') window.dsArt = function () { return ''; };
+if (typeof dsMark !== 'function') window.dsMark = function () { return ''; };
+
 const dbRef = firebase.database().ref('sportsday_2026_data');
 
 let appState = null;
@@ -240,7 +246,7 @@ function _retryPoint(mId, gameKey, delta, before, game2) {
     if (delta > 0 && !cur.timerStartedAt) { cur.timerStartedAt = now; cur.live.totalPauseMs = 0; }
     checkEpicPossible(cur);
   }).then(r => {
-    if (r.ok) showNotice('ส่งแล้ว ✓', { tone: 'ok', ms: 2500 });
+    if (r.ok) showNotice('ส่งแล้ว', { tone: 'ok', ms: 2500 });
     else if (r.reason === 'refused') showNotice('คะแนนบนเซิร์ฟเวอร์เปลี่ยนไปแล้ว — ดูคะแนนบนจอ แล้วแตะใหม่ถ้ายังไม่ถูก', { tone: 'warn', ms: 8000 });
     else _uWriteFailed(r.reason, 'คะแนนล่าสุด', () => _retryPoint(mId, gameKey, delta, before, game2), () => _uSeenScore(mId, game2));
   });
@@ -254,14 +260,12 @@ function showNotice(text, opts) {
   if (!el) return;
   opts = opts || {};
   _noticeActions = opts.actions || [];
-  el.className = 'show ' + (opts.tone || 'warn');
-  el.innerHTML = `<span class="un-text">${_uEsc(text)}</span>`
+  const tone = opts.tone || 'warn';
+  el.className = 'show ' + tone;
+  // icon + words (+ one action) + close; where it sits (under the info row / menu bar, above the dialogs) is css
+  el.innerHTML = dsIcon(tone === 'ok' ? 'check-circle' : tone === 'err' ? 'warning-circle' : 'warning', { fill: tone === 'ok' }) + `<span class="un-text">${_uEsc(text)}</span>`
     + _noticeActions.map((a, i) => `<button type="button" class="un-btn" data-i="${i}">${_uEsc(a.label)}</button>`).join('')
-    + `<button type="button" class="un-x" data-x="1" aria-label="ปิดข้อความนี้">✕</button>`;
-  // under the bar that is on screen (the scoring info bar, or the menu bar), so it never covers the clock
-  const bar = document.querySelector('#screen-scoring.active .scoring-topbar') || document.getElementById('umpireNav');
-  const r = bar && bar.offsetParent ? bar.getBoundingClientRect() : null;
-  el.style.top = (r ? Math.round(r.bottom) + 6 : 10) + 'px';
+    + `<button type="button" class="un-x" data-x="1" aria-label="ปิดข้อความนี้">${dsIcon('x')}</button>`;
   clearTimeout(_noticeTimer);
   if (opts.ms) _noticeTimer = setTimeout(hideNotice, opts.ms);
 }
@@ -300,13 +304,13 @@ function _uPendingAdd(d) {
   // (the red bar used to vanish with no word that everything had arrived)
   if (before > 0 && _uPending === 0 && _uOnline && _uOfflinePoints > 0) {
     const n = _uOfflinePoints; _uOfflinePoints = 0;
-    showNotice(`ส่งครบแล้ว ✓ ${n} คะแนน`, { tone: 'ok', ms: 4000 });
+    showNotice(`ส่งครบแล้ว ${n} คะแนน`, { tone: 'ok', ms: 4000 });
   }
 }
 // The three states the umpire needs to know (P-17 stage 1) — always one of them, in words and an icon, never colour alone:
-//   ok       "✓ ส่งแล้ว 14:31:07"  everything this phone sent has been accepted (time of the last one)
-//   sending  "⏳ กำลังส่ง 3"        online, but a send has been waiting longer than SYNC_SLOW_MS (slow signal)
-//   offline  "📶 ออฟไลน์ · รอส่ง 3"  no connection; sends wait in the queue and go out by themselves
+//   ok       "ส่งแล้ว 14:31:07"  everything this phone sent has been accepted (time of the last one)
+//   sending  "กำลังส่ง 3 รายการ"   online, but a send has been waiting longer than SYNC_SLOW_MS (slow signal)
+//   offline  "ออฟไลน์ · รอส่ง 3"   no connection; sends wait in the queue and go out by themselves
 function _uSyncState(now) {
   const offline = !_uOnline && (_uEverOnline || now - _uLoadedAt > 3000);
   if (offline) return 'offline';
@@ -362,6 +366,8 @@ function initDeviceSupport(force) {
   if (hint) hint.style.display = (!fsApi && !standalone) ? 'block' : 'none';
   return { fsApi, standalone, canFs };
 }
+// the brand mark above the login form (shared/art.js)
+{ const lm = document.getElementById('loginMark'); if (lm && window.dsMark) lm.innerHTML = dsMark(72); }
 initDeviceSupport();
 let _fsIndicatorTimer = null;
 
@@ -384,7 +390,7 @@ function onFsChange() {
   // Update all FS buttons
   document.querySelectorAll('#navFsBtn').forEach(btn => {
     btn.classList.toggle('fs-active', isFs);
-    btn.textContent = isFs ? '⤢' : '⛶';
+    btn.setAttribute('aria-pressed', String(isFs));
   });
 
   // Show indicator briefly
@@ -606,7 +612,7 @@ function updateLoginReady() {
   const sel = document.getElementById('umpireSelect');
   const ok = !!(sel && sel.value);
   const btn = document.getElementById('btnLogin');
-  if (btn) { btn.disabled = !ok; btn.textContent = ok ? 'เข้าสู่ระบบ →' : 'เลือกชื่อของคุณก่อน'; }
+  if (btn) { btn.disabled = !ok; btn.innerHTML = ok ? 'เข้าสู่ระบบ' + dsIcon('caret-right') : 'เลือกชื่อของคุณก่อน'; }
   const help = document.getElementById('loginHelp');
   if (help) help.style.display = ok ? 'none' : 'block';
 }
@@ -654,6 +660,11 @@ function goToTab(tabName) {
   document.getElementById('umpireNav').style.display = 'flex';
   document.getElementById('tab-live').classList.toggle('active', tabName === 'live');
   document.getElementById('tab-finished').classList.toggle('active', tabName === 'finished');
+  ['live', 'finished'].forEach(t => {
+    const b = document.getElementById('tab-' + t);
+    if (tabName === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('.who-name').forEach(el => { el.textContent = currentUmpire; });   // who is signed in
   if (tabName === 'live')     { switchScreen('screen-live');     renderMatchList(); }
   else                        { switchScreen('screen-finished'); renderFinishedList(); }
 }
@@ -870,7 +881,7 @@ function renderUmpireList() {
   );
 
   filtered.forEach(p => {
-    const prefix = p.team === 'Red' ? '🔴' : '🔵';
+    const prefix = p.team === 'Red' ? '●' : '◆';   // the team's shape (circle = red, diamond = blue), as everywhere else
     select.innerHTML += `<option value="${p.name}">${prefix} ${p.name} (G${p.group})</option>`;
   });
 
@@ -892,50 +903,58 @@ function toggleOnlyFree() {
   try { localStorage.setItem('bdm_umpire_onlyfree', _onlyFree ? '1' : '0'); } catch (e) { /* ignore */ }
   renderMatchList();
 }
+// Set an element's content only when it is different. A snapshot of ANY court's score re-renders every phone's screen, and
+// replacing the children of a button while a finger is on it can swallow that tap (the node under the finger is gone
+// when it lifts). Most snapshots change nothing on this phone's screen, so most renders now touch nothing.
+function _uSetHtml(el, html) {
+  if (!el || el._uHtml === html) return;
+  el._uHtml = html;
+  el.innerHTML = html;
+}
+// an empty / no-connection state: the court (or the shuttle) drawn in line art, one sentence, and - when there is
+// something to do - one button (css .ds-empty)
+function _uState(art, title, text, action) {
+  return `<div class="ds-empty"><div class="ds-empty-art">${dsArt(art)}</div><div class="ds-empty-title">${title}</div>`
+    + (text ? `<div class="ds-empty-text">${text}</div>` : '') + (action || '') + '</div>';
+}
+// a card is ONE target: the id, the court, the state (icon + word), the two pairs with their faces
 function _matchCardHtml(m, mine, next) {
-  const badge = mine
-    ? `<span class="badges">${m.court ? `<span class="badge badge-court">${courtLabel(m)}</span>` : ''}<span class="badge badge-mine">▶ คุมต่อ</span></span>`
-    : next ? '<span class="badge badge-next">⏭ ถัดไป</span>'
-    : '<span class="badge" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,192,64,0.3);">✦ ว่างอยู่</span>';
+  const status = mine ? `<span class="ds-chip ds-chip-gold">${dsIcon('play', { fill: true })}คุมต่อ</span>`
+    : next ? `<span class="ds-chip ds-chip-next">${dsIcon('caret-right')}ถัดไป</span>`
+    : `<span class="ds-chip">${dsIcon('lock-simple-open')}ว่างอยู่</span>`;
+  const court = mine && m.court ? `<span class="ds-chip ds-chip-gold">${courtLabel(m)}</span>` : '';
   return `
-    <div class="match-card ${mine ? 'claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
-      <div class="match-card-header">
-        <div class="match-id">${m.id} <span style="color:var(--muted);font-size:0.55em;letter-spacing:0;">รอบ ${m.round}</span></div>
-        ${badge}
-      </div>
-      <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${formatNames(m.redNames)}</span></div>
-      <div class="team-row">${umpirePairFaces(m.b1, m.b2, 30)}<span style="color:var(--blue);">${formatNames(m.blueNames)}</span></div>
-    </div>`;
+    <button type="button" class="match-card${mine ? ' claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
+      <span class="mc-head">
+        <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
+        <span class="mc-badges">${court}${status}</span>
+      </span>
+      <span class="mc-team ds-team ds-team-red">${umpirePairFaces(m.r1, m.r2)}<span class="mc-names">${formatNames(m.redNames)}</span></span>
+      <span class="mc-team ds-team ds-team-blue">${umpirePairFaces(m.b1, m.b2)}<span class="mc-names">${formatNames(m.blueNames)}</span></span>
+    </button>`;
 }
 function _matchTakenHtml(m) {
   return `
     <div class="match-card locked-other">
-      <div class="match-card-header">
-        <div class="match-id" style="color:var(--muted);">${m.id} <span style="font-size:0.55em;">รอบ ${m.round}</span></div>
-        <span class="badge badge-taken">🔒 ${_uEsc(m.umpire)}${m.court ? ' · ' + courtLabel(m) : ''}</span>
-      </div>
+      <span class="mc-head">
+        <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
+        <span class="ds-chip">${dsIcon('lock-simple')}${_uEsc(m.umpire)}${m.court ? ' · ' + courtLabel(m) : ''}</span>
+      </span>
     </div>`;
 }
 function renderMatchList() {
   const list = document.getElementById('matchList');
 
   if (!appState) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-icon">${_uLoadSlow ? '📶' : '⏳'}</span>
-        <div class="empty-title">${_uLoadSlow ? 'ยังเชื่อมต่อไม่ได้' : 'กำลังโหลดแมตช์…'}</div>
-        ${_uLoadSlow ? '<div class="empty-sub">ตรวจสัญญาณ — จะโหลดเองเมื่อเชื่อมต่อได้</div><button type="button" class="btn-retry" onclick="retryUmpireLoad()">ลองใหม่</button>' : ''}
-      </div>`;
+    _uSetHtml(list, _uLoadSlow
+      ? _uState('shuttle', 'ยังเชื่อมต่อไม่ได้', 'ตรวจสัญญาณ — จะโหลดเองเมื่อเชื่อมต่อได้',
+          `<button type="button" class="ds-btn btn-retry" onclick="retryUmpireLoad()">${dsIcon('arrow-clockwise')}ลองใหม่</button>`)
+      : `<div class="list-state" role="status">${'<div class="skel-card"><div class="ds-skel skel-line w30"></div><div class="ds-skel skel-line w80"></div><div class="ds-skel skel-line w60"></div></div>'.repeat(3)}<p class="list-state-text">กำลังโหลดแมตช์…</p></div>`);
     return;
   }
 
   if (appState.ongoingMatches.length === 0) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-icon">☕</span>
-        <div class="empty-title">ยังไม่มีแมตช์ให้คุม</div>
-        <div class="empty-sub">รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง</div>
-      </div>`;
+    _uSetHtml(list, _uState('court', 'ยังไม่มีแมตช์ให้คุม', 'รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง'));
     return;
   }
 
@@ -943,32 +962,23 @@ function renderMatchList() {
   const mine  = sortByCourt(all.filter(m => m.umpire === currentUmpire));
   const free  = all.filter(m => !m.umpire);                                   // queue order, as stored
   const taken = sortByCourt(all.filter(m => m.umpire && m.umpire !== currentUmpire));
-  const group = (title, n) => `<div class="list-group"><span>${title}</span><b>${n}</b></div>`;
+  const group = (title, n) => `<h2 class="list-group"><span>${title}</span><b>${n}</b></h2>`;
   const html = [];
 
   if (taken.length) {
-    html.push(`<button type="button" class="list-filter${_onlyFree ? ' on' : ''}" aria-pressed="${_onlyFree}" onclick="toggleOnlyFree()">${
+    html.push(`<button type="button" class="list-filter${_onlyFree ? ' on' : ''}" aria-pressed="${_onlyFree}" onclick="toggleOnlyFree()">${dsIcon('funnel')}${
       _onlyFree ? `ซ่อนอยู่ ${taken.length} แมตช์ — แตะเพื่อแสดงทั้งหมด` : 'เฉพาะแมตช์ที่ว่าง'}</button>`);
   }
   if (mine.length) { html.push(group('คุมอยู่', mine.length)); mine.forEach(m => html.push(_matchCardHtml(m, true, false))); }
   if (free.length) { html.push(group('ว่างอยู่ — ตามลำดับคิว', free.length)); free.forEach((m, i) => html.push(_matchCardHtml(m, false, i === 0))); }
   else if (_onlyFree && !mine.length) {
-    html.push('<div class="empty-state"><span class="empty-icon">🏸</span><div class="empty-title">ไม่มีแมตช์ว่าง</div><div class="empty-sub">ทุกแมตช์มีกรรมการคุมอยู่แล้ว</div></div>');
+    html.push(_uState('shuttle', 'ไม่มีแมตช์ว่าง', 'ทุกแมตช์มีกรรมการคุมอยู่แล้ว'));
   }
   if (taken.length && !_onlyFree) { html.push(group('มีกรรมการแล้ว', taken.length)); taken.forEach(m => html.push(_matchTakenHtml(m))); }
-  list.innerHTML = html.join('');
+  _uSetHtml(list, html.join(''));
 }
 
 function handleMatchCardTap(event, mId) {
-  // Ripple
-  const card = event.currentTarget;
-  const rect = card.getBoundingClientRect();
-  const rEl = document.createElement('span');
-  rEl.className = 'ripple';
-  rEl.style.left = (event.clientX - rect.left - 5) + 'px';
-  rEl.style.top  = (event.clientY - rect.top  - 5) + 'px';
-  card.appendChild(rEl);
-  setTimeout(() => rEl.remove(), 600);
   vibrateDevice([25]);
   selectMatch(mId);
 }
@@ -978,71 +988,45 @@ function handleMatchCardTap(event, mId) {
 // ==========================================
 function renderFinishedList() {
   const list = document.getElementById('finishedList');
-  list.innerHTML = '';
 
   if (!appState || appState.matchHistory.length === 0) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-icon">🏁</span>
-        <div class="empty-title">ยังไม่มีผล</div>
-        <div class="empty-sub">ผลการแข่งขันจะแสดงที่นี่เมื่อแมตช์จบแล้ว</div>
-      </div>`;
+    _uSetHtml(list, _uState('court', 'ยังไม่มีผล', 'ผลการแข่งขันจะแสดงที่นี่เมื่อแมตช์จบแล้ว'));
     return;
   }
 
   const reversedHistory = [...appState.matchHistory].reverse();
-  reversedHistory.forEach(m => {
+  _uSetHtml(list, reversedHistory.map(m => {
     const rWon = m.rStat === 'W', bWon = m.bStat === 'W';
-    const resultColor = rWon ? 'var(--red)' : bWon ? 'var(--blue)' : 'var(--gold)';
+    const side = rWon ? 'red' : bWon ? 'blue' : 'draw';
     const [g1r, g1b] = (m.game1 || '0:0').split(':');
     const [g2r, g2b] = (m.game2 || '0:0').split(':');
     // cleaned + escaped, like formatNames: no "(G2)" suffixes on a phone
     const _nm = s => String(s || '').split(' & ').map(n => _uEsc(n.replace(/\s*\(G\d\)/g, '').trim()));
     const [rP1, rP2] = _nm(m.redNames);
     const [bP1, bP2] = _nm(m.blueNames);
-    // the losing side's score is a quieter shade of its colour, not a see-through one: 40% opacity was
-    // 1.9-2.1:1 on the card; these are 4.6-5.1:1 and the 🏆 + the result badge still say who won
-    const rScoreColor = rWon ? 'var(--red)'  : bWon ? '#c86464' : 'var(--red)';
-    const bScoreColor = bWon ? 'var(--blue)' : rWon ? '#5090d0' : 'var(--blue)';
     // one malformed history row must not take down the whole list
     const resultLabel = _uEsc(_uResultLabel(m));
+    // a row per side: shape + the two names (+ a trophy and "ชนะ" on the winner), the score of each game, the higher one in gold
+    const row = (s, p1, p2, won) => {
+      const mine = s === 'red' ? [g1r, g2r] : [g1b, g2b], other = s === 'red' ? [g1b, g2b] : [g1r, g2r];
+      return `<tr><th scope="row"><div class="fc-side"><span class="ds-team ds-team-${s}"><span class="fc-names"><span>${p1 || ''}</span>${p2 ? `<span>${p2}</span>` : ''}</span></span>`
+        + (won ? dsIcon('trophy', { fill: true, label: 'ชนะ', cls: 'fc-won' }) : '') + '</div></th>'
+        + mine.map((v, i) => `<td${Number(v) > Number(other[i]) ? ' class="win"' : ''}>${v}</td>`).join('') + '</tr>';
+    };
 
-    list.innerHTML += `
-      <div class="finished-card" style="border-color:${rWon ? 'rgba(255,77,77,0.22)' : bWon ? 'rgba(77,159,255,0.22)' : 'rgba(240,192,64,0.22)'};">
+    return `
+      <div class="finished-card">
         <div class="finished-header">
-          <div style="font-family:'Bebas Neue';font-size:1.5em;color:var(--gold);letter-spacing:2px;">${m.id} <small style="font-family:'Noto Sans Thai',sans-serif;font-size:0.6em;letter-spacing:0;color:var(--muted);">รอบ ${m.round}</small></div>
-          <div class="result-badge" style="background:${resultColor}18;color:${resultColor};border:1px solid ${resultColor}44;">${resultLabel}</div>
+          <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
         </div>
-        <div class="score-grid" style="margin-bottom:6px;">
-          <div class="score-grid-header">ทีม</div>
-          <div class="score-grid-header">เกม 1</div>
-          <div class="score-grid-header">เกม 2</div>
-        </div>
-        <div class="score-grid" style="margin-bottom:8px;">
-          <div class="score-team-cell" style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.18);">
-            <div class="team-dot red"></div>
-            <div>
-              <div style="color:var(--red);font-size:0.95rem;">${rP1||''}${rWon?' 🏆':''}</div>
-              ${rP2 ? `<div style="color:var(--red);font-size:0.85rem;font-weight:600;">${rP2}</div>` : ''}
-            </div>
-          </div>
-          <div class="score-num-cell" style="background:rgba(255,77,77,0.08);color:${rScoreColor};">${g1r}</div>
-          <div class="score-num-cell" style="background:rgba(255,77,77,0.08);color:${rScoreColor};">${g2r}</div>
-        </div>
-        <div class="score-grid">
-          <div class="score-team-cell" style="background:rgba(77,159,255,0.08);border:1px solid rgba(77,159,255,0.18);">
-            <div class="team-dot blue"></div>
-            <div>
-              <div style="color:var(--blue);font-size:0.95rem;">${bP1||''}${bWon?' 🏆':''}</div>
-              ${bP2 ? `<div style="color:var(--blue);font-size:0.85rem;font-weight:600;">${bP2}</div>` : ''}
-            </div>
-          </div>
-          <div class="score-num-cell" style="background:rgba(77,159,255,0.08);color:${bScoreColor};">${g1b}</div>
-          <div class="score-num-cell" style="background:rgba(77,159,255,0.08);color:${bScoreColor};">${g2b}</div>
-        </div>
-        ${m.umpire ? `<div class="finished-umpire">👔 กรรมการ: ${_uEsc(m.umpire)}</div>` : ''}
+        <div class="result-badge ${side}">${resultLabel}</div>
+        <table class="score-grid">
+          <thead><tr><th scope="col"><span class="ds-sr-only">ทีม</span></th><th scope="col">เกม 1</th><th scope="col">เกม 2</th></tr></thead>
+          <tbody>${row('red', rP1, rP2, rWon)}${row('blue', bP1, bP2, bWon)}</tbody>
+        </table>
+        ${m.umpire ? `<div class="finished-umpire">${dsIcon('user')}กรรมการ: ${_uEsc(m.umpire)}</div>` : ''}
       </div>`;
-  });
+  }).join(''));
 }
 
 // ==========================================
@@ -1295,10 +1279,10 @@ function renderGameUI() {
   const paused = match.live && match.live.isPaused;
   const btnPause = document.getElementById('btnPause');
   if (paused) {
-    btnPause.innerHTML = dsIcon('play', { fill: true }) + '<span>เล่นต่อ</span>';
+    _uSetHtml(btnPause, dsIcon('play', { fill: true }) + '<span>เล่นต่อ</span>');
     btnPause.classList.add('paused');
   } else {
-    btnPause.innerHTML = dsIcon('pause', { fill: true }) + '<span>พัก</span>';
+    _uSetHtml(btnPause, dsIcon('pause', { fill: true }) + '<span>พัก</span>');
     btnPause.classList.remove('paused');
   }
 
@@ -1320,8 +1304,8 @@ function renderGameUI() {
   if (submitBtn) {
     const ready = !_isConfirming && isValidBadmintonScore(curR, curB);
     submitBtn.disabled = _isConfirming;
-    submitBtn.innerHTML = _isConfirming ? dsIcon('hourglass-medium') + '<span>กำลังส่งผล…</span>'
-      : (ready ? dsIcon('check') : '') + '<span>' + (isGame2 ? 'ส่งผลแมตช์' : 'ส่งผลเกม 1') + '</span>';
+    _uSetHtml(submitBtn, _isConfirming ? dsIcon('hourglass-medium') + '<span>กำลังส่งผล…</span>'
+      : (ready ? dsIcon('check') : '') + '<span>' + (isGame2 ? 'ส่งผลแมตช์' : 'ส่งผลเกม 1') + '</span>');
     submitBtn.classList.toggle('is-ready', ready);
   }
 
@@ -1343,8 +1327,8 @@ function renderGameUI() {
     sitChip.hidden = !sit;
     sitChip.className = 'net-chip sit-chip' + (!sit ? '' : sit.type === 'deuce' ? ' deuce' : sit.side === 'red' ? ' gp-red' : ' gp-blue');
     // game point = the team's shape + the word + an arrow toward its panel (red is above the net strip, blue below it)
-    sitChip.innerHTML = !sit ? '' : sit.type === 'deuce' ? 'DEUCE'
-      : `<span class="ds-team ds-team-${sit.side}">GAME POINT</span>${dsIcon(sit.side === 'red' ? 'caret-up' : 'caret-down')}`;
+    _uSetHtml(sitChip, !sit ? '' : sit.type === 'deuce' ? 'DEUCE'
+      : `<span class="ds-team ds-team-${sit.side}">GAME POINT</span>${dsIcon(sit.side === 'red' ? 'caret-up' : 'caret-down')}`);
   }
 
   // nothing to take back at 0: the minus says so (it never did anything there)
@@ -1561,7 +1545,7 @@ async function confirmExit() {
         `${_uPending > 0 ? `ยังมี ${_uPending} รายการรอส่ง` : 'ตอนนี้ไม่มีสัญญาณ'}\nอย่าปิดหน้านี้จนกว่าสัญญาณกลับ\nระบบจะส่งต่อเองเมื่อสัญญาณกลับ`,
         { confirmLabel: 'ออกทั้งที่ยังไม่ส่ง', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' })
     : await showConfirm('sign-out', 'ออกจากหน้านี้?',
-        `คะแนน ${score} ถูกบันทึกแล้ว\nแตะ ▶ คุมต่อ ที่รายการเพื่อกลับมา`,
+        `คะแนน ${score} ถูกบันทึกแล้ว\nแตะ “คุมต่อ” ที่รายการเพื่อกลับมา`,
         { confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' });
   if (ok) exitMatch();
 }

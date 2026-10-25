@@ -48,15 +48,15 @@ button:focus:not(:focus-visible) { outline: none; }
 #screen-scoring.active {
   position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-overlay);
   height: 100vh; height: 100dvh; overflow: hidden;
-  padding: 0; gap: 0; animation: none;
+  width: auto; margin: 0; padding: 0; gap: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr) var(--net-h) minmax(0, 1fr) auto 0;
   grid-template-areas: "info" "banner" "red" "net" "blue" "deck" "stray";
   background: var(--bg);
 }
-/* anything that has no area (a typo, a leftover element) goes to a zero-height row instead of shifting the zones */
-:where(#screen-scoring.active > *) { grid-area: stray; overflow: hidden; }
+/* anything that has no area (a typo, a leftover element) goes to a zero-height row below the screen instead of shifting the zones */
+:where(#screen-scoring.active > *) { grid-area: stray; }
 
 /* INFO — court (the one tappable thing here), clock, send state */
 .scoring-topbar {
@@ -118,7 +118,7 @@ button:focus:not(:focus-visible) { outline: none; }
 .score-btn-plus {
   --nw: calc(var(--minus-clear) - var(--rim-x));   /* notch width, from the button's left edge */
   --nh: var(--minus-clear);                        /* notch height, from the button's bottom edge */
-  position: absolute; z-index: 1; top: 0; bottom: 0;
+  position: absolute; top: 0; bottom: 0;                  /* stacking = source order: plus, then the content, then the minus on top */
   left: calc(var(--sal) + var(--rim-x)); right: calc(var(--sar) + var(--rim-x));
   background: none; border: 0; border-radius: 0;
   clip-path: polygon(0 0, 100% 0, 100% 100%, var(--nw) 100%, var(--nw) calc(100% - var(--nh)), 0 calc(100% - var(--nh)));
@@ -177,7 +177,7 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* the -1 correction: a 56 px circle in the outer bottom corner, away from the +1 thumb path */
 .score-btn-minus {
-  position: absolute; z-index: 2; bottom: var(--sp-3); left: calc(var(--sal) + var(--sp-3));
+  position: absolute; bottom: var(--sp-3); left: calc(var(--sal) + var(--sp-3));
   width: var(--tap-lg); height: var(--tap-lg); padding: 0; border-radius: 50%;
   display: grid; place-items: center;
   background: var(--bg); color: var(--t-hi); border: 2px solid var(--edge);
@@ -351,484 +351,8 @@ body > .net-banner:not(:empty) { position: sticky; top: calc(var(--bar-h) + var(
 .sync-sending { color: var(--warn); background: var(--warn-fill); border-color: var(--warn-line); }
 .sync-offline { color: var(--err); background: var(--err-fill); border-color: var(--err-line); }
 
-/* ── 4. THE OTHER SCREENS (being rebuilt one by one; what follows is the old stylesheet, kept until each one is) ── */
+/* ── 4. THE OTHER SCREENS: pause · dialogs · VS intro · shell · login · match list · finished list ── */
 
-/* ---- old: #fsIndicator ---- */
-/* ── FULLSCREEN INDICATOR ── */
-#fsIndicator {
-  position: fixed;
-  bottom: calc(18px + var(--sab));
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: rgba(240,192,64,0.18);
-  border: 1px solid rgba(240,192,64,0.4);
-  color: var(--gold);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  padding: 8px 18px;
-  border-radius: 40px;
-  z-index: 9998;
-  opacity: 0;
-  transition: opacity 0.4s, transform 0.4s;
-  pointer-events: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-#fsIndicator.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-/* ---- old: keyframes still used below ---- */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes popIn {
-  0%   { transform: scale(0.92); opacity: 0; }
-  60%  { transform: scale(1.03); }
-  100% { transform: scale(1); opacity: 1; }
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-@keyframes ripple {
-  to { transform: scale(4); opacity: 0; }
-}
-/* ---- old: nav, tabs, screens ---- */
-/* ── STICKY NAV ── */
-#umpireNav {
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  background: rgba(7,7,13,0.97);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border);
-  padding: calc(10px + var(--sat)) 16px 10px;
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.nav-tabs { display: flex; gap: 8px; flex: 1; }
-.tab-btn {
-  background: transparent;
-  color: var(--muted);
-  border: 1.5px solid transparent;
-  padding: 14px 20px;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  transition: all 0.2s;
-  white-space: nowrap;
-  flex: 1;
-  text-align: center;
-  min-height: 52px;
-}
-.tab-btn.active {
-  color: var(--gold);
-  background: var(--gold-dim);
-  border-color: rgba(240,192,64,0.35);
-}
-.tab-btn:active { opacity: 0.7; transform: scale(0.96); }
-
-.btn-logout {
-  background: transparent;
-  color: var(--danger);
-  border: 1.5px solid rgba(255,77,77,0.3);
-  padding: 14px 16px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 700;
-  white-space: nowrap;
-  transition: all 0.2s;
-  min-height: 52px;
-  min-width: 52px;
-}
-.btn-logout:active { background: rgba(255,77,77,0.12); }
-
-/* ── SCREENS ── */
-.screen { display: none; flex-direction: column; gap: 20px; padding: 20px; }
-.screen.active { display: flex; animation: fadeUp 0.28s ease both; }
-/* ---- old: login ---- */
-/* ============================================================
-   🔐 LOGIN SCREEN
-   ============================================================ */
-#screen-login {
-  justify-content: center;
-  min-height: 100dvh;
-  padding: calc(28px + var(--sat)) 20px calc(40px + var(--sab));
-}
-.login-hero {
-  text-align: center;
-  margin-bottom: 8px;
-}
-.login-icon {
-  font-size: 4rem;
-  display: block;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 0 24px rgba(240,192,64,0.55));
-}
-.login-title {
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 2.8em;
-  font-weight: 800;
-  color: var(--gold);
-  letter-spacing: 1px;
-  line-height: 1.15;
-  text-shadow: 0 0 30px rgba(240,192,64,0.3);
-  margin-bottom: 6px;
-}
-.login-subtitle {
-  color: var(--muted);
-  font-size: 1rem;
-  letter-spacing: 0.3px;
-}
-/* Fullscreen entry button on login */
-.login-fs-row {
-  display: flex;
-  justify-content: center;
-  margin-top: 12px;
-}
-.btn-login-fs {
-  background: rgba(240,192,64,0.08);
-  border: 1.5px solid rgba(240,192,64,0.25);
-  color: var(--gold);
-  border-radius: 40px;
-  padding: 10px 24px;
-  min-height: 48px;
-  font-size: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-login-fs:active { background: rgba(240,192,64,0.18); transform: scale(0.95); }
-
-.login-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 28px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.login-section-label {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 12px;
-}
-.login-section-label span { color: var(--gold); margin-right: 6px; }
-
-/* TOGGLE BUTTONS */
-.toggle-group { display: grid; gap: 10px; }
-.toggle-group.cols-2 { grid-template-columns: 1fr 1fr; }
-.toggle-group.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-.toggle-group.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-
-.toggle-btn {
-  padding: 18px 10px;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--border);
-  background: var(--surface2);
-  color: var(--muted);
-  font-size: 1.05rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.18s;
-  text-align: center;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-  min-height: 58px;
-}
-.toggle-btn:active { transform: scale(0.96); }
-.toggle-btn.selected-red {
-  background: var(--red-dim);
-  border-color: var(--red);
-  color: var(--red);
-  box-shadow: 0 4px 16px var(--red-glow);
-}
-.toggle-btn.selected-blue {
-  background: var(--blue-dim);
-  border-color: var(--blue);
-  color: var(--blue);
-  box-shadow: 0 4px 16px var(--blue-glow);
-}
-.toggle-btn.selected-gold {
-  background: var(--gold-dim);
-  border-color: var(--gold);
-  color: var(--gold);
-  box-shadow: 0 4px 16px rgba(240,192,64,0.25);
-}
-
-/* UMPIRE DROPDOWN */
-.select-wrapper { position: relative; }
-.select-wrapper::after {
-  content: '▾';
-  position: absolute;
-  right: 18px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted);
-  pointer-events: none;
-  font-size: 1.2rem;
-}
-.umpire-select {
-  width: 100%;
-  padding: 20px 48px 20px 18px;
-  background: var(--surface2);
-  color: var(--text);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: 1.2rem;
-  font-weight: 700;
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-  transition: border-color 0.2s;
-  min-height: 64px;
-}
-.umpire-select:focus { border-color: var(--gold); }
-.umpire-select option { background: var(--surface2); }
-
-/* LOGIN BUTTON */
-.btn-login {
-  position: sticky;                          /* pinned to the bottom of the screen: reachable on a 320 x 568 phone */
-  bottom: calc(12px + var(--sab));
-  z-index: 3;
-  width: 100%;
-  padding: 24px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.2em;
-  letter-spacing: 0.3px;
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  background: var(--gold);
-  color: #000;
-  font-weight: 900;
-  box-shadow: 0 6px 24px rgba(240,192,64,0.3), 0 2px 8px rgba(0,0,0,0.4);
-  transition: all 0.2s;
-  overflow: hidden;
-}
-/* until a name is chosen: plain, and it says what to do */
-.btn-login:disabled {
-  background: var(--surface3); color: var(--text); box-shadow: none; cursor: not-allowed;
-  font-family: inherit; font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px; padding: 20px;
-  border: 1.5px dashed var(--border-bright);
-}
-.btn-login:disabled::before { display: none; }
-.login-help { margin-top: 8px; font-size: 0.88rem; font-weight: 700; color: var(--muted); }
-.btn-login::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.4s;
-}
-.btn-login:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(240,192,64,0.2); }
-.btn-login:hover::before { left: 100%; }
-/* ---- old: match list, finished list ---- */
-/* ============================================================
-   📋 MATCH LIST SCREEN
-   ============================================================ */
-.screen-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 4px;
-}
-.screen-header-text { flex: 1; }
-.screen-title {
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 2.2em;
-  font-weight: 800;
-  color: var(--gold);
-  letter-spacing: 0.5px;
-  line-height: 1.25;
-}
-.screen-sub { color: var(--muted); font-size: 0.95rem; margin-top: 4px; }
-
-/* Pull-to-refresh indicator */
-.pull-hint {
-  text-align: center;
-  color: var(--muted2);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  padding: 6px 0 2px;
-}
-
-/* MATCH CARD */
-.match-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-.match-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, var(--red), var(--blue));
-  border-radius: 4px 0 0 4px;
-}
-.match-card:active { transform: scale(0.985); background: var(--surface2); }
-.match-card.claimed::before { background: var(--gold); }
-/* a match another umpire has taken: quiet, but never dimmed with opacity - that made the umpire's name and the
-   match id 1.85:1. Plain colours that pass 4.5:1 + the 🔒 on the badge say it is not available. */
-.match-card.locked-other { cursor: default; background: transparent; border-color: rgba(255,255,255,0.07); }
-.match-card.locked-other::before { opacity: 0.35; }
-
-/* Ripple effect on match card tap */
-.match-card .ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(240,192,64,0.25);
-  width: 10px; height: 10px;
-  transform: scale(0);
-  animation: ripple 0.5s ease-out forwards;
-  pointer-events: none;
-}
-
-.match-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.match-id {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.7em;
-  color: var(--gold);
-  letter-spacing: 2px;
-}
-.badge {
-  padding: 6px 14px;
-  border-radius: 50px;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-}
-.badge-mine { background: rgba(46,204,113,0.18); color: var(--green); border: 1px solid rgba(46,204,113,0.4); }
-.badge-taken { background: rgba(255,255,255,0.06); color: #a0a0be; border: 1px solid var(--border-bright); }
-.badge-court { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(240,192,64,0.35); }
-.badges { display: flex; align-items: center; gap: 8px; }
-
-.team-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-.team-row + .team-row { border-top: 1px solid var(--border); }
-.team-dot {
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.team-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
-.team-dot.blue { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
-
-/* EMPTY STATE */
-.empty-state {
-  text-align: center;
-  padding: 64px 20px;
-  background: var(--surface);
-  border-radius: var(--radius-xl);
-  border: 1px dashed var(--border);
-}
-.empty-icon { font-size: 3.5em; margin-bottom: 12px; display: block; }
-.empty-title {
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 1.5em;
-  font-weight: 800;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.empty-sub { color: var(--muted2); font-size: 0.95rem; }
-
-/* ============================================================
-   ✅ FINISHED LIST
-   ============================================================ */
-.finished-card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-.finished-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.result-badge {
-  font-size: 0.82rem;
-  font-weight: 800;
-  padding: 5px 12px;
-  border-radius: 50px;
-}
-.score-grid {
-  display: grid;
-  grid-template-columns: 1fr 52px 52px;
-  gap: 8px;
-  align-items: center;
-}
-.score-grid-header {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  text-align: center;
-}
-.score-grid-header:first-child { text-align: left; padding-left: 14px; }
-.score-team-cell {
-  background: var(--surface2);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-.score-num-cell {
-  background: var(--surface2);
-  border-radius: var(--radius-sm);
-  padding: 10px 4px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.7em;
-  text-align: center;
-  letter-spacing: 1px;
-}
-.finished-umpire {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-  font-size: 0.88rem;
-  color: var(--muted);
-}
 /* ── 4a. PAUSE ───────────────────────────────────────────────
    A solid screen over the scoring screen. Only the ▶ button resumes: a palm on the glass while the phone is down must not
    restart play. Above the scoring screen, below the dialogs (a leave question opens from here). */
@@ -896,7 +420,7 @@ body > .net-banner:not(:empty) { position: sticky; top: calc(var(--bar-h) + var(
 #modalBox.has-score .modal-warn { order: -1; }
 
 /* the scores about to be sent / just sent: a row per side (shape + word), a column per game, the higher number in gold */
-.modal-score { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+.modal-score { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
 .modal-score th, .modal-score td { padding: var(--sp-2) var(--sp-3); }
 .modal-score thead th { font: 600 var(--fs-13)/1.3 var(--font-ui); color: var(--t-mid); text-align: center; }
 .modal-score tbody th { text-align: left; font-size: var(--fs-16); white-space: nowrap; }
@@ -988,85 +512,211 @@ body > .net-banner:not(:empty) { position: sticky; top: calc(var(--bar-h) + var(
   .vsi-ready { align-self: center; min-width: 280px; margin: var(--sp-2) 0 max(var(--sp-2), var(--sab)); }
 }
 
-/* ---- old: nav fullscreen button ---- */
-.btn-nav-fs {
-  flex-shrink: 0; min-height: 52px; min-width: 52px; padding: 0;
-  border-radius: var(--radius-sm); border: 1.5px solid var(--border);
-  background: var(--surface2); color: var(--text2); font-size: 1.1rem; cursor: pointer;
-  transition: transform .1s, background .15s;
+/* ── 4d. SHELL: screens, menu bar, toasts ────────────────────── */
+.screen {
+  display: none; flex-direction: column; gap: var(--sp-4);
+  width: min(100%, 720px); margin: 0 auto;
+  padding: var(--sp-5) calc(var(--sar) + var(--sp-4)) calc(var(--sp-6) + var(--sab)) calc(var(--sal) + var(--sp-4));
 }
-.btn-nav-fs.fs-active { color: var(--gold); border-color: rgba(240,192,64,.4); }
-.btn-nav-fs:active { transform: scale(.94); }
-@media (max-width: 420px) {
-  /* four controls on a phone-width bar: tighten the tabs so nothing overflows */
-  #umpireNav { gap: 8px; padding-left: 12px; padding-right: 12px; }
-  #umpireNav .nav-tabs { gap: 6px; min-width: 0; }
-  #umpireNav .tab-btn { padding: 14px 6px; font-size: .95rem; min-width: 0; }
+.screen.active { display: flex; }
+
+/* the menu bar of the list screens: two tabs (the page you are on has a gold underline), fullscreen, change umpire */
+#umpireNav {
+  display: none;                                   /* the script shows it (display:flex) on the list screens only */
+  position: sticky; top: 0; z-index: var(--z-nav); align-items: stretch; gap: var(--sp-2);
+  height: calc(var(--bar-h) + var(--sat));
+  /* on a wide window the bar lines up with the centred 720 px column below it */
+  padding: var(--sat) max(calc(var(--sar) + var(--sp-2)), calc((100% - 720px) / 2 + var(--sp-2))) 0 max(calc(var(--sal) + var(--sp-2)), calc((100% - 720px) / 2 + var(--sp-2)));
+  background: var(--bg); border-bottom: 1px solid var(--line);
 }
-/* ---- old: notice ---- */
-/* ── NOTICE — does not block the screen; sits under the bar that is showing (JS sets top) ── */
+.nav-tabs { flex: 1; min-width: 0; max-width: 420px; margin-right: auto; display: flex; gap: var(--sp-2); }
+.tab-btn {
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  background: none; border: 0; border-bottom: 3px solid transparent; color: var(--t-low);
+  font: 700 var(--fs-16)/1.2 var(--font-ui); white-space: nowrap;
+  transition: color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
+}
+.tab-btn.active { color: var(--t-hi); border-bottom-color: var(--gold); }
+.tab-btn:active { color: var(--t-hi); }
+.btn-nav-fs, .btn-logout { align-self: center; flex: none; }
+.btn-nav-fs.fs-active { --btn-fg: var(--gold); }
+.btn-logout { --btn-fg: var(--err); }
+
+/* the page title and who is signed in (the name decides which matches are "yours") */
+.screen-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
+.screen-header-text { min-width: 0; }
+.screen-title { font: 800 var(--fs-32)/var(--lh-th) var(--font-ui); color: var(--t-hi); }
+.screen-sub { font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.who-chip { flex: none; max-width: 45%; margin-top: var(--sp-1); }
+.who-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.pull-hint { display: flex; align-items: center; justify-content: center; gap: 6px; font: 600 var(--fs-12)/var(--lh-th) var(--font-ui); color: var(--t-low); }
+#matchList, #finishedList { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* the fullscreen toast (it said "tap twice to leave": nothing in this page ever did that, so it no longer says so) */
+#fsIndicator {
+  position: fixed; left: 50%; bottom: calc(var(--sp-4) + var(--sab)); z-index: var(--z-toast);
+  display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-pill); background: var(--s3); border: 1px solid var(--gold-line); color: var(--gold);
+  font: 700 var(--fs-14)/var(--lh-th) var(--font-ui);
+  opacity: 0; transform: translate(-50%, var(--sp-2)); pointer-events: none;
+  transition: opacity var(--dur-state) var(--ease-out), transform var(--dur-state) var(--ease-out);
+}
+#fsIndicator.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* a message that never blocks a tap: under the bar that is on screen (info row / menu bar are the same height), above
+   the dialogs. Icon + words + (optionally) one action + close. */
 #umpNotice { display: none; }
 #umpNotice.show {
-  display: flex; align-items: center; gap: 8px;
-  position: fixed; left: 10px; right: 10px; z-index: 1800;
-  padding: 8px 8px 8px 14px; border-radius: var(--radius-md);
-  background: rgba(20,20,36,0.97); border: 1.5px solid var(--border-bright);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.55);
-  font-size: 0.92rem; font-weight: 700; line-height: 1.35; color: var(--text);
+  position: fixed; z-index: var(--z-toast); display: flex; align-items: center; gap: var(--sp-2);
+  left: calc(var(--sal) + var(--sp-3)); right: calc(var(--sar) + var(--sp-3)); max-width: 640px; margin: 0 auto;
+  top: calc(var(--sat) + var(--bar-h) + var(--sp-2));
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4); border-radius: var(--r-md);
+  background: var(--s2); border: 1px solid var(--line-strong); box-shadow: var(--shadow-pop);
+  font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-hi);
 }
-#umpNotice.err  { border-color: rgba(255,77,77,0.7); }
-#umpNotice.warn { border-color: rgba(240,192,64,0.7); }
-#umpNotice.ok   { border-color: rgba(46,204,113,0.7); }
-#umpNotice .un-text { flex: 1; min-width: 0; }
+@media (orientation: landscape) and (min-width: 560px) { body.is-scoring #umpNotice.show { top: calc(var(--sat) + var(--sp-2)); } }
+#umpNotice > .ds-ic { flex: none; width: 22px; height: 22px; }
+#umpNotice.err { border-color: var(--err-line); }
+#umpNotice.err > .ds-ic { color: var(--err); }
+#umpNotice.warn { border-color: var(--warn-line); }
+#umpNotice.warn > .ds-ic { color: var(--warn); }
+#umpNotice.ok { border-color: var(--live-line); }
+#umpNotice.ok > .ds-ic { color: var(--live); }
+#umpNotice .un-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 #umpNotice .un-btn, #umpNotice .un-x {
-  flex: none; min-height: 48px; min-width: 48px; border-radius: var(--radius-sm); cursor: pointer;
-  border: 1.5px solid var(--border-bright); background: var(--surface3); color: var(--text);
-  font: inherit; font-weight: 800; touch-action: manipulation;
+  flex: none; min-height: var(--tap-md); border-radius: var(--r-sm); border: 1px solid var(--line-strong);
+  background: var(--s3); color: var(--t-hi); font: 700 var(--fs-14)/1.2 var(--font-ui);
 }
-#umpNotice .un-btn { padding: 0 16px; background: var(--gold-dim); border-color: rgba(240,192,64,0.6); color: var(--gold); }
-#umpNotice .un-x { font-size: 1.1rem; }
-#umpNotice .un-btn:active, #umpNotice .un-x:active { transform: scale(0.95); }
-/* ---- old: login hint, short phone, list groups ---- */
-/* iPhone: no full-screen button, so say why (login page only) */
-.login-fs-hint { margin-top: 8px; max-width: 320px; font-size: 0.82rem; line-height: 1.5; color: var(--muted); text-align: center; }
-/* a short phone (320 x 568): the login page closes up so name and button are in view without scrolling */
-@media (max-height: 760px) {
-  #screen-login { padding: calc(14px + var(--sat)) 18px calc(16px + var(--sab)); }
-  .login-icon { font-size: 2.4rem; margin-bottom: 2px; }
-  .login-title { font-size: 2.1em; margin-bottom: 2px; }
-  .login-subtitle { font-size: 0.9rem; }
-  .login-fs-row { margin-top: 6px; }
-  .login-card { padding: 16px 16px 18px; gap: 14px; }
-  .login-section-label { margin-bottom: 8px; }
-  .toggle-btn { padding: 12px 8px; }
-  .umpire-select { min-height: 56px; padding: 14px 44px 14px 16px; font-size: 1.1rem; }
-  .btn-login { font-size: 1.6em; letter-spacing: 0.3px; padding: 14px 16px; }   /* one line at 320 px, not two */
-}
-/* really short (320 x 568): the racket icon goes, so team + group + name + button all fit at once */
-@media (max-height: 640px) {
-  .login-icon { display: none; }
-  #screen-login { padding-top: calc(10px + var(--sat)); }
-  .login-card { gap: 12px; padding: 14px 16px 16px; }
-}
+#umpNotice .un-btn { padding: 0 var(--sp-4); background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+#umpNotice .un-x { min-width: var(--tap-md); display: grid; place-items: center; padding: 0; }
+#umpNotice .un-btn:active, #umpNotice .un-x:active { transform: scale(.96); }
 
-/* ── MATCH LIST groups, the free-only filter, the "next" mark (P-27) ── */
-.list-group { display: flex; align-items: baseline; gap: 8px; margin: 6px 2px 0; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.5px; color: var(--text); }
-.list-group b { font-family: 'Bebas Neue', sans-serif; font-size: 1.25em; letter-spacing: 1px; color: var(--gold); }
-.list-filter {
-  width: 100%; min-height: 48px; padding: 8px 14px; border-radius: var(--radius-md); cursor: pointer;
-  border: 1.5px solid var(--border-bright); background: var(--surface2); color: var(--text);
-  font-size: 0.92rem; font-weight: 800; touch-action: manipulation;
-}
-.list-filter.on { border-color: rgba(240,192,64,0.6); background: var(--gold-dim); color: var(--gold); }
-.badge-next { background: var(--gold); color: #14120a; border: 1px solid var(--gold); }
-
-/* the "ลองใหม่" button of the loading / no-connection states (P-21) */
-.btn-retry {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-height: 48px; padding: 0 24px; margin-top: 12px;
-  border-radius: var(--radius-md); border: 2px solid var(--border-bright);
-  background: var(--surface3); color: var(--text);
-  font-size: 1rem; font-weight: 800; cursor: pointer; touch-action: manipulation;
-}
-.btn-retry:active { background: var(--surface2); }
+/* the retry button of the loading / no-connection states */
+.btn-retry { margin-top: var(--sp-2); }
 .btn-retry[hidden] { display: none; }
+
+/* ── 4e. LOGIN ────────────────────────────────────────────────
+   One job: say who you are. Team (a shape + word, never colour alone) → group → name → one gold button pinned to the
+   bottom, so it is in reach even on a 320 x 568 phone. */
+#screen-login { justify-content: center; min-height: 100vh; min-height: 100dvh; padding-top: calc(var(--sat) + var(--sp-5)); gap: var(--sp-5); }
+.login-hero { display: grid; justify-items: center; gap: var(--sp-2); padding: var(--sp-4) 0; text-align: center; }
+.login-mark { display: block; width: 72px; height: 72px; margin-bottom: var(--sp-2); }
+.login-mark .ds-mark { width: 100%; height: 100%; display: block; }
+.login-title { font: 800 var(--fs-40)/var(--lh-th) var(--font-ui); color: var(--t-hi); }
+.login-subtitle { font: 500 var(--fs-16)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.login-fs-row { display: grid; justify-items: center; gap: var(--sp-2); margin-top: var(--sp-2); }
+.btn-login-fs { --btn-bg: transparent; --btn-fg: var(--t-mid); border-radius: var(--r-pill); }
+.login-fs-hint { max-width: 320px; font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-low); text-align: center; }
+
+.login-card { display: grid; gap: var(--sp-5); padding: var(--sp-5) var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.login-section-label { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.login-section-label > span {
+  display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--gold-dim); border: 1px solid var(--gold-line); color: var(--gold); font: 700 var(--fs-13)/1 var(--font-ui);
+}
+.toggle-group { display: grid; gap: var(--sp-2); }
+.toggle-group.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.toggle-group.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.toggle-btn { min-width: 0; padding: 0 var(--sp-2); }
+.toggle-group.cols-2 .toggle-btn { min-height: var(--tap-lg); font-size: var(--fs-18); }
+.toggle-btn.selected-red { --btn-bg: var(--red-fill); --btn-fg: var(--red-ink); --btn-line: var(--red); }
+.toggle-btn.selected-blue { --btn-bg: var(--blue-fill); --btn-fg: var(--blue-ink); --btn-line: var(--blue); }
+.toggle-btn.selected-gold { --btn-bg: var(--gold); --btn-fg: var(--gold-ink); --btn-line: var(--gold); }
+.toggle-btn.selected-red .ds-team, .toggle-btn.selected-blue .ds-team { color: inherit; }
+@media (hover: hover) {
+  .toggle-btn.selected-red:hover { --btn-bg: var(--red-fill-hi); }
+  .toggle-btn.selected-blue:hover { --btn-bg: var(--blue-fill-hi); }
+  .toggle-btn.selected-gold:hover { --btn-bg: var(--gold-hi); }
+}
+.login-help { margin-top: var(--sp-2); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.btn-login { position: sticky; bottom: calc(var(--sp-3) + var(--sab)); z-index: var(--z-sticky); font-weight: 800; }
+/* until a name is chosen: plain, and it says what to do (not a faded gold button) */
+.btn-login:disabled { opacity: 1; --btn-bg: var(--s3); --btn-fg: var(--t-mid); --btn-line: var(--line-strong); border-style: dashed; }
+#screen-login .app-version { margin-top: 0; font-size: var(--fs-12); letter-spacing: 0; color: var(--t-low); opacity: 1; }
+/* a phone under 900 px high (an iPhone 14 is 844, a 320 x 568 is the floor): the login page closes up so team, group,
+   name and the button are in view without scrolling */
+@media (max-height: 900px) {
+  #screen-login { gap: var(--sp-3); padding-top: calc(var(--sat) + var(--sp-3)); padding-bottom: calc(var(--sp-4) + var(--sab)); }
+  .login-hero { padding: 0; gap: 2px; }
+  .login-mark { width: 48px; height: 48px; margin-bottom: 0; }
+  .login-title { font-size: var(--fs-32); }
+  .login-card { gap: var(--sp-3); padding: var(--sp-4) var(--sp-3); }
+  .login-section-label { margin-bottom: var(--sp-1); }
+  .login-help { margin-top: var(--sp-1); }
+}
+@media (max-height: 640px) {
+  .login-mark { display: none; }
+  .login-subtitle { font-size: var(--fs-14); }
+  .login-fs-row { margin-top: 0; }
+  .login-card { gap: var(--sp-2); padding: var(--sp-3); }
+  .toggle-group.cols-2 .toggle-btn, .btn-login { min-height: var(--tap-md); }
+}
+
+/* ── 4f. MATCH LIST ───────────────────────────────────────────
+   Three groups (yours, free in queue order, taken). A whole card is ONE target (>= 72 px): the match id, the court, the
+   state in icon + word, the two pairs with their faces. Colour is never the only cue: each side has its shape. */
+.list-group { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-2); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.list-group b { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 var(--sp-2); border-radius: var(--r-pill); background: var(--s3); color: var(--t-hi); font: 700 var(--fs-13)/1 var(--font-ui); }
+/* "only the free ones": a toggle that stays under the menu bar while the list scrolls */
+.list-filter {
+  position: sticky; top: calc(var(--bar-h) + var(--sat) + var(--sp-2)); z-index: var(--z-sticky);
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2); width: 100%; min-height: var(--tap-md); padding: 0 var(--sp-4);
+  border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--s2); color: var(--t-hi);
+  font: 700 var(--fs-14)/1.3 var(--font-ui); box-shadow: 0 var(--sp-2) 0 var(--bg);
+}
+.list-filter.on { border-color: var(--gold-line); background: var(--gold-dim); color: var(--gold); }
+
+.match-card {
+  position: relative; display: grid; gap: var(--sp-3); width: 100%; min-height: 72px; padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
+  text-align: left; color: var(--t-hi); font: inherit;
+  background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden;
+  transition: background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out);
+}
+.match-card::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 5px; background: var(--line-strong); }
+.match-card.claimed { border-color: var(--gold-line); }
+.match-card.claimed::before { background: var(--gold); }
+button.match-card:active { background: var(--s2); transform: scale(.985); }
+.match-card.locked-other { min-height: 0; padding-top: var(--sp-3); padding-bottom: var(--sp-3); background: none; border-style: dashed; }
+.mc-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-width: 0; }
+.mc-id { display: inline-flex; align-items: baseline; gap: var(--sp-2); font: 400 var(--fs-32)/1 var(--font-num); letter-spacing: 0; color: var(--gold); white-space: nowrap; }
+.mc-id small { font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.locked-other .mc-id { font-size: var(--fs-24); color: var(--t-mid); }
+.mc-badges { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-2); min-width: 0; }
+.mc-badges .ds-chip { min-height: 32px; font-size: var(--fs-14); }
+.ds-chip-next { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.mc-team { align-items: center; min-width: 0; font: 700 var(--fs-18)/var(--lh-th) var(--font-ui); }
+.mc-team .uavatar { --ua: 36px; }
+.mc-names { min-width: 0; overflow-wrap: anywhere; }
+.mc-names .amp { color: var(--t-mid); font-size: .88em; font-weight: 600; }
+.mc-team + .mc-team { padding-top: var(--sp-2); border-top: 1px solid var(--line); }
+
+/* states: loading (skeletons), empty, no connection */
+.skel-card { display: grid; gap: var(--sp-3); padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+.skel-line { height: 20px; }
+.skel-line.w30 { width: 30%; }
+.skel-line.w60 { width: 60%; }
+.skel-line.w80 { width: 80%; }
+.list-state { display: grid; gap: var(--sp-3); }
+.list-state-text { text-align: center; font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+@media (prefers-reduced-motion: reduce) { .ds-skel, .ds-dot-live { animation: none; } }
+
+/* ── 4g. FINISHED LIST ────────────────────────────────────────
+   One card per result: the match, the result in words (the winner's colour + shape), the scores per game. */
+.finished-card { display: grid; gap: var(--sp-3); padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+.finished-header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
+.result-badge { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); background: var(--s3); border: 1px solid var(--line-strong); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); }
+.result-badge.red { background: var(--red-dim); border-color: var(--red); color: var(--red-text); }
+.result-badge.blue { background: var(--blue-dim); border-color: var(--blue); color: var(--blue-text); }
+.result-badge.draw { background: var(--gold-dim); border-color: var(--gold-line); color: var(--gold); }
+.score-grid { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.score-grid thead th { padding: 0 0 var(--sp-1); font: 600 var(--fs-13)/1.3 var(--font-ui); color: var(--t-mid); text-align: center; }
+.score-grid thead th:first-child { width: auto; }
+.score-grid thead th:not(:first-child), .score-grid td { width: 64px; }
+.score-grid tbody th { padding: var(--sp-2) var(--sp-2) var(--sp-2) 0; text-align: left; font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); overflow-wrap: anywhere; vertical-align: middle; }
+.score-grid tbody tr + tr > * { border-top: 1px solid var(--line); }
+.score-grid td { text-align: center; font: 400 var(--fs-40)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--t-mid); }
+.score-grid td.win { color: var(--gold); }
+.fc-side { display: flex; align-items: center; gap: var(--sp-2); }
+.fc-names { display: grid; }
+.fc-won { width: 22px; height: 22px; color: var(--gold); }
+.finished-umpire { display: flex; align-items: center; gap: var(--sp-2); padding-top: var(--sp-3); border-top: 1px solid var(--line); font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }

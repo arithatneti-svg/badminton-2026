@@ -7,7 +7,8 @@
 import { UMP, UMP_LAND, umpireBench, openScoring } from 'file:///C:/Badminton%202026/ux-wt/scripts/audit/shots/scenarios/_lib.mjs';
 
 const base = { app: 'umpire', path: '/umpire.html' };
-export const WIDE = ['1280x800', '768x1024'];
+// the sizes the contract asks for besides the umpire phones: a big phone, a tablet, a laptop, a large laptop
+export const WIDE = ['430x932', '768x1024', '1280x800', '1440x900'];
 
 // runs INSIDE the page (serialised): one screen's numbers
 function measure(arg) {
@@ -105,5 +106,78 @@ export default [
     await page.eval('(() => { __audit.umpOnline(false); _uPending = 3; _uOfflinePoints = 3; _uRenderNet(); })()');
     await page.wait(150);
     await check(page, '#screen-scoring'); await page.shot('');
+  }),
+
+  // ── login: is the gold button inside the screen without scrolling? ──
+  S('check-login', UMP.concat(WIDE), async (page) => {
+    await page.eval("(async () => { document.getElementById('tbtn-Red').click(); await new Promise(r => setTimeout(r, 100)); const sel = document.getElementById('umpireSelect'); sel.value = sel.options[2].value; updateLoginReady(); window.scrollTo(0, 0); })()");
+    const m = await check(page, '#screen-login');
+    page.note('login button in view: ' + await page.eval("(() => { const b = document.getElementById('btnLogin').getBoundingClientRect(); return (b.top >= 0 && b.bottom <= innerHeight) + ' (' + Math.round(b.top) + '..' + Math.round(b.bottom) + ' of ' + innerHeight + '), page scrolls: ' + (document.documentElement.scrollHeight > innerHeight + 1); })()"));
+    await page.shot('');
+  }),
+
+  // ── lists ──
+  S('check-list', UMP.concat(WIDE), async (page) => {
+    await umpireBench(page); await page.eval("goToTab('live')"); await page.wait(200);
+    await check(page, '#screen-live'); await check(page, '#umpireNav'); await page.shot('');
+  }),
+  S('check-finished', UMP.concat(WIDE), async (page) => {
+    await umpireBench(page); await page.eval("goToTab('finished')"); await page.wait(250);
+    await check(page, '#screen-finished'); await page.shot('');
+  }),
+  S('check-list-empty', ['390x844', '320x568'], async (page) => {
+    await umpireBench(page);
+    await page.eval("(() => { __audit.umpMock([], 'ทดสอบ'); goToTab('live'); })()");
+    await check(page, '#screen-live'); await page.shot('');
+  }),
+
+  // ── dialogs ──
+  S('check-dialog-match', UMP_LAND.concat(['1280x800']), async (page) => {
+    await openScoring(page, { live: { g1R: 21, g1B: 15, g1Locked: true, g2R: 19, g2B: 21 }, elapsedMs: 2400000 });
+    await page.eval('submitGame()'); await page.waitFor('#customModal.open'); await page.wait(150);
+    await check(page, '#customModal'); await page.shot('');
+  }),
+  S('check-dialog-warn', UMP_LAND, async (page) => {
+    await openScoring(page, { live: { g1R: 14, g1B: 9 }, elapsedMs: 700000 });
+    await page.eval('submitGame()'); await page.waitFor('#customModal.open'); await page.wait(150);
+    await check(page, '#customModal'); await page.shot('');
+  }),
+  S('check-dialog-courts', UMP_LAND, async (page) => {
+    await umpireBench(page, { history: false });
+    await page.eval("(() => { const m = __audit.server.ongoing.find(x => x.id === 'T03'); delete m.umpire; delete m.live; __audit.umpEcho(); goToTab('live'); selectMatch('T01'); })()");
+    await page.waitFor('#customModal.open .court-grid'); await page.wait(150);
+    await check(page, '#customModal'); await page.shot('');
+  }),
+  S('check-dialog-result', UMP_LAND, async (page) => {
+    await openScoring(page, { live: { g1R: 21, g1B: 15, g1Locked: true, g2R: 21, g2B: 17 }, elapsedMs: 2200000 });
+    await page.eval('(() => { const A = __audit; A.server.history = []; A.server.red = 0; A.server.blue = 0; })()');
+    await page.eval('submitGame()'); await page.waitFor('#customModal.open');
+    await page.eval("document.querySelector('#modalBtns .modal-btn-confirm').click()");
+    await page.waitUntil("document.getElementById('modalTitle').textContent.indexOf('ส่งผลแล้ว') >= 0", 8000, 'the sent box');
+    await page.wait(150); await check(page, '#customModal'); await page.shot('');
+  }),
+  S('check-dialog-exit', UMP_LAND, async (page) => {
+    await openScoring(page, { live: { g1R: 11, g1B: 9 } });
+    await page.eval('(() => { confirmExit(); })()'); await page.waitFor('#customModal.open'); await page.wait(150);
+    await check(page, '#customModal'); await page.shot('');
+  }),
+
+  // ── pause · VS intro · notice ──
+  S('check-pause', UMP_LAND, async (page) => {
+    await openScoring(page, { live: { g1R: 11, g1B: 9 } });
+    await page.eval('togglePause()'); await page.waitFor('#pauseOverlay.show'); await page.wait(150);
+    await check(page, '#pauseOverlay'); await page.shot('');
+  }),
+  S('check-vs', UMP_LAND, async (page) => {
+    await page.eval('__audit.umpFreeze()');
+    await page.eval("(() => { __audit.umpMock(__audit.umpMatches(4), 'ทดสอบ'); goToTab('live'); selectMatch('T01'); })()");
+    await page.waitFor('#customModal.open .court-grid'); await page.eval('_modalDone(2)');
+    await page.waitFor('#vsIntro.show'); await page.eval('clearTimeout(_vsIntroTimer)'); await page.wait(150);
+    await check(page, '#vsIntro'); await page.shot('');
+  }),
+  S('check-notice-err', UMP_LAND, async (page) => {
+    await openScoring(page, { live: { g1R: 11, g1B: 9 } });
+    await page.eval("_uWriteFailed('error', 'คะแนนล่าสุด', function () {}, function () { return '10–9'; })"); await page.wait(150);
+    await check(page, '#umpNotice'); await page.shot('');
   }),
 ];
