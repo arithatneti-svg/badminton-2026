@@ -230,7 +230,7 @@
   #mainNav .tab-ico { width: 22px; height: 22px; }
   #mainNav .tab-lbl { font-size: var(--fs-12); line-height: 1.2; }
   /* the count on Ongoing / Finished rides on the icon's corner */
-  #mainNav .tab-count { position: absolute; top: 3px; left: calc(50% + 4px); min-width: 20px; height: 20px; padding: 0 5px; font-size: var(--fs-12); line-height: 20px; }
+  #mainNav .tab-count { position: absolute; top: 1px; left: calc(50% + 9px); min-width: 20px; height: 20px; padding: 0 5px; font-size: var(--fs-12); line-height: 20px; }
   #mainNav .tab-btn::after { left: var(--sp-1); right: var(--sp-1); }
 
   #mainNav .nav-more { order: 2; }

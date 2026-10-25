@@ -309,7 +309,7 @@ try {
 </div>
 
 
-<div id="scoreboard" class="container" style="padding: 0; max-width: 100%;">
+<div id="scoreboard" class="container">
   <!-- Live-match arena — shown while a court is being scored; falls back to the
        team-battle totals below when nothing is live (rendered by renderLiveArena) -->
   <div id="liveArena" style="display:none;"></div>
@@ -318,14 +318,14 @@ try {
        redTeamName, redLeadBadge …) are kept so nothing else had to change. -->
   <div class="scoreboard-wrapper idle-board">
     <div class="idl-top">
-      <span class="idl-pill">⏸ พักระหว่างแมตช์</span>
+      <span class="idl-pill"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-pause-fill"/></svg>พักระหว่างแมตช์</span>
       <span class="idl-sum" id="idleSummary"></span>
     </div>
     <div class="idl-totals">
       <div class="idl-team red" id="redPanel">
-        <input class="team-name-edit idl-tname red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมแดง">
+        <div class="idl-head"><i class="tsh tsh-red" aria-hidden="true"></i><input class="team-name-edit idl-tname red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมแดง"></div>
         <div class="idl-score" id="displayRedScore">0</div>
-        <div class="idl-lead" id="redLeadBadge">▲ นำ</div>
+        <div class="idl-lead" id="redLeadBadge"></div>
       </div>
       <div class="idl-mid">
         <div class="idl-vs">VS</div>
@@ -333,9 +333,9 @@ try {
         <div class="idl-ptslbl">คะแนนรวมทีม</div>
       </div>
       <div class="idl-team blue" id="bluePanel">
-        <input class="team-name-edit idl-tname blue" id="blueTeamName" value="BLUE TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมน้ำเงิน">
+        <div class="idl-head"><i class="tsh tsh-blue" aria-hidden="true"></i><input class="team-name-edit idl-tname blue" id="blueTeamName" value="BLUE TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมน้ำเงิน"></div>
         <div class="idl-score" id="displayBlueScore">0</div>
-        <div class="idl-lead" id="blueLeadBadge">▲ นำ</div>
+        <div class="idl-lead" id="blueLeadBadge"></div>
       </div>
     </div>
     <div id="idleNext"></div>
@@ -347,66 +347,63 @@ try {
 </div>
 
 <!-- ONGOING MATCH TAB -->
-<div id="ongoing" class="container" style="max-width:1200px;">
-  <!-- Hero stats bar -->
+<div id="ongoing" class="container">
+  <!-- what is on court right now, in one number -->
   <div class="ongoing-hero">
-    <div>
-      <div style="font-size:12px;font-weight:700;letter-spacing:0.3px;color:var(--muted);margin-bottom:4px;">กำลังแข่งบนคอร์ต</div>
+    <div class="oh-main">
+      <div class="oh-label">กำลังแข่งบนคอร์ต</div>
       <div class="ongoing-live-count" id="ongoingLiveCount">0</div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-      <div style="display:flex;align-items:center;gap:6px;">
-        <div class="live-dot"></div>
-        <span style="font-size:12px;font-weight:700;letter-spacing:0.3px;color:var(--green);">อัปเดตสด</span>
-      </div>
-      <span id="ongoingQueueCount" style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);">0 รอคิว</span>
+    <div class="oh-side">
+      <span class="ds-chip ds-chip-live"><i class="ds-dot ds-dot-live"></i>อัปเดตสด</span>
+      <span class="oh-queue" id="ongoingQueueCount">0 รอคิว</span>
     </div>
   </div>
 
-  <div class="section-title th" style="margin-top:0;">
-    <span class="live-dot" style="width:8px;height:8px;margin-right:-4px;"></span>
-    กำลังแข่งตอนนี้
-  </div>
-  <div id="publicLiveMatches" class="court-grid" style="margin-bottom:32px;"></div>
+  <h2 class="section-title th"><i class="ds-dot ds-dot-live" aria-hidden="true"></i>กำลังแข่งตอนนี้</h2>
+  <div id="publicLiveMatches" class="court-grid"></div>
 
-  <div class="section-title th">⏳ แมตช์ถัดไป</div>
+  <h2 class="section-title th">แมตช์ถัดไป</h2>
   <div id="publicUpcomingMatches" class="queue-list"></div>
 </div>
 
 <!-- FINISHED MATCH TAB -->
 <div id="finished" class="container">
-  <div class="report-header tab-toolbar">
-    <div class="section-title th" style="margin:0;">🏁 แมตช์ที่จบแล้ว</div>
-    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-      <input type="text" id="finishedSearch" placeholder="🔍 ค้นหาแมตช์…" style="width:150px; font-size:13px; padding:6px 12px;" oninput="debounce(renderFinishedMatches,220)()">
-      <select id="finishedFilterRound" style="font-size:13px; padding:6px 10px;" onchange="renderFinishedMatches()">
+  <div class="fin-bar tab-toolbar">
+    <h2 class="section-title th fin-title"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg>แมตช์ที่จบแล้ว</h2>
+    <div class="fin-controls">
+      <label class="fin-search">
+        <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+        <input type="text" id="finishedSearch" placeholder="ค้นหาแมตช์…" aria-label="ค้นหาแมตช์" autocomplete="off" oninput="debounce(renderFinishedMatches,220)()">
+      </label>
+      <select id="finishedFilterRound" aria-label="กรองตามรอบ" onchange="renderFinishedMatches()">
         <option value="">ทุกรอบ</option>
         <option value="1">รอบ 1</option>
         <option value="2">รอบ 2</option>
         <option value="3">รอบ 3</option>
       </select>
-      <div style="display:flex;gap:4px;align-items:center;">
-        <button class="me-filter-btn" onclick="toggleMeFilter(this)" title="ดูเฉพาะแมตช์ของฉัน">⭐ ของฉัน</button>
-        <button class="filter-pill active" id="frAll"  onclick="setFinishedResultFilter('')">ทั้งหมด</button>
-        <button class="filter-pill" id="frRed"  onclick="setFinishedResultFilter('red')"  style="--pill-active-bg:rgba(255,59,92,0.15);--pill-active-border:rgba(255,59,92,0.35);--pill-active-color:var(--red);">🔴 ทีมแดงชนะ</button>
-        <button class="filter-pill" id="frDraw" onclick="setFinishedResultFilter('draw')" style="--pill-active-bg:rgba(245,200,66,0.15);--pill-active-border:rgba(245,200,66,0.35);--pill-active-color:var(--gold);">🤝 เสมอ</button>
-        <button class="filter-pill" id="frBlue" onclick="setFinishedResultFilter('blue')" style="--pill-active-bg:rgba(59,142,255,0.15);--pill-active-border:rgba(59,142,255,0.35);--pill-active-color:var(--blue);">🔵 ทีมน้ำเงินชนะ</button>
-      </div>
+    </div>
+    <div class="fin-filters" role="group" aria-label="กรองตามผล">
+      <button type="button" class="me-filter-btn" onclick="toggleMeFilter(this)" title="ดูเฉพาะแมตช์ของฉัน" aria-pressed="false"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-star-fill"/></svg>ของฉัน</button>
+      <button type="button" class="filter-pill active" id="frAll" onclick="setFinishedResultFilter('')" aria-pressed="true">ทั้งหมด</button>
+      <button type="button" class="filter-pill" id="frRed" onclick="setFinishedResultFilter('red')" aria-pressed="false"><i class="tsh tsh-red" aria-hidden="true"></i>ทีมแดงชนะ</button>
+      <button type="button" class="filter-pill" id="frDraw" onclick="setFinishedResultFilter('draw')" aria-pressed="false">เสมอ</button>
+      <button type="button" class="filter-pill" id="frBlue" onclick="setFinishedResultFilter('blue')" aria-pressed="false"><i class="tsh tsh-blue" aria-hidden="true"></i>ทีมน้ำเงินชนะ</button>
     </div>
   </div>
   <!-- Tag legend — collapsed by default; it is reference material, not
        something you need on screen while scanning 39 results. -->
   <details class="fin-legend">
-    <summary>📖 ความหมายของ Tag</summary>
+    <summary><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-info"/></svg><span>ความหมายของ Tag</span></summary>
     <div class="fin-legend-body">
-      <div class="fin-legend-item"><span class="finished-tag tag-comeback">🔥 Epic Comeback</span><span>ตามหลัง 4+ แต้มช่วงท้ายแล้วพลิกชนะ</span></div>
-      <div class="fin-legend-item"><span class="finished-tag tag-clutch">⚔️ The Gladiators</span><span>แต้มรวม 2 เกม ห่างกันไม่เกิน 5 แต้ม</span></div>
-      <div class="fin-legend-item"><span class="finished-tag tag-custom">🏃 Marathon</span><span>มีเกมที่ดิวซ์ยาวถึง 22 แต้มขึ้นไป</span></div>
-      <div class="fin-legend-item"><span class="finished-tag tag-custom">🎢 Rollercoaster</span><span>ผลัดกันชนะ-แพ้ขาดคนละเกม</span></div>
-      <div class="fin-legend-item"><span class="finished-tag tag-blowout">🌪️ Blowout</span><span>ทีมชนะทุบขาด แต้มห่างรวม 16 แต้มขึ้นไป</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-comeback"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-fire"/></svg>Epic Comeback</span><span>ตามหลัง 4+ คะแนนช่วงท้ายแล้วพลิกชนะ</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-clutch"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-target"/></svg>The Gladiators</span><span>คะแนนรวม 2 เกม ห่างกันไม่เกิน 5 คะแนน</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-custom"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-timer"/></svg>Marathon</span><span>มีเกมที่ดิวซ์ยาวถึง 22 คะแนนขึ้นไป</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-custom"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-chart-line-up"/></svg>Rollercoaster</span><span>ผลัดกันชนะ-แพ้ขาดคนละเกม</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-blowout"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-lightning"/></svg>Blowout</span><span>ทีมชนะทุบขาด คะแนนห่างรวม 16 คะแนนขึ้นไป</span></div>
     </div>
   </details>
-  <div id="finishedMatchesGrid" class="match-grid"></div>
+  <div id="finishedMatchesGrid" class="fin-list"></div>
 </div>
 
 <!-- DASHBOARD TAB (Admin) -->
@@ -1187,15 +1184,13 @@ try {
   </div>
 </div>
 
-<!-- MATCH NOTIFICATION -->
-<div id="matchNotiOverlay">
+<!-- MATCH NOTIFICATION: the result of a match that just ended (js/notifications.js). A sheet on a phone, a card on a laptop. -->
+<div id="matchNotiOverlay" role="dialog" aria-modal="true" aria-labelledby="matchNotiMatchId">
   <div id="matchNotiBox">
-    <div id="matchNotiGlow"></div>
-
     <!-- ── HEADER: Match ID + Status ── -->
     <div id="matchNotiHeader">
       <div id="matchNotiMatchId">แมตช์ M01</div>
-      <div id="matchNotiStatusBadge">จบแมตช์!</div>
+      <div id="matchNotiStatusBadge">จบแมตช์</div>
     </div>
 
     <!-- ── TEAM NAMES ── -->
@@ -1205,9 +1200,9 @@ try {
       <div id="matchNotiBlueNameEl" class="mnoti-team-name blue">BLUE</div>
     </div>
 
-    <!-- ── SCORE BOARD: แสดงทั้ง 2 เกม ── -->
+    <!-- ── SCORE BOARD: both games ── -->
     <div id="matchNotiScoreBoard">
-      <!-- G1 -->
+      <!-- game 1 -->
       <div class="mnoti-game-row" id="mnotiG1Row">
         <div class="mnoti-game-label">เกม 1</div>
         <div id="mnotiG1Red" class="mnoti-score-cell red">0</div>
@@ -1215,7 +1210,7 @@ try {
         <div id="mnotiG1Blue" class="mnoti-score-cell blue">0</div>
         <div id="mnotiG1Winner" class="mnoti-game-winner"></div>
       </div>
-      <!-- G2 -->
+      <!-- game 2 -->
       <div class="mnoti-game-row" id="mnotiG2Row">
         <div class="mnoti-game-label">เกม 2</div>
         <div id="mnotiG2Red" class="mnoti-score-cell red">0</div>
@@ -1234,21 +1229,19 @@ try {
     <!-- ── NARRATIVE / SITUATION SUMMARY ── -->
     <div id="matchNotiNarrative"></div>
 
-    <!-- ── GIF ── -->
+    <!-- ── REACTION (emoji: the one place they are the content) ── -->
     <div id="matchNotiGifWrap"></div>
 
     <!-- ── OVERALL TEAM SCORE ── -->
     <div id="matchNotiOverallScore"></div>
 
-    <!-- ── CLOSE BUTTON ── -->
+    <!-- ── CLOSE BUTTONS ── -->
     <div id="matchNotiActions">
-      <button id="matchNotiClose" onclick="closeMatchNoti()">ปิด</button>
-      <button id="matchNotiCloseAll" onclick="closeAllMatchNoti()" hidden>ปิดทั้งหมด</button>
+      <button type="button" id="matchNotiClose" class="ds-btn ds-btn-primary ds-btn-lg" onclick="closeMatchNoti()">ปิด</button>
+      <button type="button" id="matchNotiCloseAll" class="ds-btn ds-btn-lg" onclick="closeAllMatchNoti()" hidden>ปิดทั้งหมด</button>
     </div>
 
-    <div id="matchNotiProgress" style="position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 20px 20px;width:100%;background:rgba(255,255,255,0.08);">
-      <div id="matchNotiProgressBar" style="height:100%;width:0%;border-radius:0 0 20px 20px;"></div>
-    </div>
+    <div id="matchNotiProgress"><div id="matchNotiProgressBar"></div></div>
   </div>
 </div>
 
@@ -1471,23 +1464,23 @@ try {
 
 <!-- ── FULLSCREEN BOTTOM NAV ── -->
 <div id="fsBottomNav" class="fs-bottom-nav">
-  <button class="fs-nav-btn active" onclick="switchTab('ongoing');  fsBtnActive(this)">
-    <span class="fs-nav-icon">🟢</span><span class="fs-nav-label">Live</span>
+  <button type="button" class="fs-nav-btn active" onclick="switchTab('ongoing');  fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-broadcast"/></svg><span class="fs-nav-label">Live</span>
   </button>
-  <button class="fs-nav-btn" onclick="switchTab('finished'); fsBtnActive(this)">
-    <span class="fs-nav-icon">🏁</span><span class="fs-nav-label">จบแล้ว</span>
+  <button type="button" class="fs-nav-btn" onclick="switchTab('finished'); fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg><span class="fs-nav-label">จบแล้ว</span>
   </button>
-  <button class="fs-nav-btn" onclick="switchTab('players');  fsBtnActive(this)">
-    <span class="fs-nav-icon">👤</span><span class="fs-nav-label">ผู้เล่น</span>
+  <button type="button" class="fs-nav-btn" onclick="switchTab('players');  fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-users"/></svg><span class="fs-nav-label">ผู้เล่น</span>
   </button>
-  <button class="fs-nav-btn" onclick="switchTab('scoreboard'); fsBtnActive(this)">
-    <span class="fs-nav-icon">📋</span><span class="fs-nav-label">Scoreboard</span>
+  <button type="button" class="fs-nav-btn" onclick="switchTab('scoreboard'); fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-trophy"/></svg><span class="fs-nav-label">Scoreboard</span>
   </button>
-  <button class="fs-nav-btn fs-admin-only" onclick="switchTab('dashboard'); fsBtnActive(this)">
-    <span class="fs-nav-icon">📊</span><span class="fs-nav-label">Dashboard</span>
+  <button type="button" class="fs-nav-btn fs-admin-only" onclick="switchTab('dashboard'); fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-chart-bar"/></svg><span class="fs-nav-label">Dashboard</span>
   </button>
-  <button class="fs-nav-btn fs-nav-exit" onclick="document.exitFullscreen()">
-    <span class="fs-nav-icon">✕</span><span class="fs-nav-label">ออก</span>
+  <button type="button" class="fs-nav-btn fs-nav-exit" onclick="document.exitFullscreen()">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg><span class="fs-nav-label">ออก</span>
   </button>
 </div>
 <!-- invisible trigger strip ขอบล่าง -->

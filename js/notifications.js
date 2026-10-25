@@ -80,17 +80,18 @@ function showG1DoneToast(matchId, g1r, g1b, winnerText) {
   // ลบ toast เก่าออกก่อน
   document.querySelectorAll('.g1-toast').forEach(el => el.remove());
 
+  // who took game 1, from the scores: the team's shape and word (winnerText, from the caller, still carries an emoji and English)
+  const who = g1r > g1b ? `<span class="ds-team ds-team-red">แดง</span> ชนะ · รอเกม 2`
+    : g1b > g1r ? `<span class="ds-team ds-team-blue">น้ำเงิน</span> ชนะ · รอเกม 2`
+    : 'เสมอ · รอเกม 2';
   const toast = document.createElement('div');
   toast.className = 'g1-toast';
+  toast.setAttribute('role', 'status');
   toast.innerHTML = `
     <div class="g1-toast-inner">
-      <div class="g1-toast-badge">เกม 1 จบแล้ว</div>
-      <div class="g1-toast-score">
-        <span style="color:var(--red);font-family:'Bebas Neue',sans-serif;font-size:1.4em;">${g1r}</span>
-        <span style="color:var(--muted);font-size:1em;margin:0 4px;">:</span>
-        <span style="color:var(--blue);font-family:'Bebas Neue',sans-serif;font-size:1.4em;">${g1b}</span>
-      </div>
-      <div class="g1-toast-label">${winnerText} ชนะ · รอเกม 2</div>
+      <span class="g1-toast-badge">เกม 1 จบแล้ว</span>
+      <span class="g1-toast-score"><span class="r">${g1r}</span><span class="sep">:</span><span class="b">${g1b}</span></span>
+      <span class="g1-toast-label">${who}</span>
     </div>
   `;
   document.body.appendChild(toast);
@@ -109,21 +110,22 @@ function showMatchNoti(params) {
   queueMatchNoti(params);
 }
 
+let _notiOpener = null;   // what had focus before the pop-up opened: it gets focus back when the last one closes
+
 function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, gameNum, gameWinner, globalRedBefore, globalBlueBefore, pRed, pBlue, tags, isMatchEnd, rStat }) {
 
   // FIX-DEDUP: track what's currently on screen so queueMatchNoti can dedup
   _currentNotiMatchId = matchId;
   _currentNotiIsMatchEnd = !!isMatchEnd;
 
-  // ── กำหนด accent สี ──
+  // ── the winner's colour: the line along the top of the sheet ──
   const accentKey = gameWinner === 'red' ? 'red' : gameWinner === 'blue' ? 'blue' : 'draw';
   const box = document.getElementById('matchNotiBox');
   box.className = `noti-accent-${accentKey}`;
-  document.getElementById('matchNotiGlow').className = `noti-glow-${accentKey}`;
 
   // ── Header ──
   document.getElementById('matchNotiMatchId').textContent = `แมตช์ ${matchId}`;
-  document.getElementById('matchNotiStatusBadge').textContent = isMatchEnd ? '🏁 จบแมตช์' : `เกม ${gameNum} จบแล้ว`;
+  document.getElementById('matchNotiStatusBadge').innerHTML = isMatchEnd ? `${dsIcon('flag')}<span>จบแมตช์</span>` : `<span>เกม ${gameNum} จบแล้ว</span>`;
 
   // ── Team names — strip (G1)/(G2)/(G3) suffix, show full names ──
   const fmtNotiNames = (str) => (str||'').split(' & ').map(n => stripGroup(n.trim())).join(' & ');
@@ -131,31 +133,31 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
   document.getElementById('matchNotiBlueNameEl').textContent = fmtNotiNames(blueNames) || 'BLUE';
 
   // ── Score board — แสดงทั้ง 2 เกม ──
-  const g1rWin = g1r > g1b, g1bWin = g1b > g1r, g1Draw = g1r === g1b;
-  const g2rWin = g2r > g2b, g2bWin = g2b > g2r, g2Draw = g2r === g2b;
+  const g1rWin = g1r > g1b, g1bWin = g1b > g1r;
+  const g2rWin = g2r > g2b, g2bWin = g2b > g2r;
+  // who won a game: the team's shape and "ชนะ", or "เสมอ"
+  const winChip = (el, rWin, bWin) => {
+    if (rWin) { el.innerHTML = '<i class="tsh tsh-red" aria-hidden="true"></i>ชนะ'; el.className = 'mnoti-game-winner red'; }
+    else if (bWin) { el.innerHTML = '<i class="tsh tsh-blue" aria-hidden="true"></i>ชนะ'; el.className = 'mnoti-game-winner blue'; }
+    else { el.textContent = 'เสมอ'; el.className = 'mnoti-game-winner draw'; }
+  };
 
   // Game 1
   document.getElementById('mnotiG1Red').textContent = g1r;
   document.getElementById('mnotiG1Blue').textContent = g1b;
   document.getElementById('mnotiG1Red').className = `mnoti-score-cell red${g1bWin ? ' dim' : ''}`;
   document.getElementById('mnotiG1Blue').className = `mnoti-score-cell blue${g1rWin ? ' dim' : ''}`;
-  const g1w = document.getElementById('mnotiG1Winner');
-  if (g1rWin) { g1w.textContent = '🔴 ชนะ'; g1w.className = 'mnoti-game-winner red'; }
-  else if (g1bWin) { g1w.textContent = '🔵 ชนะ'; g1w.className = 'mnoti-game-winner blue'; }
-  else { g1w.textContent = 'เสมอ'; g1w.className = 'mnoti-game-winner draw'; }
+  winChip(document.getElementById('mnotiG1Winner'), g1rWin, g1bWin);
 
   // Game 2 — แสดงเฉพาะถ้าจบ Match แล้ว
   const g2Row = document.getElementById('mnotiG2Row');
   if (isMatchEnd) {
-    g2Row.style.display = 'flex';
+    g2Row.style.display = '';
     document.getElementById('mnotiG2Red').textContent = g2r;
     document.getElementById('mnotiG2Blue').textContent = g2b;
     document.getElementById('mnotiG2Red').className = `mnoti-score-cell red${g2bWin ? ' dim' : ''}`;
     document.getElementById('mnotiG2Blue').className = `mnoti-score-cell blue${g2rWin ? ' dim' : ''}`;
-    const g2w = document.getElementById('mnotiG2Winner');
-    if (g2rWin) { g2w.textContent = '🔴 ชนะ'; g2w.className = 'mnoti-game-winner red'; }
-    else if (g2bWin) { g2w.textContent = '🔵 ชนะ'; g2w.className = 'mnoti-game-winner blue'; }
-    else { g2w.textContent = 'เสมอ'; g2w.className = 'mnoti-game-winner draw'; }
+    winChip(document.getElementById('mnotiG2Winner'), g2rWin, g2bWin);
   } else {
     g2Row.style.display = 'none';
   }
@@ -164,29 +166,29 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
   const resultLine = document.getElementById('matchNotiResultLine');
   if (isMatchEnd) {
     if (rStat === 'D') {
-      resultLine.textContent = '🤝 เสมอ 1–1';
-      resultLine.style.cssText = 'background:rgba(245,200,66,0.1);color:var(--gold);border:1px solid rgba(245,200,66,0.25);font-family:Bebas Neue,sans-serif;font-size:clamp(1.3em,4vw,1.8em);letter-spacing:3px;margin-bottom:12px;padding:10px 16px;border-radius:10px;line-height:1.3;';
+      resultLine.dataset.tone = 'draw';
+      resultLine.innerHTML = 'เสมอ 1–1';
     } else if (rStat === 'W') {
-      resultLine.innerHTML = `🔴 <span style="color:var(--red)">${redNames}</span> ชนะ 2–0 <span style="color:rgba(255,255,255,0.4);font-size:0.7em">(+3 pts)</span>`;
-      resultLine.style.cssText = 'background:rgba(255,59,59,0.1);color:var(--red);border:1px solid rgba(255,59,59,0.25);font-family:Bebas Neue,sans-serif;font-size:clamp(1em,3vw,1.4em);letter-spacing:2px;margin-bottom:12px;padding:10px 16px;border-radius:10px;line-height:1.3;';
+      resultLine.dataset.tone = 'red';
+      resultLine.innerHTML = `<span><i class="tsh tsh-red" aria-hidden="true"></i> ${escHtml(fmtNotiNames(redNames))} ชนะ 2–0</span><small>+3 คะแนน</small>`;
     } else {
-      resultLine.innerHTML = `🔵 <span style="color:var(--blue)">${blueNames}</span> ชนะ 2–0 <span style="color:rgba(255,255,255,0.4);font-size:0.7em">(+3 pts)</span>`;
-      resultLine.style.cssText = 'background:rgba(59,142,255,0.1);color:var(--blue);border:1px solid rgba(59,142,255,0.25);font-family:Bebas Neue,sans-serif;font-size:clamp(1em,3vw,1.4em);letter-spacing:2px;margin-bottom:12px;padding:10px 16px;border-radius:10px;line-height:1.3;';
+      resultLine.dataset.tone = 'blue';
+      resultLine.innerHTML = `<span><i class="tsh tsh-blue" aria-hidden="true"></i> ${escHtml(fmtNotiNames(blueNames))} ชนะ 2–0</span><small>+3 คะแนน</small>`;
     }
   } else {
     resultLine.textContent = '';
-    resultLine.style.cssText = '';
+    delete resultLine.dataset.tone;
   }
 
   // ── Tags ──
-  const tagHtml = tags && tags.length ? tags.map(t => `<span class="finished-tag ${t.class || 'tag-normal'}">${t.label}</span>`).join('') : '';
-  document.getElementById('matchNotiTags').innerHTML = tagHtml;
+  document.getElementById('matchNotiTags').innerHTML = tags && tags.length ? tags.map(t => _tagChipHtml(t)).join('') : '';
 
-  // ── Narrative / Situation Summary ──
+  // ── Narrative / Situation Summary: the match, then (a chart icon in front) what it did to the team score ──
   const tagIds = tags ? tags.map(t => t.id) : [];
   const narrative = buildNarrative({ rStat, isMatchEnd, tagIds, redNames, blueNames, g1r, g1b, g2r, g2b, gameNum, gameWinner, globalRedBefore, globalBlueBefore, pRed, pBlue });
-  const notiNarrative = document.getElementById('matchNotiNarrative');
-  notiNarrative.textContent = narrative;
+  const clean = s => stripGroup(s.replace(/^[\p{Extended_Pictographic}️\s]+/u, '').replace(/🔴\s*/g, 'แดง ').replace(/🔵\s*/g, 'น้ำเงิน '));
+  document.getElementById('matchNotiNarrative').innerHTML = narrative.split('\n\n').filter(Boolean)
+    .map((p, i) => i === 0 ? `<p>${escHtml(stripGroup(p))}</p>` : `<p class="mnoti-sit">${dsIcon('chart-bar')}<span>${escHtml(clean(p))}</span></p>`).join('');
 
   // ── Reaction — self-contained emoji burst (no external GIF/CDN dependency) ──
   const winnerSide = rStat === 'W' ? 'red' : rStat === 'L' ? 'blue' : 'draw';
@@ -202,27 +204,25 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
   // ── Overall score + คะแนนที่ได้ ──
   const newRed = globalRedBefore + pRed;
   const newBlue = globalBlueBefore + pBlue;
-  const ptsRedStr = pRed > 0 ? ` <span style="color:var(--red);font-size:0.85em">(+${pRed})</span>` : '';
-  const ptsBluStr = pBlue > 0 ? ` <span style="color:var(--blue);font-size:0.85em">(+${pBlue})</span>` : '';
   const gap = Math.abs(newRed - newBlue);
-  let gapStr = '';
-  if (gap > 0) {
-    const leadColor = newRed > newBlue ? 'var(--red)' : 'var(--blue)';
-    gapStr = ` <span style="color:${leadColor};font-size:0.85em;font-weight:800;">🔺นำห่าง ${gap} คะแนน</span>`;
-  }
   document.getElementById('matchNotiOverallScore').innerHTML =
-    `<span style="color:var(--muted);font-size:12px;letter-spacing:2px;font-weight:700;">คะแนนทีมรวม</span><br>` +
-    `<span style="color:var(--red);font-weight:800;font-size:1.8em;">${newRed}</span>${ptsRedStr}` +
-    `<span style="color:var(--muted);margin:0 10px;font-size:1.3em;">:</span>` +
-    `<span style="color:var(--blue);font-weight:800;font-size:1.8em;">${newBlue}</span>${ptsBluStr}` +
-    `<br>${gapStr}`;
+    `<span class="mnoti-ov-h">คะแนนทีมรวม</span>` +
+    `<span class="mnoti-ov-row"><span class="mnoti-ov red"><b>${newRed}</b>${pRed > 0 ? `<i>+${pRed}</i>` : ''}</span>` +
+    `<span class="mnoti-ov-sep">:</span>` +
+    `<span class="mnoti-ov blue"><b>${newBlue}</b>${pBlue > 0 ? `<i>+${pBlue}</i>` : ''}</span></span>` +
+    (gap > 0 ? `<span class="mnoti-ov-gap ${newRed > newBlue ? 'red' : 'blue'}">${dsIcon('caret-up')}นำห่าง ${gap} คะแนน</span>` : '');
 
   // ── Close button ──
   _notiRenderButtons();
 
   document.getElementById('matchNotiProgressBar').style.transition = 'none';
   document.getElementById('matchNotiProgressBar').style.width = '100%';
-  document.getElementById('matchNotiOverlay').classList.add('open');
+  const ov = document.getElementById('matchNotiOverlay');
+  if (!ov.classList.contains('open')) _notiOpener = document.activeElement;   // focus goes in with the pop-up and back out with the last one
+  ov.classList.add('open');
+  box.scrollTop = 0;
+  const closeBtn = document.getElementById('matchNotiClose');
+  if (closeBtn) closeBtn.focus({ preventScroll: true });
 
   // ── Auto-dismiss: 40 วินาที สำหรับ match จบ, 6 วินาทีสำหรับ G1 ──
   const dismissDelay = isMatchEnd ? (_notiQueue.length > 0 ? NOTI_QUEUED_MS : NOTI_ALONE_MS) : 6000;
@@ -402,6 +402,9 @@ function closeMatchNoti() {
     setTimeout(_processNotiQueue, 300);
   } else {
     _notiActive = false;
+    // the last one is gone: focus goes back to where it was
+    if (_notiOpener && _notiOpener.isConnected && _notiOpener.focus) _notiOpener.focus({ preventScroll: true });
+    _notiOpener = null;
   }
 }
 

@@ -216,7 +216,7 @@
   .profile-stat-cell:nth-child(3) { border-top: 1px solid var(--border); }
 }
 
-﻿
+
 
 
 /* ══════════════════════════════════════════
@@ -520,11 +520,13 @@ body.tv-mode .me-bar { display: none; }
 /* "only my matches" toggle used on Ongoing / Finished */
 .me-filter-btn {
   display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 6px var(--sp-4);
-  border: 1px solid var(--gold-line); border-radius: var(--r-pill); background: var(--gold-dim); color: var(--gold);
+  border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: transparent; color: var(--t-mid);
   font: 600 var(--fs-13)/1.2 var(--font-ui); white-space: nowrap; cursor: pointer; touch-action: manipulation;
   transition: background-color var(--dur-state) var(--ease-out), color var(--dur-state) var(--ease-out);
 }
+.me-filter-btn .ds-ic { color: var(--gold); }
 .me-filter-btn.on { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.me-filter-btn.on .ds-ic { color: var(--gold-ink); }
 @media (pointer: coarse) { .me-filter-btn { min-height: var(--tap); } }
 
 /* rows / cards that involve me: a gold edge and a star in the corner */
@@ -592,8 +594,10 @@ body.tv-mode .me-bar { display: none; }
   --ic-warning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM120,104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm8,88a12,12,0,1,1,12-12A12,12,0,0,1,128,192Z'/%3E%3C/svg%3E");
   --ic-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z'/%3E%3C/svg%3E");
 }
-/* the public card header may need a second line once it carries the court and the label */
-.court-card-header { flex-wrap: wrap; row-gap: 6px; }
+:root {
+  --ic-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/%3E%3C/svg%3E");
+  --ic-timer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M128,40a96,96,0,1,0,96,96A96.11,96.11,0,0,0,128,40Zm0,176a80,80,0,1,1,80-80A80.09,80.09,0,0,1,128,216ZM173.66,90.34a8,8,0,0,1,0,11.32l-40,40a8,8,0,0,1-11.32-11.32l40-40A8,8,0,0,1,173.66,90.34ZM96,16a8,8,0,0,1,8-8h48a8,8,0,0,1,0,16H104A8,8,0,0,1,96,16Z'/%3E%3C/svg%3E");
+}
 /* admin card: status on the left, court picker on the right */
 .match-court-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; min-height: 32px; }
 .court-select {

@@ -1,373 +1,95 @@
-/* ══════════════════════════════════════
-   CLIMAX EFFECTS — A + B + D
-   ══════════════════════════════════════ */
-
-/* Keyframes */
-@keyframes climax-border-pulse {
-  0%,100% { box-shadow: 0 0 12px 2px rgba(245,200,66,0.25), 0 0 0 1px rgba(245,200,66,0.35); }
-  50%      { box-shadow: 0 0 28px 6px rgba(245,200,66,0.55), 0 0 0 2px rgba(245,200,66,0.7); }
-}
-@keyframes deuce-border-pulse {
-  0%,100% { box-shadow: 0 0 16px 4px rgba(255,100,30,0.3), 0 0 0 1px rgba(255,120,30,0.5); }
-  50%      { box-shadow: 0 0 40px 10px rgba(255,80,20,0.65), 0 0 0 2px rgba(255,120,30,0.9); }
-}
-@keyframes climax-score-glow {
-  0%,100% { text-shadow: 0 0 8px currentColor; opacity: 1; }
-  50%      { text-shadow: 0 0 22px currentColor, 0 0 40px currentColor; opacity: 0.88; }
-}
-@keyframes deuce-score-glow {
-  0%,100% { text-shadow: 0 0 12px currentColor; opacity: 1; }
-  50%      { text-shadow: 0 0 32px currentColor, 0 0 60px currentColor; opacity: 0.82; }
-}
-@keyframes climax-badge-pop {
-  0%   { transform: scale(0.7); opacity: 0; }
-  70%  { transform: scale(1.1); }
-  100% { transform: scale(1);   opacity: 1; }
-}
-@keyframes climax-badge-pulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.75; transform: scale(0.96); }
-}
-@keyframes deuce-bg-sweep {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* ── Base live-court card ──
-   Previously only the climax/deuce states had any frame, so a normal card
-   was transparent + border-less and vanished into the black page. Give it a
-   raised surface with a clearly visible edge and shadow. */
+/* ============================================================
+   COURT CARDS (A2 viewer) — the Ongoing tab: one card per court being played or about to be, then the queue.
+   A card = header (court, match, LIVE, clock) · who is off/looks off · the score per game on two colour plates
+   (red = deep red with a red edge, blue likewise) · the players with their faces. A close finish (18+ and 3 apart)
+   outlines the card in gold, a deuce in amber: a crisp outline, no glow, no pulse. The LIVE dot is the only loop.
+   Frozen: #pubTimer-<id> is rewritten every second by js/match-render.js (text + data-tone).
+   ============================================================ */
 .court-card {
-  position: relative;
-  background: linear-gradient(165deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015));
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 16px;
-  box-shadow: 0 16px 40px -22px rgba(0,0,0,0.9);
-  overflow: hidden;
+  position: relative; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--s1); border: 1px solid var(--line-strong); border-radius: var(--r-md);
 }
+.court-card.climax { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.court-card.deuce { border-color: var(--warn); box-shadow: 0 0 0 1px var(--warn); }
 
-/* ── Climax card (18-18 / 19-17 / close) ── */
-.court-card.climax {
-  border: 2px solid rgba(245,200,66,0.6);
-  border-top: 3px solid var(--gold);
-  animation: climax-border-pulse 2s ease-in-out infinite;
-  overflow: visible;
+/* ── header ── */
+.court-card-header { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-2); }
+.court-card-id { color: var(--t-hi); font: 400 1.5rem/1 var(--font-num); letter-spacing: .06em; }
+.court-card-round, .queue-round {
+  padding: 2px var(--sp-2); border-radius: var(--r-xs); background: var(--s3); color: var(--t-mid); font: 700 var(--fs-13)/1.4 var(--font-ui); white-space: nowrap;
 }
-.court-card.climax::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 16px;
-  pointer-events: none;
-  z-index: 0;
+.court-card-timer { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; color: var(--t-low); font: 400 1.5rem/1 var(--font-num); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.court-card-timer::before {
+  content: ''; flex: none; width: 18px; height: 18px; background: currentColor;
+  -webkit-mask: var(--ic-timer) center / contain no-repeat; mask: var(--ic-timer) center / contain no-repeat;
 }
+.court-card-timer[data-tone="ok"] { color: var(--live); }
+.court-card-timer[data-tone="warn"] { color: var(--gold); }
+.court-card-timer[data-tone="late"] { color: var(--err); }
+.court-card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: 0 var(--sp-4); }
+.court-card-umpire { display: inline-flex; align-items: center; gap: 6px; color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
 
-/* ── Deuce card (20:20+, diff ≤ 2) ── */
-.court-card.deuce {
-  border: 2px solid rgba(255,110,30,0.7);
-  border-top: 3px solid #ff6e1e;
-  animation: deuce-border-pulse 1.2s ease-in-out infinite;
-  overflow: visible;
-  background: linear-gradient(135deg, var(--surface) 0%, rgba(255,80,20,0.06) 100%);
-  background-size: 200% 200%;
-}
+.climax-badge { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 var(--sp-3); border: 1px solid; border-radius: var(--r-pill); font: 800 var(--fs-13)/1 var(--font-ui); }
+.climax-badge.type-climax { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
+.climax-badge.type-deuce { color: var(--warn); border-color: var(--warn-line); background: var(--warn-fill); letter-spacing: .1em; }
 
-/* ── Score glow on climax ── */
-.court-card.climax .court-snum {
-  animation: climax-score-glow 2s ease-in-out infinite;
-}
-.court-card.deuce .court-snum {
-  animation: deuce-score-glow 1.1s ease-in-out infinite;
-}
-
-/* ── CLIMAX badge ── */
-.climax-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  padding: 2px 8px;
-  border-radius: 5px;
-  animation: climax-badge-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards,
-             climax-badge-pulse 2s ease-in-out 0.4s infinite;
-}
-.climax-badge.type-climax {
-  background: rgba(245,200,66,0.15);
-  border: 1px solid rgba(245,200,66,0.4);
-  color: var(--gold);
-}
-.climax-badge.type-deuce {
-  background: rgba(255,110,30,0.15);
-  border: 1px solid rgba(255,110,30,0.5);
-  color: #ff8c42;
-  animation: climax-badge-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards,
-             climax-badge-pulse 1.1s ease-in-out 0.4s infinite;
-}
-
-/* Card header: match ID + LIVE badge + timer */
-.court-card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 20px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.court-card-id {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.4em;
-  letter-spacing: 4px;
-  color: var(--gold);
-}
-.court-card-round {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  color: var(--muted);
-  background: var(--surface2);
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-.court-card-timer {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.2em;
-  letter-spacing: 2px;
-  margin-left: auto;
-  transition: color 0.4s;
-}
-.court-card-timer.long-game {
-  color: var(--gold);
-  animation: timer-pulse 2s ease-in-out infinite;
-}
-@keyframes timer-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-.court-card-umpire {
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-/* Score block — the HERO of the card */
-.court-score-block {
-  padding: 20px 24px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.court-score-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;   /* score sits in the middle of the card */
-  position: relative;        /* anchors the absolutely-placed G1/G2 label */
-  gap: 0;
-  flex-wrap: nowrap;
-}
-.court-glabel {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0;         /* the label is "เกม 1" / "เกม 2" (Thai: no letter-spacing) */
-  white-space: nowrap;
-  color: var(--muted);
-  background: var(--surface3);
-  padding: 3px 7px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  text-align: center;
-}
-.court-glabel.g2 {
-  color: var(--gold);
-  background: rgba(245,200,66,0.12);
-}
-.court-score-nums {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  flex: 0 0 auto;
-}
+/* ── the score: one line per game, a plate per side ── */
+.court-score-block { display: grid; gap: var(--sp-3); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.court-score-row { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: var(--sp-3); }
+.court-gside { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+.court-glabel { padding: 2px var(--sp-2); border-radius: var(--r-xs); background: var(--s3); color: var(--t-mid); font: 700 var(--fs-13)/1.4 var(--font-ui); white-space: nowrap; }
+.court-glabel.g2 { background: var(--gold-dim); color: var(--gold); }
+.court-score-nums { display: flex; align-items: center; justify-content: center; gap: var(--sp-2); min-width: 0; }
 .court-snum {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 5.5em;
-  line-height: 1;
-  letter-spacing: 0;
-  min-width: 1.4ch;
-  text-align: center;
+  --fill: var(--red-fill); --edge: var(--red);
+  min-width: 1.45em; padding: .05em .08em .02em; text-align: center;
+  background: var(--fill); border-bottom: 4px solid var(--edge); border-radius: var(--r-xs) var(--r-xs) 0 0;
+  color: var(--t-hi); font: 400 clamp(3.25rem, 15vw, 4.25rem)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0;
 }
-.court-snum.red  { color: var(--red); }
-.court-snum.blue { color: var(--blue); }
-.court-snum.red.dim  { color: var(--red-lost); opacity: 1; }
-.court-snum.blue.dim { color: var(--blue-lost); opacity: 1; }
-.court-ssep {
-  color: rgba(255,255,255,0.2);
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 3.2em;
-  line-height: 1;
-  padding: 0 10px;
-  flex-shrink: 0;
-}
-.court-g2-placeholder {
-  font-size: 12px;
-  color: var(--text2);
-  letter-spacing: 0.3px;
-  font-weight: 700;
-  text-align: center;
-}
-.court-comeback-badge {
-  font-size: 10px;
-  font-weight: 800;
-  padding: 3px 9px;
-  border-radius: 5px;
-  margin-left: 10px;
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
-}
+.court-snum.blue { --fill: var(--blue-fill); --edge: var(--blue); }
+.court-snum.dim.red { color: var(--red-lost); }          /* the side that lost a finished game */
+.court-snum.dim.blue { color: var(--blue-lost); }
+.court-ssep { color: var(--t-low); font: 400 2rem/1 var(--font-num); }
+.court-g2-placeholder { padding-top: var(--sp-1); text-align: center; color: var(--t-low); font: 600 var(--fs-13)/var(--lh-th) var(--font-ui); }
+.court-comeback-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px var(--sp-2); border: 1px solid; border-radius: var(--r-xs); font: 700 var(--fs-12)/1.4 var(--font-ui); white-space: nowrap; }
+.court-comeback-badge.red { color: var(--red-text); border-color: var(--red); background: var(--red-dim); }
+.court-comeback-badge.blue { color: var(--blue-text); border-color: var(--blue); background: var(--blue-dim); }
 
-/* Players footer */
-.court-players {
-  display: flex;
-  align-items: stretch;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  margin-top: auto;
-}
-.court-team {
-  flex: 1;
-  padding: 14px 20px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.court-team.blue { align-items: flex-end; border-left: 1px solid rgba(255,255,255,0.04); }
-.court-player-name {
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.35;
-  white-space: normal;
-  word-break: break-word;
-  max-width: 100%;
-}
-.court-player-name.red  { color: var(--red); }
-.court-player-name.blue { color: var(--blue); text-align: right; }
-.court-team-label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  margin-bottom: 5px;
-}
-.court-team-label.red  { color: var(--red-text); }
-.court-team-label.blue { color: var(--blue-text); text-align: right; }
+/* taken but no first point yet, or no umpire: no scoreboard, a quiet line */
+.court-waiting { display: grid; gap: var(--sp-1); padding: var(--sp-5) var(--sp-4); text-align: center; }
+.court-waiting-score { color: var(--t-low); font: 400 3rem/1 var(--font-num); }
+.court-waiting-label { color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
 
-/* Waiting state (no umpire yet, score = – : –) */
-.court-waiting {
-  padding: 14px 12px 10px;
-  text-align: center;
-}
-.court-waiting-score {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 2.4em;
-  letter-spacing: 4px;
-  color: rgba(255,255,255,0.12);
-  line-height: 1;
-}
-.court-waiting-label {
-  font-size: 9px;
-  color: var(--muted);
-  letter-spacing: 2px;
-  font-weight: 700;
-  margin-top: 4px;
-}
+/* ── the players: red left, blue right, a coloured rule over each side ── */
+.court-players { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: auto; }
+.court-team { --edge: var(--red); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; padding: var(--sp-3) var(--sp-4) var(--sp-4); border-top: 3px solid var(--edge); }
+.court-team.blue { --edge: var(--blue); align-items: flex-end; text-align: right; }
+.court-team-label { font-size: var(--fs-13); letter-spacing: .1em; }
+.court-player-name { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; color: var(--t-hi); font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); overflow-wrap: anywhere; }
+.court-player-name.blue { flex-direction: row-reverse; }
+.court-pav { width: 32px; height: 32px; border-width: 2px; }          /* sized here: avatarHtml writes an inline --pav-size */
+.court-pav.pav-initials { font-size: 12px; }
 
+/* staff only: Force Result / delete, under the card's content */
+.court-admin { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--line); }
+
+/* ── the queue ── */
+.queue-list { display: grid; gap: var(--sp-3); }
+@media (min-width: 900px) { .queue-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); } }
 .queue-row {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--border2);
-  border-radius: 12px;
-  padding: 18px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  opacity: 0.85;
-  transition: opacity 0.2s, transform 0.12s, background 0.12s;
-  cursor: pointer;
+  display: grid; gap: var(--sp-2); align-content: start; padding: var(--sp-3) var(--sp-4);
+  background: var(--s1); border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: var(--r-md);
 }
-.queue-row:hover { opacity: 1; }
-.queue-row:active {
-  transform: scale(0.99);
-  background: var(--surface2);
-  transition: transform 0.08s, background 0.08s;
-}
-.queue-num {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.8em;
-  letter-spacing: 2px;
-  color: var(--muted);
-  flex-shrink: 0;
-  width: 32px;
-  text-align: center;
-}
-.queue-mid {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.1em;
-  letter-spacing: 2px;
-  color: var(--gold);
-  flex-shrink: 0;
-}
-.queue-round {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  color: var(--text2);
-  background: var(--surface2);
-  padding: 2px 7px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-.queue-teams {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.queue-team-names {
-  font-size: 15px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.queue-vs {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 0.9em;
-  color: var(--text2);
-  letter-spacing: 2px;
-  flex-shrink: 0;
-}
-.queue-status {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--gold);
-  padding: 7px 16px;
-  border-radius: 8px;
-  background: rgba(245,200,66,0.1);
-  border: 1px solid rgba(245,200,66,0.2);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-@media (max-width: 480px) {
-  .queue-row { padding: 14px 14px; gap: 10px; }
-  .queue-team-names { font-size: 13px; }
-  .court-snum { font-size: 3.8em; }
-  .court-player-name { font-size: 18px; }
-}
-
+.queue-row.is-corrupt { border-color: var(--err-line); border-left-color: var(--err); }
+.queue-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); }
+.queue-num { color: var(--t-low); font: 400 1.5rem/1 var(--font-num); font-variant-numeric: tabular-nums; }
+.queue-mid { color: var(--t-hi); font: 400 1.5rem/1 var(--font-num); letter-spacing: .06em; }
+.queue-status { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; color: var(--t-mid); font: 700 var(--fs-13)/1 var(--font-ui); white-space: nowrap; }
+.queue-corrupt { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 var(--sp-3); border: 1px solid var(--err-line); border-radius: var(--r-pill); background: var(--err-fill); color: var(--err); font: 700 var(--fs-13)/1 var(--font-ui); }
+.queue-teams { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); }
+.queue-team-names { min-width: 0; font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); overflow-wrap: anywhere; }
+.queue-team-names.red { color: var(--red-text); }
+.queue-team-names.blue { color: var(--blue-text); }
+.queue-vs { color: var(--t-low); font: 700 var(--fs-12)/1 var(--font-ui); letter-spacing: .12em; }
+.queue-empty { padding: var(--sp-5); text-align: center; color: var(--t-low); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
+.court-empty { grid-column: 1 / -1; background: var(--s1); border: 1px dashed var(--line-strong); border-radius: var(--r-md); }
