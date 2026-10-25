@@ -139,20 +139,23 @@ button:focus:not(:focus-visible) { outline: none; }
   display: flex; align-items: center; gap: var(--sp-2); min-width: 0; color: var(--ink);
   font: 700 clamp(var(--fs-18), 5.2vw, var(--fs-24))/var(--lh-th) var(--font-ui);
 }
-/* two lines at most (Thai tone marks need the 1.45 line height, so no tighter): a longer pair ends in an ellipsis */
+/* two lines (three where the screen is tall) at most - Thai tone marks need the 1.45 line height, so no tighter:
+   a longer pair ends in an ellipsis */
 .team-name-score .nm {
   min-width: 0; overflow-wrap: anywhere; overflow: hidden;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
 }
+@media (min-height: 700px) { .team-name-score .nm { -webkit-line-clamp: 3; } }
 .team-name-score .amp { color: var(--t-mid); font-size: .88em; font-weight: 600; }
 /* the digits are the biggest thing on the screen. 24 % of the height, but never more than the space the head leaves
-   (cqh = the height of this zone): long names on a 568 px phone shrink them instead of running into them */
-.digit-zone { min-width: 0; min-height: 0; container-type: size; display: grid; place-items: center; overflow: hidden; }
+   (cqh / cqw = the height / width of this zone: long names on a 568 px phone, or a narrow landscape panel, shrink them
+   instead of running into the names or off the panel; two digits are about 0.75 em wide) */
+.digit-zone { min-width: 0; min-height: 0; container-type: size; display: grid; place-items: center; }
 .score-number {
   font-family: var(--font-num); font-weight: 400; font-variant-numeric: tabular-nums;
   line-height: var(--lh-num); letter-spacing: 0; color: var(--digit);
   font-size: clamp(112px, 24vh, 240px);
-  font-size: max(88px, min(24dvh, 112cqh, 240px));
+  font-size: max(88px, min(24dvh, 112cqh, 118cqw, 240px));
 }
 .score-number.pop { animation: ds-pop var(--dur-pop) var(--ease-pop); }
 /* a tap that was ignored as a repeat (400 ms gate): the number blinks once so it is clear the phone saw it */
@@ -271,30 +274,39 @@ button:focus:not(:focus-visible) { outline: none; }
   .score-panel.blue .score-center-col { padding-left: var(--sp-5); }
   .score-panel.blue::before { left: auto; right: var(--sar); }
   .score-panel.blue .score-btn-minus { left: auto; right: calc(var(--sar) + var(--sp-3)); }
-  .score-number { font-size: clamp(112px, 62vh, 300px); font-size: max(88px, min(62dvh, 30vw, 112cqh, 320px)); }
+  .score-number { font-size: clamp(112px, 62vh, 300px); font-size: max(88px, min(62dvh, 30vw, 112cqh, 118cqw, 320px)); }
 
+  /* the column has to hold, at 390 px high with a 21 px home-bar inset: court 48 · clock · caption · send state · game ·
+     game-1 recap · game point · submit 56 · leave + pause 48. Everything below is sized to fit that worst case. */
   .scoring-topbar {
     height: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: none;
-    grid-template-areas: "court" "timer" "cap" "sync"; justify-items: center; row-gap: var(--sp-1);
-    padding: max(var(--sp-2), var(--sat)) var(--sp-2) var(--sp-2); border-bottom: 0;
+    grid-template-areas: "court" "timer" "cap" "sync"; justify-items: center; row-gap: 0;
+    padding: max(var(--sp-1), var(--sat)) var(--sp-2) var(--sp-1); border-bottom: 0;
   }
-  .scoring-topbar .sync-strip { justify-self: center; }
-  .net-strip { flex-direction: column; padding: var(--sp-2) var(--sp-1); }
+  .scoring-topbar .sync-strip { justify-self: center; padding-top: 2px; padding-bottom: 2px; }
+  .net-strip { flex-direction: column; gap: var(--sp-1); padding: var(--sp-1); }
   .net-strip::before { display: none; }
-  .net-chip { padding: 0 var(--sp-2); gap: var(--sp-1); font-size: var(--fs-12); }
+  .net-chip { height: 26px; padding: 0 6px; gap: var(--sp-1); font-size: var(--fs-12); }
   .net-chip .ds-team { gap: var(--sp-1); }
-  .sit-chip .ds-ic { transform: rotate(-90deg); }        /* the arrow points at the panel: up / down becomes left / right */
+  .sit-chip .ds-ic { width: 1em; height: 1em; transform: rotate(-90deg); }   /* the arrow points at the panel: up / down becomes left / right */
   .scoring-bottombar {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "submit submit" "exit pause";
-    padding: var(--sp-2) var(--sp-2) max(var(--sp-2), var(--sab)); border-top: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "submit submit" "exit pause"; gap: var(--sp-2);
+    padding: var(--sp-1) var(--sp-2) max(var(--sp-2), var(--sab)); border-top: 0;
   }
+  .btn-submit { min-height: var(--tap-lg); }
   .bar-btn { min-height: var(--tap-md); }
   .bar-btn .ds-ic { width: 1.1em; height: 1.1em; }
+  .score-panel .uface-pair { display: none; }          /* faces only where a panel is wide enough: 640 px and up, below */
 }
+@media (orientation: landscape) and (min-width: 640px) { .score-panel .uface-pair { display: inline-flex; } }
+/* a phone 320-360 px high (an old SE on its side): the caption goes, the clock and submit get smaller */
 @media (orientation: landscape) and (min-width: 560px) and (max-height: 360px) {
   .timer-display { font-size: var(--fs-24); }
   .mi-rest { display: none; }
   .btn-submit { min-height: var(--tap-md); }
+  .net-chip { height: 24px; }
+  .net-strip { gap: 2px; padding: 2px var(--sp-1); }
+  .sync-ok .ss-sub { display: none; }                  /* "sent" keeps its word; the time goes. Offline / sending keep their count */
 }
 
 /* ── 3. SHARED BITS ──────────────────────────────────────── */

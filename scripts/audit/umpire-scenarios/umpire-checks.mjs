@@ -27,7 +27,10 @@ function measure(arg) {
     if (r.width < 1 || r.height < 1) return;
     if (r.right > innerWidth + 1 || r.left < -1) over.push(A.sel(e) + ' ' + r0(r.left) + '..' + r0(r.right));
     const cs = getComputedStyle(e);
-    if ((cs.overflow !== 'visible' || cs.textOverflow === 'ellipsis') && (e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1) && e.textContent.trim() && !/^(svg|path|use)$/i.test(e.tagName)) {
+    // .score-panel: the digits' line box is shorter than the font's content area, so a panel always "overflows" downwards
+    // without any ink - only its width counts; .ds-sr-only is 1 px by design
+    const tallOk = e.matches('.score-panel');
+    if ((cs.overflow !== 'visible' || cs.textOverflow === 'ellipsis') && (e.scrollWidth > e.clientWidth + 1 || (!tallOk && e.scrollHeight > e.clientHeight + 1)) && e.textContent.trim() && !/^(svg|path|use)$/i.test(e.tagName) && !e.matches('.ds-sr-only')) {
       clipped.push(A.sel(e) + ' ' + e.clientWidth + 'x' + e.clientHeight + ' < ' + e.scrollWidth + 'x' + e.scrollHeight + ' ' + JSON.stringify(e.textContent.trim().slice(0, 24)));
     }
   });
@@ -80,6 +83,11 @@ export default [
   // ── scoring ──
   S('check-scoring-mid', UMP_LAND.concat(WIDE), async (page) => { await openScoring(page, { live: { g1R: 11, g1B: 9 }, elapsedMs: 600000 }); await check(page, '#screen-scoring'); await page.shot(''); }),
   S('check-scoring-g2', UMP_LAND.concat(WIDE), async (page) => { await openScoring(page, { live: { g1R: 21, g1B: 15, g1Locked: true, g2R: 20, g2B: 18 }, elapsedMs: 1500000 }); await check(page, '#screen-scoring'); await page.shot(''); }),
+  // the worst case for the landscape centre column: game 2 (recap chip) + game point, on the shortest phones
+  S('check-scoring-land-worst', ['844x390', '667x375', '568x320'], async (page) => {
+    await openScoring(page, { live: { g1R: 21, g1B: 15, g1Locked: true, g2R: 20, g2B: 18 }, elapsedMs: 1500000 });
+    await check(page, '#screen-scoring'); await page.shot('');
+  }),
   S('check-scoring-max', UMP_LAND, async (page) => {
     await openScoring(page, { live: { g1R: 30, g1B: 29 }, elapsedMs: 2400000 });
     await page.eval("(() => { _lastScored = 'blue'; renderGameUI(); })()");
