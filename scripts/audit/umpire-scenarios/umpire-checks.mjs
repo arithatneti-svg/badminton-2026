@@ -125,6 +125,17 @@ export default [
     await umpireBench(page); await page.eval("goToTab('finished')"); await page.wait(250);
     await check(page, '#screen-finished'); await page.shot('');
   }),
+  // the list screens while offline (banner under the menu bar) and when a new release is waiting (the shared update bar)
+  S('check-list-offline', ['390x844', '320x568', '1280x800'], async (page) => {
+    await umpireBench(page); await page.eval("goToTab('live')"); await page.wait(150);
+    await page.eval('(() => { __audit.umpOnline(false); _uPending = 2; _uRenderNet(); })()'); await page.wait(150);
+    await check(page, '#screen-live'); await check(page, '.net-banner'); await page.shot('');
+  }),
+  S('check-list-update', ['390x844', '320x568'], async (page) => {
+    await umpireBench(page); await page.eval("goToTab('live')"); await page.wait(150);
+    await page.eval('_appShowUpdateBar()'); await page.wait(150);
+    await check(page, '#appUpdate'); await page.shot('');
+  }),
   S('check-list-empty', ['390x844', '320x568'], async (page) => {
     await umpireBench(page);
     await page.eval("(() => { __audit.umpMock([], 'ทดสอบ'); goToTab('live'); })()");
@@ -148,6 +159,12 @@ export default [
     await page.waitFor('#customModal.open .court-grid'); await page.wait(150);
     await check(page, '#customModal'); await page.shot('');
   }),
+  // changing the court from the scoring screen: the court you are on is gold with a check
+  S('check-dialog-courts-change', ['390x844', '320x568'], async (page) => {
+    await openScoring(page, { live: { g1R: 11, g1B: 9 } });
+    await page.eval('(() => { changeCourt(); })()'); await page.waitFor('#customModal.open .court-grid'); await page.wait(150);
+    await check(page, '#customModal'); await page.shot('');
+  }),
   S('check-dialog-result', UMP_LAND, async (page) => {
     await openScoring(page, { live: { g1R: 21, g1B: 15, g1Locked: true, g2R: 21, g2B: 17 }, elapsedMs: 2200000 });
     await page.eval('(() => { const A = __audit; A.server.history = []; A.server.red = 0; A.server.blue = 0; })()');
@@ -160,6 +177,24 @@ export default [
     await openScoring(page, { live: { g1R: 11, g1B: 9 } });
     await page.eval('(() => { confirmExit(); })()'); await page.waitFor('#customModal.open'); await page.wait(150);
     await check(page, '#customModal'); await page.shot('');
+  }),
+
+  // ── Thai copy: Latin words a person can see that are not on the owner's list (empty = clean) ──
+  S('check-english', ['390x844'], async (page) => {
+    const seen = {};
+    const grab = async (name) => { seen[name] = await page.eval('__audit.wp4English()'); };
+    await page.eval("(async () => { document.getElementById('tbtn-Red').click(); await new Promise(r => setTimeout(r, 100)); const sel = document.getElementById('umpireSelect'); sel.value = sel.options[2].value; updateLoginReady(); })()");
+    await grab('login');
+    await umpireBench(page);
+    await page.eval("goToTab('live')"); await page.wait(150); await grab('list');
+    await page.eval("goToTab('finished')"); await page.wait(150); await grab('finished');
+    await page.eval("selectMatch('T03')"); await page.wait(400); await page.eval('dismissVsIntro()'); await page.wait(150);
+    await page.eval("(() => { const m = appState.ongoingMatches.find(x => x.id === 'T03'); m.live.g2R = 20; m.live.g2B = 18; renderGameUI(); })()"); await grab('scoring');
+    await page.eval('togglePause()'); await page.wait(150); await grab('pause');
+    await page.eval('togglePause()'); await page.wait(100);
+    await page.eval('(() => { submitGame(); })()'); await page.waitFor('#customModal.open'); await grab('dialog');
+    page.note(JSON.stringify({ root: 'english', ...Object.fromEntries(Object.entries(seen).map(([k, v]) => [k, v.length ? v : 'clean'])) }));
+    await page.shot('');
   }),
 
   // ── pause · VS intro · notice ──

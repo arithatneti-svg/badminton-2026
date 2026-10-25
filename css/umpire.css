@@ -19,7 +19,7 @@
   --rim-y: 16px;      /* free strip between a +1 area and the next control (info row / deck) */
   --deck-btn: 64px;   /* leave / submit / pause */
   --deck-side: 72px;  /* width of leave and pause */
-  --mid-w: 132px;     /* landscape: the column between the two panels */
+  --mid-w: clamp(132px, 14vw, 200px);   /* landscape: the column between the two panels (132 on a phone, wider on a laptop) */
   --minus-clear: calc(var(--tap-lg) + var(--sp-3) + var(--sp-2));   /* the -1 circle + its 12 px offset + the 8 px ring around it */
 }
 @media (max-height: 640px) { :root { --bar-h: 52px; --net-h: 36px; --deck-btn: 56px; } }
@@ -67,7 +67,8 @@ button:focus:not(:focus-visible) { outline: none; }
   grid-template-areas: "court timer sync" "court cap sync";
   align-content: center; align-items: center; column-gap: var(--sp-2);
   height: calc(var(--bar-h) + var(--sat));
-  padding: var(--sat) calc(var(--sar) + var(--sp-3)) 0 calc(var(--sal) + var(--sp-3));
+  /* on a wide portrait window (a tablet) the row keeps to a 640 px column in the middle */
+  padding: var(--sat) max(calc(var(--sar) + var(--sp-3)), calc((100% - 640px) / 2)) 0 max(calc(var(--sal) + var(--sp-3)), calc((100% - 640px) / 2));
   background: var(--bg); border-bottom: 1px solid var(--line);
 }
 #activeMatchInfo { display: contents; }          /* the court button and the caption are grid items of the info row */
@@ -223,7 +224,7 @@ button:focus:not(:focus-visible) { outline: none; }
   grid-area: deck;
   display: grid; grid-template-columns: var(--deck-side) minmax(0, 1fr) var(--deck-side);
   grid-template-areas: "exit submit pause"; gap: var(--sp-3);
-  padding: var(--rim-y) calc(var(--sar) + var(--sp-3)) max(var(--sp-3), var(--sab)) calc(var(--sal) + var(--sp-3));
+  padding: var(--rim-y) max(calc(var(--sar) + var(--sp-3)), calc((100% - 640px) / 2)) max(var(--sp-3), var(--sab)) max(calc(var(--sal) + var(--sp-3)), calc((100% - 640px) / 2));
   background: var(--bg); border-top: 1px solid var(--line);
 }
 @media (max-height: 640px) { .scoring-bottombar { padding-top: var(--sp-2); padding-bottom: max(var(--sp-2), var(--sab)); } }
@@ -329,11 +330,13 @@ button:focus:not(:focus-visible) { outline: none; }
 .net-banner:not(:empty) {
   display: flex; align-items: flex-start; gap: var(--sp-2);
   padding: var(--sp-2) calc(var(--sar) + var(--sp-4)) var(--sp-2) calc(var(--sal) + var(--sp-4));
-  background: var(--warn-fill); border-bottom: 1px solid var(--warn-line); color: var(--t-hi);
+  /* an opaque page colour with the status tint painted over it (inset shadow = flat, no gradient): the banner is sticky
+     on the list screens and the cards scroll under it */
+  background: var(--bg); box-shadow: inset 0 0 0 100vmax var(--warn-fill); border-bottom: 1px solid var(--warn-line); color: var(--t-hi);
   font: 600 var(--fs-13)/1.45 var(--font-ui);
 }
 .net-banner .ds-ic { margin-top: 2px; color: var(--warn); }
-body.is-offline .net-banner:not(:empty) { background: var(--err-fill); border-bottom-color: var(--err-line); }
+body.is-offline .net-banner:not(:empty) { box-shadow: inset 0 0 0 100vmax var(--err-fill); border-bottom-color: var(--err-line); }
 body.is-offline .net-banner .ds-ic { color: var(--err); }
 #screen-scoring > .net-banner { grid-area: banner; }
 body > .net-banner:not(:empty) { position: sticky; top: calc(var(--bar-h) + var(--sat)); z-index: var(--z-nav); }
@@ -354,7 +357,7 @@ body > .net-banner:not(:empty) { position: sticky; top: calc(var(--bar-h) + var(
 /* ── 4. THE OTHER SCREENS: pause · dialogs · VS intro · shell · login · match list · finished list ── */
 
 /* ── 4a. PAUSE ───────────────────────────────────────────────
-   A solid screen over the scoring screen. Only the ▶ button resumes: a palm on the glass while the phone is down must not
+   A solid screen over the scoring screen. Only the play button resumes: a palm on the glass while the phone is down must not
    restart play. Above the scoring screen, below the dialogs (a leave question opens from here). */
 #pauseOverlay {
   display: none; position: fixed; inset: 0; z-index: calc(var(--z-overlay) + 500);
