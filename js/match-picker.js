@@ -20,10 +20,14 @@ function renderMatchBoard() {
       const id = arr[i];
       if (id) {
         el.className = 'mb-slot filled ' + team;
-        el.innerHTML = `<span class="mb-slot-num">${i+1}</span><span class="mb-slot-name">${escHtml(nameOf(id))}</span><span class="mb-slot-x" aria-hidden="true">✕</span>`;
+        el.innerHTML = `<span class="mb-slot-num">${i+1}</span><span class="mb-slot-name">${escHtml(nameOf(id))}</span>${dsIcon('x', { cls: 'mb-slot-x' })}`;
+        el.disabled = false;
+        el.setAttribute('aria-label', 'เอา ' + nameOf(id) + ' ออก');
       } else {
         el.className = 'mb-slot ' + team;
         el.innerHTML = `<span class="mb-slot-num">${i+1}</span><span class="mb-slot-hint">แตะเลือกคนที่ ${i+1}</span>`;
+        el.disabled = true;      // an empty slot has nothing to remove: not a tab stop, not a tap target
+        el.removeAttribute('aria-label');
       }
     });
   });
@@ -40,21 +44,23 @@ function renderMatchBoard() {
     const sel = isRed ? picker.red : picker.blue;
     const players = (appState.players||[]).filter(p =>
       p.team === (isRed?'Red':'Blue') && (!group || p.group === group) && (!search || p.name.toLowerCase().includes(search)));
-    if (!players.length) { el.innerHTML = `<div class="mb-empty">ไม่พบผู้เล่น</div>`; return; }
+    const cntEl = document.getElementById(isRed ? 'mbCntRed' : 'mbCntBlue');
+    if (cntEl) cntEl.textContent = sel.length + '/2';
+    if (!players.length) { el.innerHTML = `<div class="mb-empty">${dsIcon('magnifying-glass')}ไม่พบผู้เล่น</div>`; return; }
     el.innerHTML = players.map(p => {
       const picked  = sel.includes(p.id);
       const inMatch = activeIds.includes(p.id);
       const cnt = getPlayerMatchCountInRound(p.id, round);
-      const meta = inMatch ? 'กำลังแข่ง' : (cnt > 0 ? `R${round}·${cnt}` : '');
+      const meta = inMatch ? 'กำลังแข่ง' : (cnt > 0 ? `เล่นแล้ว ${cnt}` : '');
       const cls = 'mb-chip ' + team + (picked ? ' picked' : '') + (inMatch ? ' live' : '');
-      return `<button class="${cls}" onclick="boardToggle('${p.id}','${team}')">${avatarHtml(p, 22, {className:'mb-chip-pav'})}${escHtml(p.name)}${meta ? `<span class="mb-chip-meta">${meta}</span>` : ''}</button>`;
+      return `<button type="button" class="${cls}" aria-pressed="${picked}" onclick="boardToggle('${p.id}','${team}')">${avatarHtml(p, 28, {className:'mb-chip-pav'})}${escHtml(p.name)}${meta ? `<span class="mb-chip-meta">${meta}</span>` : ''}${picked ? dsIcon('check') : ''}</button>`;
     }).join('');
   };
   renderPool('red'); renderPool('blue');
 
   const n = picker.red.length + picker.blue.length;
   const st = document.getElementById('mbStatus');
-  if (st) { st.textContent = n === 4 ? '✓ พร้อมสร้างแมตช์' : `เลือกแล้ว ${n}/4`; st.style.color = n === 4 ? 'var(--green)' : 'var(--muted)'; }
+  if (st) { st.innerHTML = n === 4 ? dsIcon('check') + 'พร้อมสร้างแมตช์' : `เลือกแล้ว ${n}/4`; st.classList.toggle('is-ready', n === 4); }
   // dim the create button until both teams are full — it still guards on
   // tap, but a lit button that cannot succeed reads as broken
   const cb = document.getElementById('mbCreateBtn');
@@ -101,14 +107,14 @@ function boardFillRandom() {
 
 function selectRound(r) {
   picker.round = String(r);
-  [1,2,3].forEach(n => document.getElementById('rpill'+n)?.classList.toggle('round-active', String(n) === String(r)));
+  [1,2,3].forEach(n => { const b = document.getElementById('rpill'+n); if (!b) return; const on = String(n) === String(r); b.classList.toggle('round-active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
   renderMatchBoard();
 }
 
 function setBoardGroup(team, g) {
   if (team === 'red') picker.redGroup = g; else picker.blueGroup = g;
   const wrap = document.getElementById(team === 'red' ? 'mbGroupRed' : 'mbGroupBlue');
-  if (wrap) wrap.querySelectorAll('.filter-pill').forEach((b,i) => b.classList.toggle('active', (i===0 && g==='') || (g===String(i))));
+  if (wrap) wrap.querySelectorAll('.filter-pill').forEach((b,i) => { const on = (i===0 && g==='') || (g===String(i)); b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
   renderMatchBoard();
 }
 

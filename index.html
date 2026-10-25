@@ -135,30 +135,28 @@ try {
 
 <!-- ── CUSTOM CONFIRM DIALOG MODAL ── -->
 <!-- ── RESET CHOICE MODAL ── -->
-<div id="resetChoiceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:20000;flex-direction:column;justify-content:center;align-items:center;">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,0.6);">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6em;letter-spacing:4px;color:var(--danger);margin-bottom:6px;">↺ RESET DATA</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;">เลือกว่าจะ Reset อะไร — การกระทำนี้ไม่สามารถย้อนกลับได้</div>
+<div id="resetChoiceModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="resetChoiceTitle" style="display:none; z-index:calc(var(--z-modal) + 10);">
+  <div class="ds-sheet rs-sheet">
+    <h2 id="resetChoiceTitle" class="ds-sheet-title">รีเซ็ตข้อมูลการแข่งขัน</h2>
+    <p class="ds-help rs-lead">เลือกว่าจะรีเซ็ตอะไร — การกระทำนี้ย้อนกลับไม่ได้</p>
 
-    <!-- Option A: Match Only -->
-    <button onclick="doResetMatchOnly()" style="width:100%;background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.25);border-radius:14px;padding:18px 20px;text-align:left;cursor:pointer;margin-bottom:12px;transition:background 0.2s;" onmouseover="this.style.background='rgba(245,200,66,0.12)'" onmouseout="this.style.background='rgba(245,200,66,0.07)'">
-      <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:6px;">🗂 Reset เฉพาะผลแมตช์</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;">
-        <span style="color:var(--danger);">🗑 จะลบ:</span> ผลการแข่งขัน, คะแนนทีม, Win/Loss สถิติ, Ongoing matches<br>
-        <span style="color:var(--green);">✅ เก็บไว้:</span> ชื่อผู้เล่น, ทีม, กลุ่ม
-      </div>
-    </button>
+    <div class="rs-opts">
+      <button type="button" class="rs-opt" onclick="doResetMatchOnly()">
+        <span class="rs-opt-t"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-counter-clockwise"/></svg>รีเซ็ตเฉพาะผลแมตช์</span>
+        <span class="rs-line is-del"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg><span><b>ลบ</b> ผลการแข่งขัน, คะแนนทีม, สถิติแพ้ชนะ, แมตช์ที่กำลังแข่งและรอคิว</span></span>
+        <span class="rs-line is-keep"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg><span><b>เก็บไว้</b> รายชื่อผู้เล่น (ชื่อ ทีม กลุ่ม) และโปรไฟล์</span></span>
+      </button>
 
-    <!-- Option B: Full Reset -->
-    <button onclick="doResetFull()" style="width:100%;background:rgba(255,59,92,0.06);border:1px solid rgba(255,59,92,0.2);border-radius:14px;padding:18px 20px;text-align:left;cursor:pointer;margin-bottom:20px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,59,92,0.12)'" onmouseout="this.style.background='rgba(255,59,92,0.06)'">
-      <div style="font-size:14px;font-weight:700;color:var(--danger);margin-bottom:6px;">💣 Reset ทั้งหมด (Full Reset)</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;">
-        <span style="color:var(--danger);">🗑 จะลบ:</span> ทุกอย่างรวมถึงผู้เล่นและประวัติการแข่งทั้งหมด<br>
-        <span style="color:var(--green);">✅ เก็บไว้:</span> รายชื่อผู้เล่น (ID, ชื่อ, ทีม, กลุ่ม) เท่านั้น
-      </div>
-    </button>
+      <button type="button" class="rs-opt is-danger" onclick="doResetFull()">
+        <span class="rs-opt-t"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-warning"/></svg>รีเซ็ตทั้งหมด (Full Reset)</span>
+        <span class="rs-line is-del"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg><span><b>ลบ</b> ทุกอย่างรวมถึงโปรไฟล์ผู้เล่นและประวัติการแข่งทั้งหมด</span></span>
+        <span class="rs-line is-keep"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg><span><b>เก็บไว้</b> เฉพาะรายชื่อผู้เล่น (ID ชื่อ ทีม กลุ่ม)</span></span>
+      </button>
+    </div>
 
-    <button onclick="document.getElementById('resetChoiceModal').style.display = 'none'" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;">ยกเลิก</button>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-lg" onclick="document.getElementById('resetChoiceModal').style.display = 'none'">ยกเลิก</button>
+    </div>
   </div>
 </div>
 
@@ -292,8 +290,8 @@ try {
     <div id="idleNext"></div>
   </div>
   
-  <div class="admin-only superadmin-only" style="text-align:center; padding:6px 10px; background:rgba(255,255,255,0.015); border-top:1px solid var(--border);">
-    <button class="btn" onclick="openQuickScore()" style="font-size:12px;padding:5px 16px;background:rgba(245,200,66,0.07);color:var(--gold);border:1px solid rgba(245,200,66,0.18);letter-spacing:1px;">⚡ Quick Score Adjust</button>
+  <div class="admin-only superadmin-only adm-qs">
+    <button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" onclick="openQuickScore()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sliders-horizontal"/></svg>ปรับคะแนนรวมทีม</button>
   </div>
 </div>
 
@@ -455,89 +453,140 @@ try {
   </div>
 </div>
 
-<!-- ADMIN TAB (Admin) -->
+<!-- ADMIN TAB (Admin) — two columns on a laptop (build a match | manage the matches), one column on a phone -->
 <div id="admin" class="container admin-only">
-  <div class="app-version" data-app-version style="text-align:right;margin:0 0 8px;"></div>
+  <div class="adm-grid">
+
+    <section class="adm-col" aria-labelledby="admCreateH">
+      <div class="adm-head"><h2 id="admCreateH" class="adm-h">สร้างแมตช์</h2></div>
+
+      <div class="mb-card" id="matchBoard">
+        <!-- the ticket: round, the four slots, the three actions -->
+        <div class="mb-ticket">
+          <div class="mb-topbar">
+            <span class="mb-topbar-lbl" id="mbRoundLbl">รอบ</span>
+            <div class="mb-rounds" role="group" aria-labelledby="mbRoundLbl">
+              <button type="button" class="round-pill round-active" id="rpill1" aria-pressed="true" aria-label="รอบ 1" onclick="selectRound('1')">1</button>
+              <button type="button" class="round-pill" id="rpill2" aria-pressed="false" aria-label="รอบ 2" onclick="selectRound('2')">2</button>
+              <button type="button" class="round-pill" id="rpill3" aria-pressed="false" aria-label="รอบ 3" onclick="selectRound('3')">3</button>
+            </div>
+            <span id="mbStatus" class="mb-status" role="status">เลือกแล้ว 0/4</span>
+          </div>
+          <div class="mb-slots">
+            <div class="mb-team">
+              <div class="mb-team-title ds-team ds-team-red">RED</div>
+              <button type="button" class="mb-slot red" id="mbSlotR0" onclick="boardRemove('red',0)" disabled></button>
+              <button type="button" class="mb-slot red" id="mbSlotR1" onclick="boardRemove('red',1)" disabled></button>
+            </div>
+            <div class="mb-vs" aria-hidden="true">VS</div>
+            <div class="mb-team">
+              <div class="mb-team-title ds-team ds-team-blue">BLUE</div>
+              <button type="button" class="mb-slot blue" id="mbSlotB0" onclick="boardRemove('blue',0)" disabled></button>
+              <button type="button" class="mb-slot blue" id="mbSlotB1" onclick="boardRemove('blue',1)" disabled></button>
+            </div>
+          </div>
+          <div class="mb-actions">
+            <button type="button" class="ds-btn mb-random" onclick="boardFillRandom()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-shuffle"/></svg>สุ่มจับคู่</button>
+            <button type="button" class="ds-btn ds-btn-ghost mb-clear" onclick="resetPicker()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg>ล้าง</button>
+            <button type="button" id="mbCreateBtn" class="ds-btn ds-btn-primary mb-create" aria-disabled="true" onclick="createMatch()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg>สร้างแมตช์</button>
+          </div>
+        </div>
+
+        <!-- who can be picked. Phone: one team at a time (the two radios + labels are a CSS-only switch); from 640 px both pools side by side -->
+        <div class="mb-pools">
+          <input type="radio" name="mbPoolTab" id="mbPoolTabRed" class="mb-pooltab-in" checked>
+          <input type="radio" name="mbPoolTab" id="mbPoolTabBlue" class="mb-pooltab-in">
+          <div class="mb-pooltabs">
+            <label for="mbPoolTabRed" class="mb-pooltab red"><span class="ds-team ds-team-red">RED</span><span class="mb-pooltab-n" id="mbCntRed">0/2</span></label>
+            <label for="mbPoolTabBlue" class="mb-pooltab blue"><span class="ds-team ds-team-blue">BLUE</span><span class="mb-pooltab-n" id="mbCntBlue">0/2</span></label>
+          </div>
+
+          <div class="mb-pool-col red">
+            <div class="mb-pool-head">
+              <div class="mb-search">
+                <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+                <input type="search" id="mbSearchRed" class="ds-input" placeholder="ค้นหาทีมแดง" aria-label="ค้นหาผู้เล่นทีมแดง" autocomplete="off" oninput="renderMatchBoard()">
+              </div>
+              <div class="mb-groups" id="mbGroupRed" role="group" aria-label="กลุ่มทีมแดง">
+                <button type="button" class="filter-pill active" aria-pressed="true" onclick="setBoardGroup('red','')">ทั้งหมด</button>
+                <button type="button" class="filter-pill" onclick="setBoardGroup('red','1')">G1</button>
+                <button type="button" class="filter-pill" onclick="setBoardGroup('red','2')">G2</button>
+                <button type="button" class="filter-pill" onclick="setBoardGroup('red','3')">G3</button>
+              </div>
+            </div>
+            <div id="mbPoolRed" class="mb-pool"></div>
+          </div>
+
+          <div class="mb-pool-col blue">
+            <div class="mb-pool-head">
+              <div class="mb-search">
+                <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+                <input type="search" id="mbSearchBlue" class="ds-input" placeholder="ค้นหาทีมน้ำเงิน" aria-label="ค้นหาผู้เล่นทีมน้ำเงิน" autocomplete="off" oninput="renderMatchBoard()">
+              </div>
+              <div class="mb-groups" id="mbGroupBlue" role="group" aria-label="กลุ่มทีมน้ำเงิน">
+                <button type="button" class="filter-pill active" aria-pressed="true" onclick="setBoardGroup('blue','')">ทั้งหมด</button>
+                <button type="button" class="filter-pill" onclick="setBoardGroup('blue','1')">G1</button>
+                <button type="button" class="filter-pill" onclick="setBoardGroup('blue','2')">G2</button>
+                <button type="button" class="filter-pill" onclick="setBoardGroup('blue','3')">G3</button>
+              </div>
+            </div>
+            <div id="mbPoolBlue" class="mb-pool"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="adm-col" aria-labelledby="admManageH">
+      <div class="adm-head">
+        <h2 id="admManageH" class="adm-h">แมตช์ทั้งหมด</h2>
+        <span class="ds-chip"><b id="ongoingCount">0</b>&nbsp;แมตช์</span>
+      </div>
+      <div id="adminOngoingMatchesContainer" class="am-list"></div>
+    </section>
+
+  </div>
 
   <details class="adm-collapse">
-    <summary>👤 Player Management (Add/Import)</summary>
+    <summary>
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-users"/></svg>
+      <span class="adm-sum-t">เพิ่ม / นำเข้าผู้เล่น</span>
+      <svg class="ds-ic adm-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg>
+    </summary>
     <div class="adm-collapse-body">
-      <div class="form-row">
-        <div class="field-group"><input type="text" id="newPlayerName" placeholder="ชื่อผู้เล่น (Enter เพื่อเพิ่ม)" style="width:180px;" onkeydown="if(event.key==='Enter')addPlayer()"></div>
-        <div class="field-group"><select id="newPlayerTeam"><option value="Red">🔴 Red Team</option><option value="Blue">🔵 Blue Team</option></select></div>
-        <div class="field-group"><select id="newPlayerGroup"><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option></select></div>
-        <div class="field-group"><button class="btn btn-primary" onclick="addPlayer()">+ Add</button></div>
+      <div class="adm-add" role="group" aria-label="เพิ่มผู้เล่น">
+        <div class="ds-field adm-add-name">
+          <label class="ds-label" for="newPlayerName">ชื่อผู้เล่น</label>
+          <input type="text" id="newPlayerName" class="ds-input" placeholder="พิมพ์ชื่อ แล้วกด Enter" autocomplete="off" onkeydown="if(event.key==='Enter')addPlayer()">
+        </div>
+        <div class="ds-field">
+          <label class="ds-label" for="newPlayerTeam">ทีม</label>
+          <select id="newPlayerTeam" class="ds-select"><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
+        </div>
+        <div class="ds-field">
+          <label class="ds-label" for="newPlayerGroup">กลุ่ม</label>
+          <select id="newPlayerGroup" class="ds-select"><option value="1">กลุ่ม G1</option><option value="2">กลุ่ม G2</option><option value="3">กลุ่ม G3</option></select>
+        </div>
+        <button type="button" class="ds-btn ds-btn-primary adm-add-btn" onclick="addPlayer()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg>เพิ่ม</button>
       </div>
-      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <span style="font-size:12px;letter-spacing:2px;color:var(--muted);font-weight:700;">IMPORT FROM CSV</span>
-        <label class="btn btn-info btn-sm" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;">📂 Choose File <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="importCSV(this)"></label>
+      <div class="adm-csv">
+        <div class="adm-csv-t">
+          <span class="ds-label">นำเข้าจากไฟล์ CSV</span>
+          <span class="ds-help">คอลัมน์: ชื่อ, ทีม (Red / Blue), กลุ่ม (1-3)</span>
+        </div>
+        <label class="ds-btn adm-file"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-upload-simple"/></svg>เลือกไฟล์<input type="file" id="csvFileInput" class="ds-sr-only" accept=".csv" onchange="importCSV(this)"></label>
       </div>
     </div>
   </details>
 
-  <div class="section-title" style="margin-top: 0;">Create Match (Queue) <span class="count-chip" id="ongoingCount">0</span></div>
-
-  <div class="card mb-card" id="matchBoard">
-    <div class="mb-topbar">
-      <span class="mb-topbar-lbl">ROUND</span>
-      <button class="round-pill round-active" id="rpill1" onclick="selectRound('1')">1</button>
-      <button class="round-pill" id="rpill2" onclick="selectRound('2')">2</button>
-      <button class="round-pill" id="rpill3" onclick="selectRound('3')">3</button>
-      <span id="mbStatus" class="mb-status">เลือกแล้ว 0/4</span>
+  <section class="adm-end" aria-labelledby="admEndH">
+    <div class="adm-end-t">
+      <h2 id="admEndH" class="adm-h">จบการแข่งขัน</h2>
+      <p class="ds-help">แสดงหน้าสรุปผลและพิธีมอบรางวัลบนทุกหน้าจอ</p>
     </div>
-    <div class="mb-slots">
-      <div class="mb-team">
-        <div class="mb-team-title red-text">🔴 RED</div>
-        <div class="mb-slot red" id="mbSlotR0" onclick="boardRemove('red',0)"></div>
-        <div class="mb-slot red" id="mbSlotR1" onclick="boardRemove('red',1)"></div>
-      </div>
-      <div class="mb-vs">VS</div>
-      <div class="mb-team">
-        <div class="mb-team-title blue-text" style="text-align:right;">BLUE 🔵</div>
-        <div class="mb-slot blue" id="mbSlotB0" onclick="boardRemove('blue',0)"></div>
-        <div class="mb-slot blue" id="mbSlotB1" onclick="boardRemove('blue',1)"></div>
-      </div>
-    </div>
-    <div class="mb-pools">
-      <div class="mb-pool-col">
-        <div class="mb-pool-head">
-          <input type="text" id="mbSearchRed" placeholder="🔍 ค้นหาทีมแดง" oninput="renderMatchBoard()">
-          <div class="mb-groups" id="mbGroupRed">
-            <button class="filter-pill active" onclick="setBoardGroup('red','')">ทั้งหมด</button>
-            <button class="filter-pill" onclick="setBoardGroup('red','1')">G1</button>
-            <button class="filter-pill" onclick="setBoardGroup('red','2')">G2</button>
-            <button class="filter-pill" onclick="setBoardGroup('red','3')">G3</button>
-          </div>
-        </div>
-        <div id="mbPoolRed" class="mb-pool"></div>
-      </div>
-      <div class="mb-pool-col">
-        <div class="mb-pool-head">
-          <input type="text" id="mbSearchBlue" placeholder="🔍 ค้นหาทีมน้ำเงิน" oninput="renderMatchBoard()">
-          <div class="mb-groups" id="mbGroupBlue">
-            <button class="filter-pill active" onclick="setBoardGroup('blue','')">ทั้งหมด</button>
-            <button class="filter-pill" onclick="setBoardGroup('blue','1')">G1</button>
-            <button class="filter-pill" onclick="setBoardGroup('blue','2')">G2</button>
-            <button class="filter-pill" onclick="setBoardGroup('blue','3')">G3</button>
-          </div>
-        </div>
-        <div id="mbPoolBlue" class="mb-pool"></div>
-      </div>
-    </div>
-    <div class="mb-actions">
-      <button class="btn btn-info btn-sm" onclick="boardFillRandom()">🎲 สุ่มจับคู่</button>
-      <button class="btn btn-sm" onclick="resetPicker()" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);">✕ ล้าง</button>
-      <button id="mbCreateBtn" class="btn btn-primary mb-create" onclick="createMatch()" style="margin-left:auto;">⚡ สร้างแมตช์</button>
-    </div>
-  </div>
+    <button type="button" class="ds-btn ds-btn-lg adm-end-btn" onclick="openEndGame()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trophy"/></svg>สรุปผลการแข่งขัน (Ceremony)</button>
+  </section>
 
-  <div style="margin:16px 0 20px; display:flex;">
-    <button class="btn btn-primary" onclick="openEndGame()" style="margin-left:auto; font-size:16px; padding:12px 24px; box-shadow:0 0 15px rgba(245,200,66,0.3);">🏆 สรุปผลการแข่งขัน (Ceremony)</button>
-  </div>
-
-  <div class="section-title">Manage All Matches (Live & Queue)</div>
-  <div id="adminOngoingMatchesContainer" class="match-grid"></div>
-
+  <div class="app-version adm-ver" data-app-version></div>
 </div>
 
 <!-- ── PLAYERS TAB ── -->
