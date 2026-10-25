@@ -602,52 +602,61 @@ try {
 
 <!-- ── GALLERY TAB (everyone) ── -->
 <div id="gallery" class="container">
-  <div class="gal-header">
-    <div class="section-title" style="margin:0;">📷 บรรยากาศงาน</div>
-    <div id="galleryAdminBar" class="gal-admin-bar" style="display:none;">
-      <input type="text" id="galEventInput" class="gal-event-input" placeholder="ชื่องาน (เช่น ต้นปี / ปลายปี)" maxlength="40">
-      <button class="btn btn-primary btn-sm" onclick="pickGalleryPhotos()">⬆ เพิ่มรูป</button>
-      <button class="btn btn-outline btn-sm" id="galSelectToggle" onclick="toggleGalSelect()">☑️ เลือก/ย้าย</button>
+  <h2 class="section-title th">บรรยากาศงาน</h2>
+  <!-- staff: upload (the event name is the album the photos go into) and multi-select -->
+  <div id="galleryAdminBar" class="gal-admin-bar" hidden>
+    <label class="ds-field gal-event">
+      <span class="ds-label">ชื่องาน</span>
+      <input type="text" id="galEventInput" class="ds-input" placeholder="เช่น ต้นปี / ปลายปี" maxlength="40" autocomplete="off">
+    </label>
+    <div class="gal-admin-actions">
+      <button type="button" class="ds-btn ds-btn-primary" onclick="pickGalleryPhotos()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-upload-simple"/></svg>เพิ่มรูป</button>
+      <button type="button" class="ds-btn" id="galSelectToggle" aria-pressed="false" onclick="toggleGalSelect()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg>เลือก/ย้าย</button>
     </div>
   </div>
+  <div id="galleryNotice" class="gal-notice" role="status" aria-live="polite"></div>
   <div id="galleryYears" class="gal-years"></div>
   <div id="galleryYearTitle" class="gal-year-title"></div>
   <div id="galleryGrid" class="gal-grid"></div>
 </div>
 
 <!-- gallery multi-select action bar (floating) -->
-<div id="galSelectBar" class="gal-selbar" style="display:none;">
+<div id="galSelectBar" class="gal-selbar" hidden role="region" aria-label="เลือกรูป">
   <span class="gal-sel-count">เลือก <b id="galSelCount">0</b> รูป</span>
   <span class="gal-sel-hint">แตะรูปเพื่อเลือก · ลากรูปไปหัวอัลบั้มก็ได้ (บนคอม)</span>
-  <button class="btn btn-primary btn-sm" onclick="openGalMove()">📁 ย้ายไปอัลบั้ม</button>
-  <button class="btn btn-danger btn-sm" onclick="galDeleteSelected()">🗑 ลบ</button>
-  <button class="btn btn-outline btn-sm" onclick="toggleGalSelect()">✕ เสร็จ</button>
+  <div class="gal-sel-actions">
+    <button type="button" class="ds-btn ds-btn-primary" onclick="openGalMove()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-images"/></svg>ย้ายไปอัลบั้ม</button>
+    <button type="button" class="ds-btn ds-btn-danger" onclick="galDeleteSelected()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg>ลบ</button>
+    <button type="button" class="ds-btn" onclick="toggleGalSelect()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check"/></svg>เสร็จ</button>
+  </div>
 </div>
 
 <!-- move-to-album picker -->
-<div id="galMoveModal" class="modal-overlay">
-  <div class="modal-box" style="width:min(440px,93vw);text-align:left;">
-    <div class="modal-title" style="font-size:1.3em;text-align:center;">📁 ย้ายไปอัลบั้ม</div>
+<div id="galMoveModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="galMoveTitle">
+  <div class="modal-box gal-move-box">
+    <h3 class="modal-title" id="galMoveTitle">ย้ายไปอัลบั้ม</h3>
     <div id="galMoveTargets" class="gal-move-targets"></div>
     <div class="gal-move-new">
-      <input type="text" id="galMoveNewName" class="gal-event-input" placeholder="อัลบั้มใหม่ (ชื่องาน)" maxlength="40">
-      <button class="btn btn-primary btn-sm" onclick="galMoveToNew()">＋ สร้าง &amp; ย้าย</button>
+      <input type="text" id="galMoveNewName" class="ds-input" placeholder="อัลบั้มใหม่ (ชื่องาน)" maxlength="40" aria-label="ชื่ออัลบั้มใหม่" autocomplete="off">
+      <button type="button" class="ds-btn ds-btn-primary" onclick="galMoveToNew()">สร้างและย้าย</button>
     </div>
-    <div class="modal-actions" style="margin-top:16px;"><button class="btn btn-outline" onclick="closeGalMove()">ยกเลิก</button></div>
+    <div class="ds-sheet-actions"><button type="button" class="ds-btn" onclick="closeGalMove()">ยกเลิก</button></div>
   </div>
 </div>
 
 <!-- ── GALLERY LIGHTBOX ── -->
-<div id="galleryLightbox" class="gal-lightbox" onclick="if(event.target===this)closeLightbox()"
+<div id="galleryLightbox" class="gal-lightbox" role="dialog" aria-modal="true" aria-label="ดูรูป" onclick="if(event.target===this)closeLightbox()"
      ontouchstart="lbTouchStart(event)" ontouchend="lbTouchEnd(event)">
-  <button class="gal-lb-close" onclick="closeLightbox()" aria-label="ปิด">✕</button>
-  <button class="gal-lb-arrow gal-lb-prev" onclick="lightboxNav(-1)" aria-label="ก่อนหน้า">←</button>
+  <div class="gal-lb-top">
+    <span id="lbCounter" class="gal-lb-counter" role="status">0 / 0</span>
+    <button type="button" class="ds-btn ds-btn-icon gal-lb-close" onclick="closeLightbox()" aria-label="ปิด" title="ปิด"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+  </div>
+  <button type="button" class="ds-btn ds-btn-icon gal-lb-arrow gal-lb-prev" onclick="lightboxNav(-1)" aria-label="ก่อนหน้า"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-caret-left"/></svg></button>
   <div class="gal-lb-stage"><img id="lbImg" src="" alt=""></div>
-  <button class="gal-lb-arrow gal-lb-next" onclick="lightboxNav(1)" aria-label="ถัดไป">→</button>
+  <button type="button" class="ds-btn ds-btn-icon gal-lb-arrow gal-lb-next" onclick="lightboxNav(1)" aria-label="ถัดไป"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg></button>
   <div class="gal-lb-bar">
-    <span id="lbCounter" class="gal-lb-counter">0 / 0</span>
     <span id="lbCaption" class="gal-lb-caption"></span>
-    <button id="lbDelete" class="gal-lb-del" onclick="lightboxDelete()" style="display:none;">🗑 ลบรูปนี้</button>
+    <button type="button" id="lbDelete" class="ds-btn ds-btn-danger gal-lb-del" onclick="lightboxDelete()" hidden><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg>ลบรูปนี้</button>
   </div>
 </div>
 

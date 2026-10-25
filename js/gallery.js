@@ -126,14 +126,16 @@ function paintGallery() {
   const pillYears = [...new Set([...years, ...(canEdit ? [currentEventYear()] : [])])]
     .sort((a, b) => b.localeCompare(a));
   if (yearsEl) {
-    yearsEl.innerHTML = pillYears.length <= 1 ? '' : pillYears.map(y =>
-      `<button class="gal-year${y === _galleryYear ? ' active' : ''}" onclick="setGalleryYear('${y}')">${y}${
-        (_gallery[y] ? Object.keys(_gallery[y]).length : 0) ? `<span>${Object.keys(_gallery[y]).length}</span>` : ''}</button>`
-    ).join('');
+    yearsEl.innerHTML = pillYears.length <= 1 ? '' : pillYears.map(y => {
+      const n = _gallery[y] ? Object.keys(_gallery[y]).length : 0;
+      return `<button type="button" class="ds-chip is-btn gal-year${y === _galleryYear ? ' is-on' : ''}" aria-pressed="${y === _galleryYear}" onclick="setGalleryYear('${y}')">${y}${n ? `<span>${n}</span>` : ''}</button>`;
+    }).join('');
   }
 
   const admin = document.getElementById('galleryAdminBar');
-  if (admin) admin.style.display = canEdit ? 'flex' : 'none';
+  if (admin) admin.hidden = !canEdit;
+  const selToggle = document.getElementById('galSelectToggle');
+  if (selToggle) selToggle.setAttribute('aria-pressed', String(_galSelectMode));
   // pre-fill the event label with a month-based default so an admin can just
   // pick files, but can override it (ต้นปี / ปลายปี / custom)
   const evIn = document.getElementById('galEventInput');
@@ -143,25 +145,27 @@ function paintGallery() {
   const titleEl = document.getElementById('galleryYearTitle');
   const count = galleryCount(_galleryYear);
   if (titleEl) titleEl.innerHTML = `ปี ${_galleryYear}${count ? ` <span>${count} รูป</span>` : ''}`;
+  paintGalleryNotice();
 
-  // before the first answer there is no album to call empty
+  // before the first answer there is no album to call empty: tiles while it loads, a way out when it is stuck
   if (!_galleryLoaded) {
-    const stuck = _galleryPhase === 'slow' || _galleryPhase === 'failed';
-    gridEl.innerHTML = `<div class="gal-empty">
-      <span class="gal-empty-icon">${stuck ? '📶' : '⏳'}</span>
-      <div>${_galleryPhase === 'failed' ? 'โหลดรูปไม่ได้' : _galleryPhase === 'slow' ? 'ยังเชื่อมต่อไม่ได้' : 'กำลังโหลดรูป…'}</div>
-      ${stuck ? '<div class="gal-empty-sub">ตรวจสัญญาณแล้วลองใหม่</div><button type="button" class="btn btn-outline" style="margin-top:12px;min-height:44px;" onclick="retryGallery()">ลองใหม่</button>' : ''}
-    </div>`;
+    gridEl.innerHTML = (_galleryPhase === 'slow' || _galleryPhase === 'failed')
+      ? `<div class="gal-state">
+           <div class="ds-banner ${_galleryPhase === 'failed' ? 'is-err' : 'is-warn'}" role="alert">${dsIcon('wifi-slash')}<span>${_galleryPhase === 'failed' ? 'โหลดรูปไม่ได้' : 'ยังเชื่อมต่อไม่ได้'} — ตรวจสัญญาณแล้วลองใหม่</span></div>
+           <button type="button" class="ds-btn" onclick="retryGallery()">${dsIcon('arrow-clockwise')}ลองใหม่</button>
+         </div>`
+      : `<div class="gal-skel" role="status" aria-label="กำลังโหลดรูป">${'<div class="ds-skel"></div>'.repeat(8)}</div>`;
     return;
   }
 
   const photos = galleryPhotos(_galleryYear);
   if (!photos.length) {
-    gridEl.innerHTML = `<div class="gal-empty">
-      <span class="gal-empty-icon">🖼️</span>
-      <div>ยังไม่มีรูปของปี ${_galleryYear}</div>
-      ${canEdit ? '<div class="gal-empty-sub">พิมพ์ชื่องาน แล้วแตะ “เพิ่มรูป” เพื่ออัปโหลด</div>' : '<div class="gal-empty-sub">รูปบรรยากาศงานจะแสดงที่นี่</div>'}
-    </div>`;
+    gridEl.innerHTML = `<div class="ds-card"><div class="ds-empty">
+      <div class="ds-empty-art">${dsArt('shuttle')}</div>
+      <div class="ds-empty-title">ยังไม่มีรูปของปี ${_galleryYear}</div>
+      <div class="ds-empty-text">${canEdit ? 'พิมพ์ชื่องาน แล้วแตะ “เพิ่มรูป” เพื่ออัปโหลด' : 'รูปบรรยากาศงานจะแสดงที่นี่'}</div>
+      ${canEdit ? `<button type="button" class="ds-btn ds-btn-primary" onclick="pickGalleryPhotos()">${dsIcon('upload-simple')}เพิ่มรูป</button>` : ''}
+    </div></div>`;
     return;
   }
 
@@ -176,26 +180,46 @@ function paintGallery() {
       ? `ondragover="event.preventDefault();this.classList.add('drop-hot')" ondragleave="this.classList.remove('drop-hot')" ondrop="this.classList.remove('drop-hot');galDropOnEvent(event,'${evAttr}')"`
       : '';
     return `
-    <div class="gal-section">
+    <section class="gal-section">
       <div class="gal-section-head" ${drop}>
-        <span class="gal-section-name">${group.event === '—' ? '📷 รูปงาน' : '📅 ' + escHtml(group.event)}</span>
-        <span class="gal-section-count">${group.photos.length} รูป</span>
+        <span class="gal-section-name">${group.event === '—' ? dsIcon('camera') + 'รูปงาน' : dsIcon('calendar-blank') + escHtml(group.event)}</span>
+        <span class="ds-chip">${group.photos.length} รูป</span>
       </div>
       <div class="gal-masonry">
         ${group.photos.map(p => `
           <figure class="gal-item${_galSel.has(p.id) ? ' selected' : ''}" data-id="${p.id}"
-                  tabindex="0" role="button" aria-label="ดูรูป${p.caption ? ' ' + escHtml(p.caption) : ''}"
+                  tabindex="0" role="button" aria-label="${sel ? 'เลือกรูป' : 'ดูรูป'}${p.caption ? ' ' + escHtml(p.caption) : ''}"${sel ? ` aria-pressed="${_galSel.has(p.id)}"` : ''}
                   ${canEdit ? `draggable="true" ondragstart="galDragStart(event,'${p.id}')"` : ''}
-                  onclick="galItemClick(event,'${p.id}',${p._i})">
+                  onclick="galItemClick(event,'${p.id}',${p._i})"
+                  onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();galItemClick(event,'${p.id}',${p._i})}">
             <img src="${p.url}" alt="${escHtml(p.caption || '')}" loading="lazy">
-            ${sel ? '<span class="gal-check"></span>' : ''}
+            ${sel ? `<span class="gal-check">${dsIcon('check')}</span>` : ''}
             ${p.caption ? `<figcaption>${escHtml(p.caption)}</figcaption>` : ''}
-            ${canEdit && !sel ? `<button class="gal-del" title="ลบรูป" onclick="event.stopPropagation();deleteGalleryPhoto('${_galleryYear}','${p.id}')">🗑</button>` : ''}
+            ${canEdit && !sel ? `<button type="button" class="gal-del" aria-label="ลบรูป" title="ลบรูป" onclick="event.stopPropagation();deleteGalleryPhoto('${_galleryYear}','${p.id}')">${dsIcon('trash')}</button>` : ''}
           </figure>`).join('')}
       </div>
-    </div>`;
+    </section>`;
   }).join('');
   _galUpdateSelBar();
+}
+
+// what is going on above the albums: an upload in progress, or an album that is close to (or at) its cap.
+// _galUp = { done, total } while uploadGalleryFiles runs.
+let _galUp = null;
+function paintGalleryNotice() {
+  const el = document.getElementById('galleryNotice');
+  if (!el) return;
+  let html = '';
+  if (_galUp) {
+    const pct = _galUp.total ? Math.round(_galUp.done / _galUp.total * 100) : 0;
+    html += `<div class="ds-banner is-info">${dsIcon('upload-simple')}<div class="gal-up"><span>กำลังอัปโหลด ${_galUp.done}/${_galUp.total} รูป…</span><div class="ds-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div></div></div>`;
+  }
+  if (userRole === 'admin' || userRole === 'superadmin') {
+    const year = _galleryYear || currentEventYear(), n = galleryCount(year);
+    if (n >= GAL_MAX_PER_YEAR) html += `<div class="ds-banner is-err">${dsIcon('warning')}<span>ปี ${year} มีรูปครบ ${GAL_MAX_PER_YEAR} รูปแล้ว ลบรูปเก่าก่อนจึงจะเพิ่มได้</span></div>`;
+    else if (n >= GAL_MAX_PER_YEAR - 20) html += `<div class="ds-banner is-warn">${dsIcon('warning')}<span>ปี ${year} มี ${n} จาก ${GAL_MAX_PER_YEAR} รูป ใกล้เต็มแล้ว</span></div>`;
+  }
+  el.innerHTML = html;
 }
 
 function setGalleryYear(y) { _galleryYear = String(y); renderGallery(); }
@@ -208,7 +232,7 @@ let _galDragId = null;
 function _galIsAdmin() { return userRole === 'admin' || userRole === 'superadmin'; }
 
 function toggleGalSelect() {
-  if (!_galIsAdmin()) return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (!_galIsAdmin()) return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   _galSelectMode = !_galSelectMode;
   _galSel.clear();
   paintGallery();
@@ -226,7 +250,7 @@ function _galUpdateSelBar() {
   const bar = document.getElementById('galSelectBar');
   const cnt = document.getElementById('galSelCount');
   if (cnt) cnt.textContent = _galSel.size;
-  if (bar) bar.style.display = _galSelectMode ? 'flex' : 'none';
+  if (bar) bar.hidden = !_galSelectMode;
 }
 
 function openGalMove() {
@@ -238,8 +262,8 @@ function openGalMove() {
       .forEach(ev => targets.push({ y, ev }));
   });
   el.innerHTML = targets.map(t =>
-    `<button class="gal-move-btn" onclick="galMoveTo('${t.y}','${(t.ev === '—' ? '' : t.ev).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-       <b>${t.ev === '—' ? '📷 รูปงาน' : '📅 ' + escHtml(t.ev)}</b><span>ปี ${t.y}</span>
+    `<button type="button" class="gal-move-btn" onclick="galMoveTo('${t.y}','${(t.ev === '—' ? '' : t.ev).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+       <b>${t.ev === '—' ? dsIcon('camera') + 'รูปงาน' : dsIcon('calendar-blank') + escHtml(t.ev)}</b><span>ปี ${t.y}</span>
      </button>`).join('') || '<div class="gal-move-empty">ยังไม่มีอัลบั้มอื่น — พิมพ์ชื่อด้านล่างเพื่อสร้างใหม่</div>';
   const nn = document.getElementById('galMoveNewName'); if (nn) nn.value = '';
   document.getElementById('galMoveModal').classList.add('open');
@@ -256,7 +280,7 @@ async function galMoveTo(targetYear, targetEvent) {
   if (!ids.length) return closeGalMove();
   const srcYear = _galleryYear;
   closeGalMove();
-  showToast(`⏳ กำลังย้าย ${ids.length} รูป...`, 'info');
+  showToast(`กำลังย้าย ${ids.length} รูป...`, 'info');
   let moved = 0;
   for (const id of ids) {
     const rec = _gallery[srcYear] && _gallery[srcYear][id];
@@ -274,7 +298,7 @@ async function galMoveTo(targetYear, targetEvent) {
   await loadGallery(true);
   _galSel.clear(); _galSelectMode = false;
   renderGallery();
-  showToast(`✅ ย้าย ${moved} รูปแล้ว`, 'success');
+  showToast(`ย้าย ${moved} รูปแล้ว`, 'success');
 }
 function galDeleteSelected() {
   if (!_galIsAdmin()) return;
@@ -310,13 +334,13 @@ function galDropOnEvent(e, targetEvent) {
   if (((rec.event || '').trim()) === targetEvent) return;   // already in this album
   galleryRef.child(y).child(id).update({ event: targetEvent }).then(async () => {
     await loadGallery(true); renderGallery();
-    showToast('✅ ย้ายรูปแล้ว', 'success');
+    showToast('ย้ายรูปแล้ว', 'success');
   }).catch(() => showToast('ย้ายไม่สำเร็จ', 'error'));
 }
 
 // ── Upload ────────────────────────────────────────────────────
 function pickGalleryPhotos() {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   const input = document.createElement('input');
   input.type = 'file'; input.accept = 'image/*'; input.multiple = true; input.style.display = 'none';
   input.onchange = () => { const files = [...(input.files || [])]; input.remove(); uploadGalleryFiles(files); };
@@ -331,11 +355,13 @@ async function uploadGalleryFiles(files) {
   // soft cap: a year's album loads in one go, so keep it light on mobile data
   const already = galleryCount(year);
   if (already + files.length > GAL_MAX_PER_YEAR) {
-    return showToast(`⚠️ ปี ${year} จะเกิน ${GAL_MAX_PER_YEAR} รูป (ตอนนี้ ${already}) — ลบรูปเก่าก่อน หรืออัปโหลดน้อยลง`, 'error');
+    return showToast(`ปี ${year} จะเกิน ${GAL_MAX_PER_YEAR} รูป (ตอนนี้ ${already}) — ลบรูปเก่าก่อน หรืออัปโหลดน้อยลง`, 'error');
   }
   let ok = 0, fail = 0, viaR2 = 0;
-  showToast(`⏳ กำลังอัปโหลด ${files.length} รูป...`, 'info');
+  _galUp = { done: 0, total: files.length }; paintGalleryNotice();
+  showToast(`กำลังอัปโหลด ${files.length} รูป...`, 'info');
   for (const file of files) {
+    _galUp.done = ok + fail; paintGalleryNotice();
     if (!file.type.startsWith('image/')) { fail++; continue; }
     try {
       const blob = await compressGalleryBlob(file);
@@ -352,9 +378,10 @@ async function uploadGalleryFiles(files) {
       ok++;
     } catch (e) { fail++; }
   }
+  _galUp = null;
   await loadGallery(true); renderGallery();
-  const mode = ok && viaR2 === ok ? ' ☁️' : (viaR2 ? ` (☁️×${viaR2})` : '');
-  showToast(`✅ อัปโหลด ${ok} รูป${fail ? ` · พลาด ${fail}` : ''}${mode} (ปี ${year})`, fail ? 'warning' : 'success');
+  const mode = ok && viaR2 === ok ? ' · เก็บบนคลาวด์' : (viaR2 ? ` · คลาวด์ ${viaR2} รูป` : '');
+  showToast(`อัปโหลด ${ok} รูป${fail ? ` · พลาด ${fail}` : ''}${mode} (ปี ${year})`, fail ? 'warning' : 'success');
 }
 
 // keep aspect ratio, cap the long edge, step quality down under a size cap.
@@ -398,7 +425,7 @@ function blobToDataURL(blob) {
 }
 
 function deleteGalleryPhoto(year, id) {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   const key = _gallery[year]?.[id]?.key;
   showConfirmDialog('ลบรูปนี้?', () => {
     galleryRef.child(year).child(id).remove().then(() => {
@@ -411,24 +438,30 @@ function deleteGalleryPhoto(year, id) {
 }
 
 // ── Lightbox ──────────────────────────────────────────────────
-let _lbIndex = -1;
+let _lbIndex = -1, _lbOpener = null;
 function openLightbox(i) {
   const photos = galleryPhotos(_galleryYear);
   if (!photos.length) return;
   const lb = document.getElementById('galleryLightbox');
   const wasOpen = lb.classList.contains('open');
+  if (!wasOpen) _lbOpener = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
   _lbIndex = Math.max(0, Math.min(i, photos.length - 1));
   lb.classList.add('open');
   document.body.style.overflow = 'hidden';
   paintLightbox();
+  if (!wasOpen) lb.querySelector('.gal-lb-close')?.focus({ preventScroll: true });   // keyboard users land inside the dialog
   // history entry so Back closes the lightbox instead of leaving the app
   if (!wasOpen) { try { history.pushState({ lbOpen: true }, ''); } catch (e) {} }
 }
 // close UI only — no history change (called by the popstate handler)
 function _lbCloseUI() {
-  document.getElementById('galleryLightbox').classList.remove('open');
+  const lb = document.getElementById('galleryLightbox');
+  const wasOpen = lb.classList.contains('open');
+  lb.classList.remove('open');
   document.body.style.overflow = '';
   _lbIndex = -1;
+  if (wasOpen && _lbOpener && _lbOpener.isConnected) { try { _lbOpener.focus({ preventScroll: true }); } catch (e) {} }
+  _lbOpener = null;
 }
 function closeLightbox() {
   const lb = document.getElementById('galleryLightbox');
@@ -453,7 +486,7 @@ function paintLightbox() {
   document.getElementById('lbCaption').textContent = p.caption || '';
   const canEdit = userRole === 'admin' || userRole === 'superadmin';
   const del = document.getElementById('lbDelete');
-  if (del) del.style.display = canEdit ? 'inline-flex' : 'none';
+  if (del) del.hidden = !canEdit;
 }
 function lightboxDelete() {
   const photos = galleryPhotos(_galleryYear);
