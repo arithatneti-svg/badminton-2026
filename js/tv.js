@@ -152,10 +152,12 @@ function _tvLiveList() { return sortByCourt((appState.ongoingMatches || []).filt
 function _tvCourtPill(m) { return m.court ? `<b class="tv-court">${escHtml(courtLabel(m))}</b>` : ''; }
 // "พักเกม" / "ไม่มีความเคลื่อนไหว 12 นาที" hanging on the card — it ages with the clock, not with data
 // (a stuck court sends nothing), so _tvPatchStatus refreshes it from the health timer
+// the tag in two lengths: the full words, and (for the narrow compact cards) just how long, e.g. "11 นาที"
+function _tvStatusShort(tag) { const k = /(\d+ (?:นาที|ชม\.|วัน))$/.exec(tag); return k ? k[1] : tag; }
 function _tvStatusHtml(m, now) {
   const tag = matchStatusTag(m, now);
   // icon + words: pause (short) or warning (looks abandoned); css shows the one that fits and hides the tag while it is empty
-  return `<span class="ds-chip tv-chip tv-status${matchLooksStuck(m, now) ? ' stuck' : ''}"${tag ? '' : ' hidden'}>${dsIcon('pause', { fill: true, cls: 'tv-st-pause' })}${dsIcon('warning', { fill: true, cls: 'tv-st-warn' })}<span class="tv-status-t">${escHtml(tag)}</span></span>`;
+  return `<span class="ds-chip tv-chip tv-status${matchLooksStuck(m, now) ? ' stuck' : ''}"${tag ? '' : ' hidden'}>${dsIcon('pause', { fill: true, cls: 'tv-st-pause' })}${dsIcon('warning', { fill: true, cls: 'tv-st-warn' })}<span class="tv-status-t">${escHtml(tag)}</span><span class="tv-status-s">${escHtml(_tvStatusShort(tag))}</span></span>`;
 }
 function _tvPatchStatus() {
   const now = Date.now();
@@ -163,8 +165,8 @@ function _tvPatchStatus() {
     const el = card.querySelector('.tv-status'); if (!el) return;
     const m = (appState.ongoingMatches || []).find(x => x && x.id === card.dataset.mid); if (!m) return;
     const tag = matchStatusTag(m, now);
-    const t = el.querySelector('.tv-status-t') || el;
-    if (t.textContent !== tag) t.textContent = tag;
+    const t = el.querySelector('.tv-status-t') || el, sh = el.querySelector('.tv-status-s');
+    if (t.textContent !== tag) { t.textContent = tag; if (sh) sh.textContent = _tvStatusShort(tag); }
     el.hidden = !tag;
     el.classList.toggle('stuck', matchLooksStuck(m, now));
   });
@@ -387,17 +389,18 @@ function _tvHotHtml(cx) {
   return `<span class="ds-chip ds-chip-gold tv-chip tv-hot">${dsIcon(cx === 2 ? 'lightning' : 'fire')}<span class="tv-hot-t" lang="en">${cx === 2 ? 'DEUCE' : 'CLIMAX'}</span></span>`;
 }
 function _tvFacesHtml(ids) { return `<span class="tv-faces">${ids.map(id => avatarHtml(id, 64)).join('')}</span>`; }
-// a team's side of a court: tag, faces, names (css/tv.css sizes it for the panel that holds it)
-function _tvPlateHtml(side, ids, names) {
-  return `<div class="tv-plate is-${side}">${_tvTag(side)}${_tvFacesHtml(ids)}<span class="tv-names">${escHtml(_tvStrip(names))}</span></div>`;
+// A team's field (the same flat team colour, edge band and shape + word tag as the phone screens): tag and faces on top,
+// the digit (white, the biggest thing on the screen), the names under it. css/tv.css sizes it for the panel that holds it.
+function _tvFieldHtml(side, ids, names, digitHtml) {
+  return `<div class="tv-field is-${side}"><div class="tv-fh">${_tvTag(side)}${_tvFacesHtml(ids)}</div>${digitHtml}<span class="tv-names">${escHtml(_tvStrip(names))}</span></div>`;
 }
-// the two digits of a score (the .red / .blue spans are what the patch functions below update); not started = a dash
-function _tvScoreHtml(cls, s) {
-  return s.notStarted
-    ? `<div class="tv-score ${cls}"><span class="sep">—</span></div>`
-    : `<div class="tv-score ${cls}"><span class="red">${s.cr}</span><span class="sep">:</span><span class="blue">${s.cb}</span></div>`;
+// Both fields of a court. `cls` carries the hook js/tv.js patches (tv-vs-score / tv-live-score): its .red / .blue digits are updated
+// in place. A court that has not had its first point shows dashes (and the digits are rebuilt when the point comes).
+function _tvFieldsHtml(cls, m, s) {
+  const digit = (side, n) => s.notStarted ? `<span class="tv-fd is-ready">—</span>` : `<span class="tv-fd ${side}">${n}</span>`;
+  return `<div class="tv-fields ${cls}">${_tvFieldHtml('red', [m.r1, m.r2], m.redNames, digit('red', s.cr))}${_tvFieldHtml('blue', [m.b1, m.b2], m.blueNames, digit('blue', s.cb))}</div>`;
 }
-// the line under the digits: game 1's result while game 2 is on, "ready" before the first point
+// the line under / beside the digits: game 1's result while game 2 is on, "ready" before the first point
 function _tvRecap(s) { return s.g2on ? `เกม 1 · ${s.g1r}–${s.g1b}` : (s.notStarted ? 'พร้อมแข่ง' : ''); }
 
 function _tvBattleHtml() {
@@ -406,7 +409,7 @@ function _tvBattleHtml() {
       <div class="tv-team-top">${_tvTag(s)}<span class="tv-lead">${dsIcon('crown', { fill: true })}<span>นำ</span></span></div>
       <div class="tv-team-score">${n}</div>
     </div>`;
-  return `<div class="tv-panel tv-battle ds-court-bg">
+  return `<div class="tv-panel tv-battle">
     ${_tvHeadHtml(_tvTitleHtml('users', 'TEAM BATTLE'))}
     <div class="tv-battle-row">${side('red', r, r > b)}<div class="tv-net" lang="en">VS</div>${side('blue', b, b > r)}</div>
   </div>`;
@@ -423,22 +426,22 @@ function _tvVsHeroHtml(m, countHtml) {
   return `<div class="tv-panel tv-vs-panel${cx ? ' is-climax' : ''}" data-mid="${escHtml(m.id)}">
     ${_tvHeadHtml(_tvLiveChip(true) + pill, meta)}
     <div class="tv-vs-body">
-      ${s.notStarted ? `<div class="tv-vs-now" lang="en">NOW PLAYING</div>` : _tvScoreHtml('tv-vs-score', s)}
-      <div class="tv-vs-sub"><span class="tv-vs-g1">${_tvRecap(s)}</span>${_tvStatusHtml(m)}</div>
-      <div class="tv-plates">${_tvPlateHtml('red', [m.r1, m.r2], m.redNames)}${_tvPlateHtml('blue', [m.b1, m.b2], m.blueNames)}</div>
+      ${_tvFieldsHtml('tv-vs-score', m, s)}
+      <div class="tv-vs-sub">${s.notStarted ? `<span class="tv-vs-now" lang="en">NOW PLAYING</span>` : ''}<span class="tv-vs-g1">${_tvRecap(s)}</span>${_tvStatusHtml(m)}</div>
     </div>
   </div>`;
 }
 
 // How many cards go across and down, by court count: a lone card in the last row looks broken, so 4 courts are 2×2 and 5–6 are
-// 3 across; 7–10 are two rows (4 or 5 across), more than 10 three rows. The CSS sizes a card from these two numbers alone
-// (cards, digits, names and faces all grow with the room one court gets); 7+ courts start with compact cards (no faces).
+// 3 across; 7–10 are two rows (4 or 5 across), more than 10 three rows. The CSS sizes a card from these numbers alone (cards,
+// digits, names and faces all grow with the room one court gets); 7+ courts start with compact cards (no faces).
+// wide = the 2×2 card is wider than tall, so its fields put the digit beside the names instead of above them.
 function _tvGridPlan(n) {
-  if (n <= 3) return { cols: Math.max(1, n), rows: 1, compact: false };
-  if (n === 4) return { cols: 2, rows: 2, compact: false };
-  if (n <= 6) return { cols: 3, rows: 2, compact: false };
+  if (n <= 3) return { cols: Math.max(1, n), rows: 1, compact: false, wide: false };
+  if (n === 4) return { cols: 2, rows: 2, compact: false, wide: true };
+  if (n <= 6) return { cols: 3, rows: 2, compact: false, wide: false };
   const rows = n <= 10 ? 2 : n <= 15 ? 3 : 4;
-  return { cols: Math.ceil(n / rows), rows, compact: true };
+  return { cols: Math.ceil(n / rows), rows, compact: true, wide: false };
 }
 
 // All live courts at once — the default live view when 2+ courts are running.
@@ -451,14 +454,14 @@ function _tvGridHtml(live) {
     return `<div class="tv-live-card${cxCls}${s.g2on ? ' is-g2' : ''}${s.notStarted ? ' is-ready' : ''}" data-mid="${escHtml(m.id)}">
       ${_tvStatusHtml(m)}
       <div class="tv-live-id">${pill}<span class="ds-chip tv-chip tv-live-game">${s.g2on ? 'เกม 2' : 'เกม 1'}</span>${_tvHotHtml(cx)}${m.court ? `<span class="tv-live-mid">${escHtml(m.id)}</span>` : ''}</div>
-      ${_tvScoreHtml('tv-live-score', s)}
       <div class="tv-live-games">${_tvRecap(s)}</div>
-      <div class="tv-plates">${_tvPlateHtml('red', [m.r1, m.r2], m.redNames)}${_tvPlateHtml('blue', [m.b1, m.b2], m.blueNames)}</div>
+      ${_tvFieldsHtml('tv-live-score', m, s)}
     </div>`;
   };
+  // no-word: three or more cards across leave a field too narrow for the team's word beside its faces, so the shape alone tags the team
   return `<div class="tv-panel">
     ${_tvHeadHtml(_tvLiveChip(true) + `<span class="tv-head-count" lang="en"><b>${live.length}</b> ${live.length > 1 ? 'COURTS' : 'COURT'}</span>`)}
-    <div class="tv-live-grid${plan.compact ? ' is-compact' : ''}" style="--tv-cols:${plan.cols};--tv-rows:${plan.rows}">${live.map(card).join('')}</div>
+    <div class="tv-live-grid${plan.compact ? ' is-compact' : ''}${plan.wide ? ' is-wide' : ''}${plan.cols >= 3 ? ' no-word' : ''}" style="--tv-cols:${plan.cols};--tv-rows:${plan.rows}">${live.map(card).join('')}</div>
   </div>`;
 }
 
@@ -530,32 +533,26 @@ function _tvPatchGrid(el, live) {
 }
 
 // Transient full-screen announcement: a match finished, or a game 1 wrapped up.
-// One game of a finished match as "21 : 15" (the loser's digit goes quiet); text that is not "n:n" is shown as it was stored.
-function _tvGameRow(g, n) {
-  const p = String(g).split(':').map(x => x.trim());
-  const ok = p.length === 2 && p.every(x => /^\d+$/.test(x));
-  const body = ok
-    ? `<span class="red${+p[0] < +p[1] ? ' lost' : ''}">${+p[0]}</span><span class="sep">:</span><span class="blue${+p[1] < +p[0] ? ' lost' : ''}">${+p[1]}</span>`
-    : escHtml(String(g));
-  return `<div class="tv-ev-game"><span class="tv-ev-gl">เกม ${n}</span><span class="tv-ev-gs">${body}</span></div>`;
-}
 function _tvEventHtml(ev) {
   const m = ev.m || {};
   if (ev.type === 'finished') {
     const isR = m.rStat === 'W', isB = m.bStat === 'W';
     const cls = isR ? 'red' : isB ? 'blue' : 'draw';
     const title = isR ? 'RED WINS' : isB ? 'BLUE WINS' : 'DRAW';
-    const games = [m.game1, m.game2 && m.game2 !== '0:0' ? m.game2 : ''];
-    const plate = (side, ids, names, win) => `<div class="tv-plate tv-ev-plate is-${side}${win ? ' win' : ''}">
-        <div class="tv-ev-head">${_tvTag(side)}${win ? `<span class="tv-ev-win">${dsIcon('crown', { fill: true })}</span>` : ''}</div>
-        ${_tvFacesHtml(ids)}<span class="tv-names">${escHtml(_tvStrip(names))}</span></div>`;
+    // each game as [red, blue]; the stored text ("21:15") is only read here, never changed. Text that is not "n:n" is shown as it was stored.
+    const raw = [m.game1, m.game2 && m.game2 !== '0:0' ? m.game2 : ''].filter(Boolean).map(String);
+    const parsed = raw.map(g => { const p = g.split(':').map(x => x.trim()); return p.length === 2 && p.every(x => /^\d+$/.test(x)) ? [+p[0], +p[1]] : null; });
+    const ok = parsed.length > 0 && parsed.every(Boolean);
+    const field = (side, i, ids, names, win) => `<div class="tv-field tv-ev-field is-${side}${win ? ' win' : ''}">
+        <div class="tv-fh"><span class="tv-fh-l">${_tvTag(side)}${win ? `<span class="tv-ev-win">${dsIcon('crown', { fill: true })}</span>` : ''}</span>${_tvFacesHtml(ids)}</div>
+        <div class="tv-ev-games">${ok
+          ? parsed.map((g, n) => `<div class="tv-ev-game"><span class="tv-ev-gl">เกม ${n + 1}</span><span class="tv-fd${g[i] < g[1 - i] ? ' lost' : ''}">${g[i]}</span></div>`).join('')
+          : `<span class="tv-fd is-ready">—</span>`}</div>
+        <span class="tv-names">${escHtml(_tvStrip(names))}</span></div>`;
     return `<div class="tv-panel tv-event is-${cls}">
       <div class="tv-ev-tag" lang="en">${dsIcon('trophy', { fill: true })}MATCH FINISHED · ${escHtml(m.id || '')}</div>
-      <div class="tv-ev-card">
-        ${plate('red', [m.r1, m.r2], m.redNames, isR)}
-        <div class="tv-ev-games">${games.map((g, i) => g ? _tvGameRow(g, i + 1) : '').join('')}</div>
-        ${plate('blue', [m.b1, m.b2], m.blueNames, isB)}
-      </div>
+      <div class="tv-fields tv-ev-card">${field('red', 0, [m.r1, m.r2], m.redNames, isR)}${field('blue', 1, [m.b1, m.b2], m.blueNames, isB)}</div>
+      ${ok ? '' : `<div class="tv-ev-raw">${raw.map(x => escHtml(x)).join('  /  ')}</div>`}
       <div class="tv-ev-result is-${cls}" lang="en">${cls === 'draw' ? '' : dsIcon('crown', { fill: true })}${title}</div>
     </div>`;
   }
@@ -563,11 +560,10 @@ function _tvEventHtml(ev) {
   const g1r = lv.g1R || 0, g1b = lv.g1B || 0;
   const w = g1r > g1b ? 'red' : g1b > g1r ? 'blue' : '';
   const leader = w === 'red' ? _tvStrip(m.redNames) : w === 'blue' ? _tvStrip(m.blueNames) : '';
-  return `<div class="tv-panel tv-event${w ? ' is-' + w : ''}">
+  return `<div class="tv-panel tv-event tv-ev-g1${w ? ' is-' + w : ''}">
     <div class="tv-ev-tag" lang="en">${escHtml(m.id || '')} · ROUND ${escHtml(String(m.round || ''))}</div>
     <div class="tv-ev-big" lang="en">END OF GAME 1</div>
-    <div class="tv-score tv-ev-g1"><span class="red">${g1r}</span><span class="sep">:</span><span class="blue">${g1b}</span></div>
-    <div class="tv-plates">${_tvPlateHtml('red', [m.r1, m.r2], m.redNames)}${_tvPlateHtml('blue', [m.b1, m.b2], m.blueNames)}</div>
+    ${_tvFieldsHtml('tv-ev-score', m, { notStarted: false, cr: g1r, cb: g1b })}
     <div class="tv-ev-note">${w ? `<b class="is-${w}">${escHtml(leader)}</b> นำ · ลุยเกม 2` : 'เสมอ · ลุยเกม 2'}</div>
   </div>`;
 }

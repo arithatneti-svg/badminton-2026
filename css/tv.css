@@ -1,11 +1,10 @@
 /* ============================================================
    TV / projector mode (?view=tv) - the audience screen, read from across a hall.
-   Same tokens as the phone apps (css/tokens.css); only the SCALE differs.
+   Same tokens and the same team fields as the phone apps (css/tokens.css); only the SCALE differs.
 
    1u = 1/100 of the screen height on a 16:9 display: 10.8 px at 1080p, 7.2 px at 720p, 14.4 px at 1440p.
    Every size below is a multiple of --u, so the whole screen scales as one picture and a line that is 28 px at 1080p
    is the same line everywhere. Nothing is smaller than 2.6u (28 px at 1080p).
-   Colour, type and motion come from the tokens; the TV never has its own palette.
    Hooks that js/tv.js patches or measures (do not rename): .tv-team.red/.blue .tv-team-score, .tv-vs-score .red/.blue, .tv-vs-g1,
    .tv-live-card[data-mid], .tv-live-score .red/.blue, .tv-live-games, .tv-status, .tv-live-grid (+ is-compact / is-tight, --tv-cols),
    .tv-board-row, .tv-foot, .tv-heading, #tvSync, #tvStale, #tvFsBtn, body.tv-mode.
@@ -15,16 +14,16 @@
 body.tv-mode {
   --u: min(.5625vw, 1vh);
   --tv-px: calc(var(--u) * 5.2);              /* side margin: keeps clear of TV overscan */
-  --tv-r: calc(var(--u) * 1.5);               /* cards */
-  --tv-r-sm: calc(var(--u) * 1);              /* plates, badges */
+  --tv-r: calc(var(--u) * 1.5);               /* big fields, cards */
+  --tv-r-sm: calc(var(--u) * 1);              /* small fields, badges */
   /* the TV sits under the toast layer (a refused full-screen request must still be seen) and over every dialog */
   --tv-z: calc(var(--z-toast) - 100);
   overflow: hidden;
 }
-/* the app's own chrome never shows here (the other areas style it with ids, hence the one deliberate !important) */
+/* the app's own chrome never shows here (the other areas style it with ids and :fullscreen rules, hence the one deliberate !important) */
 body.tv-mode .nav,
 body.tv-mode .container,
-body.tv-mode #fsNav,
+body.tv-mode .fs-bottom-nav,
 body.tv-mode .fs-trigger-zone { display: none !important; }
 
 body.tv-mode #tvView {
@@ -69,6 +68,7 @@ body.tv-mode #tvView {
   border-radius: var(--tv-r-sm); background: var(--gold); color: var(--gold-ink);
   font: 800 calc(var(--u) * 3.2 * var(--s, 1))/1 var(--font-ui); white-space: nowrap;
 }
+.tv-hot { flex: none; min-height: calc(var(--u) * 3.8); }
 
 /* ── footer: panel dots · last confirmed-live moment · event name ── */
 .tv-foot {
@@ -114,60 +114,54 @@ body.tv-mode .tv-fs-btn.idle { opacity: 0; }
 }
 body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 
-/* ── a team's side of a court: tag (shape + word), faces, names. Sizes come from the panel that holds it. ── */
-.tv-plates { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--tv-gap, calc(var(--u) * 2.6)); }
-.tv-plate {
-  --pad: var(--plate-pad, calc(var(--u) * 1.2)); --edge: calc(var(--u) * .8);
-  min-width: 0; display: grid; align-content: center; gap: calc(var(--u) * .8) calc(var(--u) * 1.2);
-  padding: var(--pad); border-radius: var(--tv-r-sm); background: var(--fill);
+/* ── a team's field: the phone screens' flat team colour + edge band, shape + word tag and faces on top, the digit (white, the biggest
+   thing on the screen), the names under it. The panel that holds it sets the sizes (numbers in u): --fpad padding, --facen face, --namen
+   name size, --tagn tag size, --digit digit font, --fgap gap between the two fields. ── */
+.tv-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--fgap, calc(var(--u) * 2.6)); min-height: 0; }
+.tv-field {
+  --edge: calc(var(--u) * var(--edgen, .8)); --face: calc(var(--u) * var(--facen, 5));
+  min-width: 0; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "head" "digit" "names";
+  gap: calc(var(--u) * .8); padding: calc(var(--u) * var(--fpad, 1.2)); border-radius: var(--tv-r-sm);
+  background: var(--fill); box-shadow: inset 0 var(--edge) 0 var(--edge-c);
 }
-.tv-plate.is-red {
-  --fill: var(--red-fill); box-shadow: inset var(--edge) 0 0 var(--red); padding-left: calc(var(--pad) + var(--edge));
-  grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "tag tag" "faces names"; text-align: left;
+.tv-field.is-red  { --fill: var(--red-fill);  --edge-c: var(--red);  }
+.tv-field.is-blue { --fill: var(--blue-fill); --edge-c: var(--blue); }
+.tv-fh { grid-area: head; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: calc(var(--u) * .8); min-width: 0; min-height: var(--face); }
+.tv-fh .tv-tag { flex: none; }   /* the word is never squeezed: when tag + faces do not fit one line, the faces drop under it */
+.tv-field.is-blue .tv-fh { flex-direction: row-reverse; }
+.tv-fh-l { display: inline-flex; align-items: center; gap: calc(var(--u) * 1.2); min-width: 0; }
+.tv-fd {
+  grid-area: digit; align-self: center; justify-self: center; font: 400 var(--digit, calc(var(--u) * 14))/var(--lh-num) var(--font-num);
+  letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--t-hi);
 }
-.tv-plate.is-blue {
-  --fill: var(--blue-fill); box-shadow: inset calc(var(--edge) * -1) 0 0 var(--blue); padding-right: calc(var(--pad) + var(--edge));
-  grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tag tag" "names faces"; text-align: right;
-}
-.tv-plate .tv-tag { grid-area: tag; font-size: var(--tag, calc(var(--u) * 2.6)); }
-.tv-plate.is-blue .tv-tag { justify-self: end; }
-.tv-plate .tv-faces { grid-area: faces; }
-.tv-plate .tv-names {
-  grid-area: names; align-self: center; min-width: 0; font: 700 var(--name, calc(var(--u) * 3))/1.4 var(--font-ui);
-  color: var(--t-hi); overflow-wrap: anywhere;
+.tv-fd.is-ready { color: var(--t-low); }
+.tv-field .tv-names {
+  grid-area: names; min-width: 0; font: 700 calc(var(--u) * var(--namen, 3))/1.4 var(--font-ui); color: var(--t-hi); overflow-wrap: anywhere;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
+.tv-field.is-blue .tv-names { text-align: right; }
+.tv-field .tv-tag { font-size: calc(var(--u) * var(--tagn, 2.6)); }
 .tv-tag { min-width: 0; max-width: 100%; font-weight: 800; line-height: 1.2; white-space: nowrap; }
 .tv-tag::before { width: .8em; height: .8em; }
 .tv-tag-name { overflow: hidden; text-overflow: ellipsis; }
-.tv-plate.is-red .tv-tag { color: var(--red-ink); }
-.tv-plate.is-red .tv-tag::before { background: var(--red); }
-.tv-plate.is-blue .tv-tag { color: var(--blue-ink); }
-.tv-plate.is-blue .tv-tag::before { background: var(--blue); }
+.tv-field.is-red .tv-tag { color: var(--red-ink); }
+.tv-field.is-red .tv-tag::before { background: var(--red); }
+.tv-field.is-blue .tv-tag { color: var(--blue-ink); }
+.tv-field.is-blue .tv-tag::before { background: var(--blue); }
 
 .tv-faces { display: inline-flex; align-items: center; }
 .tv-faces .pav { width: var(--face, calc(var(--u) * 6)); height: var(--face, calc(var(--u) * 6)); border-width: calc(var(--u) * .3); }
 .tv-faces .pav-initials { font-size: calc(var(--face, calc(var(--u) * 6)) * .36); }
 .tv-faces .pav + .pav { margin-left: calc(var(--face, calc(var(--u) * 6)) * -.16); }
 
-/* ── the score: the two digits sit either side of the colon, one glyph group, like a real scoreboard ── */
-.tv-score {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; align-self: center; justify-items: center;
-  font: 400 var(--digit, calc(var(--u) * 14))/var(--lh-num) var(--font-num); letter-spacing: 0; font-variant-numeric: tabular-nums;
-}
-.tv-score .red { justify-self: end; color: var(--red-text); }
-.tv-score .blue { justify-self: start; color: var(--blue-text); }
-.tv-score .sep { padding: 0 .12em; color: var(--t-low); }
-.tv-score .sep:only-child { grid-column: 1 / -1; }
-
 /* ── TEAM BATTLE ── */
 .tv-battle-row { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--u) * 9) minmax(0, 1fr); align-items: stretch; }
 .tv-team {
   min-width: 0; display: flex; flex-direction: column; padding: calc(var(--u) * 3) calc(var(--u) * 3.4);
-  border-radius: var(--tv-r); background: var(--fill);
+  border-radius: var(--tv-r); background: var(--fill); box-shadow: inset 0 calc(var(--u) * 1) 0 var(--edge-c);
 }
-.tv-team.red  { --fill: var(--red-fill);  --fill-hi: var(--red-fill-hi);  box-shadow: inset calc(var(--u) * 1) 0 0 var(--red); padding-left: calc(var(--u) * 4.4); }
-.tv-team.blue { --fill: var(--blue-fill); --fill-hi: var(--blue-fill-hi); box-shadow: inset calc(var(--u) * -1) 0 0 var(--blue); padding-right: calc(var(--u) * 4.4); }
+.tv-team.red  { --fill: var(--red-fill);  --fill-hi: var(--red-fill-hi);  --edge-c: var(--red);  }
+.tv-team.blue { --fill: var(--blue-fill); --fill-hi: var(--blue-fill-hi); --edge-c: var(--blue); }
 .tv-team.lead { background: var(--fill-hi); }
 .tv-team-top { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 2); min-height: calc(var(--u) * 5.2); }
 .tv-team.blue .tv-team-top { flex-direction: row-reverse; }
@@ -193,24 +187,21 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-net::before, .tv-net::after { content: ''; flex: 1; width: calc(var(--u) * .2); background: var(--line-strong); }
 
 /* ── ONE live court, big (also the climax takeover) ── */
-.tv-vs-panel {
-  --plate-pad: calc(var(--u) * 2.4); --tag: calc(var(--u) * 3.4); --name: calc(var(--u) * 5.6); --face: calc(var(--u) * 14);
-  --digit: calc(var(--u) * 50);
-}
+.tv-vs-panel { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 14; --namen: 5.6; --tagn: 3.6; --digit: calc(var(--u) * 48); }
+.tv-vs-panel .tv-field { border-radius: var(--tv-r); }
 .tv-vs-panel .tv-court { height: calc(var(--u) * 5.2); font-size: calc(var(--u) * 3.8); }
+.tv-vs-panel .tv-names { -webkit-line-clamp: 2; }
 .tv-vs-id { font: 600 calc(var(--u) * 3)/1.2 var(--font-ui); color: var(--t-low); }
 .tv-vs-round, .tv-vs-game { min-height: calc(var(--u) * 4.4); font: 400 calc(var(--u) * 3.4)/1 var(--font-num); letter-spacing: .08em; }
 .tv-vs-game { background: var(--s3); border-color: var(--line-strong); color: var(--t-hi); }
 .tv-vs-panel .tv-hot { min-height: calc(var(--u) * 4.4); font-size: calc(var(--u) * 3); }
-.tv-vs-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-between; gap: calc(var(--u) * 1.6); }
-.tv-vs-score { flex: 1; min-height: 0; }
-.tv-vs-now { flex: 1; display: grid; place-items: center; font: 400 calc(var(--u) * 26)/var(--lh-num) var(--font-num); letter-spacing: .04em; color: var(--gold); }
-.tv-vs-sub { display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 2); min-height: calc(var(--u) * 4.4); }
+.tv-vs-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: calc(var(--u) * 1.6); }
+.tv-vs-score { flex: 1; }
+.tv-vs-sub { flex: none; display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 2.4); min-height: calc(var(--u) * 4.4); }
+.tv-vs-now { font: 400 calc(var(--u) * 4.4)/1 var(--font-num); letter-spacing: .08em; color: var(--gold); }
 .tv-vs-g1 { font: 600 calc(var(--u) * 3.4)/1.4 var(--font-ui); color: var(--t-mid); }
 .tv-vs-count { display: inline-flex; align-items: center; gap: calc(var(--u) * .8); font: 600 calc(var(--u) * 2.8)/1.2 var(--font-ui); color: var(--t-mid); }
 
-/* DEUCE / CLIMAX */
-.tv-hot { min-height: calc(var(--u) * 3.8); flex: none; }
 /* the status tag ("พักเกม", "ไม่มีความเคลื่อนไหว 12 นาที"): icon + words, amber while short, rose when the court looks abandoned */
 .tv-status {
   gap: calc(var(--u) * .8); min-height: calc(var(--u) * 3.8); padding: 0 calc(var(--u) * 1.5);
@@ -220,36 +211,37 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-status[hidden] { display: none; }
 .tv-status.stuck { border-color: var(--err-line); color: var(--err); }
 .tv-status .ds-ic { width: 1.2em; height: 1.2em; }
+.tv-status-s { display: none; }
 .tv-status .tv-st-warn, .tv-status.stuck .tv-st-pause { display: none; }
 .tv-status.stuck .tv-st-warn { display: inline-block; }
 
 /* ── LIVE grid: every court at once ──
-   JS sets --tv-cols / --tv-rows from the court count (_tvGridPlan). A card's size in u follows from them (a 16:9 screen is 167.4u x 78.8u of room),
-   and so does everything inside it, so 2 courts get huge digits and 10 courts still get 13u (140 px at 1080p) ones.
+   JS sets --tv-cols / --tv-rows from the court count (_tvGridPlan). From those two numbers the CSS works out, in u, how big one court's
+   card is (a 16:9 screen has 167.4u x 78.8u of room) and fills it: 2 courts get digits over 40u, 10 courts still 13u (140 px at 1080p).
    _tvFitGrid() measures the result and adds is-compact, then is-tight, only if a card still does not fit. */
 .tv-live-grid {
-  --tv-gap: calc(var(--u) * 2.6);
-  --gap-y: calc(var(--u) * 3.4);
+  --col-gap: calc(var(--u) * 2.6); --gap-y: calc(var(--u) * 3.4); --fgap: calc(var(--u) * 1.2);
   --cwn: calc((167.4 - (var(--tv-cols, 3) - 1) * 2.6) / var(--tv-cols, 3));                 /* a card's width in u */
   --chn: calc((78.8 - (var(--tv-rows, 2) - 1) * 3.4) / var(--tv-rows, 2));                  /* its height in u */
   --s: calc(1 + .35 * max(0, 2 - var(--tv-rows, 2)));                                        /* one row of courts (2-3 courts): everything a third bigger */
-  --k: calc(.5 - .11 * min(1, var(--tv-rows, 2) - 1));
-  --digit: calc(var(--u) * min((var(--cwn) - 3.6) / 1.95, var(--chn) * var(--k)));
-  --name: calc(var(--u) * clamp(2.8, var(--cwn) * .056 * var(--s), 5.4));
-  --face: calc(var(--u) * clamp(4.6, var(--cwn) * .105 * var(--s), 7.2 + 5 * max(0, min(1, 2 - var(--tv-rows, 2)))));
-  --tag: calc(var(--u) * 2.6 * var(--s));
-  --plate-pad: calc(var(--u) * 1.2 * var(--s));
-  --card-pad: calc(var(--u) * 1.5 * var(--s));
-  --card-gap: calc(var(--u) * 1 * var(--s));
-  flex: 1; min-height: 0; display: grid; gap: var(--gap-y) var(--tv-gap);
+  --cpad: calc(1.5 * var(--s)); --fpad: calc(1.2 * var(--s)); --edgen: .8;
+  --fw: calc((var(--cwn) - 2 * (.25 + var(--cpad)) - 1.2) / 2);                              /* a team field's width ... */
+  --fh: calc(var(--chn) - 2 * (.25 + var(--cpad)) - 5.6 * var(--s));                         /* ... and height (header row + gap taken off) */
+  --facen: clamp(4.4, calc(var(--fw) * .21 * var(--s) * var(--s)), 11);
+  --namen: clamp(2.6, calc(var(--fw) * .115 * var(--s)), 5.2);
+  --tagn: calc(2.6 * var(--s));
+  --dw: calc((var(--fw) - 2 * var(--fpad) - var(--edgen)) / .84);                           /* the widest digit pair that fits the field */
+  --dh: calc((var(--fh) - 2 * var(--fpad) - var(--facen) - 2 * var(--namen) * 1.4 - 1.6) / .85);   /* what is left in height after faces and two lines of names */
+  --digit: calc(var(--u) * min(var(--dw), var(--dh)));
+  flex: 1; min-height: 0; display: grid; gap: var(--gap-y) var(--col-gap);
   grid-template-columns: repeat(var(--tv-cols, 3), minmax(0, 1fr));
   grid-auto-rows: minmax(min-content, 1fr);
 }
-/* a card is a grid with named areas, never DOM-order rows: header (court, game, hot, game-1 result) / score / plates */
+/* a card is a grid with named areas, never DOM-order rows: header (court, game, hot, game-1 result) / the two team fields */
 .tv-live-card {
-  position: relative; min-width: 0; display: grid; align-content: stretch; gap: var(--card-gap) 0; padding: var(--card-pad);
-  grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(min-content, 1fr) auto;
-  grid-template-areas: "id games" "score score" "plates plates";
+  position: relative; min-width: 0; display: grid; gap: calc(var(--u) * var(--s)) 0; padding: calc(var(--u) * var(--cpad));
+  grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(min-content, 1fr);
+  grid-template-areas: "id games" "score score";
   background: var(--s1); border: calc(var(--u) * .25) solid var(--line-strong); border-radius: var(--tv-r);
 }
 .tv-live-card .tv-status { position: absolute; top: 0; right: calc(var(--u) * 1.8); transform: translateY(-50%); z-index: 1; max-width: calc(100% - var(--u) * 3.6); }
@@ -261,37 +253,52 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-live-games:empty { display: none; }
 .tv-live-card.is-ready .tv-live-games { color: var(--gold); font-weight: 800; }
 .tv-live-card.is-g2 .tv-live-mid { display: none; }
-.tv-live-card .tv-plates { grid-area: plates; }
 .tv-live-card.is-deuce, .tv-live-card.is-climax { border-color: var(--gold); }
-/* three courts: the plates stack (faces over names) so a name is never squeezed */
-.is-stack .tv-plate { grid-template-columns: minmax(0, 1fr); grid-template-areas: "tag" "faces" "names"; justify-items: center; text-align: center; }
-.is-stack .tv-plate.is-blue .tv-tag { justify-self: center; }
+.tv-live-grid .tv-names { -webkit-line-clamp: 3; }
+
+/* 4 courts: the card is wider than tall, so each field puts the digit beside the faces and names instead of above them */
+.tv-live-grid.is-wide {
+  --dw: calc((var(--fw) - 2 * var(--fpad) - var(--edgen)) * .5 / .84);
+  --dh: calc((var(--fh) - 2 * var(--fpad)) / .85);
+  --namen: clamp(2.6, calc(var(--fw) * .09), 4);
+}
+.is-wide .tv-field { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "digit head" "digit names"; column-gap: calc(var(--u) * 1.4); }
+.is-wide .tv-field.is-blue { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "head digit" "names digit"; }
+.is-wide .tv-fh, .is-wide .tv-field.is-blue .tv-fh { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: calc(var(--u) * .8); }
+.is-wide .tv-field.is-blue .tv-fh { align-items: flex-end; }
+.is-wide .tv-field .tv-names { align-self: end; }
 
 /* 7+ courts, or whenever the regular card does not fit: number-led cards. No faces, the team's shape instead of its word;
-   the game-1 result moves from the header to its own line under the digits. */
+   the game-1 result moves from the header to its own line above the fields. */
 .tv-live-grid.is-compact {
-  --s: 1; --k: calc(.5 - .15 * min(1, var(--tv-rows, 2) - 1));
-  --name: calc(var(--u) * clamp(2.6, var(--cwn) * .07, 3.4));
-  --plate-pad: calc(var(--u) * .9); --card-pad: calc(var(--u) * 1.3); --card-gap: calc(var(--u) * .9);
+  --s: 1; --cpad: 1.3; --fpad: .7; --edgen: .6; --fgap: calc(var(--u) * 1);
+  --fw: calc((var(--cwn) - 2 * (.25 + var(--cpad)) - 1) / 2);
+  --fh: calc(var(--chn) - 2 * (.25 + var(--cpad)) - 9.4);
+  --facen: 2.4;
+  --namen: clamp(2.6, calc(var(--fw) * .16), 3.4);
+  --tagn: 2.6;
 }
-.is-compact .tv-faces, .is-compact .tv-tag-name, .is-compact .tv-live-mid, .is-compact .tv-hot-t { display: none; }
+.is-compact .tv-faces, .is-compact .tv-live-mid, .is-compact .tv-hot-t { display: none; }
+.is-compact .tv-fh { justify-content: center; }
+/* three or more cards across: the shape alone tags the team (the field colour, the edge band and the left / right side say the rest) */
+.no-word .tv-tag-name { display: none; }
+.no-word .tv-tag::before { width: 1.6em; height: 1.6em; }
 .is-compact .tv-live-card.is-g2, .is-compact .tv-live-card.is-ready {
-  grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(min-content, 1fr) auto auto;
-  grid-template-areas: "id" "score" "games" "plates";
+  grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(min-content, 1fr);
+  grid-template-areas: "id" "games" "score";
 }
 .is-compact .tv-live-games { margin-left: 0; text-align: center; }
-.is-compact .tv-plate { grid-template-columns: minmax(0, 1fr); grid-template-areas: "tag" "names"; justify-items: center; text-align: center; }
-.is-compact .tv-plate.is-blue .tv-tag { justify-self: center; }
-.is-compact .tv-tag::before { width: 1.6em; height: 1.6em; }
 .is-compact .tv-court { height: calc(var(--u) * 4); font-size: calc(var(--u) * 2.8); }
 .is-compact .tv-live-id { gap: calc(var(--u) * .8); }
 .is-compact .tv-live-game { padding: 0 calc(var(--u) * 1.1); font-size: calc(var(--u) * 2.6); }
 .is-compact .tv-hot { width: calc(var(--u) * 3.8); padding: 0; justify-content: center; }
-.is-compact .tv-live-card .tv-status { white-space: normal; text-align: center; border-radius: calc(var(--u) * 1.6); padding: calc(var(--u) * .3) calc(var(--u) * 1.2); line-height: 1.3; }
+/* the status tag is too long for a narrow card: icon + how long ("11 นาที") instead of the full words */
+.is-compact .tv-status-t { display: none; }
+.is-compact .tv-status-s { display: inline; }
 
 /* one notch smaller still (a small projector with many courts); nothing that fits ever gets it */
-.tv-live-grid.is-tight { --plate-pad: calc(var(--u) * .7); --card-pad: calc(var(--u) * 1); --card-gap: calc(var(--u) * .6); --k: .3; }
-.is-tight .tv-plate .tv-names { -webkit-line-clamp: 2; }
+.tv-live-grid.is-tight { --fpad: .5; --cpad: 1; --namen: 2.6; --dh: calc((var(--fh) - 2 * var(--fpad) - var(--facen) - 2 * var(--namen) * 1.4 - 1.2) / .85); }
+.is-tight .tv-names { -webkit-line-clamp: 2; }
 .is-tight .tv-live-games { display: none; }
 
 /* ── LEADERBOARD: two columns read top to bottom, left then right ── */
@@ -330,35 +337,32 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 
 /* ── announcements: a match finished, a game 1 wrapped up ── */
 .tv-event { align-items: center; justify-content: center; gap: calc(var(--u) * 2.6); text-align: center; animation: tv-in var(--dur-in) var(--ease-out); }
+.tv-event .tv-fields { align-self: stretch; }
 .tv-ev-tag { display: inline-flex; align-items: center; gap: calc(var(--u) * 1.4); font: 600 calc(var(--u) * 3.4)/1.2 var(--font-ui); letter-spacing: .12em; color: var(--t-mid); }
 .tv-ev-tag .ds-ic { color: var(--gold); }
 .tv-ev-big { font: 400 calc(var(--u) * 12)/var(--lh-num) var(--font-num); letter-spacing: .04em; color: var(--gold); }
-.tv-ev-g1 { align-self: stretch; --digit: calc(var(--u) * 32); }
-.tv-event .tv-plates { align-self: stretch; --plate-pad: calc(var(--u) * 2); --tag: calc(var(--u) * 3.2); --name: calc(var(--u) * 4.6); --face: calc(var(--u) * 11); }
+.tv-ev-g1 { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 11; --namen: 4.8; --tagn: 3.2; --digit: calc(var(--u) * 32); }
+.tv-ev-g1 .tv-field { border-radius: var(--tv-r); }
 .tv-ev-note { font: 600 calc(var(--u) * 4.4)/1.4 var(--font-ui); color: var(--t-hi); }
 .tv-ev-note b { font-weight: 800; }
 .tv-ev-note b.is-red { color: var(--red-text); }
 .tv-ev-note b.is-blue { color: var(--blue-text); }
-.tv-ev-card { align-self: stretch; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: calc(var(--u) * 2.6); }
-.tv-ev-plate { --plate-pad: calc(var(--u) * 3); --tag: calc(var(--u) * 3.6); --name: calc(var(--u) * 6); --face: calc(var(--u) * 16); gap: calc(var(--u) * 1.4) calc(var(--u) * 1.8); }
-.tv-ev-plate.win { background: var(--fill-hi); }
-.tv-ev-plate.is-red { --fill-hi: var(--red-fill-hi); }
-.tv-ev-plate.is-blue { --fill-hi: var(--blue-fill-hi); }
-.tv-ev-head { grid-area: tag; display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 1.6); }
-.tv-ev-plate.is-blue .tv-ev-head { flex-direction: row-reverse; }
+.tv-ev-card { --fgap: calc(var(--u) * 3.2); --fpad: 3; --edgen: .9; --facen: 15; --namen: 5.4; --tagn: 3.6; --digit: calc(var(--u) * 12); }
+.tv-ev-card .tv-field { border-radius: var(--tv-r); }
+.tv-ev-field.win { background: var(--fill-hi); }
+.tv-ev-field.is-red { --fill-hi: var(--red-fill-hi); }
+.tv-ev-field.is-blue { --fill-hi: var(--blue-fill-hi); }
 .tv-ev-win { display: grid; place-items: center; flex: none; width: calc(var(--u) * 5); height: calc(var(--u) * 5); border-radius: 50%; background: var(--gold); color: var(--gold-ink); font-size: calc(var(--u) * 3); }
-.tv-ev-games { display: grid; align-content: center; gap: calc(var(--u) * 2.4); }
-.tv-ev-game { display: grid; gap: calc(var(--u) * .6); justify-items: center; }
-.tv-ev-gl { font: 600 calc(var(--u) * 2.6)/1.2 var(--font-ui); color: var(--t-low); }
-.tv-ev-gs { font: 400 calc(var(--u) * 13)/var(--lh-num) var(--font-num); letter-spacing: 0; color: var(--t-hi); white-space: nowrap; }
-.tv-ev-gs .red { color: var(--red-text); }
-.tv-ev-gs .blue { color: var(--blue-text); }
-.tv-ev-gs .sep { padding: 0 .1em; color: var(--t-low); }
-.tv-ev-gs .lost { color: var(--t-low); }
+.tv-ev-games { grid-area: digit; align-self: center; display: grid; gap: calc(var(--u) * 1.4); justify-items: center; }
+.tv-ev-game { display: flex; align-items: baseline; gap: calc(var(--u) * 2); }
+.tv-ev-game .tv-fd { grid-area: auto; }
+.tv-ev-gl { font: 600 calc(var(--u) * 2.8)/1.2 var(--font-ui); color: var(--t-mid); }
+.tv-fd.lost { color: var(--t-low); }
+.tv-ev-raw { font: 600 calc(var(--u) * 3.4)/1.4 var(--font-ui); color: var(--t-mid); }
 .tv-ev-result {
   display: inline-flex; align-items: center; gap: calc(var(--u) * 2.4); padding: calc(var(--u) * 1.6) calc(var(--u) * 6); border-radius: var(--tv-r);
   border: calc(var(--u) * .5) solid var(--line-strong); background: var(--s2); color: var(--t-hi);
-  font: 400 calc(var(--u) * 13)/var(--lh-num) var(--font-num); letter-spacing: .06em;
+  font: 400 calc(var(--u) * 11)/var(--lh-num) var(--font-num); letter-spacing: .06em;
 }
 .tv-ev-result .ds-ic { color: var(--gold); }
 .tv-ev-result.is-red { background: var(--red-fill); border-color: var(--red); color: var(--red-ink); }
