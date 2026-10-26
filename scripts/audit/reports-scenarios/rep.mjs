@@ -66,7 +66,7 @@ const full = { full: true, maxHeight: 6000 };
 
 export default [
   // ── Reports · Players ──
-  mk('rep-players', PHT, async (page) => {
+  mk('rep-players-main', PHT, async (page) => {
     await repBench(page, { tab: 'report' });
     await page.eval("switchReportTab('players', document.getElementById('rtab-players'))");
     await page.wait(600);
@@ -120,7 +120,7 @@ export default [
   }),
 
   // ── Reports · Matches ──
-  mk('rep-matches', PHT, async (page) => {
+  mk('rep-matches-main', PHT, async (page) => {
     await repBench(page, { tab: 'report' });
     await page.eval("switchReportTab('matches', document.getElementById('rtab-matches'))");
     await page.wait(600);
@@ -177,11 +177,17 @@ export default [
   }),
 
   // ── Reports · Season compare ──
-  mk('rep-compare', PHT, async (page) => {
+  mk('rep-compare-main', PHT, async (page) => {
     await repBench(page, { tab: 'report', twoSeasons: true });
     await page.eval("switchReportTab('compare', document.getElementById('rtab-compare'))");
     await page.wait(900);
     await page.shot(''); await page.shot('full', { full: true, maxHeight: 4000 });
+  }),
+  mk('rep-compare-320', SMALL, async (page) => {
+    await repBench(page, { tab: 'report', twoSeasons: true });
+    await page.eval("switchReportTab('compare', document.getElementById('rtab-compare'))");
+    await page.wait(900);
+    await page.shot(''); await page.shot('full', { full: true, maxHeight: 3000 });
   }),
   mk('rep-compare-single', PH, async (page) => {         // one season only: "compare after the first archive"
     await repBench(page, { tab: 'report' });
@@ -191,7 +197,7 @@ export default [
   }),
 
   // ── Dashboard ──
-  mk('rep-dash', PHT, async (page) => {
+  mk('rep-dash-main', PHT, async (page) => {
     await repBench(page, { tab: 'dashboard' });
     await page.wait(900);
     await page.shot(''); await page.shot('full', full);
