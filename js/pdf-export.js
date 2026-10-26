@@ -59,9 +59,9 @@ function exportSummaryPDF() {
 <meta charset="UTF-8">
 <title>${season} — Summary Report</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Space Grotesk', sans-serif; background: #fff; color: #111; padding: 32px; font-size: 13px; }
+  body { font-family:'Space Grotesk','Noto Sans Thai',sans-serif; background: #fff; color: #111; padding: 32px; font-size: 13px; }
   h1 { font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #111; }
   h2 { font-size: 15px; font-weight: 800; letter-spacing: 2px; color: #444; margin: 24px 0 12px; text-transform: uppercase; border-bottom: 2px solid #eee; padding-bottom: 6px; }
   .subtitle { color: #777; font-size: 12px; margin-top: 4px; }
@@ -181,9 +181,9 @@ function exportRoundsPDF() {
   const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
 <title>${season} — Rounds Report</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Space Grotesk',sans-serif;background:#f0f2f5;color:#1a1a2e;padding:0;}
+  body{font-family:'Space Grotesk','Noto Sans Thai',sans-serif;background:#f0f2f5;color:#1a1a2e;padding:0;}
   .page{max-width:900px;margin:0 auto;padding:32px 24px 48px;}
   /* ── header ── */
   .doc-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:36px 40px;border-radius:20px;margin-bottom:28px;position:relative;overflow:hidden;}
@@ -388,9 +388,9 @@ function exportPlayerPDF() {
   const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
 <title>${season} — Player Report</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Space Grotesk',sans-serif;background:#f0f2f5;color:#1a1a2e;padding:0;}
+  body{font-family:'Space Grotesk','Noto Sans Thai',sans-serif;background:#f0f2f5;color:#1a1a2e;padding:0;}
   .page{max-width:900px;margin:0 auto;padding:32px 24px 48px;}
   .doc-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:36px 40px;border-radius:20px;margin-bottom:28px;position:relative;overflow:hidden;}
   .doc-header::before{content:'';position:absolute;top:-40px;right:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(245,200,66,0.15),transparent 70%);border-radius:50%;}

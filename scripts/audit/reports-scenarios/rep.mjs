@@ -12,7 +12,7 @@ const SMALL = ['320x568'];
 
 // role + tab + which history: 'full' (the 39 archived matches), 'bench' (the 3 hand-made results), 'none' (nothing finished)
 // stress: very long Thai names on players and on the match rows
-async function repBench(page, { role = 'admin', tab = 'report', hist = 'full', stress = false, twoSeasons = false } = {}) {
+export async function repBench(page, { role = 'admin', tab = 'report', hist = 'full', stress = false, twoSeasons = false } = {}) {
   await page.run(async (o) => {
     const A = __audit, sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await A.wp5Setup();
@@ -194,6 +194,32 @@ export default [
     await page.eval("switchReportTab('compare', document.getElementById('rtab-compare'))");
     await page.wait(900);
     await page.shot('');
+  }),
+
+  mk('rep-compare-loading', PH, async (page) => {        // the archives never arrive: the skeleton + sentence
+    await repBench(page, { tab: 'report' });
+    await page.eval("(() => { window.loadSeasonArchives = () => new Promise(() => {}); switchReportTab('compare', document.getElementById('rtab-compare')); })()");
+    await page.wait(500);
+    await page.shot('');
+  }),
+  mk('rep-compare-offline', PH, async (page) => {        // one season and the connection is down: say so, offer "ลองใหม่"
+    await repBench(page, { tab: 'report' });
+    await page.eval("(() => { _dbOnline = false; switchReportTab('compare', document.getElementById('rtab-compare')); })()");
+    await page.wait(900);
+    await page.shot('');
+  }),
+
+  // ── Print: what printReport() writes, drawn in an iframe (window.open is faked) ──
+  mk('rep-print', ['800x1100'], async (page) => {
+    await repBench(page, { tab: 'report' });
+    await page.eval(`(() => { window.__pr = ''; window.open = () => ({ document: { write: (h) => { window.__pr = h; }, close() {} }, print() {} }); printReport(); })()`);
+    await page.wait(600);
+    await page.eval(`(() => { const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:99999;background:#fff;border:0'; document.body.appendChild(f); f.contentDocument.open(); f.contentDocument.write(window.__pr); f.contentDocument.close(); })()`);
+    await page.wait(600);
+    await page.shot('');
+    await page.eval("document.querySelector('iframe').contentWindow.scrollTo(0, 1700)");
+    await page.wait(200);
+    await page.shot('matches');
   }),
 
   // ── Dashboard ──

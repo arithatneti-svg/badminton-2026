@@ -1,12 +1,41 @@
-// Print = the players table plus the round-grouped match list. The old
-// #matchDetailsTable history table no longer exists (merged into the
-// matches panel), so pull the rendered panel instead.
+// Print = the players table plus the round-grouped match list, taken from the Reports tab as drawn. The print window
+// has its own light stylesheet; the screen markup is cleaned first (icons, sort buttons and the expanding
+// detail panels are screen things, and an svg without the sprite would print as an empty box).
 function printReport() {
-  const statsHtml = document.getElementById('playerStatsTable')?.outerHTML || '';
   if (typeof renderMatchesPanel === 'function') renderMatchesPanel();
-  const histHtml = document.getElementById('matchesPanelContent')?.innerHTML || '';
+  const clean = (html) => {
+    const d = document.createElement('div'); d.innerHTML = html;
+    d.querySelectorAll('.rp-tag[title]').forEach(t => { t.textContent = t.getAttribute('title'); });   // an icon cannot print: say the tag
+    d.querySelectorAll('svg, .sort-icon, .rp-caret, .rp-mdetail, .rp-mrow-q, .ds-sr-only, .ds-bar').forEach(e => e.remove());
+    d.querySelectorAll('button').forEach(b => { const s = document.createElement('span'); s.className = b.className; s.innerHTML = b.innerHTML; b.replaceWith(s); });
+    d.querySelectorAll('[onclick]').forEach(e => e.removeAttribute('onclick'));
+    return d.innerHTML;
+  };
+  const statsHtml = clean(document.getElementById('playerStatsTable')?.outerHTML || '');
+  const histHtml = clean(document.getElementById('matchesPanelContent')?.innerHTML || '');
+  const css = `
+    *{box-sizing:border-box} body{font-family:'Noto Sans Thai','Leelawadee UI',Tahoma,Arial,sans-serif;padding:24px;color:#111;font-size:13px}
+    h1{text-align:center;margin:0 0 4px} h2{color:#111;border-bottom:2px solid #f0c040;padding-bottom:8px;margin-top:32px}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12px;table-layout:auto}
+    th{background:#1a1a1a;color:#f0c040;padding:7px 8px;text-align:left;font-size:11px;white-space:nowrap} td{padding:6px 8px;border-bottom:1px solid #ddd;vertical-align:middle}
+    th.is-num,td.is-num{text-align:right} tr:nth-child(even) td{background:#f9f9f9}
+    .rp-th,.rp-name-link{font:inherit;color:inherit} .rp-name-link{font-weight:700} .rp-pts{font-weight:800}
+    .ds-team{font-weight:700} .ds-team-red{color:#b3262a} .ds-team-blue{color:#1f5fbf}
+    .rp-rank{display:inline-block;min-width:18px;margin-right:6px;text-align:center;border-radius:9px;background:#f0c040;font-weight:800}
+    .rp-wl{display:inline-flex;gap:6px} .rp-wl i{font-style:normal} .rp-wl i.is-zero{color:#999}
+    .rp-wr{display:block} .rp-spec-cell{display:flex;flex-wrap:wrap;gap:4px}
+    .rp-tag{display:inline-flex;gap:3px;font-size:11px;border:1px solid #ccc;border-radius:10px;padding:1px 6px}
+    .rp-round{margin-top:18px;break-inside:avoid} .rp-round-head{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;border-bottom:2px solid #f0c040;padding-bottom:6px}
+    .rp-round-no{margin:0;font-size:15px} .rp-round-no b{font-size:20px;margin-left:6px} .rp-round-tally{display:flex;gap:6px} .rp-round-bar{display:none}
+    .ds-chip{display:inline-flex;gap:4px;border:1px solid #ccc;border-radius:10px;padding:1px 8px;font-size:11px}
+    .rp-mrow{display:grid;grid-template-columns:56px 1fr;gap:2px 10px;width:100%;padding:6px 0;border-bottom:1px solid #eee;font-size:12px}
+    .rp-mrow-id{font-weight:800} .rp-mres{justify-self:end;border:1px solid #ccc;border-radius:10px;padding:0 8px;font-size:11px}
+    .rp-mteams{grid-column:1/-1;display:grid;gap:2px} .rp-mteam{display:grid;grid-template-columns:14px 1fr 28px 28px;align-items:center}
+    .rp-g{text-align:right;color:#777} .rp-g.is-win{color:#111;font-weight:800}
+    .rp-mark{display:inline-block;width:8px;height:8px;background:#999} .rp-mark.is-red{background:#e03a3a;border-radius:50%} .rp-mark.is-blue{background:#2f7be0;transform:rotate(45deg) scale(.9)}
+    th,.rp-mark,.rp-rank{-webkit-print-color-adjust:exact;print-color-adjust:exact} @media print{button{display:none}}`;
   const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Badminton Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111;}h2{color:#111;border-bottom:2px solid #f5c842;padding-bottom:8px;margin-top:32px;}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}th{background:#1a1a1a;color:#f5c842;padding:8px 10px;text-align:left;}td{padding:7px 10px;border-bottom:1px solid #ddd;}tr:nth-child(even) td{background:#f9f9f9;}.rp-mrow{display:grid;grid-template-columns:70px 1fr auto 1fr 80px;gap:10px;padding:6px 4px;border-bottom:1px solid #eee;font-size:12px;}.rp-mdetail{display:none;}.rp-round-head{margin-top:18px;font-weight:800;font-size:15px;border-bottom:2px solid #f5c842;padding-bottom:6px;}.rp-round-bar,.rp-mrow-caret{display:none;}.rp-badge{font-size:11px;padding:1px 6px;border:1px solid #ccc;border-radius:10px;margin-right:4px;}@media print{button{display:none;}}</style></head><body><h1 style="text-align:center;">🏸 Badminton Sports Day 2026 — Report</h1><p style="text-align:center;color:#666;">Printed ${new Date().toLocaleString()}</p><h2>Top Players</h2>${statsHtml}<h2>Match History</h2>${histHtml}</body></html>`);
+  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>Badminton Report</title><style>${css}</style></head><body><h1>Badminton Sports Day 2026 — Report</h1><p style="text-align:center;color:#666;">Printed ${new Date().toLocaleString()}</p><h2>Top Players</h2>${statsHtml}<h2>Match History</h2>${histHtml}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 400);
 }
