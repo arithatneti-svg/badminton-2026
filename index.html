@@ -509,9 +509,9 @@ try {
               </div>
               <div class="mb-groups" id="mbGroupRed" role="group" aria-label="กลุ่มทีมแดง">
                 <button type="button" class="filter-pill active" aria-pressed="true" onclick="setBoardGroup('red','')">ทั้งหมด</button>
-                <button type="button" class="filter-pill" onclick="setBoardGroup('red','1')">G1</button>
-                <button type="button" class="filter-pill" onclick="setBoardGroup('red','2')">G2</button>
-                <button type="button" class="filter-pill" onclick="setBoardGroup('red','3')">G3</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('red','1')">G1</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('red','2')">G2</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('red','3')">G3</button>
               </div>
             </div>
             <div id="mbPoolRed" class="mb-pool"></div>
@@ -525,9 +525,9 @@ try {
               </div>
               <div class="mb-groups" id="mbGroupBlue" role="group" aria-label="กลุ่มทีมน้ำเงิน">
                 <button type="button" class="filter-pill active" aria-pressed="true" onclick="setBoardGroup('blue','')">ทั้งหมด</button>
-                <button type="button" class="filter-pill" onclick="setBoardGroup('blue','1')">G1</button>
-                <button type="button" class="filter-pill" onclick="setBoardGroup('blue','2')">G2</button>
-                <button type="button" class="filter-pill" onclick="setBoardGroup('blue','3')">G3</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('blue','1')">G1</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('blue','2')">G2</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('blue','3')">G3</button>
               </div>
             </div>
             <div id="mbPoolBlue" class="mb-pool"></div>
@@ -616,34 +616,48 @@ try {
     </div>
   </div>
 
-  <!-- Export / Import bar (superadmin only) -->
-  <div class="export-import-bar superadmin-only">
-    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">📦 PLAYER DATA</span>
-    <button class="btn btn-outline btn-sm" onclick="exportPlayerProfiles()">📤 Export JSON</button>
-    <button class="btn btn-outline btn-sm" onclick="exportPlayerCSV()">📊 Export CSV</button>
-    <label class="btn btn-outline btn-sm" style="cursor:pointer;margin:0;">
-      📥 Import JSON
-      <input type="file" accept=".json" style="display:none;" onchange="importPlayerProfiles(this)">
-    </label>
-  </div>
+  <!-- Staff tools (superadmin only): player data, backup, season champion. Folded, so a tab everyone uses never opens with three toolbars. -->
+  <details class="stf superadmin-only" id="staffTools">
+    <summary>
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-gear-six"/></svg>
+      <span>เครื่องมือทีมงาน</span>
+      <svg class="ds-ic stf-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg>
+    </summary>
+    <div class="stf-body">
+      <section class="stf-group" aria-labelledby="stfDataH">
+        <h3 id="stfDataH" class="stf-h">ข้อมูลผู้เล่น</h3>
+        <div class="stf-btns">
+          <button type="button" class="ds-btn" onclick="exportPlayerProfiles()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg>ส่งออก JSON</button>
+          <button type="button" class="ds-btn" onclick="exportPlayerCSV()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg>ส่งออก CSV</button>
+          <label class="ds-btn stf-file"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-upload-simple"/></svg>นำเข้า JSON<input type="file" accept=".json" class="ds-sr-only" onchange="importPlayerProfiles(this)"></label>
+        </div>
+      </section>
 
-  <!-- Backup & Restore bar (superadmin only) -->
-  <div class="export-import-bar superadmin-only">
-    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">🛟 BACKUP</span>
-    <button class="btn btn-outline btn-sm" onclick="manualBackup()">💾 Backup ตอนนี้</button>
-    <button class="btn btn-primary btn-sm" onclick="openBackupModal()">🛟 Backup &amp; Restore</button>
-    <button class="btn btn-outline btn-sm" onclick="runIdentityMigration()" title="เชื่อมประวัติซีซั่นเก่าเข้ากับผู้เล่นปัจจุบัน (ทำครั้งเดียว)">🔗 ซ่อมการเชื่อมประวัติ</button>
-  </div>
+      <section class="stf-group" aria-labelledby="stfBackupH">
+        <h3 id="stfBackupH" class="stf-h">สำรองข้อมูล</h3>
+        <div class="stf-btns">
+          <button type="button" class="ds-btn" onclick="manualBackup()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-floppy-disk"/></svg>Backup ตอนนี้</button>
+          <button type="button" class="ds-btn ds-btn-primary" onclick="openBackupModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-counter-clockwise"/></svg>Backup &amp; Restore</button>
+          <button type="button" class="ds-btn" onclick="runIdentityMigration()" title="เชื่อมประวัติซีซั่นเก่าเข้ากับผู้เล่นปัจจุบัน (ทำครั้งเดียว)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrows-clockwise"/></svg>ซ่อมการเชื่อมประวัติ</button>
+        </div>
+      </section>
 
-  <!-- Declare season champion (superadmin only) — gives the ⭐ Champion medal to every player on that team -->
-  <div class="export-import-bar superadmin-only">
-    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">🏆 CHAMPION</span>
-    <input type="text" id="champLabel" placeholder="เช่น Summer 2026" style="width:130px;font-size:13px;padding:6px 10px;">
-    <button class="btn btn-outline btn-sm" onclick="declareChampion('Red')" title="ให้ทีมแดงเป็นแชมป์">🔴 Red</button>
-    <button class="btn btn-outline btn-sm" onclick="declareChampion('Blue')" title="ให้ทีมน้ำเงินเป็นแชมป์">🔵 Blue</button>
-    <button class="btn btn-outline btn-sm" onclick="declareChampion('')" title="ล้างแชมป์">✖ ล้าง</button>
-    <span id="champStatus" style="font-size:11px;color:var(--gold);font-weight:700;"></span>
-  </div>
+      <!-- declare the season champion: gives the Champion medal to every player on that team -->
+      <section class="stf-group" aria-labelledby="stfChampH">
+        <h3 id="stfChampH" class="stf-h">แชมป์ประจำซีซั่น</h3>
+        <div class="ds-field">
+          <label class="ds-label" for="champLabel">ชื่อรายการ (ไม่ต้องกรอกก็ได้)</label>
+          <input type="text" id="champLabel" class="ds-input" placeholder="เช่น Summer 2026" autocomplete="off">
+        </div>
+        <div class="stf-btns">
+          <button type="button" class="ds-btn ds-btn-red" onclick="declareChampion('Red')" title="ให้ทีมแดงเป็นแชมป์" aria-label="ให้ทีมแดงเป็นแชมป์"><span class="ds-team ds-team-red">RED</span></button>
+          <button type="button" class="ds-btn ds-btn-blue" onclick="declareChampion('Blue')" title="ให้ทีมน้ำเงินเป็นแชมป์" aria-label="ให้ทีมน้ำเงินเป็นแชมป์"><span class="ds-team ds-team-blue">BLUE</span></button>
+          <button type="button" class="ds-btn ds-btn-danger" onclick="declareChampion('')" title="ล้างแชมป์"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg>ล้างแชมป์</button>
+        </div>
+        <p id="champStatus" class="stf-status" role="status"></p>
+      </section>
+    </div>
+  </details>
 
   <div class="pdir-meta" id="playersTabMeta" role="status"></div>
   <div id="playersTabGrid"></div>

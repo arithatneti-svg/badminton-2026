@@ -44,14 +44,10 @@ function stripGroup(name) {
   return name.replace(/\s*\(G\d\)/g, '').trim();
 }
 
-// ── FORMAT TEAM NAMES (2-line display, no truncation) ──
-function formatTeamNames(namesStr, teamColor) {
-  if (!namesStr) return '<span style="color:var(--muted);">—</span>';
-  const parts = namesStr.split(' & ');
-  if (parts.length === 2) {
-    return parts.map(p => `<span style="display:block;font-size:13px;font-weight:700;color:${teamColor};line-height:1.35;">${escHtml(stripGroup(p.trim()))}</span>`).join('');
-  }
-  return `<span style="font-size:13px;font-weight:700;color:${teamColor};">${escHtml(stripGroup(namesStr))}</span>`;
+// ── FORMAT TEAM NAMES (admin card: one span per player; the card css wraps and separates them, no truncation) ──
+function formatTeamNames(namesStr) {
+  if (!namesStr) return '<span class="am-name ds-muted">—</span>';
+  return namesStr.split(' & ').map(p => `<span class="am-name">${escHtml(stripGroup(p.trim()))}</span>`).join('');
 }
 
 // ── FIX-SHAKE: lightweight badge-only update, called on every Firebase tick ──
@@ -275,7 +271,7 @@ function courtSelectHtml(m) {
   const opts = [];
   if (!m.court) opts.push('<option value="" selected>ยังไม่ระบุคอร์ต</option>');
   for (let n = 1; n <= 10; n++) opts.push(`<option value="${n}"${Number(m.court) === n ? ' selected' : ''}>คอร์ต ${n}</option>`);
-  return `<select class="court-select" aria-label="เลขคอร์ตของ ${escHtml(m.id)}" onchange="adminSetCourt('${escHtml(m.id)}', this.value)">${opts.join('')}</select>`;
+  return `<select class="ds-select" aria-label="เลขคอร์ตของ ${escHtml(m.id)}" onchange="adminSetCourt('${escHtml(m.id)}', this.value)">${opts.join('')}</select>`;
 }
 
 // An admin sets or corrects the court of a match an umpire has taken (the umpire can do the same
@@ -286,7 +282,7 @@ function adminSetCourt(mId, val) {
   const m = (appState.ongoingMatches || []).find(x => x && x.id === mId);
   if (!m || !n || Number(m.court) === n) return;
   const other = (appState.ongoingMatches || []).find(x => x && x.id !== mId && x.umpire && Number(x.court) === n);
-  const go = () => setMatchField(mId, 'court', n).then(ok => showToast(ok ? `✅ ${mId} → คอร์ต ${n}` : '⚠️ บันทึกเลขคอร์ตไม่สำเร็จ', ok ? 'success' : 'error'));
+  const go = () => setMatchField(mId, 'court', n).then(ok => showToast(ok ? `${mId} → คอร์ต ${n}` : 'บันทึกเลขคอร์ตไม่สำเร็จ', ok ? 'success' : 'error'));
   if (other) showConfirmDialog(`คอร์ต ${n} มีแมตช์ ${other.id} อยู่แล้ว — ใช้คอร์ต ${n} ต่อไหม?`, go); else go();
   renderAdminOngoingMatches();    // put the picker back to the saved value until the save (or the cancel) settles
 }
@@ -300,59 +296,59 @@ function adminReleaseMatch(mId) {
   const seen = matchLastActivityAt(m), lv = m.live || {};
   const pts = (Number(lv.g1R) || 0) + (Number(lv.g1B) || 0) + (Number(lv.g2R) || 0) + (Number(lv.g2B) || 0);
   const score = pts
-    ? ` คะแนนที่นับไว้ (เกม 1 ${lv.g1R || 0}–${lv.g1B || 0}${lv.g1Locked ? ` · เกม 2 ${lv.g2R || 0}–${lv.g2B || 0}` : ''}) จะหายไป — ถ้าต้องการเก็บผล ให้ใช้ Force Result แทน`
+    ? ` คะแนนที่นับไว้ (เกม 1 ${lv.g1R || 0}–${lv.g1B || 0}${lv.g1Locked ? ` · เกม 2 ${lv.g2R || 0}–${lv.g2B || 0}` : ''}) จะหายไป — ถ้าต้องการเก็บผล ให้ใช้ ใส่ผลเอง แทน`
     : '';
   showConfirmDialog(`ปล่อย ${mId}${m.court ? ' (คอร์ต ' + m.court + ')' : ''} กลับเข้าคิว? กรรมการ ${m.umpire} จะหลุดจากแมตช์นี้.${score}`, () => {
     releaseMatch(mId, seen).then(r => {
-      if (r.ok) return showToast(`↩ ปล่อย ${mId} กลับเข้าคิวแล้ว`, 'success');
-      const msg = r.reason === 'active' ? `⚠️ ${mId} เพิ่งมีความเคลื่อนไหว — ยังไม่ปล่อย ลองดูสถานะอีกครั้ง`
-        : (r.reason === 'already' || r.reason === 'missing') ? `ℹ️ ${mId} ไม่ได้อยู่ในสถานะที่ปล่อยได้แล้ว`
-        : '⚠️ ปล่อยแมตช์ไม่สำเร็จ — ลองอีกครั้ง';
+      if (r.ok) return showToast(`ปล่อย ${mId} กลับเข้าคิวแล้ว`, 'success');
+      const msg = r.reason === 'active' ? `${mId} เพิ่งมีความเคลื่อนไหว — ยังไม่ปล่อย ลองดูสถานะอีกครั้ง`
+        : (r.reason === 'already' || r.reason === 'missing') ? `${mId} ไม่ได้อยู่ในสถานะที่ปล่อยได้แล้ว`
+        : 'ปล่อยแมตช์ไม่สำเร็จ — ลองอีกครั้ง';
       showToast(msg, 'error');
     });
   });
 }
 
+// One card per match, live court or queue. Same hooks as before: [data-status-mid] (patched every second), the court <select>,
+// and the three actions - the destructive one (ลบ) sits apart at the end of the row and is still behind its own confirmation.
 function renderAdminOngoingMatches() {
   const c = document.getElementById('adminOngoingMatchesContainer'); if (!c) return;
   document.getElementById('ongoingCount').textContent = appState.ongoingMatches.length;
-  c.innerHTML = '';
-  appState.ongoingMatches.forEach(m => {
-    const isLive = !!m.umpire;
-    c.innerHTML += `<div class="match-card ${isLive ? 'live-card' : ''}">
-      <div class="match-card-inner">
-        <div class="match-id-badge">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span>${m.id}</span>
-            <span class="round-badge">รอบ ${m.round}</span>
-            ${courtPillHtml(m)}
-          </div>
-          ${isLive
-            ? (matchStage(m) === 'ready'
-                ? `<span class="court-ready">พร้อมแข่ง · ${escHtml(m.umpire||'')}</span>`
-                : `<div class="live-indicator"><span class="live-dot"></span>LIVE · ${m.umpire||''}</div>`)
-            : `<span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">QUEUE</span>`}
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin:10px 0;">
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:11px;color:var(--red);font-weight:700;margin-bottom:1px;">🔴</div>
-            <div>${formatTeamNames(m.redNames,'var(--text)')}</div>
-          </div>
-          <div style="font-family:'Bebas Neue';color:var(--muted);letter-spacing:2px;font-size:0.9em;flex-shrink:0;">VS</div>
-          <div style="flex:1;min-width:0;text-align:right;">
-            <div style="font-size:11px;color:var(--blue);font-weight:700;margin-bottom:1px;">🔵</div>
-            <div style="text-align:right;">${formatTeamNames(m.blueNames,'var(--text)')}</div>
-          </div>
-        </div>
-        ${isLive ? `<div class="match-court-row">${matchStatusHtml(m)}${courtSelectHtml(m)}</div>` : ''}
-        <div class="match-footer">
-          ${isLive ? `<button class="btn btn-sm" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border2);" onclick="adminReleaseMatch('${m.id}')" title="ให้กรรมการหลุดจากแมตช์นี้ แล้วกลับเข้าคิว">↩ ปล่อยแมตช์</button>` : ''}
-          <button class="btn btn-info btn-sm" onclick="openResultModal('${m.id}')">⚡ Force Result</button>
-          <button class="btn btn-danger btn-sm" onclick="removeOngoingMatch('${m.id}')">🗑 Delete</button>
-        </div>
-      </div>
+  if (!appState.ongoingMatches.length) {
+    c.innerHTML = `<div class="ds-empty am-empty">${dsArt('court')}
+      <div class="ds-empty-title">ยังไม่มีแมตช์ในคิว</div>
+      <div class="ds-empty-text">เลือกผู้เล่น 2 คนต่อทีม แล้วกด สร้างแมตช์</div>
+      <button type="button" class="ds-btn am-empty-act" onclick="document.getElementById('matchBoard').scrollIntoView({ block: 'start' })">${dsIcon('arrow-left')}ไปสร้างแมตช์</button>
     </div>`;
-  });
+    return;
+  }
+  c.innerHTML = appState.ongoingMatches.map(m => {
+    const isLive = !!m.umpire;
+    const corrupt = !m.id || m.id === 'undefined' || !m.r1 || !m.r2 || !m.b1 || !m.b2 || !m.redNames || m.redNames.includes('undefined') || !m.blueNames || m.blueNames.includes('undefined');
+    const state = !isLive ? '<span class="ds-chip">รอคิว</span>'
+      : matchStage(m) === 'ready' ? '<span class="ds-chip">พร้อมแข่ง</span>'
+      : '<span class="ds-chip ds-chip-live"><span class="ds-dot ds-dot-live"></span>LIVE</span>';
+    const ump = isLive ? `<span class="am-ump">${dsIcon('user', { cls: 'ds-ic-sm' })}${escHtml(m.umpire || '')}</span>` : '';
+    const bad = corrupt ? '<span class="ds-chip ds-chip-err">ข้อมูลเสีย</span>' : '';
+    return `<article class="am-card${isLive ? ' is-live' : ''}" aria-label="แมตช์ ${escHtml(m.id || '—')}">
+      <div class="am-head">
+        <span class="am-id">${escHtml(m.id && m.id !== 'undefined' ? m.id : '—')}</span>
+        <span class="ds-chip">รอบ ${escHtml(String(m.round || '?'))}</span>
+        ${courtPillHtml(m)}${bad}
+        <span class="am-state">${state}${ump}</span>
+      </div>
+      <div class="am-teams">
+        <div class="am-side"><span class="ds-team ds-team-red">RED</span><span class="am-names">${formatTeamNames(m.redNames)}</span></div>
+        <div class="am-side"><span class="ds-team ds-team-blue">BLUE</span><span class="am-names">${formatTeamNames(m.blueNames)}</span></div>
+      </div>
+      ${isLive ? `<div class="am-court">${matchStatusHtml(m)}${courtSelectHtml(m)}</div>` : ''}
+      <div class="am-foot">
+        ${isLive ? `<button type="button" class="ds-btn ds-btn-sm" onclick="adminReleaseMatch('${m.id}')" title="ให้กรรมการหลุดจากแมตช์นี้ แล้วกลับเข้าคิว">${dsIcon('arrow-counter-clockwise')}ปล่อยแมตช์</button>` : ''}
+        ${corrupt ? '' : `<button type="button" class="ds-btn ds-btn-sm" onclick="openResultModal('${m.id}')">${dsIcon('pencil-simple')}ใส่ผลเอง</button>`}
+        <button type="button" class="ds-btn ds-btn-sm ds-btn-danger am-del" onclick="removeOngoingMatch('${m.id}')">${dsIcon('trash')}ลบ</button>
+      </div>
+    </article>`;
+  }).join('');
 }
 
 // ── FINISHED RESULT FILTER ──

@@ -96,12 +96,6 @@
 .career-stat-box { flex:1; min-width:56px; text-align:center; background:var(--surface3); border-radius:8px; padding:6px 4px; }
 .career-stat-val { font-family:'Bebas Neue',sans-serif; font-size:1.5em; line-height:1; }
 .career-stat-lbl { font-size:9px; font-weight:700; color:var(--muted); letter-spacing:1px; margin-top:2px; }
-.pd-tabs { display:flex; border-bottom:1px solid var(--border); margin:-4px -4px 16px; flex-wrap:wrap; }
-.pd-tab-btn { padding:10px 14px; font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--muted); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
-.pd-tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
-.pd-tab-btn:hover:not(.active) { color:var(--text2); }
-.pd-tab-content { display:none; }
-.pd-tab-content.active { display:block; }
 
 /* ── COMPARE MODAL ── */
 #compareModal { display:none; }
@@ -156,13 +150,28 @@
 .compare-btn.selected-a { border-color:var(--red); color:var(--red); background:rgba(255,59,92,0.1); }
 .compare-btn.selected-b { border-color:var(--blue); color:var(--blue); background:rgba(59,142,255,0.1); }
 
-/* ── EXPORT/IMPORT BTNS ── */
-.export-import-bar {
-  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
-  padding:10px 14px; background:var(--surface2);
-  border-radius:10px; border:1px solid var(--border);
-  margin-bottom:16px;
+/* ── STAFF TOOLS on the Players tab (superadmin): player data, backup, champion. Folded by default. ── */
+.stf { margin: var(--sp-3) 0 var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+.stf > summary {
+  display: flex; align-items: center; gap: var(--sp-3); min-height: var(--tap-md); padding: 0 var(--sp-4);
+  list-style: none; cursor: pointer; border-radius: var(--r-md);
+  font: 700 var(--fs-14)/1.3 var(--font-th); color: var(--t-mid);
 }
+.stf > summary::-webkit-details-marker { display: none; }
+.stf[open] > summary { color: var(--t-hi); }
+.stf-caret { margin-left: auto; color: var(--t-low); transition: transform var(--dur-state) var(--ease-out); }
+.stf[open] .stf-caret { transform: rotate(180deg); }
+.stf-body { display: grid; gap: var(--sp-5); padding: var(--sp-4); border-top: 1px solid var(--line); }
+@media (min-width: 900px) { .stf-body { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-6); } }
+.stf-group { display: grid; gap: var(--sp-3); align-content: start; min-width: 0; }
+.stf-h { font: 700 var(--fs-14)/var(--lh-th) var(--font-th); color: var(--t-hi); }
+.stf-btns { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.stf-btns .ds-btn { flex: 1 1 auto; min-height: var(--tap); padding: 0 var(--sp-4); font-size: var(--fs-14); }
+@media (pointer: fine) { .stf-btns .ds-btn { min-height: 40px; } }
+.stf-btns .ds-team { color: inherit; }
+.stf-file { position: relative; cursor: pointer; }
+.stf-file:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+.stf-status { min-height: 1.45em; font: 700 var(--fs-13)/var(--lh-th) var(--font-th); color: var(--gold); }
 
 /* ══════════════════════════════════════════════════
    MOBILE UX FIXES — CSS only, no JS touched

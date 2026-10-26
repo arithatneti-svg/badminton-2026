@@ -101,10 +101,10 @@
   display: flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--tap); border: 1px solid transparent; border-radius: 7px;
   color: var(--t-mid); font: 700 var(--fs-14)/1.2 var(--font-ui); cursor: pointer; touch-action: manipulation;
 }
-.mb-pooltab .ds-team { color: inherit; }
 .mb-pooltab-n { font-variant-numeric: tabular-nums; }
 #mbPoolTabRed:checked ~ .mb-pooltabs .mb-pooltab.red { background: var(--red-fill); border-color: var(--red); color: var(--red-ink); }
 #mbPoolTabBlue:checked ~ .mb-pooltabs .mb-pooltab.blue { background: var(--blue-fill); border-color: var(--blue); color: var(--blue-ink); }
+#mbPoolTabRed:checked ~ .mb-pooltabs .mb-pooltab.red .ds-team, #mbPoolTabBlue:checked ~ .mb-pooltabs .mb-pooltab.blue .ds-team { color: inherit; }
 #mbPoolTabRed:focus-visible ~ .mb-pooltabs .mb-pooltab.red, #mbPoolTabBlue:focus-visible ~ .mb-pooltabs .mb-pooltab.blue { outline: 3px solid var(--focus); outline-offset: 2px; }
 @media (max-width: 639px) {
   #mbPoolTabRed:checked ~ .mb-pool-col.blue, #mbPoolTabBlue:checked ~ .mb-pool-col.red { display: none; }
@@ -141,7 +141,7 @@
 .mb-chip.red.picked { background: var(--red-fill); border-color: var(--red); color: var(--red-ink); }
 .mb-chip.blue.picked { background: var(--blue-fill); border-color: var(--blue); color: var(--blue-ink); }
 .mb-chip.live { border-color: var(--warn-line); }
-.mb-chip-pav { --pav-size: 28px; border-width: 1.5px; }
+.mb-chip-pav { border-width: 1.5px; }
 .mb-chip-meta { font: 600 var(--fs-12)/1.2 var(--font-th); color: var(--t-low); }
 .mb-chip.live .mb-chip-meta { color: var(--warn); }
 .mb-chip.picked .mb-chip-meta { color: inherit; opacity: .85; }
