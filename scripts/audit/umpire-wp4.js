@@ -39,7 +39,7 @@
   // (glossary Q8: LIVE · DEUCE · GAME POINT · TEAM BATTLE · team names · "Sports Day 2026" · VS) and minus data
   // (player names, ids like T03, group codes like G1). Names sit in the elements listed in SKIP. An empty list = clean.
   const ALLOWED = new Set(["LIVE", "DEUCE", "GAME", "POINT", "TEAM", "BATTLE", "Red", "Blue", "RED", "BLUE", "VS", "Sports", "Day"]);
-  const SKIP = "option, .team-row, #redNames, #blueNames, .vsi-names, .score-team-cell, .uavatar, script, style";
+  const SKIP = "option, .mc-names, .fc-names, #redNames, #blueNames, .vsi-names, .who-name, .mi-rest, .uavatar, script, style";
   A.wp4English = () => {
     const found = [];
     const visible = (el) => { const cs = getComputedStyle(el); return cs.display !== "none" && cs.visibility !== "hidden" && el.getClientRects().length > 0; };
