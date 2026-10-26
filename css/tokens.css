@@ -9,18 +9,18 @@
   color-scheme: dark;
 
   /* ── surfaces: 0 = page, 1 = card, 2 = raised / sheet, 3 = control, 4 = hover / pressed ── */
-  --bg: #07070d;
-  --s1: #0f0f1a;
-  --s2: #161625;
-  --s3: #1e1e30;
-  --s4: #28283d;
-  --line: rgba(255, 255, 255, .08);          /* hairline between things */
-  --line-strong: rgba(255, 255, 255, .16);   /* border of a control / a card that must read as a shape */
+  --bg: #060912;
+  --s1: #0c1120;
+  --s2: #121a2e;
+  --s3: #1a243d;
+  --s4: #243050;
+  --line: rgba(170, 190, 255, .09);          /* hairline between things */
+  --line-strong: rgba(170, 190, 255, .18);   /* border of a control / a card that must read as a shape */
 
   /* ── text on any surface above (all >= 5.2:1 even on --s4) ── */
-  --t-hi: #f0f0f5;    /* 17.7 on --bg  */
-  --t-mid: #c8c8dc;   /* 12.2          */
-  --t-low: #9a9ab8;   /*  7.4 on --bg, 6.0 on --s3: quiet but still AA. Nothing dimmer may carry meaning. */
+  --t-hi: #eef2fb;    /* 17.7 on --bg  */
+  --t-mid: #c3cde6;   /* 12.2          */
+  --t-low: #97a3c4;   /*  7.4 on --bg, 6.0 on --s3: quiet but still AA. Nothing dimmer may carry meaning. */
 
   /* ── brand: gold is the ONLY accent (primary action, selected, winner, key number) ── */
   --gold: #f0c040;        /* 11.8 on --bg */
@@ -39,13 +39,13 @@
   --red-fill-hi: #5c1a27; /* just scored / pressed */
   --red-lost: #d06060;    /* the losing side's big numeral, 4.3 on --s3 (large text needs 3) */
   --red-dim: rgba(255, 77, 77, .14);
-  --blue: #4d9fff;        /* edge 7.4 */
-  --blue-text: #7ab8ff;   /* 6.9 on --s4 */
-  --blue-ink: #a8d1ff;    /* text on --blue-fill 9.1 */
-  --blue-fill: #0f2a4e;
-  --blue-fill-hi: #17407a;
+  --blue: #3f7dff;        /* edge 7.4 */
+  --blue-text: #7fb0ff;   /* 6.9 on --s4 */
+  --blue-ink: #b3d0ff;    /* text on --blue-fill 9.1 */
+  --blue-fill: #102b66;
+  --blue-fill-hi: #14357a;
   --blue-lost: #5a8fd8;   /* 4.9 on --s3 */
-  --blue-dim: rgba(77, 159, 255, .14);
+  --blue-dim: rgba(63, 125, 255, .16);
 
   /* ── status. Always icon + word; the hue helps but never carries the meaning alone. ──
         LIVE / connected is green because red already means "team red". */
