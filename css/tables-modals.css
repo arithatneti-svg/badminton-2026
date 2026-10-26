@@ -1,50 +1,7 @@
-/* ── TABLES & CHARTS ── */
-.chart-container {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px;
-  margin-bottom: 22px;
-  overflow-x: auto;
-}
-.chart-title { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.3em; color: var(--gold); margin-bottom: 20px; letter-spacing: 2px; }
-.chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding-bottom: 0; position: relative; min-width: 600px; border-bottom: 1px solid var(--border); margin-top: 20px; }
-.chart-axis { display: none; }
-.chart-bar-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; gap: 8px; }
-.chart-bar { width: 100%; max-width: 36px; border-radius: 5px 5px 0 0; transition: height 0.4s; position: relative; }
-.chart-bar::after { content: attr(data-val); position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--text); font-weight: bold; white-space: nowrap; }
-.chart-bar-name { font-size: 11px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; width: 60px; margin-bottom: -4px; }
-
-.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead th {
-  background: var(--surface2);
-  color: var(--gold);
-  font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  padding: 12px 14px;
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-}
-thead th:hover { background: rgba(245,200,66,0.06); color: #fff; }
-tbody td { padding: 11px 14px; border-top: 1px solid var(--border); }
-tbody tr:hover { background: rgba(255,255,255,0.018); }
-.sort-icon { display: inline-block; font-size: 11px; color: var(--muted); margin-left: 4px; vertical-align: middle; }
-th.sort-asc .sort-icon { color: var(--gold); }
-th.sort-asc .sort-icon::after { content: ' ↑'; font-size: 13px; }
-th.sort-desc .sort-icon { color: var(--gold); }
-th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
-
-.stat-pill { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 4px; }
-.pill-win { background: rgba(0,230,118,0.12); color: var(--green); }
-.pill-lose { background: rgba(255,69,96,0.1); color: var(--danger); }
-.pill-draw { background: rgba(245,200,66,0.1); color: var(--gold); }
-
+/* ── TABLES & CHARTS ──
+   The generic table / chart rules that lived here (table, thead th, .table-wrap, .chart-*, .sort-icon, .stat-pill) were used
+   only by Reports and the season compare; they are now the rp- / cmp- rules in css/report.css and the ds-table primitive.
+   .report-header stays: the Finished tab's toolbar uses it. */
 .report-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
 
 /* ── MODALS ── */

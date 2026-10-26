@@ -76,19 +76,7 @@ function invalidateStatsCache() { _statsCache = null; _statsCacheVersion = ''; }
 // PERFORMANCE ENHANCEMENTS
 // ══════════════════════════════════════
 
-// ── 1. Hot / Cold Streak — ดู 5 แมตช์ล่าสุดของผู้เล่น ──
-// ── 2. Umpire Workload Stats ──
-function getUmpireStats() {
-  const stats = {};
-  appState.matchHistory.forEach(h => {
-    const u = h.umpire || 'ไม่ระบุ';
-    if (!stats[u]) stats[u] = { name: u, count: 0, rounds: {} };
-    stats[u].count++;
-    const r = 'R' + (h.round || '?');
-    stats[u].rounds[r] = (stats[u].rounds[r] || 0) + 1;
-  });
-  return Object.values(stats).sort((a,b) => b.count - a.count);
-}
+// (the umpire workload is counted in js/reports.js renderUmpireWorkload; the unused getUmpireStats was removed)
 
 // ── PLAYER STREAK — form ช่วง 5 แมตช์ล่าสุด ──
 function getPlayerStreak(playerId) {

@@ -1,83 +1,134 @@
-/* ══ DASHBOARD — Modern redesign ══ */
-.db-kpi-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+/* ============================================================
+   DASHBOARD - v3 "court night" (writer A6).
+   KPI tiles (one big number each), then cards: momentum + raw score canvases (their colours are read from the tokens at
+   draw time, see js/dashboard.js), match quality bars, top players, recent matches, durations.
+   Shared parts (legend, empty state, tag chip, team marks, match scoreboard lines) live in css/report.css under .rp-page.
+   Tokens: css/tokens.css. Breakpoints: 640 / 768 / 1100.
+   ============================================================ */
 
-.db-kpi {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.2s, transform 0.18s;
+/* ── KPI tiles ─────────────────────────────────────────────── */
+#dashboard .db-kpis {
+  display: grid; gap: var(--sp-2); margin-bottom: var(--sp-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: "red blue" "lead lead" "matches draws";
 }
-.db-kpi:hover { border-color: var(--border2); transform: translateY(-1px); }
-.db-kpi::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 60%); pointer-events: none; }
-
-.db-kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 2.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
-.db-kpi-value { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 2.6em; letter-spacing: 1px; line-height: 1; color: var(--text); }
-.db-kpi-sub { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 5px; }
-.db-kpi-accent { position: absolute; top: 0; left: 0; width: 2px; height: 100%; border-radius: 12px 0 0 12px; }
-
-.db-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-@media (max-width: 768px) { .db-grid-2 { grid-template-columns: 1fr; } }
-
-.db-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 22px;
+#dashboard .db-kpi { display: grid; align-content: center; gap: 2px; min-width: 0; padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+#dashboard .db-kpi.is-matches { grid-area: matches; }
+#dashboard .db-kpi.is-red { grid-area: red; background: var(--red-fill); border-color: transparent; box-shadow: inset 5px 0 0 var(--red); }
+#dashboard .db-kpi.is-blue { grid-area: blue; background: var(--blue-fill); border-color: transparent; box-shadow: inset -5px 0 0 var(--blue); }
+#dashboard .db-kpi.is-lead { grid-area: lead; }
+#dashboard .db-kpi.is-draws { grid-area: draws; }
+#dashboard .db-kpi-l { font: 600 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+#dashboard .db-kpi-v { padding-top: 4px; font: 400 var(--fs-56)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; color: var(--t-hi); }
+#dashboard .db-kpi-s { font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-low); }
+#dashboard .db-kpi.is-matches .db-kpi-v { color: var(--gold); }
+#dashboard .db-kpi.is-red .db-kpi-l, #dashboard .db-kpi.is-red .db-kpi-s { color: var(--red-ink); }
+#dashboard .db-kpi.is-blue .db-kpi-l, #dashboard .db-kpi.is-blue .db-kpi-s { color: var(--blue-ink); }
+/* leader: a banner, word + shape + gap in points */
+#dashboard .db-kpi.is-lead { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "lbl val" "sub val"; align-items: center; column-gap: var(--sp-4); padding: var(--sp-3) var(--sp-4); }
+#dashboard .db-kpi.is-lead .db-kpi-l { grid-area: lbl; }
+#dashboard .db-kpi.is-lead .db-kpi-s { grid-area: sub; }
+#dashboard .db-kpi.is-lead .db-kpi-v { grid-area: val; padding: 0; font: 800 var(--fs-32)/var(--lh-tight) var(--font-ui); text-align: end; }
+#dashboard .db-kpi.lead-red { box-shadow: inset 5px 0 0 var(--red); }
+#dashboard .db-kpi.lead-blue { box-shadow: inset -5px 0 0 var(--blue); }
+#dashboard .db-kpi.is-red .ds-team { color: var(--red-ink); }
+#dashboard .db-kpi.is-blue .ds-team { color: var(--blue-ink); }
+#dashboard .db-skel { height: 96px; border-radius: var(--r-md); }
+@media (min-width: 640px) {
+  #dashboard .db-kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-areas: "red red lead lead blue blue" "matches matches matches draws draws draws"; }
+}
+@media (min-width: 1100px) {
+  #dashboard .db-kpis { grid-template-columns: 1fr 1.25fr 1.35fr 1.25fr 1fr; grid-template-areas: "matches red lead blue draws"; }
+  #dashboard .db-kpi.is-lead { grid-template-columns: 1fr; grid-template-areas: "lbl" "val" "sub"; justify-items: center; text-align: center; padding: var(--sp-4); }
+  #dashboard .db-kpi.is-lead .db-kpi-v { text-align: center; padding-top: 4px; }
 }
 
-.db-card-title { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.1em; letter-spacing: 3px; color: var(--gold); margin-bottom: 14px; }
-
-.heat-cell { border-radius: 8px; padding: 8px 12px; font-size: 11px; font-weight: 700; cursor: default; transition: transform 0.15s; min-width: 56px; text-align: center; border: 1px solid transparent; }
-.heat-cell:hover { transform: scale(1.06); }
-
-.db-player-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
-.db-player-row:last-child { border-bottom: none; }
-.db-player-rank { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.2em; color: var(--muted); min-width: 26px; text-align: center; }
-.db-player-bar-wrap { flex: 1; min-width: 0; }
-.db-player-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: normal; word-break: break-word; }
-.db-player-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
-.db-player-pts { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.5em; letter-spacing: 1px; flex-shrink: 0; }
-
-.dist-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 64px; }
-.dist-bar { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.6s cubic-bezier(0.34,1.56,0.64,1); min-height: 4px; }
-.dist-label { font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; letter-spacing: 0.5px; line-height: 1.3; }
-.dist-count { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.4em; color: var(--text); }
-
-/* Court Map */
-.court-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-.court-cell { border-radius: 12px; padding: 14px 10px; text-align: center; border: 1px solid var(--border); background: var(--surface2); transition: all 0.3s; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-.court-cell.active-court { border-color: var(--green); background: rgba(0,230,118,0.06); animation: court-pulse 2s ease-in-out infinite alternate; }
-@keyframes court-pulse { from { box-shadow: 0 0 0 0 rgba(0,230,118,0.1); } to { box-shadow: 0 0 0 8px rgba(0,230,118,0); } }
-.court-num { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.4em; letter-spacing: 2px; color: var(--muted); }
-.court-cell.active-court .court-num { color: var(--green); }
-.court-live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: blink 1s ease-in-out infinite; margin: 0 auto; }
-@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
-.court-match-id { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: var(--gold); }
-.court-teams { font-size: 11px; color: var(--text); font-weight: 600; line-height: 1.3; text-align: center; }
-.court-timer-small { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 13px; letter-spacing: 1px; color: var(--green); margin-top: 5px; }
-
-/* Recent Matches */
-.db-recent-item { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.db-recent-item:last-child { border-bottom: none; }
-.db-recent-id { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1em; letter-spacing: 2px; color: var(--gold); }
-.db-recent-teams { min-width: 0; }
-.db-recent-name { font-size: 13px; font-weight: 700; white-space: normal; word-break: break-word; }
-.db-recent-score { font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif; font-size: 1.2em; letter-spacing: 2px; text-align: right; flex-shrink: 0; white-space: nowrap; }
-.db-recent-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
-.db-recent-tag { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); color: var(--muted); }
-
-
-/* inline legend inside a dashboard card title */
-.db-legend { display: inline-flex; gap: 12px; margin-left: auto; flex-shrink: 0; }
-/* flex + grid child needs min-width:0, or the title row forces the grid
-   track wider than the viewport on a phone */
-.db-card-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
-.db-grid-2 > *, .db-card { min-width: 0; }
-.db-legend-item {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted);
+/* ── cards ─────────────────────────────────────────────────── */
+#dashboard .db-grid { display: grid; gap: var(--sp-4); grid-template-columns: minmax(0, 1fr); }
+#dashboard .db-card { min-width: 0; padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+#dashboard .db-card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-4); }
+#dashboard .db-card-title { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; margin: 0; font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); color: var(--t-hi); }
+#dashboard .db-card-title .ds-ic { color: var(--gold); }
+#dashboard .db-legend { display: flex; gap: var(--sp-4); font: 600 var(--fs-13)/1.3 var(--font-ui); }
+@media (min-width: 768px) {
+  #dashboard .db-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #dashboard .db-c-momentum, #dashboard .db-c-raw { grid-column: 1 / -1; }
 }
-.db-legend-item i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+@media (min-width: 1100px) {
+  #dashboard .db-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  #dashboard .db-card { padding: var(--sp-5); }
+  #dashboard .db-c-momentum { grid-column: span 8; } #dashboard .db-c-quality { grid-column: span 4; }
+  #dashboard .db-c-top { grid-column: span 6; } #dashboard .db-c-recent { grid-column: span 6; }
+  #dashboard .db-c-dur { grid-column: span 5; } #dashboard .db-c-raw { grid-column: span 7; }
+}
+
+/* ── chart wrapper: the canvas is drawn at the size of this box ── */
+#dashboard .db-chart { position: relative; height: 220px; }
+#dashboard .db-chart > canvas { display: block; width: 100%; height: 100%; }
+#dashboard .db-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-2); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-low); text-align: center; }
+#dashboard .db-empty[hidden] { display: none; }
+@media (min-width: 1100px) { #dashboard .db-chart { height: 260px; } }
+#dashboard .db-empty-block { display: grid; justify-items: center; gap: var(--sp-2); padding: var(--sp-6) var(--sp-3); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-low); text-align: center; }
+
+/* ── match quality: horizontal bars, the label spelled out ── */
+#dashboard .db-dist { display: grid; gap: var(--sp-4); }
+#dashboard .db-dist-group { display: grid; gap: var(--sp-1); }
+#dashboard .db-dist-h { margin-bottom: 2px; font: 700 var(--fs-12)/1.3 var(--font-ui); color: var(--t-low); }
+#dashboard .db-dist-row { display: grid; align-items: center; gap: var(--sp-2) var(--sp-3); grid-template-columns: minmax(96px, 40%) minmax(0, 1fr) 28px; min-height: 32px; }
+#dashboard .db-dist-l { font: 600 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-hi); overflow-wrap: anywhere; }
+#dashboard .db-dist-bar { height: 12px; border-radius: var(--r-pill); background: var(--s3); overflow: hidden; }
+#dashboard .db-dist-bar > i { display: block; width: var(--w, 0%); height: 100%; border-radius: inherit; background: var(--t-low); }
+#dashboard .db-dist-n { font: 400 var(--fs-20)/1 var(--font-num); text-align: end; font-variant-numeric: tabular-nums; color: var(--t-hi); }
+#dashboard .db-dist-row.is-zero .db-dist-n, #dashboard .db-dist-row.is-zero .db-dist-l { color: var(--t-low); }
+#dashboard .q1 .db-dist-bar > i { background: var(--live); }
+#dashboard .q2 .db-dist-bar > i { background: var(--gold); }
+#dashboard .q3 .db-dist-bar > i { background: var(--warn); }
+#dashboard .q4 .db-dist-bar > i { background: var(--err); }
+
+/* ── top players ───────────────────────────────────────────── */
+#dashboard .db-top { display: grid; margin: 0; padding: 0; list-style: none; }
+#dashboard .db-top-row { display: grid; align-items: center; gap: var(--sp-3); grid-template-columns: 28px minmax(0, 1fr) 52px; padding: var(--sp-3) 0; border-top: 1px solid var(--line); }
+#dashboard .db-top-row:first-child { border-top: 0; padding-top: 0; }
+#dashboard .db-top-row:last-child { padding-bottom: 0; }
+#dashboard .db-top-rank { font: 400 var(--fs-24)/1 var(--font-num); text-align: center; color: var(--t-low); }
+#dashboard .db-top-rank.is-top { color: var(--gold); }
+#dashboard .db-top-main { display: grid; gap: 2px; min-width: 0; }
+#dashboard .db-top-name { font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); color: var(--t-hi); overflow-wrap: anywhere; }
+#dashboard .db-top-sub { display: flex; flex-wrap: wrap; gap: 0 var(--sp-3); font: 600 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+#dashboard .db-top-main .ds-bar { height: 4px; margin-top: var(--sp-1); }
+#dashboard .db-top-row.is-red .ds-bar > i { background: var(--red); }
+#dashboard .db-top-row.is-blue .ds-bar > i { background: var(--blue); }
+#dashboard .db-top-pts { display: grid; justify-items: end; }
+#dashboard .db-top-pts b { font: 400 var(--fs-32)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; color: var(--gold); }
+#dashboard .db-top-pts i { font: 600 var(--fs-12)/1.3 var(--font-ui); font-style: normal; color: var(--t-low); }
+
+/* ── recent matches ────────────────────────────────────────── */
+#dashboard .db-recent { display: grid; }
+#dashboard .db-r-item { display: grid; gap: var(--sp-2); padding: var(--sp-3) 0; border-top: 1px solid var(--line); }
+#dashboard .db-r-item:first-child { border-top: 0; padding-top: 0; }
+#dashboard .db-r-item:last-child { padding-bottom: 0; }
+#dashboard .db-r-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); }
+#dashboard .db-r-id { font: 400 var(--fs-20)/1 var(--font-num); letter-spacing: .02em; color: var(--gold); }
+#dashboard .db-r-round { font: 600 var(--fs-13)/1.3 var(--font-ui); color: var(--t-low); }
+#dashboard .db-r-head .rp-mres { margin-inline-start: auto; }
+#dashboard .db-r-tags { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+/* ── raw score + duration: three mini tiles, then the chart / the list ── */
+#dashboard .db-mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-4); }
+#dashboard .db-mini > div { --edge: var(--t-low); display: grid; gap: 2px; min-width: 0; padding: var(--sp-3); background: var(--s2); border-radius: var(--r-sm); box-shadow: inset 4px 0 0 var(--edge); }
+#dashboard .db-mini .is-red { --edge: var(--red); }
+#dashboard .db-mini .is-blue { --edge: var(--blue); }
+#dashboard .db-mini .is-gold { --edge: var(--gold); }
+#dashboard .db-mini-l { padding-inline-start: var(--sp-1); font: 600 var(--fs-12)/1.3 var(--font-ui); color: var(--t-mid); }
+#dashboard .db-mini-v { padding: 4px 0 0 var(--sp-1); font: 400 var(--fs-32)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; color: var(--t-hi); }
+#dashboard .db-mini-s { padding-inline-start: var(--sp-1); font: 600 var(--fs-12)/1.3 var(--font-ui); color: var(--t-low); overflow-wrap: anywhere; }
+#dashboard .db-dur-list { display: grid; max-height: 320px; overflow: auto; overscroll-behavior: contain; border-top: 1px solid var(--line); }
+#dashboard .db-dur-row { display: grid; align-items: center; gap: var(--sp-3); grid-template-columns: 64px minmax(0, 1fr) 56px; min-height: 40px; border-bottom: 1px solid var(--line); }
+#dashboard .db-dur-id { display: flex; align-items: center; gap: var(--sp-2); font: 700 var(--fs-13)/1.3 var(--font-ui); color: var(--t-mid); }
+#dashboard .db-dur-bar { height: 6px; border-radius: var(--r-pill); background: var(--s3); overflow: hidden; }
+#dashboard .db-dur-bar > i { display: block; width: var(--w, 0%); height: 100%; border-radius: inherit; background: var(--live); }
+#dashboard .db-dur-row.is-mid .db-dur-bar > i { background: var(--warn); }
+#dashboard .db-dur-row.is-long .db-dur-bar > i { background: var(--err); }
+#dashboard .db-dur-row.is-none .db-dur-bar > i { background: var(--line-strong); }
+#dashboard .db-dur-t { font: 400 var(--fs-20)/1 var(--font-num); text-align: end; font-variant-numeric: tabular-nums; color: var(--t-hi); }
+#dashboard .db-dur-row.is-none .db-dur-t { color: var(--t-low); }
