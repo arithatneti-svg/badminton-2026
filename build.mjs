@@ -35,7 +35,8 @@ const UMP_CSS = ['css/tokens.css','css/ui.css','css/umpire.css'];
 const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/icons.js','shared/art.js','shared/sync-merge.js','shared/match-time.js','umpire/tap-gate.js','umpire/umpire.js'];
 
 const ICONS = readdirSync(join(root,'icons')).filter(f => f.endsWith('.png'));
-const COPY = ['manifest.webmanifest','umpire.webmanifest', ...ICONS.map(f => `icons/${f}`)];
+const IMG = readdirSync(join(root,'img')).filter(f => f.endsWith('.webp'));   // the Color War hero (scripts/hero-build.mjs); cached on first view, not precached
+const COPY = ['manifest.webmanifest','umpire.webmanifest', ...ICONS.map(f => `icons/${f}`), ...IMG.map(f => `img/${f}`)];
 
 const read = (p) => readFileSync(join(root, p), 'utf8');
 // the release number: bundles are requested as <file>?v=<release> (see sw.js), exactly like the source tags

@@ -24,16 +24,12 @@
    logout() sets an inline display:flex, which still wins over this */
 html.skip-login #loginOverlay { display: none; }
 
-.login-wrap { margin: auto; width: min(100%, 440px); display: grid; gap: var(--sp-6); justify-items: center; }
-.login-brand { display: grid; justify-items: center; gap: var(--sp-3); text-align: center; }
-.login-mark { width: 72px; height: 72px; }
-.login-title {
-  font: 400 clamp(2.5rem, 13vw, 3.5rem)/.9 var(--font-num); letter-spacing: .04em; color: var(--t-hi);
-  overflow-wrap: anywhere;
-}
+.login-wrap { margin: auto; width: min(100%, 880px); display: grid; gap: var(--sp-5); justify-items: center; }
+.login-brand { width: 100%; display: grid; justify-items: center; }
+.login-hero { width: 100%; }
 
 .login-card {
-  width: 100%; display: grid; gap: var(--sp-4);
+  width: min(100%, 440px); display: grid; gap: var(--sp-4);
   background: var(--s1); border: 1px solid var(--line-strong); border-radius: var(--r-lg);
   padding: var(--sp-5);
 }

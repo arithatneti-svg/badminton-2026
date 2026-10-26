@@ -178,6 +178,9 @@ select option { background: var(--s2); }
 .scoreboard-wrapper.idle-board { display: block; min-height: 0; max-width: 1100px; margin: 0 auto; padding: var(--sp-4) var(--sp-4) var(--sp-6); }
 @media (min-width: 900px) { .scoreboard-wrapper.idle-board { padding: var(--sp-5) var(--sp-5) var(--sp-7); } }
 
+.idl-hero { margin-bottom: var(--sp-4); }
+/* the poster is 2.33:1: on a laptop that is 470 px of height and pushes the team totals off the first screen, so crop it to 3.2:1 */
+@media (min-width: 640px) { .idl-hero > img { aspect-ratio: 16 / 5; } }
 .idl-top { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-4); }
 .idl-pill {
   display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 var(--sp-3); border-radius: var(--r-pill);

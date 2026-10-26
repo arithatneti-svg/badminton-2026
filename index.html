@@ -105,11 +105,16 @@ try {
 </svg>
 
 <!-- ── LOGIN OVERLAY ── -->
-<div id="loginOverlay" class="ds-court-bg">
+<div id="loginOverlay">
   <div class="login-wrap">
     <div class="login-brand">
-      <svg class="login-mark" width="72" height="72" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><use href="#ds-mark-sym"/></svg>
-      <h1 class="login-title" lang="en">Sports Day 2026</h1>
+      <h1 class="ds-sr-only" lang="en">Badminton Sports Day 2026</h1>
+      <!-- the Color War key visual: the middle of the poster on a phone, the whole poster from 640 px up.
+           lazy so a returning user (the overlay is display:none) never downloads it -->
+      <picture class="ds-hero login-hero">
+        <source media="(min-width: 640px)" srcset="img/color-war-wide-960.webp 960w, img/color-war-wide-1600.webp 1600w" sizes="(min-width: 940px) 880px, 92vw">
+        <img src="img/color-war-tall-800.webp" srcset="img/color-war-tall-480.webp 480w, img/color-war-tall-800.webp 800w" sizes="(min-width: 480px) 440px, 100vw" width="800" height="597" alt="Badminton Color War: Red vs Blue" lang="en" decoding="async" loading="lazy">
+      </picture>
     </div>
     <div class="login-card">
       <!-- Almost everyone opening this is a spectator or a player, so that is
@@ -317,6 +322,10 @@ try {
        renderIdleBoard(); the ids updateUI writes to (redPanel, displayRedScore,
        redTeamName, redLeadBadge …) are kept so nothing else had to change. -->
   <div class="scoreboard-wrapper idle-board">
+    <picture class="ds-hero idl-hero">
+      <source media="(min-width: 640px)" srcset="img/color-war-wide-960.webp 960w, img/color-war-wide-1600.webp 1600w" sizes="(min-width: 1340px) 1292px, 92vw">
+      <img src="img/color-war-tall-800.webp" srcset="img/color-war-tall-480.webp 480w, img/color-war-tall-800.webp 800w" sizes="92vw" width="800" height="597" alt="Badminton Color War: Red vs Blue" lang="en" decoding="async" loading="lazy">
+    </picture>
     <div class="idl-top">
       <span class="idl-pill"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-pause-fill"/></svg>พักระหว่างแมตช์</span>
       <span class="idl-sum" id="idleSummary"></span>
