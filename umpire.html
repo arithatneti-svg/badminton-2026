@@ -31,221 +31,219 @@
 </head>
 <body class="is-login">
 
-<!-- ── PAUSE OVERLAY — sits above the scoring screen; only the ▶ button resumes ── -->
+<!-- ── PAUSE OVERLAY — sits above the scoring screen; only the play button resumes ── -->
 <div id="pauseOverlay" role="dialog" aria-modal="true" aria-label="พักเกม">
-  <div class="pause-title">⏸ พักเกม</div>
-
-  <div class="pause-current-block">
+  <div class="pause-top">
+    <div class="pause-title"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-pause-fill"/></svg>พักเกม</div>
     <div class="pause-current-label">พักครั้งนี้</div>
     <div class="pause-current-timer" id="pauseTimerBig">0:00</div>
   </div>
 
-  <div class="pause-meta">
-    <span>พักสะสม <b id="pauseTimerTotal">0:00</b></span>
-    <span>คะแนน <b id="pauseScore">0 – 0</b></span>
+  <div class="pause-bottom">
+    <div class="pause-meta">
+      <span>พักสะสม <b id="pauseTimerTotal">0:00</b></span>
+      <span>คะแนน <b id="pauseScore">0 – 0</b></span>
+    </div>
+    <button type="button" class="ds-btn ds-btn-primary pause-resume" id="btnResume" onclick="togglePause()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-play-fill"/></svg>เล่นต่อ</button>
+    <button type="button" class="ds-btn pause-exit" onclick="confirmExit()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sign-out"/></svg>ออกจากแมตช์</button>
   </div>
-
-  <button type="button" class="pause-resume" id="btnResume" onclick="togglePause()">▶ เล่นต่อ</button>
-  <button type="button" class="pause-exit" onclick="confirmExit()">← ออกจากแมตช์</button>
 </div>
 
-<!-- ── FULLSCREEN FLOATING BUTTON (non-scoring screens) ── -->
-<button id="fsBtn" onclick="toggleFullScreen()" title="เต็มจอ">⛶</button>
+<!-- ── FULLSCREEN TOAST (shown a moment after the page goes full screen) ── -->
+<div id="fsIndicator" role="status"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrows-out"/></svg>เต็มจอแล้ว</div>
 
-<!-- ── WAKE LOCK BADGE ── -->
-<div id="wakeLockBadge">🔒 หน้าจอติด</div>
-
-<!-- ── FULLSCREEN INDICATOR ── -->
-<div id="fsIndicator">⛶ เต็มจอแล้ว — แตะ 2 ครั้งเพื่อออก</div>
-
-<!-- ── UNDO TOAST ── -->
-<div id="undoToast">↩ ยกเลิกคะแนนล่าสุด</div>
-
-<!-- ── LANDSCAPE FLOATING BAR ── -->
-<div id="landscapeInfo">
-  <button class="li-btn danger" onclick="confirmExit()">← ออก</button>
-  <button class="li-btn" onclick="togglePause()" id="liPauseBtn">⏸ พัก</button>
-  <div class="li-timer" id="liTimer">0:00</div>
-  <div style="font-family:'Bebas Neue','Noto Sans Thai',sans-serif;font-weight:700;font-size:1em;color:var(--muted);letter-spacing:1px;" id="liGameInd">เกม 1</div>
-  <button class="li-btn" onclick="toggleFullScreen()" id="liFsBtn">⛶</button>
-</div>
-
-<!-- ── NAVBAR ── -->
-<div id="umpireNav">
+<!-- ── MENU BAR of the list screens (hidden on login and while scoring) ── -->
+<nav id="umpireNav" aria-label="เมนู">
   <div class="nav-tabs">
-    <button class="tab-btn active" id="tab-live" onclick="goToTab('live')">🟢 LIVE</button>
-    <button class="tab-btn" id="tab-finished" onclick="goToTab('finished')">🏁 จบแล้ว</button>
+    <button type="button" class="tab-btn active" id="tab-live" onclick="goToTab('live')" aria-current="page"><i class="ds-dot ds-dot-live"></i>LIVE</button>
+    <button type="button" class="tab-btn" id="tab-finished" onclick="goToTab('finished')"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg>จบแล้ว</button>
   </div>
-  <!-- fullscreen lives in the bar: the old floating button sat on top of 🚪 -->
-  <button class="btn-nav-fs" id="navFsBtn" onclick="toggleFullScreen()" title="เต็มจอ" aria-label="เต็มจอ">⛶</button>
-  <button class="btn-logout" onclick="logoutUmpire()" title="เปลี่ยนกรรมการ / ออกจากระบบ" aria-label="เปลี่ยนกรรมการ">🚪</button>
-</div>
+  <!-- fullscreen lives in the bar (a floating button once sat on top of the change-umpire button) -->
+  <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon btn-nav-fs" id="navFsBtn" onclick="toggleFullScreen()" aria-label="เต็มจอ" aria-pressed="false"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrows-out"/></svg></button>
+  <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon btn-logout" onclick="logoutUmpire()" aria-label="เปลี่ยนกรรมการ"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sign-out"/></svg></button>
+</nav>
 <div class="net-banner" role="status" aria-live="polite"></div>
 
+<main>
 <!-- ============================================================
-     🔐 LOGIN SCREEN
+     LOGIN
      ============================================================ -->
 <div id="screen-login" class="screen active">
-  <div class="login-hero">
-    <span class="login-icon">🏸</span>
-    <div class="login-title">กรรมการ</div>
-    <div class="login-subtitle">คุมคะแนนสด · Sports Day 2026</div>
+  <div class="login-hero ds-court-bg">
+    <span class="login-mark" id="loginMark"></span>
+    <h1 class="login-title">กรรมการ</h1>
+    <p class="login-subtitle">คุมคะแนนสด · Sports Day 2026</p>
     <div class="login-fs-row">
-      <button class="btn-login-fs" onclick="toggleFullScreen()">⛶ &nbsp;เปิดเต็มจอ</button>
-      <div class="login-fs-hint" id="fsHint" style="display:none;">เครื่องนี้เปิดเต็มจอจากหน้าเว็บไม่ได้ — ใน Safari เลือก “เพิ่มไปยังหน้าจอโฮม” แล้วเปิดจากไอคอน จะได้เต็มจอ</div>
+      <button type="button" class="ds-btn ds-btn-sm btn-login-fs" onclick="toggleFullScreen()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrows-out"/></svg>เปิดเต็มจอ</button>
+      <p class="login-fs-hint" id="fsHint" hidden>เครื่องนี้เปิดเต็มจอจากหน้าเว็บไม่ได้ — ใน Safari เลือก “เพิ่มไปยังหน้าจอโฮม” แล้วเปิดจากไอคอน จะได้เต็มจอ</p>
     </div>
   </div>
 
   <div class="login-card">
-    <!-- STEP 1: TEAM -->
+    <!-- STEP 1: TEAM (a shape and a word, never colour alone) -->
     <div>
       <div class="login-section-label"><span>1</span> เลือกทีมของคุณ</div>
       <div class="toggle-group cols-2" id="team-toggles">
-        <button class="toggle-btn" id="tbtn-Red" onclick="setTeamFilter('Red')">🔴 Red</button>
-        <button class="toggle-btn" id="tbtn-Blue" onclick="setTeamFilter('Blue')">🔵 Blue</button>
+        <button type="button" class="ds-btn ds-btn-lg toggle-btn" id="tbtn-Red" onclick="setTeamFilter('Red')"><span class="ds-team ds-team-red">Red</span></button>
+        <button type="button" class="ds-btn ds-btn-lg toggle-btn" id="tbtn-Blue" onclick="setTeamFilter('Blue')"><span class="ds-team ds-team-blue">Blue</span></button>
       </div>
     </div>
 
     <!-- STEP 2: GROUP -->
-    <div id="group-section" style="display:none;">
+    <div id="group-section" hidden>
       <div class="login-section-label"><span>2</span> เลือกกลุ่ม</div>
       <div class="toggle-group cols-4" id="group-toggles">
-        <button class="toggle-btn" onclick="setGroupFilter('')">ทั้งหมด</button>
-        <button class="toggle-btn" onclick="setGroupFilter('1')">G1</button>
-        <button class="toggle-btn" onclick="setGroupFilter('2')">G2</button>
-        <button class="toggle-btn" onclick="setGroupFilter('3')">G3</button>
+        <button type="button" class="ds-btn toggle-btn" onclick="setGroupFilter('')">ทั้งหมด</button>
+        <button type="button" class="ds-btn toggle-btn" onclick="setGroupFilter('1')">G1</button>
+        <button type="button" class="ds-btn toggle-btn" onclick="setGroupFilter('2')">G2</button>
+        <button type="button" class="ds-btn toggle-btn" onclick="setGroupFilter('3')">G3</button>
       </div>
     </div>
 
     <!-- STEP 3: NAME -->
     <div>
       <div class="login-section-label"><span id="nameStepNum">2</span> เลือกชื่อของคุณ</div>
-      <div class="select-wrapper">
-        <select id="umpireSelect" class="umpire-select" aria-label="ชื่อของคุณ" aria-describedby="loginHelp" onchange="updateLoginReady()">
-          <option value="">— กำลังโหลดรายชื่อ... —</option>
-        </select>
-      </div>
+      <select id="umpireSelect" class="ds-select ds-input-lg" aria-label="ชื่อของคุณ" aria-describedby="loginHelp" onchange="updateLoginReady()">
+        <option value="">— กำลังโหลดรายชื่อ... —</option>
+      </select>
       <div class="login-help" id="loginHelp">เลือกชื่อของคุณเพื่อเริ่ม</div>
-      <button type="button" class="btn-retry" id="namesRetry" onclick="retryUmpireLoad()" hidden>ลองใหม่</button>
+      <button type="button" class="ds-btn btn-retry" id="namesRetry" onclick="retryUmpireLoad()" hidden>ลองใหม่</button>
     </div>
 
     <!-- off until a name is chosen, and it says so itself; pinned to the bottom of the screen so it is in reach on a small phone -->
-    <button class="btn-login" id="btnLogin" onclick="processLogin()" disabled>เลือกชื่อของคุณก่อน</button>
+    <button type="button" class="ds-btn ds-btn-primary ds-btn-lg ds-btn-block btn-login" id="btnLogin" onclick="processLogin()" disabled>เลือกชื่อของคุณก่อน</button>
     <div class="app-version" data-app-version></div>
   </div>
 </div>
 
 <!-- ============================================================
-     🟢 LIVE MATCHES
+     MATCH LIST
      ============================================================ -->
 <div id="screen-live" class="screen">
   <div class="screen-header">
     <div class="screen-header-text">
-      <div class="screen-title">เลือกแมตช์</div>
-      <div class="screen-sub">เลือกแมตช์ที่ต้องการคุมคะแนน</div>
+      <h1 class="screen-title">เลือกแมตช์</h1>
+      <p class="screen-sub">เลือกแมตช์ที่ต้องการคุมคะแนน</p>
     </div>
+    <span class="ds-chip who-chip"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-user-circle"/></svg><span class="who-name"></span></span>
   </div>
-  <div class="pull-hint">↓ เลื่อนลงเพื่อรีเฟรช</div>
-  <div id="matchList" style="display:flex; flex-direction:column; gap:14px;"></div>
+  <div class="pull-hint"><svg class="ds-ic ds-ic-sm" aria-hidden="true" focusable="false"><use href="#ic-arrow-clockwise"/></svg>เลื่อนลงเพื่อรีเฟรช</div>
+  <div id="matchList"></div>
 </div>
 
 <!-- ============================================================
-     🏁 FINISHED
+     FINISHED
      ============================================================ -->
 <div id="screen-finished" class="screen">
   <div class="screen-header">
     <div class="screen-header-text">
-      <div class="screen-title">จบแล้ว</div>
-      <div class="screen-sub">ประวัติแมตช์ที่แข่งขันจบไปแล้ว</div>
+      <h1 class="screen-title">จบแล้ว</h1>
+      <p class="screen-sub">ประวัติแมตช์ที่แข่งขันจบไปแล้ว</p>
     </div>
+    <span class="ds-chip who-chip"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-user-circle"/></svg><span class="who-name"></span></span>
   </div>
-  <div id="finishedList" style="display:flex; flex-direction:column; gap:14px;"></div>
+  <div id="finishedList"></div>
 </div>
 
 <!-- ============================================================
-     🏸 SCORING SCREEN
+     SCORING SCREEN — a grid with NAMED AREAS (css/umpire.css): info · banner · red · net · blue · deck.
+     Portrait stacks them; landscape puts RED | centre column (info, net, deck) | BLUE.
      ============================================================ -->
 <div id="screen-scoring" class="screen">
 
-  <!-- TOP BAR — information only (court, clock, game): nothing here can be tapped by accident except the court -->
-  <div class="scoring-topbar">
-    <div class="scoring-center">
-      <div class="match-info-text" id="activeMatchInfo">—</div>
-      <div class="center-row">
-        <div class="timer-display" id="umpireTimerDisplay">0:00</div>
-        <div class="game-indicator" id="gameIndicator">เกม 1</div>
-      </div>
-      <div class="g1line" id="g1Line" style="display:none;"></div>
-    </div>
-  </div>
+  <!-- INFO — court (the one tappable thing here), clock, send state -->
+  <header class="scoring-topbar">
+    <div class="match-info-text" id="activeMatchInfo">—</div>
+    <div class="timer-display idle" id="umpireTimerDisplay">0:00</div>
+    <div class="sync-strip sync-ok" id="syncStrip" role="status" aria-live="off"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg><span class="ss-text"><span>เชื่อมต่อแล้ว</span></span></div>
+  </header>
+  <!-- offline / slow: empty (and so hidden) unless something is wrong -->
   <div class="net-banner" role="status" aria-live="polite"></div>
 
-  <!-- RED PANEL -->
+  <!-- RED -->
   <div class="score-panel red" id="redPanel">
-    <button class="score-btn-plus" id="btnRedPlus" onclick="updateScore('red',1)" aria-label="เพิ่มคะแนนทีมแดง"></button>
+    <button type="button" class="score-btn-plus" id="btnRedPlus" onclick="updateScore('red',1)" aria-label="เพิ่มคะแนนทีมแดง"></button>
     <div class="score-center-col">
-      <div class="team-name-score" style="color:var(--red);" id="redNames">RED TEAM</div>
-      <div class="score-number" style="color:var(--red);" id="scoreRed">0</div>
+      <div class="panel-head">
+        <span class="ds-team ds-team-red">แดง</span>
+        <div class="team-name-score" id="redNames">RED TEAM</div>
+      </div>
+      <div class="digit-zone"><div class="score-number" id="scoreRed">0</div></div>
       <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
-    <button class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนนทีมแดง">−</button>
+    <button type="button" class="score-btn-minus" id="btnRedMinus" onclick="updateScore('red',-1)" aria-label="ลดคะแนนทีมแดง"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
   </div>
 
-  <!-- SUBMIT — single button; label switches "ส่งผลเกม 1" / "ส่งผลแมตช์" -->
-  <div class="scoring-actions">
-    <button class="btn-action btn-submit" id="btnSubmitGame" onclick="submitGame()">ส่งผลเกม 1</button>
+  <!-- NET — read-only: the game, game 1's score in game 2, DEUCE / GAME POINT -->
+  <div class="net-strip">
+    <span class="net-chip" id="gameIndicator">เกม 1</span>
+    <span class="net-chip g1line" id="g1Line" hidden></span>
+    <span class="net-chip sit-chip" id="sitChip" hidden></span>
   </div>
 
-  <!-- BLUE PANEL -->
+  <!-- BLUE -->
   <div class="score-panel blue" id="bluePanel">
-    <button class="score-btn-plus" id="btnBluePlus" onclick="updateScore('blue',1)" aria-label="เพิ่มคะแนนทีมน้ำเงิน"></button>
+    <button type="button" class="score-btn-plus" id="btnBluePlus" onclick="updateScore('blue',1)" aria-label="เพิ่มคะแนนทีมน้ำเงิน"></button>
     <div class="score-center-col">
-      <div class="team-name-score" style="color:var(--blue);" id="blueNames">BLUE TEAM</div>
-      <div class="score-number" style="color:var(--blue);" id="scoreBlue">0</div>
+      <div class="panel-head">
+        <span class="ds-team ds-team-blue">น้ำเงิน</span>
+        <div class="team-name-score" id="blueNames">BLUE TEAM</div>
+      </div>
+      <div class="digit-zone"><div class="score-number" id="scoreBlue">0</div></div>
       <div class="tap-hint">แตะครึ่งจอนี้ = +1</div>
     </div>
-    <button class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนนทีมน้ำเงิน">−</button>
+    <button type="button" class="score-btn-minus" id="btnBlueMinus" onclick="updateScore('blue',-1)" aria-label="ลดคะแนนทีมน้ำเงิน"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
   </div>
 
-  <!-- BOTTOM BAR — leave / pause, well away from both +1 areas (a guard strip sits above it) -->
+  <!-- DECK — leave · submit · pause. A guard strip above it holds no button. Submit stays one button: its label and
+       its "ready" look follow the game (ส่งผลเกม 1 / ส่งผลแมตช์) -->
   <div class="scoring-bottombar">
-    <div class="sync-strip sync-ok" id="syncStrip" role="status" aria-live="off">✓ เชื่อมต่อแล้ว</div>
-    <button class="bar-btn danger" id="btnBack" onclick="confirmExit()">← ออก</button>
-    <button class="bar-btn" id="btnPause" onclick="togglePause()">⏸ พัก</button>
+    <button type="button" class="ds-btn bar-btn" id="btnBack" onclick="confirmExit()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sign-out"/></svg><span>ออก</span></button>
+    <button type="button" class="ds-btn btn-submit" id="btnSubmitGame" onclick="submitGame()"><span>ส่งผลเกม 1</span></button>
+    <button type="button" class="ds-btn bar-btn" id="btnPause" onclick="togglePause()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-pause-fill"/></svg><span>พัก</span></button>
   </div>
 
-  <!-- safe area bottom -->
-  <div class="scoring-bottom-safe"></div>
+  <!-- the score, said once the taps have settled (a screen reader does not read the digits) -->
+  <div class="ds-sr-only" id="scoreLive" role="status" aria-atomic="true"></div>
 
 </div>
 
-<!-- ── VS INTRO — big pair-vs-pair reveal shown ~3s when a fresh match opens ── -->
+</main>
+
+<!-- ── VS INTRO — the two pairs, shown ~3 s when a fresh match opens (a tap or the button skips it).
+     Same orientation as the scoring screen: red above, blue below (landscape: red left, blue right). ── -->
 <div id="vsIntro" onclick="dismissVsIntro()">
   <div class="vsi-court" id="vsiCourt"></div>
   <div class="vsi-row">
     <div class="vsi-side red">
+      <span class="ds-team ds-team-red">แดง</span>
       <div class="vsi-faces" id="vsiRedFaces"></div>
       <div class="vsi-names" id="vsiRedNames"></div>
     </div>
-    <div class="vsi-vs">VS</div>
+    <div class="vsi-vs" aria-hidden="true">VS</div>
     <div class="vsi-side blue">
+      <span class="ds-team ds-team-blue">น้ำเงิน</span>
       <div class="vsi-faces" id="vsiBlueFaces"></div>
       <div class="vsi-names" id="vsiBlueNames"></div>
     </div>
   </div>
-  <div class="vsi-ready">พร้อมแข่ง · แตะเพื่อเริ่ม</div>
+  <button type="button" class="ds-btn ds-btn-primary ds-btn-lg vsi-ready" onclick="dismissVsIntro()">พร้อมแข่ง · แตะเพื่อเริ่ม</button>
 </div>
 
-<!-- ── NOTICE — a message that never blocks a tap (a send that failed, "all sent ✓") ── -->
+<!-- ── NOTICE — a message that never blocks a tap (a send that failed, "all sent") ── -->
 <div id="umpNotice" role="status" aria-live="polite"></div>
 
-<!-- ── CUSTOM MODAL (fullscreen-safe แทน alert/confirm) ── -->
-<div id="customModal">
-  <div class="modal-box" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
-    <div class="modal-icon" id="modalIcon"></div>
-    <div class="modal-title" id="modalTitle"></div>
-    <div class="modal-body" id="modalBody"></div>
-    <div id="modalScorePreview" style="display:none;"></div>
+<!-- ── DIALOG — every question and message (js: showAlert / showConfirm / showCourtPicker). ds-scrim + ds-sheet; the
+     buttons sit outside the scrolling part, so they are always on screen ── -->
+<div id="customModal" class="ds-scrim">
+  <div class="modal-box ds-sheet" id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
+    <div class="modal-scroll">
+      <div class="modal-icon" id="modalIcon"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-body" id="modalBody"></div>
+      <div id="modalScorePreview"></div>
+      <div class="ds-banner is-warn modal-warn" id="modalWarn" hidden></div>
+    </div>
     <div class="modal-btns" id="modalBtns"></div>
   </div>
 </div>

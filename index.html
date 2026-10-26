@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Badminton Sports Day 2026 - Scoreboard</title>
 <!-- Returning viewers / TV / QR links never see the login screen: decide before
      first paint instead of waiting for window load (which flashed the login). -->
@@ -92,43 +92,70 @@ try {
 <script defer src="js/tv.js?v=2026.10.04.1"></script>
 <body class="data-loading">
 
+<!-- the brand mark (a gold tile and a shuttlecock), drawn once: the login screen and the top bar both <use> it -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="ds-mark-sym" viewBox="0 0 64 64">
+    <rect class="mk-bg" width="64" height="64" rx="16"/>
+    <g transform="translate(32 32) rotate(-32) scale(.95) translate(-32 -29)">
+      <path class="mk-ink" d="M24 41 13 14Q32 7 51 14L40 41Z"/>
+      <path class="mk-ink" d="M23 41h18a9 9 0 0 1-18 0z"/>
+      <path class="mk-line" d="M28.6 41 22.6 11.5M32 41V9.5M35.4 41l6-29.5M17.5 26.5Q32 31 46.5 26.5"/>
+    </g>
+  </symbol>
+</svg>
+
 <!-- ── LOGIN OVERLAY ── -->
-<div id="loginOverlay">
-  <h1 style="font-family:'Bebas Neue',sans-serif; color:var(--gold); font-size:clamp(3em, 8vw, 4em); letter-spacing:4px; margin-bottom:20px; text-shadow:0 0 20px rgba(245,200,66,0.3);">🏸 SPORTS DAY 2026</h1>
-  <div class="login-card" style="position:relative; z-index:10000;">
-    <!-- Almost everyone opening this is a spectator or a player, so that is
-         the one big button. Staff sign-in is a quiet second row. -->
-    <p class="login-lead">เข้าดูคะแนนสดได้เลย ไม่ต้องใส่รหัส</p>
-    <button type="button" class="login-primary" onclick="loginGuest()">
-      <span class="login-primary-icon">🏸</span>
-      <span class="login-primary-main">เข้าดูคะแนนสด</span>
-      <span class="login-primary-sub">ผลแมตช์ · ตารางคะแนน · สถิติผู้เล่น</span>
-    </button>
+<div id="loginOverlay" class="ds-court-bg">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <svg class="login-mark" width="72" height="72" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><use href="#ds-mark-sym"/></svg>
+      <h1 class="login-title" lang="en">Sports Day 2026</h1>
+    </div>
+    <div class="login-card">
+      <!-- Almost everyone opening this is a spectator or a player, so that is
+           the one big button. Staff sign-in is the second step: two quiet rows. -->
+      <p class="login-lead">เข้าดูคะแนนสดได้เลย ไม่ต้องใส่รหัส</p>
+      <button type="button" class="login-primary" onclick="loginGuest()">
+        <svg class="ds-ic login-primary-ic" aria-hidden="true" focusable="false"><use href="#ic-broadcast"/></svg>
+        <span class="login-primary-txt">
+          <span class="login-primary-main">เข้าดูคะแนนสด</span>
+          <span class="login-primary-sub">ผลแมตช์ · ตารางคะแนน · สถิติผู้เล่น</span>
+        </span>
+        <svg class="ds-ic login-go" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg>
+      </button>
 
-    <details class="login-staff">
-      <summary>🔑 เข้าสำหรับทีมงาน</summary>
-      <div class="login-staff-body">
-        <button type="button" class="btn btn-outline" onclick="loginAdmin()">⚙️ Admin — สร้างแมตช์ / จัดการผู้เล่น</button>
-        <button type="button" class="btn btn-outline" onclick="loginSuperAdmin()">👑 Super Admin — แก้ผล / คะแนน</button>
+      <div class="login-staff">
+        <div class="login-staff-h">สำหรับทีมงาน</div>
+        <button type="button" class="login-role" onclick="loginAdmin()">
+          <span class="login-role-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-gear-six"/></svg></span>
+          <span class="login-role-txt"><span class="login-role-main">Admin</span><span class="login-role-sub">สร้างแมตช์ · จัดการผู้เล่น</span></span>
+          <svg class="ds-ic login-go" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg>
+        </button>
+        <button type="button" class="login-role" onclick="loginSuperAdmin()">
+          <span class="login-role-ic"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-crown"/></svg></span>
+          <span class="login-role-txt"><span class="login-role-main">Super Admin</span><span class="login-role-sub">แก้ผล · แก้คะแนน</span></span>
+          <svg class="ds-ic login-go" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg>
+        </button>
       </div>
-    </details>
 
-    <div class="app-version" data-app-version></div>
+      <div class="app-version" data-app-version></div>
+    </div>
   </div>
 </div>
 
-<!-- ── ADMIN / SUPERADMIN PASSCODE MODAL ── -->
-<div id="passcodeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; justify-content:center; align-items:center; flex-direction:column; gap:16px; flex-wrap:nowrap;">
-  <div style="background:#111118; border:1px solid rgba(245,200,66,0.3); border-radius:16px; padding:36px 32px; width:min(90vw,360px); text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.8);">
-    <div id="passcodeModalTitle" style="font-family:'Bebas Neue',sans-serif; font-size:1.8em; letter-spacing:4px; color:#f5c842; margin-bottom:6px;">&#x1F510; ADMIN LOGIN</div>
-    <div id="passcodeModalSub" style="color:#6b6b80; font-size:13px; margin-bottom:20px;">Enter Passcode</div>
-    <input type="password" id="passcodeInput" placeholder="Passcode..."
-      style="width:100%; padding:12px 16px; background:#1a1a24; border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#e8e8f0; font-size:1.2em; text-align:center; font-family:Rajdhani,sans-serif; outline:none; margin-bottom:16px; letter-spacing:4px;"
-      onkeydown="if(event.key==='Enter') submitPasscode()">
-    <div id="passcodeError" style="color:#e74c3c; font-size:13px; font-weight:700; margin-bottom:12px; display:none;">&#x274C; รหัสผ่านไม่ถูกต้อง</div>
-    <div style="display:flex; gap:10px;">
-      <button onclick="submitPasscode()" style="flex:1; padding:13px; background:#f5c842; color:#111; border:none; border-radius:8px; font-family:'Bebas Neue',sans-serif; font-size:1.3em; letter-spacing:2px; cursor:pointer;">&#x2713; CONFIRM</button>
-      <button onclick="closePasscodeModal()" style="padding:13px 16px; background:rgba(255,255,255,0.06); color:#6b6b80; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-family:Rajdhani,sans-serif; font-size:1em; font-weight:700; cursor:pointer;">&#x2715;</button>
+<!-- ── ADMIN / SUPERADMIN PASSCODE SHEET (the sign-in logic is in js/auth.js; this is only how it looks) ── -->
+<div id="passcodeModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="passcodeModalTitle" style="display:none;">
+  <div class="ds-sheet passcode-box">
+    <div id="passcodeModalTitle" class="ds-sheet-title">Admin</div>
+    <div id="passcodeModalSub" class="ds-help">ใส่รหัสผ่าน</div>
+    <div class="ds-field passcode-field">
+      <label class="ds-label" for="passcodeInput">รหัสผ่าน</label>
+      <input type="password" id="passcodeInput" class="ds-input ds-input-lg" autocomplete="off" onkeydown="if(event.key==='Enter') submitPasscode()">
+    </div>
+    <div id="passcodeError" class="ds-banner is-err" role="alert" style="display:none;"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-warning-circle"/></svg><span>รหัสผ่านไม่ถูกต้อง</span></div>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="submitPasscode()">ยืนยัน</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closePasscodeModal()">ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -172,64 +199,86 @@ try {
   </div>
 </div>
 
-<!-- NAVIGATION -->
+<!-- NAVIGATION: brand · connection · tabs · role · the ⋯ menu.
+     Phone: one 55 px row (the tabs, the ⋯ button). Laptop: one bar with a word on every tab. js/ui.js keeps --nav-h and the tab strip's edge fade. -->
 <div class="nav" id="mainNav">
-  <span class="nav-title">🏸 <span id="seasonNavTitle" lang="en">SPORTS DAY 2026</span></span>
-  <span id="dbStatusDot" class="nav-live" title="สถานะการเชื่อมต่อ">
-    <span id="dbDot"></span>
+  <div class="nav-brand">
+    <svg class="nav-mark" width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><use href="#ds-mark-sym"/></svg>
+    <span class="nav-title" id="seasonNavTitle" lang="en">SPORTS DAY 2026</span>
+  </div>
+  <span id="dbStatusDot" class="nav-live" role="status" title="สถานะการเชื่อมต่อ">
+    <span id="dbDot" aria-hidden="true"></span>
+    <svg class="ds-ic nav-live-off" aria-hidden="true" focusable="false"><use href="#ic-wifi-slash"/></svg>
     <span id="dbDotLabel">...</span>
   </span>
-  <div class="nav-tabs">
-    <button class="tab-btn" id="tab-scoreboard" onclick="switchTab('scoreboard', this)"><span class="tab-ico tab-ico-phone" aria-hidden="true">📋</span><span class="tab-lbl">Scoreboard</span></button>
-    <button class="tab-btn" id="tab-ongoing" onclick="switchTab('ongoing', this)"><span class="tab-ico" aria-hidden="true">🟢</span> <span class="tab-lbl">กำลังแข่ง</span> <span id="navOngoingBadge" style="display:none;background:var(--green);color:#000;font-size:12px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
-    <button class="tab-btn" id="tab-finished" onclick="switchTab('finished', this)"><span class="tab-ico" aria-hidden="true">🏁</span> <span class="tab-lbl">จบแล้ว</span> <span id="navFinishedBadge" style="display:none;background:#5a5a78;color:#fff;font-size:12px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:3px;vertical-align:middle;"></span></button>
-    <button class="tab-btn" id="tab-players" onclick="switchTab('players', this)"><span class="tab-ico" aria-hidden="true">👤</span> <span class="tab-lbl">ผู้เล่น</span></button>
-    <button class="tab-btn" id="tab-gallery" onclick="switchTab('gallery', this)"><span class="tab-ico" aria-hidden="true">📷</span> <span class="tab-lbl">Gallery</span></button>
+  <nav class="nav-tabs" aria-label="เมนูหลัก">
+    <button class="tab-btn" id="tab-scoreboard" onclick="switchTab('scoreboard', this)"><span class="tab-in"><svg class="ds-ic tab-ico" aria-hidden="true" focusable="false"><use href="#ic-trophy"/></svg><span class="tab-lbl">Scoreboard</span></span></button>
+    <button class="tab-btn" id="tab-ongoing" onclick="switchTab('ongoing', this)"><span class="tab-in"><svg class="ds-ic tab-ico" aria-hidden="true" focusable="false"><use href="#ic-broadcast"/></svg><span class="tab-lbl">กำลังแข่ง</span><span class="tab-count tab-count-live" id="navOngoingBadge" style="display:none"></span></span></button>
+    <button class="tab-btn" id="tab-finished" onclick="switchTab('finished', this)"><span class="tab-in"><svg class="ds-ic tab-ico" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg><span class="tab-lbl">จบแล้ว</span><span class="tab-count" id="navFinishedBadge" style="display:none"></span></span></button>
+    <button class="tab-btn" id="tab-players" onclick="switchTab('players', this)"><span class="tab-in"><svg class="ds-ic tab-ico" aria-hidden="true" focusable="false"><use href="#ic-users"/></svg><span class="tab-lbl">ผู้เล่น</span></span></button>
+    <button class="tab-btn" id="tab-gallery" onclick="switchTab('gallery', this)"><span class="tab-in"><svg class="ds-ic tab-ico" aria-hidden="true" focusable="false"><use href="#ic-images"/></svg><span class="tab-lbl">Gallery</span></span></button>
     <!-- Admin Only Tabs -->
-    <button class="tab-btn admin-only" id="tab-dashboard" onclick="switchTab('dashboard', this)"><span class="tab-ico" aria-hidden="true">📊</span> <span class="tab-lbl">Dashboard</span></button>
-    <button class="tab-btn admin-only" id="tab-admin" onclick="switchTab('admin', this)"><span class="tab-ico" aria-hidden="true">⚙️</span> <span class="tab-lbl">Admin</span></button>
-    <button class="tab-btn admin-only" id="tab-report" onclick="switchTab('report', this)"><span class="tab-ico" aria-hidden="true">📈</span> <span class="tab-lbl">Reports</span></button>
+    <button class="tab-btn admin-only" id="tab-dashboard" onclick="switchTab('dashboard', this)"><span class="tab-in"><svg class="ds-ic tab-ico" aria-hidden="true" focusable="false"><use href="#ic-chart-bar"/></svg><span class="tab-lbl">Dashboard</span></span></button>
+    <button class="tab-btn admin-only" id="tab-admin" onclick="switchTab('admin', this)"><span class="tab-in"><svg class="ds-ic tab-ico" aria-hidden="true" focusable="false"><use href="#ic-gear-six"/></svg><span class="tab-lbl">Admin</span></span></button>
+    <button class="tab-btn admin-only" id="tab-report" onclick="switchTab('report', this)"><span class="tab-in"><svg class="ds-ic tab-ico" aria-hidden="true" focusable="false"><use href="#ic-chart-line-up"/></svg><span class="tab-lbl">Reports</span></span></button>
+  </nav>
+  <div class="nav-meta">
+    <button type="button" id="seasonBadge" class="nav-season superadmin-only" onclick="openSeasonArchive()" title="ดู Season Archive"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-calendar-blank"/></svg> 2026</button>
+    <span id="roleBadge" class="role-chip" style="display:none;"></span>
   </div>
-  <button type="button" class="nav-more" id="navMoreBtn" aria-label="เมนูเพิ่มเติม" aria-haspopup="true" aria-expanded="false" aria-controls="navActions" onclick="toggleNavMenu()">⋯</button>
+  <button type="button" class="nav-more" id="navMoreBtn" aria-label="เมนูเพิ่มเติม" aria-haspopup="true" aria-expanded="false" aria-controls="navActions" onclick="toggleNavMenu()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-dots-three"/></svg></button>
   <div class="nav-actions" id="navActions">
-    <span id="seasonBadge" class="season-badge superadmin-only" onclick="openSeasonArchive()" title="ดู Season Archive">📅 2026</span>
-    <span id="roleBadge" style="display:none; font-size:0.7rem; font-weight:800; letter-spacing:1px; padding:5px 9px; border-radius:6px; white-space:nowrap;"></span>
-    <button class="nav-ic superadmin-only nav-hide-mobile" onclick="openSeasonWizard()" title="เริ่ม Season ใหม่" aria-label="เริ่ม Season ใหม่"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">🔄</span><span class="nav-ic-label">เริ่ม Season ใหม่</span></span></button>
-    <button class="nav-ic admin-only" onclick="openQrModal()" title="QR สำหรับผู้ชม / กรรมการ" aria-label="QR สำหรับผู้ชม / กรรมการ"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">📱</span><span class="nav-ic-label">QR ผู้ชม / กรรมการ</span></span></button>
-    <button class="nav-ic" onclick="toggleFullScreen()" title="เต็มจอ (F)" aria-label="เต็มจอ"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">⛶</span><span class="nav-ic-label">เต็มจอ</span></span></button>
-    <button class="nav-ic reset admin-only superadmin-only" onclick="clearData()" title="Reset การแข่งขัน" aria-label="Reset การแข่งขัน"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">↺</span><span class="nav-ic-label">Reset การแข่งขัน</span></span></button>
-    <button class="nav-ic exit" onclick="logout()" title="ออกจากระบบ" aria-label="ออกจากระบบ"><span class="nav-ic-in"><span class="nav-ic-ico" aria-hidden="true">🚪</span><span class="nav-ic-label">ออกจากระบบ</span></span></button>
+    <div class="nav-desk">
+      <button type="button" class="nav-ic superadmin-only" onclick="openSeasonWizard()" title="เริ่ม Season ใหม่" aria-label="เริ่ม Season ใหม่"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-calendar-blank"/></svg><span class="nav-ic-label">เริ่ม Season ใหม่</span></span></button>
+    </div>
+    <div class="nav-grp">
+      <button type="button" class="nav-ic admin-only" onclick="openQrModal()" title="QR สำหรับผู้ชม / กรรมการ" aria-label="QR สำหรับผู้ชม / กรรมการ"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-qr-code"/></svg><span class="nav-ic-label">QR ผู้ชม / กรรมการ</span></span></button>
+      <button type="button" class="nav-ic" onclick="toggleFullScreen()" title="เต็มจอ (F)" aria-label="เต็มจอ"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-arrows-out"/></svg><span class="nav-ic-label">เต็มจอ</span></span></button>
+    </div>
+    <div class="nav-grp nav-grp-end">
+      <button type="button" class="nav-ic reset admin-only superadmin-only" onclick="clearData()" title="Reset การแข่งขัน" aria-label="Reset การแข่งขัน"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-arrow-counter-clockwise"/></svg><span class="nav-ic-label">Reset การแข่งขัน</span></span></button>
+      <button type="button" class="nav-ic exit" onclick="logout()" title="ออกจากระบบ" aria-label="ออกจากระบบ"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-sign-out"/></svg><span class="nav-ic-label">ออกจากระบบ</span></span></button>
+    </div>
   </div>
 </div>
 
 <!-- WHAT THE PAGE SAYS UNTIL THE FIRST DATA ARRIVES (P-21): the content below is hidden (body.data-loading) and this
-     card stands in for it - loading, then "ยังเชื่อมต่อไม่ได้" after 10 s, or "โหลดข้อมูลไม่ได้"; see js/core.js -->
-<div id="dataState" class="data-state" role="status" aria-live="polite">
-  <div class="ds-spin" aria-hidden="true"></div>
-  <div class="ds-msg" id="dsMsg">กำลังโหลดคะแนน…</div>
-  <div class="ds-sub" id="dsSub"></div>
-  <button type="button" class="btn btn-outline ds-retry" id="dsRetry" onclick="retryLoad()" hidden>ลองใหม่</button>
+     card stands in for it - loading, then "ยังเชื่อมต่อไม่ได้" after 10 s, or "โหลดข้อมูลไม่ได้"; see js/core.js (data-phase) -->
+<div id="dataState" class="data-state" data-phase="loading" role="status" aria-live="polite">
+  <div class="ld-card">
+    <div class="ld-icon" aria-hidden="true">
+      <svg class="ds-ic ld-ic-slow" focusable="false"><use href="#ic-wifi-slash"/></svg>
+      <svg class="ds-ic ld-ic-fail" focusable="false"><use href="#ic-warning-circle"/></svg>
+    </div>
+    <div class="ld-msg" id="dsMsg">กำลังโหลดคะแนน…</div>
+    <div class="ld-sub" id="dsSub"></div>
+    <div class="ld-skel" aria-hidden="true"><i class="ds-skel"></i><i class="ds-skel"></i><i class="ds-skel"></i><i class="ds-skel"></i></div>
+    <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" id="dsRetry" onclick="retryLoad()" hidden>ลองใหม่</button>
+  </div>
 </div>
 <!-- a connection that drops AFTER data was shown: one persistent bar under the menu (not a 2.4 s toast) -->
 <div id="connBar" class="conn-bar" role="status" aria-live="polite" hidden></div>
 
 <!-- SCOREBOARD TAB -->
-<!-- ⭐ "me" bar — spectator/player shortcut, guest-visible -->
+<!-- "me" bar - spectator/player shortcut, guest-visible -->
 <div id="meBar" class="me-bar"></div>
 
-<!-- ⭐ pick-your-name overlay -->
-<div id="mePickerOverlay" class="me-picker" onclick="if(event.target===this)closeMePicker()">
-  <div class="me-picker-box">
+<!-- pick-your-name sheet -->
+<div id="mePickerOverlay" class="me-picker ds-scrim" role="dialog" aria-modal="true" aria-labelledby="mePickerTitle" onclick="if(event.target===this)closeMePicker()">
+  <div class="me-picker-box ds-sheet">
     <div class="me-picker-head">
-      <div>
-        <div class="me-picker-title">⭐ คุณคือใคร?</div>
-        <div class="me-picker-sub">เลือกชื่อตัวเอง เพื่อดูแมตช์ของคุณได้เร็วขึ้น</div>
+      <div class="me-picker-heading">
+        <div class="me-picker-title ds-sheet-title" id="mePickerTitle"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-star-fill"/></svg><span>คุณคือใคร?</span></div>
+        <div class="me-picker-sub ds-help">เลือกชื่อตัวเอง เพื่อดูแมตช์ของคุณได้เร็วขึ้น</div>
       </div>
-      <button class="me-picker-close" onclick="closeMePicker()">✕</button>
+      <button type="button" class="me-picker-close ds-btn ds-btn-ghost ds-btn-icon" aria-label="ปิด" onclick="closeMePicker()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
-    <input type="text" id="meSearch" placeholder="🔍 พิมพ์ชื่อ..." oninput="renderMePickerList()">
+    <label class="me-search" for="meSearch">
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+      <input type="text" id="meSearch" placeholder="พิมพ์ชื่อ…" aria-label="ค้นหาชื่อ" autocomplete="off" oninput="renderMePickerList()">
+    </label>
     <div id="mePickerList" class="me-picker-list"></div>
-    <button class="me-clear" onclick="setMe(null)">ล้างการเลือก</button>
+    <button type="button" class="me-clear ds-btn ds-btn-block" onclick="setMe(null)">ล้างการเลือก</button>
   </div>
 </div>
 
@@ -260,7 +309,7 @@ try {
 </div>
 
 
-<div id="scoreboard" class="container" style="padding: 0; max-width: 100%;">
+<div id="scoreboard" class="container">
   <!-- Live-match arena — shown while a court is being scored; falls back to the
        team-battle totals below when nothing is live (rendered by renderLiveArena) -->
   <div id="liveArena" style="display:none;"></div>
@@ -269,14 +318,14 @@ try {
        redTeamName, redLeadBadge …) are kept so nothing else had to change. -->
   <div class="scoreboard-wrapper idle-board">
     <div class="idl-top">
-      <span class="idl-pill">⏸ พักระหว่างแมตช์</span>
+      <span class="idl-pill"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-pause-fill"/></svg>พักระหว่างแมตช์</span>
       <span class="idl-sum" id="idleSummary"></span>
     </div>
     <div class="idl-totals">
       <div class="idl-team red" id="redPanel">
-        <input class="team-name-edit idl-tname red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมแดง">
+        <div class="idl-head"><i class="tsh tsh-red" aria-hidden="true"></i><input class="team-name-edit idl-tname red" id="redTeamName" value="RED TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมแดง"></div>
         <div class="idl-score" id="displayRedScore">0</div>
-        <div class="idl-lead" id="redLeadBadge">▲ นำ</div>
+        <div class="idl-lead" id="redLeadBadge"></div>
       </div>
       <div class="idl-mid">
         <div class="idl-vs">VS</div>
@@ -284,9 +333,9 @@ try {
         <div class="idl-ptslbl">คะแนนรวมทีม</div>
       </div>
       <div class="idl-team blue" id="bluePanel">
-        <input class="team-name-edit idl-tname blue" id="blueTeamName" value="BLUE TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมน้ำเงิน">
+        <div class="idl-head"><i class="tsh tsh-blue" aria-hidden="true"></i><input class="team-name-edit idl-tname blue" id="blueTeamName" value="BLUE TEAM" maxlength="16" onchange="saveTeamNames()" aria-label="ชื่อทีมน้ำเงิน"></div>
         <div class="idl-score" id="displayBlueScore">0</div>
-        <div class="idl-lead" id="blueLeadBadge">▲ นำ</div>
+        <div class="idl-lead" id="blueLeadBadge"></div>
       </div>
     </div>
     <div id="idleNext"></div>
@@ -298,66 +347,63 @@ try {
 </div>
 
 <!-- ONGOING MATCH TAB -->
-<div id="ongoing" class="container" style="max-width:1200px;">
-  <!-- Hero stats bar -->
+<div id="ongoing" class="container">
+  <!-- what is on court right now, in one number -->
   <div class="ongoing-hero">
-    <div>
-      <div style="font-size:12px;font-weight:700;letter-spacing:0.3px;color:var(--muted);margin-bottom:4px;">กำลังแข่งบนคอร์ต</div>
+    <div class="oh-main">
+      <div class="oh-label">กำลังแข่งบนคอร์ต</div>
       <div class="ongoing-live-count" id="ongoingLiveCount">0</div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-      <div style="display:flex;align-items:center;gap:6px;">
-        <div class="live-dot"></div>
-        <span style="font-size:12px;font-weight:700;letter-spacing:0.3px;color:var(--green);">อัปเดตสด</span>
-      </div>
-      <span id="ongoingQueueCount" style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);">0 รอคิว</span>
+    <div class="oh-side">
+      <span class="ds-chip ds-chip-live"><i class="ds-dot ds-dot-live"></i>อัปเดตสด</span>
+      <span class="oh-queue" id="ongoingQueueCount">0 รอคิว</span>
     </div>
   </div>
 
-  <div class="section-title th" style="margin-top:0;">
-    <span class="live-dot" style="width:8px;height:8px;margin-right:-4px;"></span>
-    กำลังแข่งตอนนี้
-  </div>
-  <div id="publicLiveMatches" class="court-grid" style="margin-bottom:32px;"></div>
+  <h2 class="section-title th"><i class="ds-dot ds-dot-live" aria-hidden="true"></i>กำลังแข่งตอนนี้</h2>
+  <div id="publicLiveMatches" class="court-grid"></div>
 
-  <div class="section-title th">⏳ แมตช์ถัดไป</div>
+  <h2 class="section-title th">แมตช์ถัดไป</h2>
   <div id="publicUpcomingMatches" class="queue-list"></div>
 </div>
 
 <!-- FINISHED MATCH TAB -->
 <div id="finished" class="container">
-  <div class="report-header tab-toolbar">
-    <div class="section-title th" style="margin:0;">🏁 แมตช์ที่จบแล้ว</div>
-    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-      <input type="text" id="finishedSearch" placeholder="🔍 ค้นหาแมตช์…" style="width:150px; font-size:13px; padding:6px 12px;" oninput="debounce(renderFinishedMatches,220)()">
-      <select id="finishedFilterRound" style="font-size:13px; padding:6px 10px;" onchange="renderFinishedMatches()">
+  <div class="fin-bar tab-toolbar">
+    <h2 class="section-title th fin-title"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg>แมตช์ที่จบแล้ว</h2>
+    <div class="fin-controls">
+      <label class="fin-search">
+        <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+        <input type="text" id="finishedSearch" placeholder="ค้นหาแมตช์…" aria-label="ค้นหาแมตช์" autocomplete="off" oninput="debounce(renderFinishedMatches,220)()">
+      </label>
+      <select id="finishedFilterRound" aria-label="กรองตามรอบ" onchange="renderFinishedMatches()">
         <option value="">ทุกรอบ</option>
         <option value="1">รอบ 1</option>
         <option value="2">รอบ 2</option>
         <option value="3">รอบ 3</option>
       </select>
-      <div style="display:flex;gap:4px;align-items:center;">
-        <button class="me-filter-btn" onclick="toggleMeFilter(this)" title="ดูเฉพาะแมตช์ของฉัน">⭐ ของฉัน</button>
-        <button class="filter-pill active" id="frAll"  onclick="setFinishedResultFilter('')">ทั้งหมด</button>
-        <button class="filter-pill" id="frRed"  onclick="setFinishedResultFilter('red')"  style="--pill-active-bg:rgba(255,59,92,0.15);--pill-active-border:rgba(255,59,92,0.35);--pill-active-color:var(--red);">🔴 ทีมแดงชนะ</button>
-        <button class="filter-pill" id="frDraw" onclick="setFinishedResultFilter('draw')" style="--pill-active-bg:rgba(245,200,66,0.15);--pill-active-border:rgba(245,200,66,0.35);--pill-active-color:var(--gold);">🤝 เสมอ</button>
-        <button class="filter-pill" id="frBlue" onclick="setFinishedResultFilter('blue')" style="--pill-active-bg:rgba(59,142,255,0.15);--pill-active-border:rgba(59,142,255,0.35);--pill-active-color:var(--blue);">🔵 ทีมน้ำเงินชนะ</button>
-      </div>
+    </div>
+    <div class="fin-filters" role="group" aria-label="กรองตามผล">
+      <button type="button" class="me-filter-btn" onclick="toggleMeFilter(this)" title="ดูเฉพาะแมตช์ของฉัน" aria-pressed="false"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-star-fill"/></svg>ของฉัน</button>
+      <button type="button" class="filter-pill active" id="frAll" onclick="setFinishedResultFilter('')" aria-pressed="true">ทั้งหมด</button>
+      <button type="button" class="filter-pill" id="frRed" onclick="setFinishedResultFilter('red')" aria-pressed="false"><i class="tsh tsh-red" aria-hidden="true"></i>ทีมแดงชนะ</button>
+      <button type="button" class="filter-pill" id="frDraw" onclick="setFinishedResultFilter('draw')" aria-pressed="false">เสมอ</button>
+      <button type="button" class="filter-pill" id="frBlue" onclick="setFinishedResultFilter('blue')" aria-pressed="false"><i class="tsh tsh-blue" aria-hidden="true"></i>ทีมน้ำเงินชนะ</button>
     </div>
   </div>
   <!-- Tag legend — collapsed by default; it is reference material, not
        something you need on screen while scanning 39 results. -->
   <details class="fin-legend">
-    <summary>📖 ความหมายของ Tag</summary>
+    <summary><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-info"/></svg><span>ความหมายของ Tag</span></summary>
     <div class="fin-legend-body">
-      <div class="fin-legend-item"><span class="finished-tag tag-comeback">🔥 Epic Comeback</span><span>ตามหลัง 4+ แต้มช่วงท้ายแล้วพลิกชนะ</span></div>
-      <div class="fin-legend-item"><span class="finished-tag tag-clutch">⚔️ The Gladiators</span><span>แต้มรวม 2 เกม ห่างกันไม่เกิน 5 แต้ม</span></div>
-      <div class="fin-legend-item"><span class="finished-tag tag-custom">🏃 Marathon</span><span>มีเกมที่ดิวซ์ยาวถึง 22 แต้มขึ้นไป</span></div>
-      <div class="fin-legend-item"><span class="finished-tag tag-custom">🎢 Rollercoaster</span><span>ผลัดกันชนะ-แพ้ขาดคนละเกม</span></div>
-      <div class="fin-legend-item"><span class="finished-tag tag-blowout">🌪️ Blowout</span><span>ทีมชนะทุบขาด แต้มห่างรวม 16 แต้มขึ้นไป</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-comeback"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-fire"/></svg>Epic Comeback</span><span>ตามหลัง 4+ คะแนนช่วงท้ายแล้วพลิกชนะ</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-clutch"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-target"/></svg>The Gladiators</span><span>คะแนนรวม 2 เกม ห่างกันไม่เกิน 5 คะแนน</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-custom"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-timer"/></svg>Marathon</span><span>มีเกมที่ดิวซ์ยาวถึง 22 คะแนนขึ้นไป</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-custom"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-chart-line-up"/></svg>Rollercoaster</span><span>ผลัดกันชนะ-แพ้ขาดคนละเกม</span></div>
+      <div class="fin-legend-item"><span class="finished-tag tag-blowout"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-lightning"/></svg>Blowout</span><span>ทีมชนะทุบขาด คะแนนห่างรวม 16 คะแนนขึ้นไป</span></div>
     </div>
   </details>
-  <div id="finishedMatchesGrid" class="match-grid"></div>
+  <div id="finishedMatchesGrid" class="fin-list"></div>
 </div>
 
 <!-- DASHBOARD TAB (Admin) -->
@@ -1204,15 +1250,13 @@ try {
   </div>
 </div>
 
-<!-- MATCH NOTIFICATION -->
-<div id="matchNotiOverlay">
+<!-- MATCH NOTIFICATION: the result of a match that just ended (js/notifications.js). A sheet on a phone, a card on a laptop. -->
+<div id="matchNotiOverlay" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="matchNotiMatchId">
   <div id="matchNotiBox">
-    <div id="matchNotiGlow"></div>
-
     <!-- ── HEADER: Match ID + Status ── -->
     <div id="matchNotiHeader">
       <div id="matchNotiMatchId">แมตช์ M01</div>
-      <div id="matchNotiStatusBadge">จบแมตช์!</div>
+      <div id="matchNotiStatusBadge">จบแมตช์</div>
     </div>
 
     <!-- ── TEAM NAMES ── -->
@@ -1222,9 +1266,9 @@ try {
       <div id="matchNotiBlueNameEl" class="mnoti-team-name blue">BLUE</div>
     </div>
 
-    <!-- ── SCORE BOARD: แสดงทั้ง 2 เกม ── -->
+    <!-- ── SCORE BOARD: both games ── -->
     <div id="matchNotiScoreBoard">
-      <!-- G1 -->
+      <!-- game 1 -->
       <div class="mnoti-game-row" id="mnotiG1Row">
         <div class="mnoti-game-label">เกม 1</div>
         <div id="mnotiG1Red" class="mnoti-score-cell red">0</div>
@@ -1232,7 +1276,7 @@ try {
         <div id="mnotiG1Blue" class="mnoti-score-cell blue">0</div>
         <div id="mnotiG1Winner" class="mnoti-game-winner"></div>
       </div>
-      <!-- G2 -->
+      <!-- game 2 -->
       <div class="mnoti-game-row" id="mnotiG2Row">
         <div class="mnoti-game-label">เกม 2</div>
         <div id="mnotiG2Red" class="mnoti-score-cell red">0</div>
@@ -1251,21 +1295,19 @@ try {
     <!-- ── NARRATIVE / SITUATION SUMMARY ── -->
     <div id="matchNotiNarrative"></div>
 
-    <!-- ── GIF ── -->
+    <!-- ── REACTION (emoji: the one place they are the content) ── -->
     <div id="matchNotiGifWrap"></div>
 
     <!-- ── OVERALL TEAM SCORE ── -->
     <div id="matchNotiOverallScore"></div>
 
-    <!-- ── CLOSE BUTTON ── -->
+    <!-- ── CLOSE BUTTONS ── -->
     <div id="matchNotiActions">
-      <button id="matchNotiClose" onclick="closeMatchNoti()">ปิด</button>
-      <button id="matchNotiCloseAll" onclick="closeAllMatchNoti()" hidden>ปิดทั้งหมด</button>
+      <button type="button" id="matchNotiClose" class="ds-btn ds-btn-primary ds-btn-lg" onclick="closeMatchNoti()">ปิด</button>
+      <button type="button" id="matchNotiCloseAll" class="ds-btn ds-btn-lg" onclick="closeAllMatchNoti()" hidden>ปิดทั้งหมด</button>
     </div>
 
-    <div id="matchNotiProgress" style="position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 20px 20px;width:100%;background:rgba(255,255,255,0.08);">
-      <div id="matchNotiProgressBar" style="height:100%;width:0%;border-radius:0 0 20px 20px;"></div>
-    </div>
+    <div id="matchNotiProgress"><div id="matchNotiProgressBar"></div></div>
   </div>
 </div>
 
@@ -1492,23 +1534,23 @@ try {
 
 <!-- ── FULLSCREEN BOTTOM NAV ── -->
 <div id="fsBottomNav" class="fs-bottom-nav">
-  <button class="fs-nav-btn active" onclick="switchTab('ongoing');  fsBtnActive(this)">
-    <span class="fs-nav-icon">🟢</span><span class="fs-nav-label">Live</span>
+  <button type="button" class="fs-nav-btn active" onclick="switchTab('ongoing');  fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-broadcast"/></svg><span class="fs-nav-label">Live</span>
   </button>
-  <button class="fs-nav-btn" onclick="switchTab('finished'); fsBtnActive(this)">
-    <span class="fs-nav-icon">🏁</span><span class="fs-nav-label">จบแล้ว</span>
+  <button type="button" class="fs-nav-btn" onclick="switchTab('finished'); fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg><span class="fs-nav-label">จบแล้ว</span>
   </button>
-  <button class="fs-nav-btn" onclick="switchTab('players');  fsBtnActive(this)">
-    <span class="fs-nav-icon">👤</span><span class="fs-nav-label">ผู้เล่น</span>
+  <button type="button" class="fs-nav-btn" onclick="switchTab('players');  fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-users"/></svg><span class="fs-nav-label">ผู้เล่น</span>
   </button>
-  <button class="fs-nav-btn" onclick="switchTab('scoreboard'); fsBtnActive(this)">
-    <span class="fs-nav-icon">📋</span><span class="fs-nav-label">Scoreboard</span>
+  <button type="button" class="fs-nav-btn" onclick="switchTab('scoreboard'); fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-trophy"/></svg><span class="fs-nav-label">Scoreboard</span>
   </button>
-  <button class="fs-nav-btn fs-admin-only" onclick="switchTab('dashboard'); fsBtnActive(this)">
-    <span class="fs-nav-icon">📊</span><span class="fs-nav-label">Dashboard</span>
+  <button type="button" class="fs-nav-btn fs-admin-only" onclick="switchTab('dashboard'); fsBtnActive(this)">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-chart-bar"/></svg><span class="fs-nav-label">Dashboard</span>
   </button>
-  <button class="fs-nav-btn fs-nav-exit" onclick="document.exitFullscreen()">
-    <span class="fs-nav-icon">✕</span><span class="fs-nav-label">ออก</span>
+  <button type="button" class="fs-nav-btn fs-nav-exit" onclick="document.exitFullscreen()">
+    <svg class="ds-ic fs-nav-icon" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg><span class="fs-nav-label">ออก</span>
   </button>
 </div>
 <!-- invisible trigger strip ขอบล่าง -->

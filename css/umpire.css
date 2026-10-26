@@ -1,1710 +1,725 @@
-/* ── DESIGN TOKENS ── */
+/* ============================================================
+   Umpire app v3 (umpire.html).
+   Tokens: css/tokens.css. Primitives (ds-btn, ds-chip, ds-team, ds-sheet ...): css/ui.css. This file is everything else
+   the page needs, in this order:
+     1 base  2 scoring screen (named grid areas)  3 shared bits (faces, banner, sync)  4 the other screens
+   The scoring screen is a grid with NAMED AREAS (info, banner, red, net, blue, deck): a child that is missing, empty or
+   unknown never moves the others (the old rows were assigned by DOM order, and one stray element shifted all of them).
+   ============================================================ */
+
+/* ── 1. BASE ─────────────────────────────────────────────── */
 :root {
-  --bg: #07070d;
-  --surface: #0f0f1a;
-  --surface2: #161625;
-  --surface3: #1e1e30;
-  --border: rgba(255,255,255,0.1);
-  --border-bright: rgba(255,255,255,0.2);
-  --red: #ff4d4d;
-  --red-glow: rgba(255,77,77,0.35);
-  --red-dim: rgba(255,77,77,0.12);
-  --blue: #4d9fff;
-  --blue-glow: rgba(77,159,255,0.35);
-  --blue-dim: rgba(77,159,255,0.12);
-  --gold: #f0c040;
-  --gold-dim: rgba(240,192,64,0.15);
-  --green: #2ecc71;
-  --danger: #ff4d4d;
-  --text: #f0f0f5;
-  --muted: #7a7a9a;
-  /* hint lines on the page background (g1 recap, empty-state sub line, pull hint). It was #555570 = 2.79:1;
-     #7a7a9a reads 4.6-4.9:1 there. Not for use on --surface2 / --surface3 (4.3 / 4.0:1) - use --text there. */
-  --muted2: #7a7a9a;
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --radius-xl: 30px;
+  /* this page loads Noto Sans Thai and Bebas Neue only (no Space Grotesk): Latin text falls back inside Noto */
+  --font-ui: 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* Safe area insets */
-  --sat: env(safe-area-inset-top, 0px);
-  --sar: env(safe-area-inset-right, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
-  --sal: env(safe-area-inset-left, 0px);
+  /* the numbers the scoring screen is built from */
+  --bar-h: 56px;      /* info row of the scoring screen and the menu bar, below the safe-area inset */
+  --net-h: 44px;      /* the read-only strip between the two team panels */
+  --rim-x: 28px;      /* free strip at both screen edges of a +1 area (a grip, a palm): a tap there does nothing */
+  --rim-y: 16px;      /* free strip between a +1 area and the next control (info row / deck) */
+  --deck-btn: 64px;   /* leave / submit / pause */
+  --deck-side: 72px;  /* width of leave and pause */
+  --mid-w: clamp(132px, 14vw, 200px);   /* landscape: the column between the two panels (132 on a phone, wider on a laptop) */
+  --minus-clear: calc(var(--tap-lg) + var(--sp-3) + var(--sp-2));   /* the -1 circle + its 12 px offset + the 8 px ring around it */
 }
+@media (max-height: 640px) { :root { --bar-h: 52px; --net-h: 36px; --deck-btn: 56px; } }
+@media (max-width: 339px) { :root { --deck-side: 64px; } }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  height: 100%;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior: none; }
+body {
+  min-height: 100vh; min-height: 100dvh;
+  background: var(--bg); color: var(--t-hi);
+  font-family: var(--font-ui); line-height: var(--lh-th);
+  -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none;
   overscroll-behavior: none;
 }
+button, select, input { font: inherit; color: inherit; touch-action: manipulation; }
+button { cursor: pointer; }
+/* keyboard focus: a white ring reads on gold, red, blue and dark alike (base.css is not loaded on this page) */
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button:focus:not(:focus-visible) { outline: none; }
 
-body {
-  font-family: 'Noto Sans Thai', 'Rajdhani', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  min-height: 100dvh;
-  background-image:
-    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(240,192,64,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 30% at 50% 100%, rgba(77,100,255,0.04) 0%, transparent 60%);
-}
-
-button, select, input { touch-action: manipulation; font-family: inherit; }
-
-/* ── FULLSCREEN BUTTON (universal, floated top-right on non-scoring screens) ── */
-#fsBtn {
-  position: fixed;
-  top: calc(10px + var(--sat));
-  right: calc(12px + var(--sar));
-  z-index: 9999;
-  width: 48px;
-  height: 48px;
-  background: rgba(15,15,26,0.85);
-  border: 1.5px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
-  color: var(--muted);
-  font-size: 1.25rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-#fsBtn:active { transform: scale(0.88); background: var(--surface3); color: var(--gold); }
-/* Hide the floating btn when scoring screen is active (it has its own) */
-body.is-scoring #fsBtn { display: none; }
-/* Also hide when in login screen to keep it clean — shown via nav on other screens */
-body.is-login #fsBtn { display: none; }
-
-/* ── FULLSCREEN INDICATOR ── */
-#fsIndicator {
-  position: fixed;
-  bottom: calc(18px + var(--sab));
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: rgba(240,192,64,0.18);
-  border: 1px solid rgba(240,192,64,0.4);
-  color: var(--gold);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  padding: 8px 18px;
-  border-radius: 40px;
-  z-index: 9998;
-  opacity: 0;
-  transition: opacity 0.4s, transform 0.4s;
-  pointer-events: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-#fsIndicator.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes popIn {
-  0%   { transform: scale(0.92); opacity: 0; }
-  60%  { transform: scale(1.03); }
-  100% { transform: scale(1); opacity: 1; }
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-@keyframes glow-red {
-  0%, 100% { box-shadow: 0 0 24px rgba(255,77,77,0.18), inset 0 0 40px rgba(255,77,77,0.04); }
-  50% { box-shadow: 0 0 50px rgba(255,77,77,0.42), inset 0 0 60px rgba(255,77,77,0.08); }
-}
-@keyframes glow-blue {
-  0%, 100% { box-shadow: 0 0 24px rgba(77,159,255,0.18), inset 0 0 40px rgba(77,159,255,0.04); }
-  50% { box-shadow: 0 0 50px rgba(77,159,255,0.42), inset 0 0 60px rgba(77,159,255,0.08); }
-}
-@keyframes score-pop {
-  0% { transform: scale(1); }
-  35% { transform: scale(1.18); }
-  100% { transform: scale(1); }
-}
-@keyframes shake {
-  0%,100%  { transform: translateX(0); }
-  20%      { transform: translateX(-8px); }
-  40%      { transform: translateX(8px); }
-  60%      { transform: translateX(-5px); }
-  80%      { transform: translateX(5px); }
-}
-@keyframes undo-flash {
-  0%   { opacity: 1; }
-  50%  { opacity: 0.4; }
-  100% { opacity: 1; }
-}
-@keyframes ripple {
-  to { transform: scale(4); opacity: 0; }
-}
-
-/* ── STICKY NAV ── */
-#umpireNav {
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  background: rgba(7,7,13,0.97);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border);
-  padding: calc(10px + var(--sat)) 16px 10px;
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.nav-tabs { display: flex; gap: 8px; flex: 1; }
-.tab-btn {
-  background: transparent;
-  color: var(--muted);
-  border: 1.5px solid transparent;
-  padding: 14px 20px;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  transition: all 0.2s;
-  white-space: nowrap;
-  flex: 1;
-  text-align: center;
-  min-height: 52px;
-}
-.tab-btn.active {
-  color: var(--gold);
-  background: var(--gold-dim);
-  border-color: rgba(240,192,64,0.35);
-}
-.tab-btn:active { opacity: 0.7; transform: scale(0.96); }
-
-.btn-logout {
-  background: transparent;
-  color: var(--danger);
-  border: 1.5px solid rgba(255,77,77,0.3);
-  padding: 14px 16px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 700;
-  white-space: nowrap;
-  transition: all 0.2s;
-  min-height: 52px;
-  min-width: 52px;
-}
-.btn-logout:active { background: rgba(255,77,77,0.12); }
-
-/* ── SCREENS ── */
-.screen { display: none; flex-direction: column; gap: 20px; padding: 20px; }
-.screen.active { display: flex; animation: fadeUp 0.28s ease both; }
-
-h1, h2, h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
-
-/* ============================================================
-   🔐 LOGIN SCREEN
-   ============================================================ */
-#screen-login {
-  justify-content: center;
-  min-height: 100dvh;
-  padding: calc(28px + var(--sat)) 20px calc(40px + var(--sab));
-}
-.login-hero {
-  text-align: center;
-  margin-bottom: 8px;
-}
-.login-icon {
-  font-size: 4rem;
-  display: block;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 0 24px rgba(240,192,64,0.55));
-}
-.login-title {
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 2.8em;
-  font-weight: 800;
-  color: var(--gold);
-  letter-spacing: 1px;
-  line-height: 1.15;
-  text-shadow: 0 0 30px rgba(240,192,64,0.3);
-  margin-bottom: 6px;
-}
-.login-subtitle {
-  color: var(--muted);
-  font-size: 1rem;
-  letter-spacing: 0.3px;
-}
-/* Fullscreen entry button on login */
-.login-fs-row {
-  display: flex;
-  justify-content: center;
-  margin-top: 12px;
-}
-.btn-login-fs {
-  background: rgba(240,192,64,0.08);
-  border: 1.5px solid rgba(240,192,64,0.25);
-  color: var(--gold);
-  border-radius: 40px;
-  padding: 10px 24px;
-  min-height: 48px;
-  font-size: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-login-fs:active { background: rgba(240,192,64,0.18); transform: scale(0.95); }
-
-.login-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 28px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.login-section-label {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 12px;
-}
-.login-section-label span { color: var(--gold); margin-right: 6px; }
-
-/* TOGGLE BUTTONS */
-.toggle-group { display: grid; gap: 10px; }
-.toggle-group.cols-2 { grid-template-columns: 1fr 1fr; }
-.toggle-group.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-.toggle-group.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-
-.toggle-btn {
-  padding: 18px 10px;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--border);
-  background: var(--surface2);
-  color: var(--muted);
-  font-size: 1.05rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.18s;
-  text-align: center;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-  min-height: 58px;
-}
-.toggle-btn:active { transform: scale(0.96); }
-.toggle-btn.selected-red {
-  background: var(--red-dim);
-  border-color: var(--red);
-  color: var(--red);
-  box-shadow: 0 4px 16px var(--red-glow);
-}
-.toggle-btn.selected-blue {
-  background: var(--blue-dim);
-  border-color: var(--blue);
-  color: var(--blue);
-  box-shadow: 0 4px 16px var(--blue-glow);
-}
-.toggle-btn.selected-gold {
-  background: var(--gold-dim);
-  border-color: var(--gold);
-  color: var(--gold);
-  box-shadow: 0 4px 16px rgba(240,192,64,0.25);
-}
-
-/* UMPIRE DROPDOWN */
-.select-wrapper { position: relative; }
-.select-wrapper::after {
-  content: '▾';
-  position: absolute;
-  right: 18px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted);
-  pointer-events: none;
-  font-size: 1.2rem;
-}
-.umpire-select {
-  width: 100%;
-  padding: 20px 48px 20px 18px;
-  background: var(--surface2);
-  color: var(--text);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: 1.2rem;
-  font-weight: 700;
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-  transition: border-color 0.2s;
-  min-height: 64px;
-}
-.umpire-select:focus { border-color: var(--gold); }
-.umpire-select option { background: var(--surface2); }
-
-/* LOGIN BUTTON */
-.btn-login {
-  position: sticky;                          /* pinned to the bottom of the screen: reachable on a 320 x 568 phone */
-  bottom: calc(12px + var(--sab));
-  z-index: 3;
-  width: 100%;
-  padding: 24px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.2em;
-  letter-spacing: 0.3px;
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  background: var(--gold);
-  color: #000;
-  font-weight: 900;
-  box-shadow: 0 6px 24px rgba(240,192,64,0.3), 0 2px 8px rgba(0,0,0,0.4);
-  transition: all 0.2s;
-  overflow: hidden;
-}
-/* until a name is chosen: plain, and it says what to do */
-.btn-login:disabled {
-  background: var(--surface3); color: var(--text); box-shadow: none; cursor: not-allowed;
-  font-family: inherit; font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px; padding: 20px;
-  border: 1.5px dashed var(--border-bright);
-}
-.btn-login:disabled::before { display: none; }
-.login-help { margin-top: 8px; font-size: 0.88rem; font-weight: 700; color: var(--muted); }
-.btn-login::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.4s;
-}
-.btn-login:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(240,192,64,0.2); }
-.btn-login:hover::before { left: 100%; }
-
-/* ============================================================
-   📋 MATCH LIST SCREEN
-   ============================================================ */
-.screen-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 4px;
-}
-.screen-header-text { flex: 1; }
-.screen-title {
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 2.2em;
-  font-weight: 800;
-  color: var(--gold);
-  letter-spacing: 0.5px;
-  line-height: 1.25;
-}
-.screen-sub { color: var(--muted); font-size: 0.95rem; margin-top: 4px; }
-
-/* Pull-to-refresh indicator */
-.pull-hint {
-  text-align: center;
-  color: var(--muted2);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  padding: 6px 0 2px;
-}
-
-/* MATCH CARD */
-.match-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-.match-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, var(--red), var(--blue));
-  border-radius: 4px 0 0 4px;
-}
-.match-card:active { transform: scale(0.985); background: var(--surface2); }
-.match-card.claimed::before { background: var(--gold); }
-/* a match another umpire has taken: quiet, but never dimmed with opacity - that made the umpire's name and the
-   match id 1.85:1. Plain colours that pass 4.5:1 + the 🔒 on the badge say it is not available. */
-.match-card.locked-other { cursor: default; background: transparent; border-color: rgba(255,255,255,0.07); }
-.match-card.locked-other::before { opacity: 0.35; }
-
-/* Ripple effect on match card tap */
-.match-card .ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(240,192,64,0.25);
-  width: 10px; height: 10px;
-  transform: scale(0);
-  animation: ripple 0.5s ease-out forwards;
-  pointer-events: none;
-}
-
-.match-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.match-id {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.7em;
-  color: var(--gold);
-  letter-spacing: 2px;
-}
-.badge {
-  padding: 6px 14px;
-  border-radius: 50px;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-}
-.badge-mine { background: rgba(46,204,113,0.18); color: var(--green); border: 1px solid rgba(46,204,113,0.4); }
-.badge-taken { background: rgba(255,255,255,0.06); color: #a0a0be; border: 1px solid var(--border-bright); }
-.badge-court { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(240,192,64,0.35); }
-.badges { display: flex; align-items: center; gap: 8px; }
-
-.team-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-.team-row + .team-row { border-top: 1px solid var(--border); }
-.team-dot {
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.team-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
-.team-dot.blue { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
-
-/* EMPTY STATE */
-.empty-state {
-  text-align: center;
-  padding: 64px 20px;
-  background: var(--surface);
-  border-radius: var(--radius-xl);
-  border: 1px dashed var(--border);
-}
-.empty-icon { font-size: 3.5em; margin-bottom: 12px; display: block; }
-.empty-title {
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 1.5em;
-  font-weight: 800;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.empty-sub { color: var(--muted2); font-size: 0.95rem; }
-
-/* ============================================================
-   ✅ FINISHED LIST
-   ============================================================ */
-.finished-card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-.finished-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.result-badge {
-  font-size: 0.82rem;
-  font-weight: 800;
-  padding: 5px 12px;
-  border-radius: 50px;
-}
-.score-grid {
-  display: grid;
-  grid-template-columns: 1fr 52px 52px;
-  gap: 8px;
-  align-items: center;
-}
-.score-grid-header {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  text-align: center;
-}
-.score-grid-header:first-child { text-align: left; padding-left: 14px; }
-.score-team-cell {
-  background: var(--surface2);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-.score-num-cell {
-  background: var(--surface2);
-  border-radius: var(--radius-sm);
-  padding: 10px 4px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.7em;
-  text-align: center;
-  letter-spacing: 1px;
-}
-.finished-umpire {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-  font-size: 0.88rem;
-  color: var(--muted);
-}
-
-/* ============================================================
-   🏸 SCORING SCREEN — TRUE FULLSCREEN, MOBILE-FIRST
-   ============================================================ */
+/* ── 2. SCORING SCREEN ───────────────────────────────────────
+   portrait   info · banner (only while offline / slow) · RED · net strip · BLUE · deck (leave, submit, pause)
+   landscape  RED | centre column (info, net strip, deck) | BLUE
+   Every control is >= 48 px; the +1 areas keep a free rim (28 px at the screen edges, 16 px toward the info row and the
+   deck) and the deck has a 16 px guard strip above it that holds no button.                                       */
 #screen-scoring.active {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  padding: 0;
-  background: var(--bg);
-  z-index: 1000;
-  height: 100dvh;
-  width: 100dvw;
-  overflow: hidden;
+  position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-overlay);
+  height: 100vh; height: 100dvh; overflow: hidden;
+  width: auto; margin: 0; padding: 0; gap: 0;
   display: grid;
-  grid-template-rows: auto 1fr auto 1fr auto auto;   /* info bar · red · SUBMIT · blue · leave/pause bar · safe area */
-  /* one column exactly as wide as the screen. It used to be `auto`, i.e. as wide as the widest row's content:
-     343 px on a 320 px phone, which pushed ⏸ and SUBMIT off the right edge */
   grid-template-columns: minmax(0, 1fr);
-  gap: 0;
+  grid-template-rows: auto auto minmax(0, 1fr) var(--net-h) minmax(0, 1fr) auto 0;
+  grid-template-areas: "info" "banner" "red" "net" "blue" "deck" "stray";
+  background: var(--bg);
 }
+/* anything that has no area (a typo, a leftover element) goes to a zero-height row below the screen instead of shifting the zones */
+:where(#screen-scoring.active > *) { grid-area: stray; }
 
-/* TOP BAR — information only (court, clock, game). The leave and pause buttons used to sit in its corners,
-   the hardest place to reach with one hand and right next to the red +1 area; they are in the bottom bar now. */
+/* INFO — court (the one tappable thing here), clock, send state */
 .scoring-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-shrink: 0;
-  min-height: calc(94px + var(--sat));   /* same height in game 1 and game 2 (the g1 recap line comes and goes) */
-  padding: calc(10px + var(--sat)) 10px 10px;
-  background: rgba(7,7,13,0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-/* BOTTOM BAR — leave / pause. The 24 px on top is a guard strip: it belongs to the bar and holds no button,
-   so a thumb or palm that slips off the blue +1 area lands on nothing. */
-.scoring-bottombar {
-  position: relative;
-  display: flex;
-  gap: 12px;
-  padding: 24px 12px 12px;
-  background: rgba(7,7,13,0.75);
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.bar-btn {
-  flex: 1 1 0;
-  min-height: 56px;
-  min-width: 48px;
-  background: var(--surface2);
-  border: 1.5px solid var(--border-bright);
-  color: var(--text);
-  border-radius: var(--radius-md);
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: background 0.12s, transform 0.12s;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.bar-btn:active { background: var(--surface3); transform: scale(0.96); }
-.bar-btn.danger { border-color: rgba(255,77,77,0.5); color: var(--danger); background: rgba(255,77,77,0.06); }
-.bar-btn.danger:active { background: rgba(255,77,77,0.15); }
-.bar-btn.paused { border-color: rgba(46,204,113,0.6); color: var(--green); background: rgba(46,204,113,0.1); }
-
-.scoring-center {
-  flex: 1;
-  text-align: center;
-  min-width: 0;
-  padding: 0 4px;
-}
-.match-info-text {
-  font-size: 0.72rem;
-  color: var(--muted);
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.timer-display {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.6em;
-  letter-spacing: 2px;
-  line-height: 1;
-  margin-top: 1px;
-  color: var(--green);
-  transition: color 0.3s;
-}
-.timer-display.paused { color: var(--gold); animation: pulse 1.5s ease infinite; }
-.timer-display.idle { color: var(--muted); }   /* taken, no point yet: the clock starts with the first point */
-.game-indicator {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.25em;
-  letter-spacing: 1px;
-  color: var(--text);
-  margin-top: 1px;
-  line-height: 1;
-}
-.game-indicator .g1-score {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 0.65em;
-  color: var(--muted);
-  letter-spacing: 1px;
-  font-weight: 600;
-  display: block;
-  margin-top: 2px;
-}
-
-/* ── SCORE PANELS — full area tap = +1 ── */
-.score-panel {
-  position: relative;
-  border-radius: 0;
-  border: none;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.score-panel.red {
-  background: radial-gradient(ellipse 90% 70% at 50% 50%, rgba(255,77,77,0.11) 0%, rgba(255,77,77,0.01) 100%);
-  animation: glow-red 3s ease infinite;
-}
-.score-panel.blue {
-  background: radial-gradient(ellipse 90% 70% at 50% 50%, rgba(77,159,255,0.11) 0%, rgba(77,159,255,0.01) 100%);
-  animation: glow-blue 3s ease infinite;
-}
-
-/* Tap ripple */
-.score-panel .ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.12);
-  width: 12px; height: 12px;
-  transform: scale(0);
-  animation: ripple 0.55s ease-out forwards;
-  pointer-events: none;
-}
-
-/* ── PLUS — invisible full-area button behind everything ── */
-.score-btn-plus {
-  position: absolute;
-  /* 28 px free at both screen edges (a grip, a palm) and 16 px next to the SUBMIT band: the half-screen is
-     still one big target, but its rim is not */
-  top: 0;
-  left: 28px;
-  width: calc(100% - 56px);
-  height: 100%;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  z-index: 1;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  user-select: none;
-  overflow: hidden;
-}
-/* the rim next to the SUBMIT band stays free too (portrait: the red panel's bottom, the blue panel's top) */
-.score-panel.red .score-btn-plus  { height: calc(100% - 16px); }
-.score-panel.blue .score-btn-plus { top: 16px; height: calc(100% - 16px); }
-.score-panel.red .score-btn-plus:active   { background: rgba(255,77,77,0.10); }
-.score-panel.blue .score-btn-plus:active  { background: rgba(77,159,255,0.10); }
-
-/* ── CENTER content (name + score number) ── */
-.score-center-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  pointer-events: none;
-  position: relative;
-  width: 100%;
-}
-.score-center-col::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: inherit;
-  z-index: -1;
-}
-.team-name-score {
-  font-size: clamp(1.1rem, 4vw, 1.6rem);
-  font-weight: 800;
-  text-align: center;
-  line-height: 1.25;
-  padding: 0 72px 0 16px;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.score-number {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(7rem, 26vw, 12rem);
-  line-height: 0.88;
-  margin-top: 4px;
-  transition: transform 0.15s;
-  text-align: center;
-}
-.score-number.pop { animation: score-pop 0.22s ease; }
-/* a tap that was ignored as a repeat: the number blinks once, so it is clear the phone saw it (iPhone has no vibration) */
-.score-number.ignored { animation: tapIgnored 0.3s ease; }
-@keyframes tapIgnored { 0%, 100% { opacity: 1; } 35% { opacity: 0.25; } }
-@media (prefers-reduced-motion: reduce) { .score-number.ignored { animation: none; } }
-.score-panel.shake { animation: shake 0.35s ease; }
-
-/* ── MINUS — small pill button, bottom-left corner ── */
-.score-btn-minus {
-  position: absolute;
-  bottom: 14px;
-  left: 14px;
-  z-index: 3;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.18);
-  background: rgba(0,0,0,0.45);
-  color: rgba(255,255,255,0.55);
-  font-size: 2rem;
-  font-weight: 300;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  user-select: none;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: all 0.12s;
-  line-height: 1;
-}
-.score-panel.red  .score-btn-minus { color: var(--red);  border-color: rgba(255,77,77,0.85);  background: rgba(0,0,0,0.6); }
-.score-panel.blue .score-btn-minus { color: var(--blue); border-color: rgba(77,159,255,0.85); background: rgba(0,0,0,0.6); }
-.score-panel.red  .score-btn-minus:active { background: rgba(255,77,77,0.2);  color: var(--red);  transform: scale(0.88); }
-.score-panel.blue .score-btn-minus:active { background: rgba(77,159,255,0.2); color: var(--blue); transform: scale(0.88); }
-
-/* hide old label spans */
-.score-btn-label { display: none; }
-
-/* UNDO TOAST */
-#undoToast {
-  position: fixed;
-  bottom: calc(20px + var(--sab));
-  left: 50%;
-  transform: translateX(-50%) translateY(12px);
-  background: rgba(20,20,36,0.95);
-  border: 1.5px solid rgba(240,192,64,0.3);
-  color: var(--gold);
-  font-size: 0.88rem;
-  font-weight: 700;
-  padding: 12px 24px;
-  border-radius: 40px;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.3s, transform 0.3s;
-  pointer-events: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-#undoToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* MIDDLE ACTION BUTTONS */
-.scoring-actions {
-  flex-shrink: 0;
-  padding: 8px 12px;
-}
-.btn-action {
-  width: 100%;
-  padding: 22px;
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 1.7em;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: 0.5px;
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all 0.15s;
-  position: relative;
-  overflow: hidden;
-  touch-action: manipulation;
-}
-.btn-action:active { transform: scale(0.97); filter: brightness(0.9); }
-.btn-lock {
-  background: linear-gradient(135deg, #ff6b6b, #cc2222);
-  color: white;
-  box-shadow: 0 6px 24px rgba(255,77,77,0.35);
-}
-.btn-submit {
-  background: linear-gradient(135deg, #f5c842, #d4a000);
-  color: #000;
-  box-shadow: 0 6px 24px rgba(240,192,64,0.4);
-}
-
-/* PAUSE OVERLAY — above the scoring screen (z 1000) and the landscape bar (2000); below the VS intro (3000)
-   and the dialogs. It used to sit at z 500 - behind the scoring screen - so a pause showed nothing but a
-   gold clock and +1 / − taps did nothing without a word. Only the ▶ button resumes: a palm on the screen
-   while the phone is down must not restart play. */
-#pauseOverlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 2500;
-  background: var(--bg);              /* solid: no ghost of the scoring screen showing through */
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: calc(16px + var(--sat)) 20px calc(16px + var(--sab));
-  overflow-y: auto;
-}
-#pauseOverlay.show { display: flex; animation: fadeUp 0.2s ease both; }
-
-.pause-title {
-  font-family: 'Noto Sans Thai', 'Bebas Neue', sans-serif;
-  font-size: 2.1rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--gold);
-  line-height: 1;
-}
-.pause-current-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(240,192,64,0.07);
-  border: 1.5px solid rgba(240,192,64,0.3);
-  border-radius: var(--radius-xl);
-  padding: 14px 44px 12px;
-  min-width: 240px;
-}
-.pause-current-label {
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--gold);
-}
-.pause-current-timer {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(4rem, 18vw, 7rem);
-  letter-spacing: 4px;
-  line-height: 1;
-  color: var(--gold);
-  text-shadow: 0 0 50px rgba(240,192,64,0.55);
-}
-.pause-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 22px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.pause-meta b { font-family: 'Bebas Neue', sans-serif; font-size: 1.5em; letter-spacing: 2px; color: var(--gold); margin-left: 4px; }
-.pause-resume {
-  width: min(100%, 360px);
-  min-height: 72px;
-  margin-top: 6px;
-  border: none;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #2ecc71, #1a9e55);
-  color: #04130a;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  touch-action: manipulation;
-  box-shadow: 0 6px 24px rgba(46,204,113,0.3);
-}
-.pause-resume:active { transform: scale(0.97); filter: brightness(0.9); }
-.pause-exit {
-  width: min(100%, 360px);
-  min-height: 52px;
-  border: 1.5px solid var(--border-bright);
-  border-radius: var(--radius-lg);
-  background: transparent;
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.pause-exit:active { background: var(--surface2); }
-/* landscape phones are short: tighten so title, clock, buttons all fit (320 px high is the floor) */
-@media (max-height: 480px) {
-  #pauseOverlay { gap: 8px; padding-top: calc(8px + var(--sat)); padding-bottom: calc(8px + var(--sab)); }
-  .pause-title { font-size: 1.5rem; letter-spacing: 1px; }
-  .pause-current-block { padding: 6px 36px 4px; }
-  .pause-current-timer { font-size: 3rem; }
-  .pause-resume { min-height: 56px; margin-top: 0; font-size: 1.3rem; }
-  .pause-exit { min-height: 48px; }
-}
-@media (prefers-reduced-motion: reduce) { #pauseOverlay.show { animation: none; } }
-
-/* Safe area bottom */
-.scoring-bottom-safe {
-  height: var(--sab);
-  flex-shrink: 0;
-  background: rgba(7,7,13,0.6);
-}
-
-/* ============================================================
-   🌙 WAKE LOCK INDICATOR
-   ============================================================ */
-#wakeLockBadge {
-  position: fixed;
-  top: calc(10px + var(--sat));
-  left: calc(12px + var(--sal));
-  z-index: 9999;
-  background: rgba(46,204,113,0.12);
-  border: 1px solid rgba(46,204,113,0.3);
-  color: var(--green);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  padding: 5px 10px;
-  border-radius: 20px;
-  display: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-/* ============================================================
-   📱 RESPONSIVE
-   ============================================================ */
-@media (max-width: 360px) {
-  .score-number { font-size: clamp(6rem, 24vw, 9rem); }
-  .team-name-score { font-size: 1rem; }
-  .btn-action { font-size: 1.7em; padding: 20px; }
-}
-
-/* Landscape mode on scoring screen — side by side */
-@media (orientation: landscape) and (max-height: 500px) {
-  #screen-scoring.active {
-    grid-template-rows: none;
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-areas: "red  middle  blue";
-  }
-  #screen-scoring.active .scoring-topbar, #screen-scoring.active .scoring-bottombar { display: none; }
-  /* side by side: only the screen edges and the SUBMIT column need a free rim, top and bottom do not */
-  #screen-scoring.active .score-panel .score-btn-plus { top: 0; height: 100%; }
-  #screen-scoring.active .score-panel.red  { grid-area: red;    border-top: none; border-right: 1px solid rgba(255,255,255,0.05); }
-  #screen-scoring.active .score-panel.blue { grid-area: blue;   border-top: none; border-left:  1px solid rgba(255,255,255,0.05); }
-  #screen-scoring.active .scoring-actions  { grid-area: middle; width: 130px; display: flex; flex-direction: column; justify-content: center; padding: 10px 6px; gap: 8px; }
-  #screen-scoring.active .scoring-bottom-safe { display: none; }
-  .score-number { font-size: clamp(4rem, 16vw, 8rem); }
-  .btn-action   { font-size: 1.2em; padding: 14px 6px; letter-spacing: 0.5px; }
-  .score-btn    { font-size: 2rem; }
-  #landscapeInfo { display: flex !important; }
-}
-#landscapeInfo {
-  display: none;
-  position: fixed;
-  top: calc(8px + var(--sat));
-  left: 50%;
-  transform: translateX(-50%);
-  /* as wide as its content (it used to be squeezed into the right half of the screen, so the labels wrapped
-     and the bar grew taller than its 48 px buttons) */
-  width: max-content;
-  max-width: calc(100vw - 16px);
-  z-index: 2000;
-  gap: 10px;
-  align-items: center;
-}
-#landscapeInfo .li-btn, #landscapeInfo .li-timer, #landscapeInfo #liGameInd { white-space: nowrap; flex: 0 0 auto; }
-#landscapeInfo .li-btn {
-  background: rgba(7,7,13,0.88);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  padding: 8px 16px;
-  min-height: 48px;
-  min-width: 48px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-#landscapeInfo .li-btn.danger { color: var(--danger); border-color: rgba(255,77,77,0.3); }
-#landscapeInfo .li-timer {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.8em;
-  color: var(--green);
-  letter-spacing: 2px;
-  text-shadow: 0 0 12px rgba(46,204,113,0.4);
-}
-#landscapeInfo .li-timer.paused { color: var(--gold); animation: pulse 1.5s ease infinite; }
-#landscapeInfo .li-timer.idle { color: var(--muted); text-shadow: none; }
-
-/* ── CUSTOM MODAL (replaces alert/confirm to keep fullscreen) ── */
-#customModal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: rgba(7,7,13,0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  justify-content: center;
-  padding: 24px;
-  /* a box taller than the screen (a landscape phone) scrolls instead of losing its buttons off the edge;
-     the auto margin on .modal-box centres it whenever there is room */
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-#customModal.open { display: flex; animation: popIn 0.22s ease both; }
-
-.modal-box {
-  background: var(--surface);
-  border: 1px solid var(--border-bright);
-  border-radius: var(--radius-xl);
-  padding: 28px 24px 24px;
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin: auto;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
-  /* taller than the screen: the box scrolls inside itself and the buttons stay pinned at its bottom edge
-     (the worst submit box - two warnings and the result - is taller than a 568 px phone) */
-  max-height: calc(100vh - 48px);
-  max-height: calc(100dvh - 48px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-.modal-icon {
-  font-size: 2.4rem;
-  text-align: center;
-  margin-bottom: 10px;
-  line-height: 1;
-}
-.modal-title {
-  font-family: 'Bebas Neue', 'Noto Sans Thai', sans-serif;
-  font-size: 1.7em;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  text-align: center;
-  color: var(--text);
-  margin-bottom: 10px;
-  line-height: 1.3;
-}
-.modal-body {
-  font-size: 1rem;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.6;
-  margin-bottom: 14px;
-  white-space: pre-line;
-}
-.modal-score-preview {
-  background: var(--surface2);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
-}
-.modal-score-game {
-  text-align: center;
-}
-.modal-score-label {
-  font-size: 0.85rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  color: #b4b4cc;          /* --muted is 4.3:1 on this panel; this is 8:1 */
-  margin-bottom: 4px;
-}
-.modal-score-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2em;
-  letter-spacing: 2px;
-  line-height: 1;
-}
-.modal-score-sep {
-  color: var(--muted2);
-  font-size: 1.5rem;
-  font-weight: 300;
-  align-self: center;
-}
-.msv-dash { color: #9a9ab8; font-size: 0.7em; margin: 0 4px; }
-/* the sides named under each score, so colour is never the only thing telling red from blue */
-.modal-score-sides { margin-top: 4px; font-size: 0.82rem; font-weight: 700; color: #b4b4cc; }
-/* what sending will record, in words — the line to read before pressing the gold button */
-.modal-result { text-align: center; margin: -6px 0 20px; font-size: 1.1rem; font-weight: 800; line-height: 1.4; color: var(--gold); }
-.modal-result small { display: block; margin-bottom: 2px; font-size: 0.82rem; font-weight: 700; color: #b4b4cc; }
-/* two buttons at least 16px apart (a thumb that lands between them hits neither); the safe one first, plain and
-   readable, the one that does something coloured by what it does (gold = sends, red = leaves / discards). */
-.modal-btns {
+  grid-area: info;
   display: grid;
-  gap: 16px;
-  position: sticky;
-  bottom: 0;             /* the bottom of the box's content area: its own 24px padding stays under the buttons */
-  background: var(--surface);
-  padding-top: 10px;
-  /* the 10px of padding is a cushion in the box colour, so scrolled text never touches the buttons;
-     the margins above them (.modal-body, .court-grid) are 10px smaller to make up for it */
-  box-shadow: 0 24px 0 0 var(--surface);   /* paints the box padding under the buttons so scrolled text never shows there */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  grid-template-areas: "court timer sync" "court cap sync";
+  align-content: center; align-items: center; column-gap: var(--sp-2);
+  height: calc(var(--bar-h) + var(--sat));
+  /* on a wide portrait window (a tablet) the row keeps to a 640 px column in the middle */
+  padding: var(--sat) max(calc(var(--sar) + var(--sp-3)), calc((100% - 640px) / 2)) 0 max(calc(var(--sal) + var(--sp-3)), calc((100% - 640px) / 2));
+  background: var(--bg); border-bottom: 1px solid var(--line);
 }
-.modal-btns.two-col { grid-template-columns: 1fr 1fr; }
-.modal-btns.stack { grid-template-columns: 1fr; }
-.modal-btn {
-  min-height: 56px;
-  padding: 12px 14px;
-  border: none;
-  border-radius: var(--radius-lg);
-  font-family: 'Noto Sans Thai', 'Rajdhani', sans-serif;
-  font-size: 1.2rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.25;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.modal-btn:active { transform: scale(0.96); }
-.modal-btn:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
-.modal-btn-cancel {
-  background: var(--surface3);
-  color: var(--text);
-  border: 2px solid var(--border-bright);
-}
-.modal-btn-cancel:active { background: var(--surface2); }
-.modal-btn-confirm {
-  background: linear-gradient(135deg, var(--gold), #d4a000);
-  color: #000;
-  box-shadow: 0 4px 16px rgba(240,192,64,0.3);
-}
-.modal-btn-ok {
-  background: var(--surface3);
-  color: var(--text);
-  border: 1.5px solid var(--border-bright);
-}
-.modal-btn-danger {
-  background: linear-gradient(135deg, var(--red), #cc2222);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(255,77,77,0.3);
-}
-.modal-btn-success {
-  background: linear-gradient(135deg, #2ecc71, #1a9e55);
-  color: #000;
-  box-shadow: 0 4px 16px rgba(46,204,113,0.3);
-}
-/* a submit box reads title -> the scores and what they record -> the warnings -> buttons: the numbers come first,
-   so on a small phone they are what is on screen when the rest has to scroll */
-#modalBox.has-score .modal-icon { order: -3; }
-#modalBox.has-score .modal-title { order: -2; }
-#modalBox.has-score #modalScorePreview { order: -1; }
-#modalBox.has-score .modal-body { margin-bottom: 10px; }
-/* a short phone (a 568 px iPhone SE, a 640 px Android): no big icon, so the common box fits without scrolling */
-@media (max-height: 640px) {
-  .modal-icon { display: none; }
-  .modal-box { padding-top: 22px; }
-}
-/* a landscape phone: less air and no big icon, so most boxes fit without scrolling (the rest scroll) */
-@media (max-height: 480px) {
-  #customModal { padding: 12px; }
-  .modal-box { padding: 14px 20px 16px; max-width: 520px; max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); }
-  .modal-icon { display: none; }
-  .modal-title { margin-bottom: 6px; }
-  .modal-body { margin-bottom: 2px; }
-  .modal-score-preview { margin-bottom: 12px; padding: 8px 12px; }
-  .modal-result { margin-bottom: 12px; }
-}
-
-/* ── COURT PICKER (inside #customModal) ── */
-/* ten chips, five a row; the negative margin takes back some of the box padding so a 360px phone
-   still gets ≥48px chips (four a row under 340px) */
-.court-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin: 0 -8px 10px;
-}
-.court-chip {
-  min-height: 56px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px;
-  background: var(--surface3);
-  color: var(--text);
-  border: 1.5px solid var(--border-bright);
-  border-radius: var(--radius-md);
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.9em;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform 0.12s, background 0.12s;
-}
-.court-chip small { font: 700 0.7rem 'Noto Sans Thai', sans-serif; letter-spacing: 0; color: var(--gold); }
-.court-chip:active { transform: scale(0.94); }
-.court-chip.on { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
-.court-chip.taken { border-style: dashed; color: var(--muted); }
-@media (max-width: 339px) { .court-grid { grid-template-columns: repeat(4, 1fr); } }
-/* a landscape phone is too short for the stacked dialog: ten chips in one row, no icon */
-@media (max-height: 480px) {
-  #modalBox.is-courts { max-width: 760px; padding: 12px 20px 14px; }
-  #modalBox.is-courts .modal-icon { display: none; }
-  #modalBox.is-courts .modal-title { font-size: 1.5em; margin-bottom: 4px; }
-  #modalBox.is-courts .modal-body { margin-bottom: 10px; }
-  #modalBox.is-courts .court-grid { grid-template-columns: repeat(10, 1fr); margin: 0 0 2px; }
-  #modalBox.is-courts .modal-btn { padding: 10px; font-size: 1.3em; }
-}
-
-/* scoring top bar: "[คอร์ต 3 ✎] M05 | name" — the court is a button. The hit area is ≥44px tall but
-   the padding is cancelled by the negative margin, so the bar does not grow. */
-#activeMatchInfo { display: flex; justify-content: center; align-items: center; gap: 6px; overflow: visible; }
+#activeMatchInfo { display: contents; }          /* the court button and the caption are grid items of the info row */
 .court-edit {
-  flex: none;
-  background: none; border: 0;
-  color: inherit; font: inherit; letter-spacing: inherit;
-  /* the button sits at the very top of the screen: reach down (not up) so the whole 48+ px is on screen */
-  padding: 10px 6px 18px; margin: -10px 0 -18px;
-  cursor: pointer;
+  grid-area: court; justify-self: start; min-width: 0; max-width: 100%;
+  display: inline-flex; align-items: center; min-height: var(--tap-md);
+  background: none; border: 0; color: var(--gold);
 }
 .ce-pill {
-  display: inline-block;
-  padding: 1px 10px;
-  border-radius: 50px;
-  background: var(--gold-dim);
-  color: var(--gold);
-  border: 1px solid rgba(240,192,64,0.35);
-  font-weight: 800;
+  display: inline-flex; align-items: center; gap: 6px; min-width: 0; height: 36px; padding: 0 var(--sp-3);
+  border-radius: var(--r-pill); background: var(--gold-dim); border: 1px solid var(--gold-line);
+  font: 700 var(--fs-14)/1 var(--font-ui); white-space: nowrap;
+  transition: background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out);
 }
-.court-edit:active .ce-pill { transform: scale(0.94); }
-.court-edit.empty .ce-pill { background: transparent; border-style: dashed; animation: pulse 1.5s ease infinite; }
-.mi-rest { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ── UX: Edit-Game-1 button + Deuce/Game-point badge ── */
-.btn-edit-g1 {
-  background: rgba(240,192,64,0.12);
-  color: var(--gold);
-  border: 1.5px solid rgba(240,192,64,0.45);
-  box-shadow: none;
+.court-edit:active .ce-pill { transform: scale(.96); }
+.court-edit.empty .ce-pill { background: transparent; border-style: dashed; border-color: var(--gold); }
+.timer-display {
+  grid-area: timer; justify-self: center;
+  font: 400 var(--fs-32)/1 var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--t-hi);
 }
-.btn-edit-g1:active { background: rgba(240,192,64,0.22); }
-
-.sit-badge {
-  text-align: center;
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 5px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  padding: 7px 14px;
-  flex-shrink: 0;
-  animation: sitPulse 1.1s ease-in-out infinite;
+.timer-display.idle { color: var(--t-low); }          /* taken, no point yet: the clock starts with the first point */
+.timer-display.paused { color: var(--gold); }
+.mi-rest {
+  grid-area: cap; justify-self: center; max-width: 9em; margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 600 var(--fs-12)/1.3 var(--font-ui); color: var(--t-low);
 }
-.sit-deuce { background: rgba(240,192,64,0.15); color: var(--gold); border-top: 1px solid rgba(240,192,64,0.35); border-bottom: 1px solid rgba(240,192,64,0.35); }
-.sit-red   { background: rgba(255,77,77,0.15);  color: var(--red);  border-top: 1px solid rgba(255,77,77,0.4);  border-bottom: 1px solid rgba(255,77,77,0.4); }
-.sit-blue  { background: rgba(77,159,255,0.15); color: var(--blue); border-top: 1px solid rgba(77,159,255,0.4); border-bottom: 1px solid rgba(77,159,255,0.4); }
-@keyframes sitPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
-/* ══════════════════════════════════════════
-   PLAYER FACES (read-only, umpire panel)
-   ══════════════════════════════════════════ */
+/* PANELS — a flat team field, an edge band, the tag, the names, the digits */
+.score-panel {
+  --fill: var(--red-fill); --fill-hi: var(--red-fill-hi); --edge: var(--red); --ink: var(--red-ink);
+  /* the digit colour lives HERE and nowhere else. Default: white on the deep field (glare-proof, 14-16:1).
+     To try team-coloured digits set it to var(--red-text) on the red panel and var(--blue-text) on the blue one. */
+  --digit: var(--t-hi);
+  position: relative; min-height: 0; overflow: hidden;
+  background: var(--fill);
+  transition: background-color var(--dur-state) var(--ease-out);
+}
+.score-panel.red { grid-area: red; }
+.score-panel.blue { grid-area: blue; --fill: var(--blue-fill); --fill-hi: var(--blue-fill-hi); --edge: var(--blue); --ink: var(--blue-ink); }
+.score-panel::before { content: ''; position: absolute; top: 0; bottom: 0; left: var(--sal); width: 6px; background: var(--edge); }
+/* the side that just scored (and so serves next) lifts one step; so does a panel under a finger. No glow, no pulse. */
+.score-panel.scored, .score-panel:has(.score-btn-plus:active) { background: var(--fill-hi); }
+
+/* the +1 area is the whole panel minus its rim; the visible content on top of it never takes a tap.
+   A corner is cut out of it around the -1 circle (an 8 px ring): a thumb that aims at the minus and misses must never
+   score a point instead. clip-path is hit-testing too, so the notch is dead. */
+.score-btn-plus {
+  --nw: calc(var(--minus-clear) - var(--rim-x));   /* notch width, from the button's left edge */
+  --nh: var(--minus-clear);                        /* notch height, from the button's bottom edge */
+  position: absolute; top: 0; bottom: 0;                  /* stacking = source order: plus, then the content, then the minus on top */
+  left: calc(var(--sal) + var(--rim-x)); right: calc(var(--sar) + var(--rim-x));
+  background: none; border: 0; border-radius: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, var(--nw) 100%, var(--nw) calc(100% - var(--nh)), 0 calc(100% - var(--nh)));
+}
+.score-panel.red .score-btn-plus { top: var(--rim-y); }
+.score-panel.blue .score-btn-plus { bottom: var(--rim-y); --nh: calc(var(--minus-clear) - var(--rim-y)); }
+.score-btn-plus:focus-visible { outline-offset: -6px; }
+
+.score-center-col {
+  position: absolute; inset: 0; pointer-events: none;
+  display: grid; grid-template-rows: auto minmax(0, 1fr);
+  padding: var(--sp-4) calc(var(--sar) + var(--sp-5)) var(--sp-3) calc(var(--sal) + var(--sp-5));
+}
+@media (max-height: 640px) { .score-center-col { padding-top: var(--sp-3); padding-bottom: var(--sp-2); } }
+.panel-head { display: grid; gap: var(--sp-1); min-width: 0; }
+.panel-head .ds-team { font-size: var(--fs-14); line-height: var(--lh-th); }
+.team-name-score {
+  display: flex; align-items: center; gap: var(--sp-2); min-width: 0; color: var(--ink);
+  font: 700 clamp(var(--fs-18), 5.2vw, var(--fs-24))/var(--lh-th) var(--font-ui);
+}
+/* two lines (three where the screen is tall) at most - Thai tone marks need the 1.45 line height, so no tighter:
+   a longer pair ends in an ellipsis */
+.team-name-score .nm {
+  min-width: 0; overflow-wrap: anywhere; overflow: hidden;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+@media (min-height: 700px) { .team-name-score .nm { -webkit-line-clamp: 3; } }
+.team-name-score .amp { color: var(--t-mid); font-size: .88em; font-weight: 600; }
+/* the digits are the biggest thing on the screen. 24 % of the height, but never more than the space the head leaves
+   (cqh / cqw = the height / width of this zone: long names on a 568 px phone, or a narrow landscape panel, shrink them
+   instead of running into the names or off the panel; two digits are about 0.75 em wide) */
+.digit-zone { min-width: 0; min-height: 0; container-type: size; display: grid; place-items: center; }
+.score-number {
+  font-family: var(--font-num); font-weight: 400; font-variant-numeric: tabular-nums;
+  line-height: var(--lh-num); letter-spacing: 0; color: var(--digit);
+  font-size: clamp(112px, 24vh, 240px);
+  font-size: max(88px, min(24dvh, 112cqh, 118cqw, 240px));
+}
+.score-number.pop { animation: ds-pop var(--dur-pop) var(--ease-pop); }
+/* a tap that was ignored as a repeat (400 ms gate): the number blinks once so it is clear the phone saw it */
+.score-number.ignored { animation: ump-ignored .3s ease; }
+@keyframes ump-ignored { 0%, 100% { opacity: 1; } 35% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) {
+  .score-number.ignored { animation: ump-ignored-rm .3s steps(1, end); }
+}
+@keyframes ump-ignored-rm { from { outline: 3px solid var(--gold); outline-offset: 6px; } to { outline: 3px solid transparent; outline-offset: 6px; } }
+
+/* "tap this half" — at 0-0 only, on a phone tall enough to spare the line */
+.tap-hint { display: none; }
+@media (min-height: 641px) {
+  .fresh-game .tap-hint {
+    display: block; position: absolute; left: 0; right: 0; bottom: var(--sp-3); text-align: center;
+    font: 600 var(--fs-13)/1.3 var(--font-ui); color: var(--ink);
+  }
+}
+
+/* the -1 correction: a 56 px circle in the outer bottom corner, away from the +1 thumb path */
+.score-btn-minus {
+  position: absolute; bottom: var(--sp-3); left: calc(var(--sal) + var(--sp-3));
+  width: var(--tap-lg); height: var(--tap-lg); padding: 0; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--bg); color: var(--t-hi); border: 2px solid var(--edge);
+  transition: background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out);
+}
+.score-btn-minus .ds-ic { width: 24px; height: 24px; }
+.score-btn-minus:active { background: var(--fill-hi); transform: scale(.94); }
+.score-btn-minus.is-zero { border-color: var(--line-strong); color: var(--t-low); }   /* nothing to take back */
+
+/* NET STRIP — read-only: the game, the game-1 recap in game 2, DEUCE / GAME POINT. One line through the middle
+   (the net); the chips sit on it and are opaque. */
+.net-strip {
+  grid-area: net; min-width: 0; position: relative;
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  padding: 0 calc(var(--sar) + var(--sp-4)) 0 calc(var(--sal) + var(--sp-4));
+  background: var(--bg);
+}
+.net-strip::before {
+  content: ''; position: absolute; top: 50%; height: 1px; background: var(--line-strong);
+  left: calc(var(--sal) + var(--sp-4)); right: calc(var(--sar) + var(--sp-4));
+}
+.net-chip {
+  position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 var(--sp-3);
+  border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: var(--s3); color: var(--t-hi);
+  font: 700 var(--fs-13)/1 var(--font-ui); white-space: nowrap;
+}
+.net-chip .ds-team { gap: 6px; font-weight: 700; }
+.g1line { background: var(--bg); border-color: var(--line); color: var(--t-mid); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sit-chip.deuce { background: var(--gold-dim); border-color: var(--gold-line); color: var(--gold); }
+.sit-chip.gp-red { background: var(--red-dim); border-color: var(--red); color: var(--red-text); }
+.sit-chip.gp-blue { background: var(--blue-dim); border-color: var(--blue); color: var(--blue-text); }
+.sit-chip[hidden], .g1line[hidden] { display: none; }
+@media (max-width: 339px) {
+  .net-strip { gap: 6px; padding-left: calc(var(--sal) + var(--sp-2)); padding-right: calc(var(--sar) + var(--sp-2)); }
+  .net-strip::before { left: calc(var(--sal) + var(--sp-2)); right: calc(var(--sar) + var(--sp-2)); }
+  .net-chip { padding: 0 var(--sp-2); }
+}
+
+/* DECK — leave · submit · pause. The 16 px on top is the guard strip: it holds no button, so a thumb that slips off
+   the blue +1 area lands on nothing. Leave and pause are small, at the sides; submit is outlined until the game reads
+   as a finished one (and is still tappable: a walk-over or an injury is warn-then-allow), solid gold once it does. */
+.scoring-bottombar {
+  grid-area: deck;
+  display: grid; grid-template-columns: var(--deck-side) minmax(0, 1fr) var(--deck-side);
+  grid-template-areas: "exit submit pause"; gap: var(--sp-3);
+  padding: var(--rim-y) max(calc(var(--sar) + var(--sp-3)), calc((100% - 640px) / 2)) max(var(--sp-3), var(--sab)) max(calc(var(--sal) + var(--sp-3)), calc((100% - 640px) / 2));
+  background: var(--bg); border-top: 1px solid var(--line);
+}
+@media (max-height: 640px) { .scoring-bottombar { padding-top: var(--sp-2); padding-bottom: max(var(--sp-2), var(--sab)); } }
+.bar-btn {
+  flex-direction: column; gap: 2px; min-height: var(--deck-btn); padding: 0 var(--sp-1);
+  border-radius: var(--r-md); font-size: var(--fs-14); min-width: 0;
+}
+.bar-btn > span { line-height: var(--lh-th); }
+#btnBack { grid-area: exit; --btn-fg: var(--err); --btn-line: var(--err-line); }
+#btnPause { grid-area: pause; }
+#btnPause.paused { --btn-fg: var(--gold); --btn-line: var(--gold); }
+.btn-submit {
+  grid-area: submit; min-width: 0;
+  --btn-bg: transparent; --btn-fg: var(--gold); --btn-line: var(--gold);
+  min-height: var(--deck-btn); padding: 0 var(--sp-3); border-width: 2px; border-radius: var(--r-md);
+  font: 800 var(--fs-18)/1.3 var(--font-ui);
+}
+.btn-submit.is-ready { --btn-bg: var(--gold); --btn-fg: var(--gold-ink); }
+.btn-submit:disabled { --btn-bg: var(--s3); --btn-fg: var(--t-hi); --btn-line: var(--line-strong); opacity: 1; }
+@media (hover: hover) {
+  .btn-submit:hover { --btn-bg: transparent; }
+  .btn-submit.is-ready:hover { --btn-bg: var(--gold-hi); }
+  .btn-submit:disabled:hover { --btn-bg: var(--s3); }
+  #btnBack:hover { --btn-bg: var(--err-fill); }
+}
+@media (max-width: 339px) { .btn-submit { font-size: var(--fs-16); padding: 0 var(--sp-2); } }
+
+/* LANDSCAPE (a phone on its side, a tablet, a laptop window): the two panels side by side and one column between them
+   that holds what the portrait layout spreads above and below. The column is out of reach of both thumbs, which is where
+   the rare actions belong. */
+@media (orientation: landscape) and (min-width: 560px) {
+  #screen-scoring.active {
+    grid-template-columns: minmax(0, 1fr) var(--mid-w) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto 0;
+    grid-template-areas:
+      "banner banner banner"
+      "red    info   blue"
+      "red    net    blue"
+      "red    deck   blue"
+      "stray  stray  stray";
+  }
+  .score-panel.red .score-btn-plus { top: 0; right: var(--rim-x); }
+  .score-panel.blue .score-btn-plus {
+    bottom: 0; left: var(--rim-x); --nh: var(--minus-clear);       /* the blue minus is in the bottom-right corner */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--nh)), calc(100% - var(--nw)) calc(100% - var(--nh)), calc(100% - var(--nw)) 100%, 0 100%);
+  }
+  .score-panel.red .score-center-col { padding-right: var(--sp-5); }
+  .score-panel.blue .score-center-col { padding-left: var(--sp-5); }
+  .score-panel.blue::before { left: auto; right: var(--sar); }
+  .score-panel.blue .score-btn-minus { left: auto; right: calc(var(--sar) + var(--sp-3)); }
+  .score-number { font-size: clamp(112px, 62vh, 300px); font-size: max(88px, min(62dvh, 30vw, 112cqh, 118cqw, 320px)); }
+
+  /* the column has to hold, at 390 px high with a 21 px home-bar inset: court 48 · clock · caption · send state · game ·
+     game-1 recap · game point · submit 56 · leave + pause 48. Everything below is sized to fit that worst case. */
+  .scoring-topbar {
+    height: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: none;
+    grid-template-areas: "court" "timer" "cap" "sync"; justify-items: center; row-gap: 0;
+    padding: max(var(--sp-1), var(--sat)) var(--sp-2) var(--sp-1); border-bottom: 0;
+  }
+  .scoring-topbar .sync-strip { justify-self: center; padding-top: 2px; padding-bottom: 2px; }
+  .net-strip { flex-direction: column; gap: var(--sp-1); padding: var(--sp-1); }
+  .net-strip::before { display: none; }
+  .net-chip { height: 26px; padding: 0 6px; gap: var(--sp-1); font-size: var(--fs-12); }
+  .net-chip .ds-team { gap: var(--sp-1); }
+  .sit-chip .ds-ic { width: 1em; height: 1em; transform: rotate(-90deg); }   /* the arrow points at the panel: up / down becomes left / right */
+  .scoring-bottombar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "submit submit" "exit pause"; gap: var(--sp-2);
+    padding: var(--sp-1) var(--sp-2) max(var(--sp-2), var(--sab)); border-top: 0;
+  }
+  .btn-submit { min-height: var(--tap-lg); }
+  .bar-btn { min-height: var(--tap-md); }
+  .bar-btn .ds-ic { width: 1.1em; height: 1.1em; }
+  .score-panel .uface-pair { display: none; }          /* faces only where a panel is wide enough: 640 px and up, below */
+}
+@media (orientation: landscape) and (min-width: 640px) { .score-panel .uface-pair { display: inline-flex; } }
+/* a phone 320-360 px high (an old SE on its side): the caption goes, the clock and submit get smaller */
+@media (orientation: landscape) and (min-width: 560px) and (max-height: 360px) {
+  .timer-display { font-size: var(--fs-24); }
+  .mi-rest { display: none; }
+  .btn-submit { min-height: var(--tap-md); }
+  .net-chip { height: 24px; }
+  .net-strip { gap: 2px; padding: 2px var(--sp-1); }
+  .sync-ok .ss-sub { display: none; }                  /* "sent" keeps its word; the time goes. Offline / sending keep their count */
+}
+
+/* ── 3. SHARED BITS ──────────────────────────────────────── */
+
+/* player faces (read-only): a ring in the team colour, the photo or the jersey id. Size comes from where it sits. */
 .uavatar {
-  border-radius: 50%;
-  flex-shrink: 0;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid;
-  background: var(--surface2, #161625);
-  vertical-align: middle;
+  --ua: 32px;
+  width: var(--ua); height: var(--ua); flex: none; display: inline-grid; place-items: center; overflow: hidden;
+  border-radius: 50%; border: 2px solid; background: var(--s3);
+  font: 400 calc(var(--ua) * .4)/1 var(--font-num); letter-spacing: 0;
 }
 .uavatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.uavatar.ua-initials { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.5px; line-height: 1; }
-.uavatar.ua-red  { border-color: var(--red);  color: var(--red);  background: rgba(255,59,92,0.1); }
-.uavatar.ua-blue { border-color: var(--blue); color: var(--blue); background: rgba(77,159,255,0.1); }
+.uavatar.ua-red { border-color: var(--red); color: var(--red-text); }
+.uavatar.ua-blue { border-color: var(--blue); color: var(--blue-text); }
+.uface-pair { display: inline-flex; flex: none; gap: var(--sp-1); }
+@media (max-width: 359px) { .score-panel .uface-pair { display: none; } }
 
-/* two faces for a doubles pair — a small gap, NOT overlapped, so the
-   jersey-id circles stay legible (overlap read as cramped for initials) */
-.uface-pair { display: inline-flex; flex-shrink: 0; gap: 5px; }
-
-/* on the match card the faces lead the name; keep the name from wrapping under them */
-.team-row .uface-pair { margin-right: 2px; }
-.team-row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-
-/* on the scoring panel the faces sit just above the pair name */
-.team-name-score .uface-scoring {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 4px;
-}
-.team-name-score .uface-scoring .uavatar { width: 30px; height: 30px; border-width: 2px; }
-
-/* ══════════════════════════════════════════
-   PORTRAIT SCORING FIX
-   The badge used to be a grid item, so when a deuce / game point appeared
-   it stole a 1fr row and the panels collapsed into the action buttons.
-   Float it over the red panel instead, and let the panels shrink so the
-   grid never overflows into the buttons.
-   ══════════════════════════════════════════ */
-#screen-scoring.active #situationBadge {
-  position: absolute;
-  top: calc(78px + var(--sat));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
-  border-radius: 22px;
-  border: 1px solid;
-  white-space: nowrap;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.45);
-}
-#screen-scoring.active .score-panel,
-#screen-scoring.active .score-center-col { min-height: 0; }
-/* two action buttons (edit G1 + submit) must fit without pushing the blue
-   panel off-screen — trim the padding a touch on shorter phones */
-@media (max-height: 780px) {
-  #screen-scoring.active .btn-action { padding: 16px; font-size: 1.7em; }
-  #screen-scoring.active .scoring-actions { padding: 6px 12px; }
-}
-
-/* ══════════════════════════════════════════
-   ACTION BAND — hierarchy by importance
-   Panels are the primary surface, so the action band is one compact row.
-   'แก้ G1' is a small quiet secondary; LOCK / SUBMIT stay muted until the
-   game reads as a real finish so a 0-0 screen never invites a commit.
-   All still tappable when muted (retirements are warn-then-allow).
-   ══════════════════════════════════════════ */
-#screen-scoring.active .scoring-actions {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-  padding: 8px 12px;
-}
-/* neutralise the base width:100% + stacked sizing inside the flex row */
-#screen-scoring.active .scoring-actions > .btn-action {
-  width: auto;
-  min-height: 0;
-  padding: 15px 12px;
-  font-size: 1.45em;
-}
-#screen-scoring.active .scoring-actions > .btn-lock,
-#screen-scoring.active .scoring-actions > .btn-submit { flex: 1 1 auto; }
-
-/* edit game 1 — compact quiet secondary, content width */
-#screen-scoring.active .scoring-actions > .btn-edit-g1 {
-  flex: 0 0 auto;
-  padding: 15px 18px;
-  font-size: 0.98rem;
-  letter-spacing: 1px;
-  background: transparent;
-  color: var(--muted);
-  border: 1.5px solid var(--border2);
-  box-shadow: none;
-}
-#screen-scoring.active .scoring-actions > .btn-edit-g1:active { background: var(--surface2); color: var(--text2); }
-
-/* LOCK — quiet until game 1 is a valid finish */
-#screen-scoring.active .btn-lock {
-  background: var(--surface2);
-  color: rgba(255,120,120,0.85);
-  border: 1.5px solid rgba(255,77,77,0.4);
-  box-shadow: none;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-}
-#screen-scoring.active .btn-lock.is-ready {
-  background: linear-gradient(135deg, #ff6b6b, #cc2222);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 6px 24px rgba(255,77,77,0.35);
-}
-
-/* SUBMIT — quiet until game 2 is a valid finish */
-#screen-scoring.active .btn-submit {
-  background: var(--surface2);
-  color: rgba(240,192,64,0.78);
-  border: 1.5px solid rgba(240,192,64,0.4);
-  box-shadow: none;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-}
-#screen-scoring.active .btn-submit.is-ready {
-  background: linear-gradient(135deg, #f5c842, #d4a000);
-  color: #000;
-  border-color: transparent;
-  box-shadow: 0 6px 24px rgba(240,192,64,0.4);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   REDESIGN 2026-09 — scoring screen polish
-   Goals (from the umpire, live app): one system-wide type scale,
-   fewer buttons (single SUBMIT), calm panels (glow only on the side
-   that just scored, not a constant pulse), a smaller fullscreen btn,
-   and the deuce/game-point read INSIDE the game chip (never floating
-   over the panel). Logic unchanged; these are visual + one merged btn.
-   ══════════════════════════════════════════════════════════════ */
-:root{
-  --fs-meta:.72rem; --fs-timer:1.9rem; --fs-game:.9rem;
-  --fs-name:1.3rem; --fs-btn:1.35rem;
-}
-
-/* ── top bar: 3 zones, small quiet fullscreen ── */
-#screen-scoring.active .match-info-text{ font-size:var(--fs-meta); }
-#screen-scoring.active .center-row{
-  display:flex; align-items:center; justify-content:center; gap:9px; margin-top:2px;
-}
-#screen-scoring.active .timer-display{ font-size:var(--fs-timer); margin-top:0; }
-#screen-scoring.active .g1line{
-  font-size:var(--fs-meta); color:var(--muted2); font-weight:700;
-  letter-spacing:.5px; margin-top:3px;
-}
-
-/* game chip — also carries the deuce / game-point read (no floating badge) */
-#screen-scoring.active .game-indicator{
-  display:inline-block; font-family:'Bebas Neue',sans-serif;
-  font-size:var(--fs-game); letter-spacing:1px; line-height:1;
-  padding:4px 9px; border-radius:8px; margin-top:0;
-  background:var(--surface2); border:1px solid var(--border-bright); color:var(--text);
-}
-#screen-scoring.active .game-indicator.gp-red{ color:var(--red); border-color:rgba(255,77,77,.45); background:rgba(255,77,77,.12); }
-#screen-scoring.active .game-indicator.gp-blue{ color:var(--blue); border-color:rgba(77,159,255,.45); background:rgba(77,159,255,.12); }
-#screen-scoring.active .game-indicator.deuce{ color:var(--gold); border-color:rgba(240,192,64,.45); background:rgba(240,192,64,.12); }
-
-/* ── panels: calm (kill the constant pulse), steady glow only on the
-      side that just scored — reads "who to call / who serves next" ── */
-#screen-scoring.active .score-panel.red,
-#screen-scoring.active .score-panel.blue{ animation:none; }
-#screen-scoring.active .score-panel.red{
-  background:radial-gradient(ellipse 95% 75% at 50% 45%, rgba(255,77,77,.10), rgba(255,77,77,.015) 75%);
-  box-shadow:inset 0 0 60px rgba(255,77,77,.05);
-}
-#screen-scoring.active .score-panel.blue{
-  background:radial-gradient(ellipse 95% 75% at 50% 55%, rgba(77,159,255,.10), rgba(77,159,255,.015) 75%);
-  box-shadow:inset 0 0 60px rgba(77,159,255,.05);
-}
-#screen-scoring.active .score-panel.red.scored{ box-shadow:inset 0 4px 0 var(--red), inset 0 0 100px rgba(255,77,77,.26); }
-#screen-scoring.active .score-panel.blue.scored{ box-shadow:inset 0 4px 0 var(--blue), inset 0 0 100px rgba(77,159,255,.26); }
-#screen-scoring.active .score-panel.scored .score-number{ text-shadow:0 0 34px currentColor; }
-#screen-scoring.active .score-panel:not(.scored) .score-center-col{ opacity:.82; }
-@media (prefers-reduced-motion:reduce){
-  #screen-scoring.active .score-panel{ animation:none; }
-}
-
-/* ── action band: single SUBMIT button, full width ── */
-#screen-scoring.active .scoring-actions{ display:flex; padding:9px 12px; }
-#screen-scoring.active .scoring-actions > .btn-submit{ flex:1 1 auto; width:auto; }
-
-/* team names use the shared scale */
-#screen-scoring.active .team-name-score{ font-size:var(--fs-name); }
-
-/* ══════════════════════════════════════════════════════════════
-   VS INTRO — pair-vs-pair reveal shown ~3s when a fresh match opens
-   (over the scoring screen; tap to skip). z above scoring + landscape.
-   ══════════════════════════════════════════════════════════════ */
-#vsIntro{
-  position:fixed; inset:0; z-index:3000; display:none;
-  flex-direction:column; align-items:center; justify-content:center;
-  gap:clamp(18px,4vh,40px); padding:24px; cursor:pointer;
-  background:
-    radial-gradient(ellipse at 20% 20%, rgba(255,77,77,.18), transparent 55%),
-    radial-gradient(ellipse at 80% 80%, rgba(77,159,255,.18), transparent 55%),
-    #07070d;
-}
-#vsIntro.show{ display:flex; animation:vsiFade .25s ease; }
-@keyframes vsiFade{ from{ opacity:0 } to{ opacity:1 } }
-.vsi-court{
-  font-family:'Bebas Neue','Noto Sans Thai',sans-serif; font-size:clamp(22px,6vw,40px);
-  letter-spacing:1.5px; color:var(--gold); text-shadow:0 0 24px rgba(240,192,64,.4);
-}
-.vsi-row{ display:flex; align-items:center; justify-content:center; gap:clamp(12px,4vw,40px); width:100%; }
-.vsi-side{ display:flex; flex-direction:column; align-items:center; gap:14px; flex:1; min-width:0; }
-/* faces scale to the phone so 2-per-side never overflow (override umpireAvatar's inline px) */
-.vsi-faces{ gap:clamp(4px,1.5vw,10px); }
-.vsi-faces .uavatar{ width:clamp(50px,15vw,100px)!important; height:clamp(50px,15vw,100px)!important; }
-.vsi-faces .uavatar.ua-initials{ font-size:clamp(16px,4.4vw,32px)!important; }
-.vsi-side.red { animation:vsiInL .45s cubic-bezier(.2,.8,.2,1) both; }
-.vsi-side.blue{ animation:vsiInR .45s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes vsiInL{ from{ opacity:0; transform:translateX(-40px) } to{ opacity:1; transform:none } }
-@keyframes vsiInR{ from{ opacity:0; transform:translateX(40px) }  to{ opacity:1; transform:none } }
-.vsi-side.red  .uavatar{ border-color:var(--red);  box-shadow:0 0 26px rgba(255,77,77,.35); }
-.vsi-side.blue .uavatar{ border-color:var(--blue); box-shadow:0 0 26px rgba(77,159,255,.35); }
-.vsi-names{ font-size:clamp(18px,5vw,30px); font-weight:800; text-align:center; line-height:1.15; }
-.vsi-side.red  .vsi-names{ color:var(--red); }
-.vsi-side.blue .vsi-names{ color:var(--blue); }
-.vsi-vs{ font-family:'Bebas Neue',sans-serif; font-size:clamp(26px,7vw,64px); letter-spacing:2px; color:var(--muted); flex-shrink:0; }
-.vsi-ready{
-  font-size:clamp(13px,3.6vw,18px); letter-spacing:0.5px; font-weight:700; color:var(--gold);
-  background:rgba(240,192,64,.1); border:1px solid rgba(240,192,64,.3); border-radius:40px;
-  padding:10px 24px; animation:pulse 1.5s ease infinite;
-}
-@media (prefers-reduced-motion:reduce){ #vsIntro, #vsIntro *{ animation:none !important; } }
-
-/* ══════════════════════════════════════════
-   Safety & clarity additions
-   ══════════════════════════════════════════ */
-
-/* Fullscreen lives in the nav now — the floating button sat on top of 🚪 and
-   swallowed taps meant for "change umpire". (Login and scoring have their own.) */
-#fsBtn { display: none !important; }
-.btn-nav-fs {
-  flex-shrink: 0; min-height: 52px; min-width: 52px; padding: 0;
-  border-radius: var(--radius-sm); border: 1.5px solid var(--border);
-  background: var(--surface2); color: var(--text2); font-size: 1.1rem; cursor: pointer;
-  transition: transform .1s, background .15s;
-}
-.btn-nav-fs.fs-active { color: var(--gold); border-color: rgba(240,192,64,.4); }
-.btn-nav-fs:active { transform: scale(.94); }
-@media (max-width: 420px) {
-  /* four controls on a phone-width bar: tighten the tabs so nothing overflows */
-  #umpireNav { gap: 8px; padding-left: 12px; padding-right: 12px; }
-  #umpireNav .nav-tabs { gap: 6px; min-width: 0; }
-  #umpireNav .tab-btn { padding: 14px 6px; font-size: .95rem; min-width: 0; }
-}
-
-/* Offline — Firebase queues writes while offline, but only while the page
-   stays open, so the umpire must know. Never blocks taps. */
+/* offline / slow: only while it is true, words + icon, in the flow so it never covers a team name */
 .net-banner { display: none; }
-/* slow but online: gold instead of red, same place */
-body.is-slow:not(.is-offline) .net-banner {
-  display: block; padding: 8px 14px; text-align: center; pointer-events: none;
-  font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: .2px;
-  color: #14120a; background: rgba(240,192,64,.96); box-shadow: 0 6px 18px -8px rgba(0,0,0,.6);
+.net-banner:not(:empty) {
+  display: flex; align-items: flex-start; gap: var(--sp-2);
+  padding: var(--sp-2) calc(var(--sar) + var(--sp-4)) var(--sp-2) calc(var(--sal) + var(--sp-4));
+  /* an opaque page colour with the status tint painted over it (inset shadow = flat, no gradient): the banner is sticky
+     on the list screens and the cards scroll under it */
+  background: var(--bg); box-shadow: inset 0 0 0 100vmax var(--warn-fill); border-bottom: 1px solid var(--warn-line); color: var(--t-hi);
+  font: 600 var(--fs-13)/1.45 var(--font-ui);
 }
-body.is-offline .net-banner {
-  display: block; padding: 8px 14px; text-align: center; pointer-events: none;
-  font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: .2px;
-  color: #fff; background: rgba(220,38,38,.94); box-shadow: 0 6px 18px -8px rgba(0,0,0,.6);
-}
-/* on the scoring grid it floats just under the top bar instead of taking a row */
-#screen-scoring > .net-banner { position: absolute; left: 0; right: 0; top: 0; z-index: 5; }
+.net-banner .ds-ic { margin-top: 2px; color: var(--warn); }
+body.is-offline .net-banner:not(:empty) { box-shadow: inset 0 0 0 100vmax var(--err-fill); border-bottom-color: var(--err-line); }
+body.is-offline .net-banner .ds-ic { color: var(--err); }
+#screen-scoring > .net-banner { grid-area: banner; }
+body > .net-banner:not(:empty) { position: sticky; top: calc(var(--bar-h) + var(--sat)); z-index: var(--z-nav); }
 
-/* the whole half-screen is the +1 button — hint it, only at 0–0 */
-.tap-hint { display: none; }
-#screen-scoring.fresh-game .tap-hint {
-  display: block; margin-top: 6px; font-size: 13px; font-weight: 700; letter-spacing: .5px;
-  color: rgba(255,255,255,.55); animation: tapHint 1.8s ease-in-out infinite;
+/* send state: icon + words, always one of three (never colour alone) */
+.sync-strip {
+  grid-area: sync; justify-self: end; min-width: 0; max-width: 100%;
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px var(--sp-2) 4px 0;
+  border: 1px solid transparent; border-radius: var(--r-pill);
+  font: 700 var(--fs-13)/1.25 var(--font-ui); color: var(--ok);
 }
-@keyframes tapHint { 50% { opacity: .35; } }
-@media (prefers-reduced-motion: reduce) { #screen-scoring.fresh-game .tap-hint { animation: none; } }
+.sync-strip > .ds-ic { width: 20px; height: 20px; margin-left: var(--sp-1); }
+.ss-text { display: grid; min-width: 0; }
+.ss-sub { font-size: var(--fs-12); font-weight: 600; color: var(--t-mid); font-variant-numeric: tabular-nums; }
+.sync-sending { color: var(--warn); background: var(--warn-fill); border-color: var(--warn-line); }
+.sync-offline { color: var(--err); background: var(--err-fill); border-color: var(--err-line); }
 
-/* ── NOTICE — does not block the screen; sits under the bar that is showing (JS sets top) ── */
+/* ── 4. THE OTHER SCREENS: pause · dialogs · VS intro · shell · login · match list · finished list ── */
+
+/* ── 4a. PAUSE ───────────────────────────────────────────────
+   A solid screen over the scoring screen. Only the play button resumes: a palm on the glass while the phone is down must not
+   restart play. Above the scoring screen, below the dialogs (a leave question opens from here). */
+#pauseOverlay {
+  display: none; position: fixed; inset: 0; z-index: calc(var(--z-overlay) + 500);
+  flex-direction: column; justify-content: space-between; align-items: center; gap: var(--sp-5);
+  padding: calc(var(--sat) + var(--sp-5)) calc(var(--sar) + var(--sp-4)) max(var(--sp-5), var(--sab)) calc(var(--sal) + var(--sp-4));
+  background: var(--bg); overflow-y: auto;
+}
+#pauseOverlay.show { display: flex; }
+.pause-top { flex: 1; display: grid; align-content: center; justify-items: center; gap: var(--sp-2); text-align: center; }
+.pause-title { display: inline-flex; align-items: center; gap: var(--sp-2); font: 800 var(--fs-32)/var(--lh-th) var(--font-ui); color: var(--gold); }
+.pause-current-label { margin-top: var(--sp-4); font: 600 var(--fs-16)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.pause-current-timer { font: 400 clamp(96px, 30vw, 176px)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--gold); }
+.pause-bottom { width: min(100%, 420px); display: grid; gap: var(--sp-3); }
+.pause-meta { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.pause-meta > span {
+  display: grid; gap: 2px; padding: var(--sp-3); text-align: center; border-radius: var(--r-md);
+  background: var(--s2); border: 1px solid var(--line); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid);
+}
+.pause-meta b { font: 400 var(--fs-40)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--t-hi); }
+.pause-resume { min-height: 72px; border-radius: var(--r-md); font-size: var(--fs-24); font-weight: 800; }
+.pause-exit { min-height: var(--tap-md); border-radius: var(--r-md); --btn-bg: transparent; --btn-fg: var(--t-mid); }
+@media (orientation: landscape) and (max-height: 520px) {      /* two columns: the clock on the left, the controls on the right */
+  #pauseOverlay { flex-direction: row; padding-top: calc(var(--sat) + var(--sp-3)); padding-bottom: max(var(--sp-3), var(--sab)); }
+  .pause-top, .pause-bottom { flex: 1 1 0; min-width: 0; align-self: center; }
+  .pause-title { font-size: var(--fs-24); }
+  .pause-current-label { margin-top: var(--sp-2); }
+  .pause-current-timer { font-size: clamp(80px, 24vh, 140px); }
+  .pause-resume { min-height: var(--tap-xl); }
+}
+
+/* ── 4b. DIALOGS ─────────────────────────────────────────────
+   One sheet for every question and message (showAlert / showConfirm / showCourtPicker): ds-scrim + ds-sheet from
+   css/ui.css - a bottom sheet on a phone, centred from 640 px. The buttons live outside the scrolling part, so they are
+   always on screen, however long the text. */
+.modal-box { display: flex; flex-direction: column; gap: var(--sp-4); overflow: hidden; }
+@media (max-width: 400px) { .modal-box { padding-left: var(--sp-4); padding-right: var(--sp-4); } }
+.modal-scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--sp-3); }
+.modal-icon {
+  flex: none; display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto; border-radius: 50%;
+  background: var(--s3); color: var(--t-hi); font-size: 28px;
+}
+.modal-icon:empty { display: none; }
+.modal-icon .ds-ic { width: 1em; height: 1em; }
+.modal-icon.tone-warn { background: var(--warn-fill); color: var(--warn); }
+.modal-icon.tone-err { background: var(--err-fill); color: var(--err); }
+.modal-icon.tone-ok { background: var(--live-fill); color: var(--live); }
+.modal-icon.tone-info { background: var(--blue-dim); color: var(--info); }
+.modal-icon.tone-gold { background: var(--gold-dim); color: var(--gold); }
+.modal-title { font: 700 var(--fs-24)/var(--lh-th) var(--font-ui); text-align: center; color: var(--t-hi); overflow-wrap: anywhere; }
+.modal-body { font: 500 var(--fs-16)/var(--lh-th) var(--font-ui); text-align: center; color: var(--t-mid); white-space: pre-line; overflow-wrap: anywhere; }
+.modal-body:empty { display: none; }
+#modalScorePreview { display: none; }
+.modal-warn { white-space: pre-line; overflow-wrap: anywhere; }
+.modal-warn[hidden] { display: none; }
+.modal-btns { flex: none; display: grid; gap: var(--sp-3); }
+.modal-btns.two-col { grid-template-columns: 1fr 1fr; }
+.modal-btns.stack { grid-template-columns: 1fr; }
+.modal-btn { min-width: 0; padding: 0 var(--sp-3); }
+/* a submit box reads title, scores, note, words: the numbers come first, so on a small phone they are what is on screen */
+#modalBox.has-score .modal-icon { order: -4; }
+#modalBox.has-score .modal-title { order: -3; }
+#modalBox.has-score #modalScorePreview { order: -2; }
+#modalBox.has-score .modal-warn { order: -1; }
+
+/* the scores about to be sent / just sent: a row per side (shape + word), a column per game, the higher number in gold */
+.modal-score { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+.modal-score th, .modal-score td { padding: var(--sp-2) var(--sp-3); }
+.modal-score thead th { font: 600 var(--fs-13)/1.3 var(--font-ui); color: var(--t-mid); text-align: center; }
+.modal-score tbody th { text-align: left; font-size: var(--fs-16); white-space: nowrap; }
+.modal-score tbody tr + tr > * { border-top: 1px solid var(--line); }
+.modal-score td { text-align: center; font: 400 var(--fs-56)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--t-mid); }
+.modal-score td.win { color: var(--gold); }
+.modal-result { margin-top: var(--sp-3); text-align: center; font: 700 var(--fs-18)/var(--lh-th) var(--font-ui); color: var(--gold); }
+.modal-result small { display: block; font: 600 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+/* "ส่งผลแล้ว": who won, in the team's field, above the scores */
+.result-win {
+  --edge: var(--gold); --fill: var(--gold-dim); --ink: var(--gold);
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-3); margin-bottom: var(--sp-3); padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md); border-left: 6px solid var(--edge); background: var(--fill); color: var(--ink);
+  font: 700 var(--fs-18)/var(--lh-th) var(--font-ui); text-align: left;
+}
+.result-win.red { --edge: var(--red); --fill: var(--red-fill); --ink: var(--red-ink); }
+.result-win.blue { --edge: var(--blue); --fill: var(--blue-fill); --ink: var(--blue-ink); }
+.result-win .ds-ic { flex: none; width: 32px; height: 32px; color: var(--gold); }
+.result-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--sp-1) var(--sp-4); margin-top: var(--sp-3); list-style: none; font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.result-meta li { display: inline-flex; align-items: center; gap: 6px; }
+.result-meta li:last-child .ds-ic { color: var(--live); }
+
+/* court picker: ten chips, five a row; the court you are on = gold + a check; a court with a match on it = dashed + that
+   match's id (it warns and still allows: a match nobody closed must not lock a court) */
+.court-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-2); }
+.court-chip {
+  position: relative; min-height: var(--tap-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: var(--s3); color: var(--t-hi); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  font: 400 var(--fs-32)/1 var(--font-num); letter-spacing: 0;
+  transition: background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out);
+}
+.court-chip:active { transform: scale(.96); }
+.court-chip small { font: 700 var(--fs-12)/1 var(--font-ui); color: var(--warn); }
+.court-chip.taken { border-style: dashed; border-color: var(--warn-line); }
+.court-chip.on { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.court-chip.on small { color: var(--gold-ink); }
+.court-chip.on .ds-ic { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; }
+
+/* short phones: no big icon, smaller numbers; a phone on its side: less air, the ten courts in one row */
+@media (max-height: 640px) {
+  .modal-icon { display: none; }
+  .modal-box { padding-top: var(--sp-4); gap: var(--sp-3); }
+  .modal-title { font-size: var(--fs-20); }
+  .modal-body { font-size: var(--fs-14); }
+  .modal-btn { min-height: var(--tap-md); }
+  .modal-score td { font-size: var(--fs-32); }
+  .modal-score th, .modal-score td { padding-top: var(--sp-1); padding-bottom: var(--sp-1); }
+}
+@media (max-height: 480px) {
+  .modal-box { padding: var(--sp-3) var(--sp-5); gap: var(--sp-2); }
+  .modal-scroll { gap: var(--sp-2); }
+  .modal-title { font-size: var(--fs-20); }
+  .modal-btn { min-height: var(--tap-md); }
+  .modal-score td { font-size: var(--fs-32); }
+  #modalBox.is-courts { max-width: 760px; }
+  #modalBox.is-courts .court-grid { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+}
+
+/* ── 4c. VS INTRO ────────────────────────────────────────────
+   The two pairs, ~3 s when a fresh match opens. The same orientation as the scoring screen: red above, blue below
+   (landscape: red left, blue right). */
+#vsIntro {
+  display: none; position: fixed; inset: 0; z-index: calc(var(--z-overlay) + 500);
+  flex-direction: column; padding-top: var(--sat); background: var(--bg); cursor: pointer;
+}
+#vsIntro.show { display: flex; animation: ump-fade var(--dur-in) var(--ease-out); }
+@keyframes ump-fade { from { opacity: 0; } to { opacity: 1; } }
+.vsi-court { padding: var(--sp-4) var(--sp-4) var(--sp-3); text-align: center; font: 700 var(--fs-20)/var(--lh-th) var(--font-ui); color: var(--gold); }
+.vsi-row { flex: 1; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); }
+.vsi-side {
+  --fill: var(--red-fill); --edge: var(--red); --ink: var(--red-ink);
+  position: relative; display: grid; align-content: center; justify-items: center; gap: var(--sp-3); min-width: 0;
+  padding: var(--sp-4) var(--sp-5); text-align: center; background: var(--fill);
+}
+.vsi-side.blue { --fill: var(--blue-fill); --edge: var(--blue); --ink: var(--blue-ink); }
+.vsi-side::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 6px; background: var(--edge); }
+.vsi-side .ds-team { font-size: var(--fs-16); }
+.vsi-faces .uavatar { --ua: clamp(64px, 22vw, 104px); }
+.vsi-faces .uface-pair { gap: var(--sp-3); }
+.vsi-names { font: 800 clamp(var(--fs-24), 7vw, var(--fs-40))/var(--lh-th) var(--font-ui); color: var(--ink); overflow-wrap: anywhere; }
+.vsi-vs { padding: var(--sp-2) 0; text-align: center; font: 400 var(--fs-40)/1 var(--font-num); letter-spacing: 0; color: var(--t-mid); }
+.vsi-ready { margin: var(--sp-4) var(--sp-4) max(var(--sp-4), var(--sab)); }
+@media (orientation: landscape) and (min-width: 560px) {
+  .vsi-row { grid-template-rows: none; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .vsi-vs { align-self: center; padding: 0 var(--sp-4); }
+  .vsi-court { padding: var(--sp-2) var(--sp-4); }
+  .vsi-faces .uavatar { --ua: clamp(56px, 16vh, 96px); }
+  .vsi-names { font-size: clamp(var(--fs-20), 5vh, var(--fs-32)); }
+  .vsi-ready { align-self: center; min-width: 280px; margin: var(--sp-2) 0 max(var(--sp-2), var(--sab)); }
+}
+
+/* ── 4d. SHELL: screens, menu bar, toasts ────────────────────── */
+.screen {
+  display: none; flex-direction: column; gap: var(--sp-4);
+  width: min(100%, 720px); margin: 0 auto;
+  padding: var(--sp-5) calc(var(--sar) + var(--sp-4)) calc(var(--sp-6) + var(--sab)) calc(var(--sal) + var(--sp-4));
+}
+.screen.active { display: flex; }
+
+/* the menu bar of the list screens: two tabs (the page you are on has a gold underline), fullscreen, change umpire */
+#umpireNav {
+  display: none;                                   /* the script shows it (display:flex) on the list screens only */
+  position: sticky; top: 0; z-index: var(--z-nav); align-items: stretch; gap: var(--sp-2);
+  height: calc(var(--bar-h) + var(--sat));
+  /* on a wide window the bar lines up with the centred 720 px column below it */
+  padding: var(--sat) max(calc(var(--sar) + var(--sp-2)), calc((100% - 720px) / 2 + var(--sp-2))) 0 max(calc(var(--sal) + var(--sp-2)), calc((100% - 720px) / 2 + var(--sp-2)));
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.nav-tabs { flex: 1; min-width: 0; max-width: 420px; margin-right: auto; display: flex; gap: var(--sp-2); }
+.tab-btn {
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  background: none; border: 0; border-bottom: 3px solid transparent; color: var(--t-low);
+  font: 700 var(--fs-16)/1.2 var(--font-ui); white-space: nowrap;
+  transition: color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
+}
+.tab-btn.active { color: var(--t-hi); border-bottom-color: var(--gold); }
+.tab-btn:active { color: var(--t-hi); }
+.btn-nav-fs, .btn-logout { align-self: center; flex: none; }
+.btn-nav-fs.fs-active { --btn-fg: var(--gold); }
+.btn-logout { --btn-fg: var(--err); }
+
+/* the page title and who is signed in (the name decides which matches are "yours") */
+.screen-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
+.screen-header-text { min-width: 0; }
+.screen-title { font: 800 var(--fs-32)/var(--lh-th) var(--font-ui); color: var(--t-hi); }
+.screen-sub { font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.who-chip { flex: none; max-width: 45%; margin-top: var(--sp-1); }
+.who-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.pull-hint { display: flex; align-items: center; justify-content: center; gap: 6px; font: 600 var(--fs-12)/var(--lh-th) var(--font-ui); color: var(--t-low); }
+#matchList, #finishedList { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* the fullscreen toast (it said "tap twice to leave": nothing in this page ever did that, so it no longer says so) */
+#fsIndicator {
+  position: fixed; left: 50%; bottom: calc(var(--sp-4) + var(--sab)); z-index: var(--z-toast);
+  display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-pill); background: var(--s3); border: 1px solid var(--gold-line); color: var(--gold);
+  font: 700 var(--fs-14)/var(--lh-th) var(--font-ui);
+  opacity: 0; transform: translate(-50%, var(--sp-2)); pointer-events: none;
+  transition: opacity var(--dur-state) var(--ease-out), transform var(--dur-state) var(--ease-out);
+}
+#fsIndicator.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* a message that never blocks a tap: under the bar that is on screen (info row / menu bar are the same height), above
+   the dialogs. Icon + words + (optionally) one action + close. */
 #umpNotice { display: none; }
 #umpNotice.show {
-  display: flex; align-items: center; gap: 8px;
-  position: fixed; left: 10px; right: 10px; z-index: 1800;
-  padding: 8px 8px 8px 14px; border-radius: var(--radius-md);
-  background: rgba(20,20,36,0.97); border: 1.5px solid var(--border-bright);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.55);
-  font-size: 0.92rem; font-weight: 700; line-height: 1.35; color: var(--text);
+  position: fixed; z-index: var(--z-toast); display: flex; align-items: center; gap: var(--sp-2);
+  left: calc(var(--sal) + var(--sp-3)); right: calc(var(--sar) + var(--sp-3)); max-width: 640px; margin: 0 auto;
+  top: calc(var(--sat) + var(--bar-h) + var(--sp-2));
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4); border-radius: var(--r-md);
+  background: var(--s2); border: 1px solid var(--line-strong); box-shadow: var(--shadow-pop);
+  font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-hi);
 }
-#umpNotice.err  { border-color: rgba(255,77,77,0.7); }
-#umpNotice.warn { border-color: rgba(240,192,64,0.7); }
-#umpNotice.ok   { border-color: rgba(46,204,113,0.7); }
-#umpNotice .un-text { flex: 1; min-width: 0; }
+@media (orientation: landscape) and (min-width: 560px) { body.is-scoring #umpNotice.show { top: calc(var(--sat) + var(--sp-2)); } }
+#umpNotice > .ds-ic { flex: none; width: 22px; height: 22px; }
+#umpNotice.err { border-color: var(--err-line); }
+#umpNotice.err > .ds-ic { color: var(--err); }
+#umpNotice.warn { border-color: var(--warn-line); }
+#umpNotice.warn > .ds-ic { color: var(--warn); }
+#umpNotice.ok { border-color: var(--live-line); }
+#umpNotice.ok > .ds-ic { color: var(--live); }
+#umpNotice .un-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 #umpNotice .un-btn, #umpNotice .un-x {
-  flex: none; min-height: 48px; min-width: 48px; border-radius: var(--radius-sm); cursor: pointer;
-  border: 1.5px solid var(--border-bright); background: var(--surface3); color: var(--text);
-  font: inherit; font-weight: 800; touch-action: manipulation;
+  flex: none; min-height: var(--tap-md); border-radius: var(--r-sm); border: 1px solid var(--line-strong);
+  background: var(--s3); color: var(--t-hi); font: 700 var(--fs-14)/1.2 var(--font-ui);
 }
-#umpNotice .un-btn { padding: 0 16px; background: var(--gold-dim); border-color: rgba(240,192,64,0.6); color: var(--gold); }
-#umpNotice .un-x { font-size: 1.1rem; }
-#umpNotice .un-btn:active, #umpNotice .un-x:active { transform: scale(0.95); }
+#umpNotice .un-btn { padding: 0 var(--sp-4); background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+#umpNotice .un-x { min-width: var(--tap-md); display: grid; place-items: center; padding: 0; }
+#umpNotice .un-btn:active, #umpNotice .un-x:active { transform: scale(.96); }
 
-/* ── SYNC STRIP — the three states, in the guard strip above the leave / pause buttons (portrait) ── */
-.sync-strip {
-  position: absolute; top: 3px; left: 12px; right: 12px; height: 18px;
-  text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .3px; line-height: 18px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
-}
-.sync-strip.sync-ok      { color: #7fe3a6; }
-.sync-strip.sync-sending { color: var(--gold); }
-.sync-strip.sync-offline { color: #ff9a9a; }
-
-/* iPhone: no full-screen button, so say why (login page only) */
-.login-fs-hint { margin-top: 8px; max-width: 320px; font-size: 0.82rem; line-height: 1.5; color: var(--muted); text-align: center; }
-
-body:not(.is-scoring) #landscapeInfo { display: none !important; }
-
-/* a short phone (320 x 568): the login page closes up so name and button are in view without scrolling */
-@media (max-height: 760px) {
-  #screen-login { padding: calc(14px + var(--sat)) 18px calc(16px + var(--sab)); }
-  .login-icon { font-size: 2.4rem; margin-bottom: 2px; }
-  .login-title { font-size: 2.1em; margin-bottom: 2px; }
-  .login-subtitle { font-size: 0.9rem; }
-  .login-fs-row { margin-top: 6px; }
-  .login-card { padding: 16px 16px 18px; gap: 14px; }
-  .login-section-label { margin-bottom: 8px; }
-  .toggle-btn { padding: 12px 8px; }
-  .umpire-select { min-height: 56px; padding: 14px 44px 14px 16px; font-size: 1.1rem; }
-  .btn-login { font-size: 1.6em; letter-spacing: 0.3px; padding: 14px 16px; }   /* one line at 320 px, not two */
-}
-/* really short (320 x 568): the racket icon goes, so team + group + name + button all fit at once */
-@media (max-height: 640px) {
-  .login-icon { display: none; }
-  #screen-login { padding-top: calc(10px + var(--sat)); }
-  .login-card { gap: 12px; padding: 14px 16px 16px; }
-}
-
-/* ── MATCH LIST groups, the free-only filter, the "next" mark (P-27) ── */
-.list-group { display: flex; align-items: baseline; gap: 8px; margin: 6px 2px 0; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.5px; color: var(--text); }
-.list-group b { font-family: 'Bebas Neue', sans-serif; font-size: 1.25em; letter-spacing: 1px; color: var(--gold); }
-.list-filter {
-  width: 100%; min-height: 48px; padding: 8px 14px; border-radius: var(--radius-md); cursor: pointer;
-  border: 1.5px solid var(--border-bright); background: var(--surface2); color: var(--text);
-  font-size: 0.92rem; font-weight: 800; touch-action: manipulation;
-}
-.list-filter.on { border-color: rgba(240,192,64,0.6); background: var(--gold-dim); color: var(--gold); }
-.badge-next { background: var(--gold); color: #14120a; border: 1px solid var(--gold); }
-
-/* the "ลองใหม่" button of the loading / no-connection states (P-21) */
-.btn-retry {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-height: 48px; padding: 0 24px; margin-top: 12px;
-  border-radius: var(--radius-md); border: 2px solid var(--border-bright);
-  background: var(--surface3); color: var(--text);
-  font-size: 1rem; font-weight: 800; cursor: pointer; touch-action: manipulation;
-}
-.btn-retry:active { background: var(--surface2); }
+/* the retry button of the loading / no-connection states */
+.btn-retry { margin-top: var(--sp-2); }
 .btn-retry[hidden] { display: none; }
+
+/* ── 4e. LOGIN ────────────────────────────────────────────────
+   One job: say who you are. Team (a shape + word, never colour alone) → group → name → one gold button pinned to the
+   bottom, so it is in reach even on a 320 x 568 phone. */
+#screen-login { justify-content: center; min-height: 100vh; min-height: 100dvh; padding-top: calc(var(--sat) + var(--sp-5)); gap: var(--sp-5); }
+.login-hero { display: grid; justify-items: center; gap: var(--sp-2); padding: var(--sp-4) 0; text-align: center; }
+.login-mark { display: block; width: 72px; height: 72px; margin-bottom: var(--sp-2); }
+.login-mark .ds-mark { width: 100%; height: 100%; display: block; }
+.login-title { font: 800 var(--fs-40)/var(--lh-th) var(--font-ui); color: var(--t-hi); }
+.login-subtitle { font: 500 var(--fs-16)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.login-fs-row { display: grid; justify-items: center; gap: var(--sp-2); margin-top: var(--sp-2); }
+.btn-login-fs { --btn-bg: transparent; --btn-fg: var(--t-mid); border-radius: var(--r-pill); }
+.login-fs-hint { max-width: 320px; font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-low); text-align: center; }
+
+.login-card { display: grid; gap: var(--sp-5); padding: var(--sp-5) var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.login-section-label { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.login-section-label > span {
+  display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--gold-dim); border: 1px solid var(--gold-line); color: var(--gold); font: 700 var(--fs-13)/1 var(--font-ui);
+}
+.toggle-group { display: grid; gap: var(--sp-2); }
+.toggle-group.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.toggle-group.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.toggle-btn { min-width: 0; padding: 0 var(--sp-2); }
+.toggle-group.cols-2 .toggle-btn { min-height: var(--tap-lg); font-size: var(--fs-18); }
+.toggle-btn.selected-red { --btn-bg: var(--red-fill); --btn-fg: var(--red-ink); --btn-line: var(--red); }
+.toggle-btn.selected-blue { --btn-bg: var(--blue-fill); --btn-fg: var(--blue-ink); --btn-line: var(--blue); }
+.toggle-btn.selected-gold { --btn-bg: var(--gold); --btn-fg: var(--gold-ink); --btn-line: var(--gold); }
+.toggle-btn.selected-red .ds-team, .toggle-btn.selected-blue .ds-team { color: inherit; }
+@media (hover: hover) {
+  .toggle-btn.selected-red:hover { --btn-bg: var(--red-fill-hi); }
+  .toggle-btn.selected-blue:hover { --btn-bg: var(--blue-fill-hi); }
+  .toggle-btn.selected-gold:hover { --btn-bg: var(--gold-hi); }
+}
+.login-help { margin-top: var(--sp-2); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.btn-login { position: sticky; bottom: calc(var(--sp-3) + var(--sab)); z-index: var(--z-sticky); font-weight: 800; }
+/* until a name is chosen: plain, and it says what to do (not a faded gold button) */
+.btn-login:disabled { opacity: 1; --btn-bg: var(--s3); --btn-fg: var(--t-mid); --btn-line: var(--line-strong); border-style: dashed; }
+#screen-login .app-version { margin-top: 0; font-size: var(--fs-12); letter-spacing: 0; color: var(--t-low); opacity: 1; }
+/* a phone under 900 px high (an iPhone 14 is 844, a 320 x 568 is the floor): the login page closes up so team, group,
+   name and the button are in view without scrolling */
+@media (max-height: 900px) {
+  #screen-login { gap: var(--sp-3); padding-top: calc(var(--sat) + var(--sp-3)); padding-bottom: calc(var(--sp-4) + var(--sab)); }
+  .login-hero { padding: 0; gap: 2px; }
+  .login-mark { width: 48px; height: 48px; margin-bottom: 0; }
+  .login-title { font-size: var(--fs-32); }
+  .login-card { gap: var(--sp-3); padding: var(--sp-4) var(--sp-3); }
+  .login-section-label { margin-bottom: var(--sp-1); }
+  .login-help { margin-top: var(--sp-1); }
+}
+@media (max-height: 640px) {
+  .login-mark { display: none; }
+  .login-subtitle { font-size: var(--fs-14); }
+  .login-fs-row { margin-top: 0; }
+  .login-card { gap: var(--sp-2); padding: var(--sp-3); }
+  .toggle-group.cols-2 .toggle-btn, .btn-login { min-height: var(--tap-md); }
+}
+
+/* ── 4f. MATCH LIST ───────────────────────────────────────────
+   Three groups (yours, free in queue order, taken). A whole card is ONE target (>= 72 px): the match id, the court, the
+   state in icon + word, the two pairs with their faces. Colour is never the only cue: each side has its shape. */
+.list-group { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-2); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.list-group b { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 var(--sp-2); border-radius: var(--r-pill); background: var(--s3); color: var(--t-hi); font: 700 var(--fs-13)/1 var(--font-ui); }
+/* "only the free ones": a toggle that stays under the menu bar while the list scrolls */
+.list-filter {
+  position: sticky; top: calc(var(--bar-h) + var(--sat) + var(--sp-2)); z-index: var(--z-sticky);
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2); width: 100%; min-height: var(--tap-md); padding: 0 var(--sp-4);
+  border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--s2); color: var(--t-hi);
+  font: 700 var(--fs-14)/1.3 var(--font-ui); box-shadow: 0 var(--sp-2) 0 var(--bg);
+}
+.list-filter.on { border-color: var(--gold-line); background: var(--gold-dim); color: var(--gold); }
+
+.match-card {
+  position: relative; display: grid; gap: var(--sp-3); width: 100%; min-height: 72px; padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
+  text-align: left; color: var(--t-hi); font: inherit;
+  background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden;
+  transition: background-color var(--dur-state) var(--ease-out), transform var(--dur-press) var(--ease-out);
+}
+.match-card::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 5px; background: var(--line-strong); }
+.match-card.claimed { border-color: var(--gold-line); }
+.match-card.claimed::before { background: var(--gold); }
+button.match-card:active { background: var(--s2); transform: scale(.985); }
+.match-card.locked-other { min-height: 0; padding-top: var(--sp-3); padding-bottom: var(--sp-3); background: none; border-style: dashed; }
+.mc-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-width: 0; }
+.mc-id { display: inline-flex; align-items: baseline; gap: var(--sp-2); font: 400 var(--fs-32)/1 var(--font-num); letter-spacing: 0; color: var(--gold); white-space: nowrap; }
+.mc-id small { font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+.locked-other .mc-id { font-size: var(--fs-24); color: var(--t-mid); }
+.mc-badges { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-2); min-width: 0; }
+.mc-badges .ds-chip { min-height: 32px; font-size: var(--fs-14); }
+.ds-chip-next { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.mc-team { align-items: center; min-width: 0; font: 700 var(--fs-18)/var(--lh-th) var(--font-ui); }
+.mc-team .uavatar { --ua: 36px; }
+.mc-names { min-width: 0; overflow-wrap: anywhere; }
+.mc-names .amp { color: var(--t-mid); font-size: .88em; font-weight: 600; }
+.mc-team + .mc-team { padding-top: var(--sp-2); border-top: 1px solid var(--line); }
+
+/* states: loading (skeletons), empty, no connection */
+.skel-card { display: grid; gap: var(--sp-3); padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+.skel-line { height: 20px; }
+.skel-line.w30 { width: 30%; }
+.skel-line.w60 { width: 60%; }
+.skel-line.w80 { width: 80%; }
+.list-state { display: grid; gap: var(--sp-3); }
+.list-state-text { text-align: center; font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
+@media (prefers-reduced-motion: reduce) { .ds-skel, .ds-dot-live { animation: none; } }
+
+/* ── 4g. FINISHED LIST ────────────────────────────────────────
+   One card per result: the match, the result in words (the winner's colour + shape), the scores per game. */
+.finished-card { display: grid; gap: var(--sp-3); padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+.finished-header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
+.result-badge { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); background: var(--s3); border: 1px solid var(--line-strong); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); }
+.result-badge.red { background: var(--red-dim); border-color: var(--red); color: var(--red-text); }
+.result-badge.blue { background: var(--blue-dim); border-color: var(--blue); color: var(--blue-text); }
+.result-badge.draw { background: var(--gold-dim); border-color: var(--gold-line); color: var(--gold); }
+.score-grid { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.score-grid thead th { padding: 0 0 var(--sp-1); font: 600 var(--fs-13)/1.3 var(--font-ui); color: var(--t-mid); text-align: center; }
+.score-grid thead th:first-child { width: auto; }
+.score-grid thead th:not(:first-child), .score-grid td { width: 64px; }
+.score-grid tbody th { padding: var(--sp-2) var(--sp-2) var(--sp-2) 0; text-align: left; font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); overflow-wrap: anywhere; vertical-align: middle; }
+.score-grid tbody tr + tr > * { border-top: 1px solid var(--line); }
+.score-grid td { text-align: center; font: 400 var(--fs-40)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--t-mid); }
+.score-grid td.win { color: var(--gold); }
+.fc-side { display: flex; align-items: center; gap: var(--sp-2); }
+.fc-names { display: grid; }
+.fc-won { width: 22px; height: 22px; color: var(--gold); }
+.finished-umpire { display: flex; align-items: center; gap: var(--sp-2); padding-top: var(--sp-3); border-top: 1px solid var(--line); font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }

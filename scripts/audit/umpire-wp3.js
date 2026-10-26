@@ -70,8 +70,9 @@
     const hit = (a, b) => a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1; const overlaps = [];
     [["#btnRedMinus", "#scoreRed"], ["#btnRedMinus", "#redNames"], ["#btnBlueMinus", "#scoreBlue"], ["#btnBlueMinus", "#blueNames"]].forEach(([a, b]) => { if (hit(R(a), R(b))) overlaps.push(a + " x " + b); });
     out.minusOverlaps = overlaps;
-    out.small48 = A.small("#screen-scoring").concat(A.small("#landscapeInfo"));
-    out.taps = [...document.querySelectorAll("#screen-scoring button")].filter(A.vis).length + ([...document.querySelectorAll("#landscapeInfo button")].filter(A.vis).length);
+    // v3: the landscape floating bar is gone (its buttons are the deck's), so the screen's own buttons are all there is
+    out.small48 = A.small("#screen-scoring");
+    out.taps = [...document.querySelectorAll("#screen-scoring button")].filter(A.vis).length;
     const c = A.contrast("#screen-scoring", 5); out.contrast = c.total + "/" + c.fail; out.docSW = document.documentElement.scrollWidth;
     exitMatch(); await sleep(100); return out;
   };
