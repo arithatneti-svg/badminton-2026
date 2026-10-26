@@ -333,7 +333,7 @@ body.admin-mode .pdir-list { --col: 480px; }
 .wizard-step::before { content: ''; position: absolute; top: 15px; left: calc(-50% - 4px + 20px); right: calc(50% + 20px); height: 2px; background: var(--line-strong); }
 .wizard-step:first-child::before { display: none; }
 .wizard-step.active::before, .wizard-step.done::before { background: var(--gold-line); }
-.wz-n { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--s3); color: var(--t-mid); font: 400 var(--fs-18)/1 var(--font-num); }
+.wz-n { position: relative; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--s3); color: var(--t-mid); font: 400 var(--fs-18)/1 var(--font-num); }
 .wizard-step.active { color: var(--t-hi); }
 .wizard-step.active .wz-n { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
 .wizard-step.done { color: var(--t-mid); }

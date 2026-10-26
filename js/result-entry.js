@@ -1,16 +1,4 @@
-// ── BADMINTON SCORE VALIDATION ──
-function isValidBadmintonScore(a, b) {
-  // ต้องได้อย่างน้อย 21 และนำ 2 แต้ม หรือจบที่ 30:29
-  if (a < 0 || b < 0) return false;
-  const winner = Math.max(a, b);
-  const loser  = Math.min(a, b);
-  if (winner < 21) return false;          // ยังไม่ถึง 21
-  if (winner === 30 && loser === 29) return true;  // cap 30:29
-  if (winner > 30 || loser > 29) return false;    // เกิน cap
-  if (winner - loser < 2) return false;   // นำไม่พอ 2 แต้ม
-  return true;
-}
-
+// ── SCORE VALIDATION (warn, never block) ──
 function scoreValidationMsg(a, b, label) {
   if (a < 0 || b < 0) return `${label}: คะแนนติดลบไม่ได้`;
   const winner = Math.max(a, b), loser = Math.min(a, b);

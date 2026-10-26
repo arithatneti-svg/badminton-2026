@@ -5,21 +5,22 @@
    js/effects.js shows the overlay with display:block and fades each piece in by writing opacity/transform inline after two frames,
    so every piece starts at opacity 0 here and carries its own transition (closeTrophy() puts them back).
    ============================================================ */
-#trophyOverlay { display: none; position: fixed; inset: 0; z-index: var(--z-modal); overflow-x: hidden; overflow-y: auto; background: var(--bg); }
-#confettiCanvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-#trophyBg { position: fixed; inset: 0; z-index: 0; transition: background 1.2s; }
+#trophyOverlay { --cer-z-bg: 0; --cer-z-confetti: 1; --cer-z-content: 10; --cer-z-bar: 100;   /* local layers inside the overlay */
+  display: none; position: fixed; inset: 0; z-index: var(--z-modal); overflow-x: hidden; overflow-y: auto; background: var(--bg); }
+#confettiCanvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: var(--cer-z-confetti); }
+#trophyBg { position: fixed; inset: 0; z-index: var(--cer-z-bg); transition: background 1.2s; }
 #trophyBg.is-red { background: radial-gradient(ellipse at 35% 25%, var(--red-fill) 0%, var(--bg) 65%); }
 #trophyBg.is-blue { background: radial-gradient(ellipse at 65% 25%, var(--blue-fill) 0%, var(--bg) 65%); }
 #trophyBg.is-draw { background: radial-gradient(ellipse at 50% 25%, var(--gold-dim) 0%, var(--bg) 65%); }
 
 /* the two buttons stay on screen while the ceremony scrolls */
-.cer-bar { position: fixed; z-index: 100; top: calc(var(--sat) + var(--sp-3)); right: calc(var(--sar) + var(--sp-3)); display: flex; gap: var(--sp-2); }
+.cer-bar { position: fixed; z-index: var(--cer-z-bar); top: calc(var(--sat) + var(--sp-3)); right: calc(var(--sar) + var(--sp-3)); display: flex; gap: var(--sp-2); }
 .cer-bar .ds-btn { --btn-bg: var(--s2); --btn-line: var(--line-strong); --btn-fg: var(--t-hi); }
 @media (hover: hover) { .cer-bar .ds-btn:hover { --btn-bg: var(--s4); } }
 @media (max-width: 479px) { .cer-info { padding: 0 var(--sp-3); font-size: var(--fs-14); } }
 
 .trophy-content {
-  position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center;
+  position: relative; z-index: var(--cer-z-content); display: flex; flex-direction: column; align-items: center;
   min-height: 100vh; min-height: 100dvh; padding: calc(var(--sp-8) + var(--sat)) var(--sp-4) calc(var(--sp-8) + var(--sab)); text-align: center;   /* top: clears the two buttons */
 }
 
@@ -32,6 +33,7 @@
 @media (max-width: 599px) { #trophyWinnerLabel { letter-spacing: .24em; } }
 #trophySvgWrap { margin-bottom: var(--sp-5); opacity: 0; transform: scale(.2) translateY(80px); transition: opacity 1s .4s, transform 1s .4s cubic-bezier(.34, 1.56, .64, 1); }
 #trophySvgWrap svg { max-width: 90vw; height: auto; }
+#trophySvg { filter: drop-shadow(0 0 40px color-mix(in srgb, var(--gold) 80%, transparent)) drop-shadow(0 0 90px color-mix(in srgb, var(--gold) 40%, transparent)); }
 
 #trophyTeamName {
   font-family: var(--font-num); font-size: clamp(3em, 11vw, 7.5em); line-height: 1; letter-spacing: .06em;

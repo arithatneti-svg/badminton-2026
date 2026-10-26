@@ -96,7 +96,7 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 
 /* header: title (+ a chip under it) and the close button; sticks while a long sheet scrolls */
 .dlg-head {
-  position: sticky; top: calc(-1 * var(--sp-5)); z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);   /* sticky offsets count from the scroller's CONTENT box: minus the sheet's padding = flush with its edge */
+  position: sticky; top: calc(-1 * var(--sp-5)); z-index: var(--z-sticky); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);   /* sticky offsets count from the scroller's CONTENT box: minus the sheet's padding = flush with its edge */
   margin: calc(-1 * var(--sp-5)) calc(-1 * var(--sp-5)) var(--sp-4); padding: var(--sp-4) var(--sp-3) var(--sp-3) var(--sp-5);
   background: var(--s2); border-bottom: 1px solid var(--line);
 }
@@ -105,7 +105,7 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 .ds-sheet-title { overflow-wrap: anywhere; }
 /* footer with the actions; sticks to the bottom of a long sheet */
 .dlg-foot {
-  position: sticky; bottom: calc(-1 * (var(--sp-5) + var(--sab))); z-index: 2; margin: var(--sp-5) calc(-1 * var(--sp-5)) calc(-1 * (var(--sp-5) + var(--sab)));
+  position: sticky; bottom: calc(-1 * (var(--sp-5) + var(--sab))); z-index: var(--z-sticky); margin: var(--sp-5) calc(-1 * var(--sp-5)) calc(-1 * (var(--sp-5) + var(--sab)));
   padding: var(--sp-3) var(--sp-5) calc(var(--sp-3) + var(--sab)); background: var(--s2); border-top: 1px solid var(--line);
 }
 @media (min-width: 640px) {
@@ -204,7 +204,7 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 .tag-checkbox-item:has(input:checked) { background: var(--gold-dim); border-color: var(--gold-line); }
 .tag-checkbox-item:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
 /* the real checkbox is stretched over the whole row (invisible), so the tap target is the row; the box you see is drawn by ::before */
-.tag-checkbox-item input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.tag-checkbox-item input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .tag-checkbox-item span { display: flex; align-items: center; gap: var(--sp-3); font: 600 var(--fs-14)/var(--lh-th) var(--font-th); color: var(--t-hi); overflow-wrap: anywhere; }
 .tag-checkbox-item span::before { content: ""; flex: none; width: 24px; height: 24px; border: 2px solid var(--t-low); border-radius: 6px; background: var(--s3); transition: background-color var(--dur-press) var(--ease-out), border-color var(--dur-press) var(--ease-out); }
 .tag-checkbox-item input:checked + span::before { background: var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%2314120a'%3E%3Cpath d='M229.66 77.66l-128 128a8 8 0 0 1-11.32 0l-56-56a8 8 0 0 1 11.32-11.32L96 188.69 218.34 66.34a8 8 0 0 1 11.32 11.32Z'/%3E%3C/svg%3E") center / 18px no-repeat; border-color: var(--gold); }

@@ -271,7 +271,7 @@ function courtSelectHtml(m) {
   const opts = [];
   if (!m.court) opts.push('<option value="" selected>ยังไม่ระบุคอร์ต</option>');
   for (let n = 1; n <= 10; n++) opts.push(`<option value="${n}"${Number(m.court) === n ? ' selected' : ''}>คอร์ต ${n}</option>`);
-  return `<select class="ds-select" aria-label="เลขคอร์ตของ ${escHtml(m.id)}" onchange="adminSetCourt('${escHtml(m.id)}', this.value)">${opts.join('')}</select>`;
+  return `<select class="ds-select am-court" aria-label="เลขคอร์ตของ ${escHtml(m.id)}" onchange="adminSetCourt('${escHtml(m.id)}', this.value)">${opts.join('')}</select>`;
 }
 
 // An admin sets or corrects the court of a match an umpire has taken (the umpire can do the same
@@ -334,17 +334,16 @@ function renderAdminOngoingMatches() {
       <div class="am-head">
         <span class="am-id">${escHtml(m.id && m.id !== 'undefined' ? m.id : '—')}</span>
         <span class="ds-chip">รอบ ${escHtml(String(m.round || '?'))}</span>
-        ${courtPillHtml(m)}${bad}
-        <span class="am-state">${state}${ump}</span>
+        ${isLive ? courtSelectHtml(m) : courtPillHtml(m)}${bad}
+        <span class="am-state">${state}${isLive ? matchStatusHtml(m) : ''}${ump}</span>
       </div>
       <div class="am-teams">
         <div class="am-side"><span class="ds-team ds-team-red">RED</span><span class="am-names">${formatTeamNames(m.redNames)}</span></div>
         <div class="am-side"><span class="ds-team ds-team-blue">BLUE</span><span class="am-names">${formatTeamNames(m.blueNames)}</span></div>
       </div>
-      ${isLive ? `<div class="am-court">${matchStatusHtml(m)}${courtSelectHtml(m)}</div>` : ''}
       <div class="am-foot">
         ${isLive ? `<button type="button" class="ds-btn ds-btn-sm" onclick="adminReleaseMatch('${m.id}')" title="ให้กรรมการหลุดจากแมตช์นี้ แล้วกลับเข้าคิว">${dsIcon('arrow-counter-clockwise')}ปล่อยแมตช์</button>` : ''}
-        ${corrupt ? '' : `<button type="button" class="ds-btn ds-btn-sm" onclick="openResultModal('${m.id}')">${dsIcon('pencil-simple')}ใส่ผลเอง</button>`}
+        ${corrupt ? '' : `<button type="button" class="ds-btn ds-btn-sm am-force" onclick="openResultModal('${m.id}')">${dsIcon('pencil-simple')}ใส่ผลเอง</button>`}
         <button type="button" class="ds-btn ds-btn-sm ds-btn-danger am-del" onclick="removeOngoingMatch('${m.id}')">${dsIcon('trash')}ลบ</button>
       </div>
     </article>`;

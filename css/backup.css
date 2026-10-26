@@ -20,3 +20,4 @@
 /* the one-time photo move (its text and button come from js/player-photo.js) */
 .bk-box { margin-top: var(--sp-4); padding: var(--sp-3) var(--sp-4); background: var(--s1); border: 1px solid var(--line-strong); border-radius: var(--r-md); font: 500 var(--fs-13)/var(--lh-th) var(--font-th); color: var(--t-mid); }
 .bk-box:empty { padding: 0; border: 0; margin: 0; }
+.bk-box .btn { min-height: var(--tap); margin-top: var(--sp-2); }

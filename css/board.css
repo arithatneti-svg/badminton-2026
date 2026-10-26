@@ -134,7 +134,7 @@
 .mb-chip {
   display: inline-flex; align-items: center; gap: var(--sp-2); max-width: 100%; min-height: var(--tap); padding: 4px var(--sp-3) 4px 6px;
   border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--s3); color: var(--t-hi);
-  font: 600 var(--fs-14)/1.3 var(--font-ui); text-align: left; cursor: pointer; touch-action: manipulation;
+  font: 600 var(--fs-14)/1.3 var(--font-ui); text-align: left; overflow-wrap: anywhere; cursor: pointer; touch-action: manipulation;
   transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
 }
 @media (hover: hover) { .mb-chip:hover { background: var(--s4); } }
@@ -165,9 +165,12 @@
 .am-side .ds-team { font-size: var(--fs-13); }
 .am-names { display: flex; flex-wrap: wrap; gap: 0 var(--sp-2); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-hi); overflow-wrap: anywhere; }
 .am-name + .am-name::before { content: '·'; margin-right: var(--sp-2); color: var(--t-low); }
-.am-court { display: flex; align-items: center; gap: var(--sp-3); }
-.am-court .ds-select { width: auto; min-width: 128px; min-height: var(--tap); margin-left: auto; padding-top: 4px; padding-bottom: 4px; font-size: var(--fs-14); }
+/* the court picker IS the court pill of a live card: a gold outline, a caret, 44 px to hit */
+.am-head .am-court { width: auto; min-width: 132px; min-height: var(--tap); padding: 0 34px 0 var(--sp-4); background-position: right 12px center; background-size: 16px; border-color: var(--gold-line); border-radius: var(--r-pill); color: var(--gold); font: 700 var(--fs-14)/1.2 var(--font-th); }
 .am-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); padding-top: var(--sp-3); border-top: 1px solid var(--line); }
+/* the two actions that change results are told apart from the neutral ones: ใส่ผลเอง amber, ลบ rose (and apart from each other by the gap) */
+.am-force { --btn-fg: var(--warn); --btn-line: var(--warn-line); }
+@media (hover: hover) { .am-force:hover { --btn-bg: var(--warn-fill); } }
 .am-del { margin-left: auto; }
 .am-foot .ds-btn-sm { min-height: var(--tap); }
 .am-empty .ds-empty-art { max-width: 200px; }
