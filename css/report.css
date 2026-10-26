@@ -82,9 +82,9 @@
 #report .rp-hb-draw { background: var(--t-low); }
 #report .rp-hb-blue { background: var(--blue); }
 @media (min-width: 900px) {
-  #report .rp-hs { padding: var(--sp-5) var(--sp-4); }
-  #report .rp-hs-val { font-size: 6rem; }
-  #report .rp-hs-draw .rp-hs-val { font-size: 4rem; }
+  #report .rp-hs { padding: var(--sp-4); }
+  #report .rp-hs-val { font-size: 4.75rem; }
+  #report .rp-hs-draw .rp-hs-val { font-size: 3.5rem; }
   #report .rp-hs-lbl { font-size: var(--fs-14); }
   #report .rp-hero-bar { height: 10px; }
 }
@@ -151,8 +151,8 @@
 #report .rp-kpi.is-leader .rp-kpi-v { align-self: center; padding: 0; font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); text-align: end; overflow-wrap: anywhere; }
 @media (min-width: 900px) {
   #report .rp-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: var(--sp-4); }
-  #report .rp-kpi { padding: var(--sp-4) var(--sp-3); }
-  #report .rp-kpi-v { font-size: var(--fs-40); }
+  #report .rp-kpi { padding: var(--sp-3); }
+  #report .rp-kpi-v { font-size: var(--fs-32); }
   #report .rp-kpi.is-leader { grid-column: auto; grid-auto-flow: row; justify-content: center; justify-items: center; border-top: 0; border-inline-start: 1px solid var(--line); text-align: center; }
   #report .rp-kpi.is-leader .rp-kpi-l { order: 1; }
   #report .rp-kpi.is-leader .rp-kpi-v { font-size: var(--fs-20); text-align: center; padding-top: 2px; }

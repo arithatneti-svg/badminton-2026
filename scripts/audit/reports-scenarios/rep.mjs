@@ -30,7 +30,8 @@ export async function repBench(page, { role = 'admin', tab = 'report', hist = 'f
     }
     if (o.stress) {
       const long = ['พิพัฒน์พงศ์ศักดิ์สิทธิ์ณัฐวุฒิชัยสกุล', 'Alexandria-Wolfeschlegelstein Montgomery', 'สมเด็จพระเจ้าอยู่หัวภูมิพลอดุลยเดช'];
-      A.board.server.players.slice(0, 6).forEach((p, i) => { p.name = long[i % 3]; });
+      // the top of the table: the players with the most points in the archived season
+      ['R10', 'B15', 'B22', 'B01', 'B02', 'B20'].forEach((id, i) => { const p = A.board.server.players.find(x => x.id === id); if (p) p.name = long[i % 3]; });
       (A.board.server.matchHistory || []).slice(0, 4).forEach((m, i) => {
         m.redNames = long[i % 3] + ' (G1) & ' + long[(i + 1) % 3] + ' (G2)';
         m.blueNames = long[(i + 2) % 3] + ' (G3) & ผู้เล่นชื่อยาวมากๆๆๆๆๆๆๆๆ (G2)';
@@ -116,6 +117,8 @@ export default [
   mk('rep-players-long', PHT, async (page) => {           // 30+ character names
     await repBench(page, { tab: 'report', stress: true });
     await page.wait(400);
+    await page.eval("(() => { const e = document.querySelector('#statsCardList .rp-prow, #statsTableBody tr'); if (e) { e.scrollIntoView(); window.scrollBy(0, -70); } })()");
+    await page.wait(200);
     await page.shot('');
   }),
 
@@ -173,6 +176,8 @@ export default [
     await repBench(page, { tab: 'report', stress: true });
     await page.eval("switchReportTab('matches', document.getElementById('rtab-matches'))");
     await page.wait(400);
+    await page.eval("(() => { const e = document.querySelector('.rp-round'); if (e) { e.scrollIntoView(); window.scrollBy(0, -70); } })()");
+    await page.wait(200);
     await page.shot('');
   }),
 
