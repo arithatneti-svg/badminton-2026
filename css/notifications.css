@@ -83,8 +83,8 @@
 
 /* the reaction (emoji burst, the one place emoji are the content) */
 #matchNotiGifWrap:empty { display: none; }
-.noti-reaction { display: grid; justify-items: center; gap: var(--sp-2); padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
-.noti-reaction-emoji { font-size: clamp(56px, 16vw, 84px); line-height: 1; animation: notiReactionPop var(--dur-in) var(--ease-pop) both; }
+.noti-reaction { display: grid; justify-items: center; gap: var(--sp-2); padding: var(--sp-3); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+.noti-reaction-emoji { font-size: clamp(48px, 13vw, 68px); line-height: 1; animation: notiReactionPop var(--dur-in) var(--ease-pop) both; }
 .noti-reaction-text { color: var(--t-hi); font: 800 var(--fs-20)/var(--lh-th) var(--font-ui); text-align: center; }
 @keyframes notiReactionPop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
 
@@ -102,7 +102,14 @@
 .mnoti-ov-gap.red { color: var(--red-text); }
 .mnoti-ov-gap.blue { color: var(--blue-text); }
 
-/* "ถัดไป (+N)" and "ปิดทั้งหมด" side by side when other results wait behind this one (P-32) */
-#matchNotiActions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+/* "ถัดไป (+N)" and "ปิดทั้งหมด" side by side when other results wait behind this one (P-32).
+   The row stays pinned to the bottom edge of the card while the rest scrolls, so the way out is always on screen. */
+#matchNotiActions {
+  position: sticky; bottom: calc(-1 * (var(--sp-5) + var(--sab))); z-index: 1; display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin: 0 calc(-1 * var(--sp-4)) calc(-1 * (var(--sp-5) + var(--sab)));
+  padding: var(--sp-3) var(--sp-4) calc(var(--sp-4) + var(--sab));
+  background: var(--s2); border-top: 1px solid var(--line);
+}
+@media (min-width: 640px) { #matchNotiActions { bottom: calc(-1 * var(--sp-5)); margin-bottom: calc(-1 * var(--sp-5)); padding-bottom: var(--sp-4); border-radius: 0 0 var(--r-lg) var(--r-lg); } }
 #matchNotiActions .ds-btn { flex: 1 1 140px; }
 #matchNotiCloseAll[hidden] { display: none; }
