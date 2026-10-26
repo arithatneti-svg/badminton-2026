@@ -367,7 +367,15 @@ function initDeviceSupport(force) {
   return { fsApi, standalone, canFs };
 }
 // the brand mark above the login form (shared/art.js)
-{ const lm = document.getElementById('loginMark'); if (lm && window.dsMark) lm.innerHTML = dsMark(72); }
+{
+  const lm = document.getElementById('loginMark');
+  if (lm) {
+    lm.innerHTML = dsMark(72);
+    // decorative here: the title and subtitle next to it already say what this page is (the mark's own label is English)
+    const s = lm.firstElementChild;
+    if (s) { s.removeAttribute('role'); s.removeAttribute('aria-label'); s.setAttribute('aria-hidden', 'true'); }
+  }
+}
 initDeviceSupport();
 let _fsIndicatorTimer = null;
 
