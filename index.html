@@ -911,50 +911,71 @@ try {
 <!-- ── MODALS (ADMIN ONLY) ── -->
 
 <!-- RESULT CONFIRM MODAL -->
-<div id="confirmModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title" style="color:var(--green);">✅ Confirm Result</div>
-    <div id="confirmText" style="margin:20px 0; font-size:1.2em; line-height:1.6;"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="finalizeResult()">✓ Confirm & Save</button>
-      <button class="btn btn-danger" onclick="closeConfirm()">✕ Back</button>
+<div id="confirmModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="ds-sheet">
+    <h2 id="confirmTitle" class="ds-sheet-title">ยืนยันผลการแข่งขัน</h2>
+    <div id="confirmText" class="cf-body"></div>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="finalizeResult()">ยืนยันและบันทึก</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeConfirm()">กลับไปแก้</button>
     </div>
   </div>
 </div>
 
-<!-- FORCE RESULT MODAL -->
-<div id="resultModal" class="modal-overlay">
-  <div class="modal-box fr-box">
-    <div class="fr-head">
-      <div class="fr-title">⚡ FORCE RESULT</div>
-      <span class="fr-chip" id="forceMatchSub"></span>
+<!-- FORCE RESULT MODAL (ใส่ผลเอง) -->
+<div id="resultModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="forceTitle">
+  <div class="ds-sheet fr-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t">
+        <h2 id="forceTitle" class="ds-sheet-title">ใส่ผลเอง</h2>
+        <span class="ds-chip" id="forceMatchSub"></span>
+      </div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
     <input type="hidden" id="currentMatchId">
     <div class="fr-teams" id="forceTeams"></div>
     <div class="fr-scores">
-      <div class="fr-grow">
-        <span class="fr-glabel">GAME 1</span>
+      <div class="fr-sides" aria-hidden="true"><span class="ds-team ds-team-red">RED</span><span></span><span class="ds-team ds-team-blue">BLUE</span></div>
+      <div class="fr-game" role="group" aria-labelledby="frG1">
+        <div class="fr-glabel" id="frG1">เกม 1</div>
         <div class="fr-ins">
-          <input type="number" id="g1Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
-          <span class="fr-dash">–</span>
-          <input type="number" id="g1Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+          <div class="fr-stepper red">
+            <button type="button" class="fr-step" aria-label="ลดคะแนนทีมแดง เกม 1" onclick="scoreStep('g1Red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+            <input type="number" id="g1Red" class="fr-in" min="0" max="30" inputmode="numeric" aria-label="คะแนนทีมแดง เกม 1" oninput="updateForceLiveResult()">
+            <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมแดง เกม 1" onclick="scoreStep('g1Red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+          </div>
+          <span class="fr-dash" aria-hidden="true">–</span>
+          <div class="fr-stepper blue">
+            <button type="button" class="fr-step" aria-label="ลดคะแนนทีมน้ำเงิน เกม 1" onclick="scoreStep('g1Blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+            <input type="number" id="g1Blue" class="fr-in" min="0" max="30" inputmode="numeric" aria-label="คะแนนทีมน้ำเงิน เกม 1" oninput="updateForceLiveResult()">
+            <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมน้ำเงิน เกม 1" onclick="scoreStep('g1Blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+          </div>
         </div>
       </div>
-      <div class="fr-grow">
-        <span class="fr-glabel">GAME 2</span>
+      <div class="fr-game" role="group" aria-labelledby="frG2">
+        <div class="fr-glabel" id="frG2">เกม 2</div>
         <div class="fr-ins">
-          <input type="number" id="g2Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
-          <span class="fr-dash">–</span>
-          <input type="number" id="g2Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+          <div class="fr-stepper red">
+            <button type="button" class="fr-step" aria-label="ลดคะแนนทีมแดง เกม 2" onclick="scoreStep('g2Red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+            <input type="number" id="g2Red" class="fr-in" min="0" max="30" inputmode="numeric" aria-label="คะแนนทีมแดง เกม 2" oninput="updateForceLiveResult()">
+            <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมแดง เกม 2" onclick="scoreStep('g2Red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+          </div>
+          <span class="fr-dash" aria-hidden="true">–</span>
+          <div class="fr-stepper blue">
+            <button type="button" class="fr-step" aria-label="ลดคะแนนทีมน้ำเงิน เกม 2" onclick="scoreStep('g2Blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+            <input type="number" id="g2Blue" class="fr-in" min="0" max="30" inputmode="numeric" aria-label="คะแนนทีมน้ำเงิน เกม 2" oninput="updateForceLiveResult()">
+            <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมน้ำเงิน เกม 2" onclick="scoreStep('g2Blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+          </div>
         </div>
       </div>
     </div>
-    <div class="fr-live" id="forceLiveResult"></div>
-    <div class="fr-btns">
-      <button class="fr-cancel" onclick="closeModal()">ยกเลิก</button>
-      <button class="fr-save" onclick="previewResult()">✓ บันทึกผล</button>
+    <div id="forceErr" class="ds-banner is-err fr-err" role="alert" hidden></div>
+    <div class="fr-live" id="forceLiveResult" role="status" aria-live="polite"></div>
+    <p class="ds-help fr-help">พิมพ์คะแนน → ดูผลที่คำนวณ → กดบันทึกผลเพื่อยืนยัน</p>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="previewResult()">บันทึกผล</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeModal()">ยกเลิก</button>
     </div>
-    <div class="fr-help">พิมพ์คะแนน → แสดงผลคำนวณอัตโนมัติ → กดบันทึกผลเพื่อยืนยัน</div>
   </div>
 </div>
 
@@ -1083,89 +1104,120 @@ try {
   </div>
 </div>
 
-<!-- QUICK SCORE MODAL -->
-<div id="quickScoreModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:400px;">
-    <div class="modal-title" style="font-size:1.5em;">⚡ Quick Score</div>
-    <div style="display:flex;gap:20px;justify-content:center;margin-bottom:28px; margin-top:20px;">
-      <div style="text-align:center;">
-        <div class="red-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:3px;margin-bottom:10px;">RED TEAM</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button class="btn btn-danger" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';" onclick="quickAdj('red',-1)">−</button>
-          <span id="qsRed" style="font-family:'Bebas Neue',sans-serif;font-size:2em;color:var(--red);min-width:40px;">0</span>
-          <button class="btn" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';background:rgba(255,59,59,0.15);color:var(--red);" onclick="quickAdj('red',1)">+</button>
+<!-- QUICK SCORE MODAL (team totals, superadmin) -->
+<div id="quickScoreModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="quickScoreTitle">
+  <div class="ds-sheet" style="max-width:440px;">
+    <div class="dlg-head">
+      <div class="dlg-t"><h2 id="quickScoreTitle" class="ds-sheet-title">ปรับคะแนนรวมทีม</h2></div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeQuickScore()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+    </div>
+    <div class="qs-teams">
+      <div class="qs-team red">
+        <span class="ds-team ds-team-red">RED</span>
+        <div class="qs-n" id="qsRed" role="status" aria-live="polite">0</div>
+        <div class="qs-btns">
+          <button type="button" class="ds-btn" aria-label="ลดคะแนนทีมแดง" onclick="quickAdj('red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+          <button type="button" class="ds-btn" aria-label="เพิ่มคะแนนทีมแดง" onclick="quickAdj('red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
         </div>
       </div>
-      <div style="text-align:center;">
-        <div class="blue-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:3px;margin-bottom:10px;">BLUE TEAM</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button class="btn btn-danger" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';" onclick="quickAdj('blue',-1)">−</button>
-          <span id="qsBlue" style="font-family:'Bebas Neue',sans-serif;font-size:2em;color:var(--blue);min-width:40px;">0</span>
-          <button class="btn" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';background:rgba(59,142,255,0.15);color:var(--blue);" onclick="quickAdj('blue',1)">+</button>
+      <div class="qs-team blue">
+        <span class="ds-team ds-team-blue">BLUE</span>
+        <div class="qs-n" id="qsBlue" role="status" aria-live="polite">0</div>
+        <div class="qs-btns">
+          <button type="button" class="ds-btn" aria-label="ลดคะแนนทีมน้ำเงิน" onclick="quickAdj('blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+          <button type="button" class="ds-btn" aria-label="เพิ่มคะแนนทีมน้ำเงิน" onclick="quickAdj('blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
         </div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="applyQuickScore()">✓ Apply</button>
-      <button class="btn btn-danger" onclick="closeQuickScore()">✕ Cancel</button>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="applyQuickScore()">ใช้ค่านี้</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeQuickScore()">ยกเลิก</button>
     </div>
   </div>
 </div>
 
-<!-- EDIT RESULT MODAL -->
-<div id="editResultModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:560px;">
-    <div class="modal-title" style="color:#f5c842;">✏️ Edit Match</div>
-    <div class="modal-match-info" id="editModalMatchInfo"></div>
+<!-- EDIT RESULT MODAL (superadmin) -->
+<div id="editResultModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="editResTitle">
+  <div class="ds-sheet fr-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t"><h2 id="editResTitle" class="ds-sheet-title">แก้ไขผลแมตช์</h2></div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeEditModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+    </div>
+    <div class="dlg-info" id="editModalMatchInfo"></div>
     <input type="hidden" id="editMatchHistoryId">
 
-    <!-- ── Player Reassignment Section ── -->
-    <div id="editPlayersSection" style="margin-bottom:18px;">
-      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">🔄 แก้ไขผู้เล่น (เลือกใหม่ได้)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:5px;letter-spacing:1px;">🔴 RED TEAM</div>
-          <select id="editR1" class="rpt-select" style="width:100%;margin-bottom:6px;border-color:rgba(255,59,92,0.3);background:rgba(255,59,92,0.05);"></select>
-          <select id="editR2" class="rpt-select" style="width:100%;border-color:rgba(255,59,92,0.3);background:rgba(255,59,92,0.05);"></select>
+    <section id="editPlayersSection" class="ed-sec">
+      <h3 class="ed-h">ผู้เล่น (เลือกใหม่ได้)</h3>
+      <div class="ed-cols">
+        <div class="ed-col red">
+          <span class="ds-team ds-team-red">RED</span>
+          <select id="editR1" class="ds-select" aria-label="ผู้เล่นทีมแดง คนที่ 1"></select>
+          <select id="editR2" class="ds-select" aria-label="ผู้เล่นทีมแดง คนที่ 2"></select>
         </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:5px;letter-spacing:1px;">🔵 BLUE TEAM</div>
-          <select id="editB1" class="rpt-select" style="width:100%;margin-bottom:6px;border-color:rgba(59,142,255,0.3);background:rgba(59,142,255,0.05);"></select>
-          <select id="editB2" class="rpt-select" style="width:100%;border-color:rgba(59,142,255,0.3);background:rgba(59,142,255,0.05);"></select>
+        <div class="ed-col blue">
+          <span class="ds-team ds-team-blue">BLUE</span>
+          <select id="editB1" class="ds-select" aria-label="ผู้เล่นทีมน้ำเงิน คนที่ 1"></select>
+          <select id="editB2" class="ds-select" aria-label="ผู้เล่นทีมน้ำเงิน คนที่ 2"></select>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ── Score Edit ── -->
-    <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">📝 แก้ไขคะแนน</div>
-    <div class="score-inputs">
-      <div class="score-input-row">
-        <span class="game-label">Game 1</span>
-        <input type="number" id="eg1Red" placeholder="R" min="0">
-        <span class="score-sep">—</span>
-        <input type="number" id="eg1Blue" placeholder="B" min="0">
+    <section class="ed-sec">
+      <h3 class="ed-h">คะแนน</h3>
+      <div class="fr-scores">
+        <div class="fr-sides" aria-hidden="true"><span class="ds-team ds-team-red">RED</span><span></span><span class="ds-team ds-team-blue">BLUE</span></div>
+        <div class="fr-game" role="group" aria-labelledby="efG1">
+          <div class="fr-glabel" id="efG1">เกม 1</div>
+          <div class="fr-ins">
+            <div class="fr-stepper red">
+              <button type="button" class="fr-step" aria-label="ลดคะแนนทีมแดง เกม 1" onclick="scoreStep('eg1Red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+              <input type="number" id="eg1Red" class="fr-in" min="0" inputmode="numeric" aria-label="คะแนนทีมแดง เกม 1">
+              <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมแดง เกม 1" onclick="scoreStep('eg1Red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+            </div>
+            <span class="fr-dash" aria-hidden="true">–</span>
+            <div class="fr-stepper blue">
+              <button type="button" class="fr-step" aria-label="ลดคะแนนทีมน้ำเงิน เกม 1" onclick="scoreStep('eg1Blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+              <input type="number" id="eg1Blue" class="fr-in" min="0" inputmode="numeric" aria-label="คะแนนทีมน้ำเงิน เกม 1">
+              <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมน้ำเงิน เกม 1" onclick="scoreStep('eg1Blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="fr-game" role="group" aria-labelledby="efG2">
+          <div class="fr-glabel" id="efG2">เกม 2</div>
+          <div class="fr-ins">
+            <div class="fr-stepper red">
+              <button type="button" class="fr-step" aria-label="ลดคะแนนทีมแดง เกม 2" onclick="scoreStep('eg2Red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+              <input type="number" id="eg2Red" class="fr-in" min="0" inputmode="numeric" aria-label="คะแนนทีมแดง เกม 2">
+              <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมแดง เกม 2" onclick="scoreStep('eg2Red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+            </div>
+            <span class="fr-dash" aria-hidden="true">–</span>
+            <div class="fr-stepper blue">
+              <button type="button" class="fr-step" aria-label="ลดคะแนนทีมน้ำเงิน เกม 2" onclick="scoreStep('eg2Blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+              <input type="number" id="eg2Blue" class="fr-in" min="0" inputmode="numeric" aria-label="คะแนนทีมน้ำเงิน เกม 2">
+              <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมน้ำเงิน เกม 2" onclick="scoreStep('eg2Blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="score-input-row">
-        <span class="game-label">Game 2</span>
-        <input type="number" id="eg2Red" placeholder="R" min="0">
-        <span class="score-sep">—</span>
-        <input type="number" id="eg2Blue" placeholder="B" min="0">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="submitEditResult()" style="font-size:16px; padding:12px 28px;">✓ Save Edit</button>
-      <button class="btn btn-danger" onclick="closeEditModal()" style="font-size:16px; padding:12px 28px;">✕ Cancel</button>
+    </section>
+
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="submitEditResult()">บันทึก</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeEditModal()">ยกเลิก</button>
     </div>
   </div>
 </div>
 
 <!-- TAG EDIT MODAL -->
-<div id="editTagsModal" class="modal-overlay">
-  <div class="modal-box" style="max-width: 500px;">
-    <div class="modal-title" style="color:var(--gold);">🏷️ Edit Match Tags</div>
-    <div class="modal-match-info" id="editTagsMatchInfo"></div>
+<div id="editTagsModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="editTagsTitle">
+  <div class="ds-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t"><h2 id="editTagsTitle" class="ds-sheet-title">แก้ Tag ของแมตช์</h2></div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeEditTagsModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+    </div>
+    <div class="dlg-info" id="editTagsMatchInfo"></div>
     <input type="hidden" id="editTagsMatchId">
-    
+
     <div class="tag-checkbox-list" id="tagCheckboxList">
         <label class="tag-checkbox-item"><input type="checkbox" value="epic_red" data-label="🔥 Epic Comeback G1 Red" data-class="tag-comeback"><span>🔥 Epic Comeback (เฉพาะทีมแดง)</span></label>
         <label class="tag-checkbox-item"><input type="checkbox" value="epic_blue" data-label="🔥 Epic Comeback G1 Blue" data-class="tag-comeback"><span>🔥 Epic Comeback (เฉพาะทีมน้ำเงิน)</span></label>
@@ -1175,9 +1227,9 @@ try {
         <label class="tag-checkbox-item"><input type="checkbox" value="blowout" data-label="🌪️ ยำใหญ่ (Blowout)" data-class="tag-blowout"><span>🌪️ ยำใหญ่ (Blowout)</span></label>
     </div>
 
-    <div class="modal-actions" style="margin-top: 20px;">
-      <button class="btn btn-primary" onclick="saveMatchTags()">✓ Save Tags</button>
-      <button class="btn btn-danger" onclick="closeEditTagsModal()">✕ Cancel</button>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="saveMatchTags()">บันทึก Tag</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeEditTagsModal()">ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -1551,80 +1603,91 @@ try {
 <button id="tvFsBtn" class="tv-fs-btn" onclick="toggleTvFullscreen()" title="เต็มจอ (กด F)" aria-label="เต็มจอ">⛶</button>
 
 <!-- ── EDIT PLAYER MODAL (admin) ── -->
-<div id="playerEditModal" class="modal-overlay" onclick="if(event.target===this)closePlayerEdit()">
-  <div class="modal-box" style="max-width:380px;">
-    <div class="modal-title" style="font-size:1.4em;">✏️ แก้ไขผู้เล่น <span id="editPlayerIdLabel" style="color:var(--muted);font-size:0.7em;"></span></div>
-    <div style="display:flex;flex-direction:column;gap:12px;margin:20px 0;text-align:left;">
-      <div>
-        <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">ชื่อ</label>
-        <input type="text" id="editPlayerName" style="width:100%;margin-top:4px;" onkeydown="if(event.key==='Enter')savePlayerEdit()">
+<div id="playerEditModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="editPlayerTitle" onclick="if(event.target===this)closePlayerEdit()">
+  <div class="ds-sheet" style="max-width:420px;">
+    <div class="dlg-head">
+      <div class="dlg-t">
+        <h2 id="editPlayerTitle" class="ds-sheet-title">แก้ไขผู้เล่น</h2>
+        <span class="pe-id" id="editPlayerIdLabel"></span>
       </div>
-      <div style="display:flex;gap:10px;">
-        <div style="flex:1;">
-          <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">ทีม</label>
-          <select id="editPlayerTeam" style="width:100%;margin-top:4px;"><option value="Red">🔴 Red</option><option value="Blue">🔵 Blue</option></select>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closePlayerEdit()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+    </div>
+    <div class="pe-form">
+      <div class="ds-field">
+        <label class="ds-label" for="editPlayerName">ชื่อ</label>
+        <input type="text" id="editPlayerName" class="ds-input" autocomplete="off" onkeydown="if(event.key==='Enter')savePlayerEdit()">
+      </div>
+      <div class="pe-row">
+        <div class="ds-field">
+          <label class="ds-label" for="editPlayerTeam">ทีม</label>
+          <select id="editPlayerTeam" class="ds-select"><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
         </div>
-        <div style="flex:1;">
-          <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">กลุ่ม</label>
-          <select id="editPlayerGroup" style="width:100%;margin-top:4px;"><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option></select>
+        <div class="ds-field">
+          <label class="ds-label" for="editPlayerGroup">กลุ่ม</label>
+          <select id="editPlayerGroup" class="ds-select"><option value="1">กลุ่ม G1</option><option value="2">กลุ่ม G2</option><option value="3">กลุ่ม G3</option></select>
         </div>
       </div>
     </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="closePlayerEdit()" style="flex:1;">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="savePlayerEdit()" style="flex:1;">💾 บันทึก</button>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="savePlayerEdit()">บันทึก</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closePlayerEdit()">ยกเลิก</button>
     </div>
   </div>
 </div>
 
 <!-- ── QR CODES MODAL (admin/superadmin) ── -->
-<div id="qrModal" class="modal-overlay" onclick="if(event.target===this)closeQrModal()">
-  <div class="modal-box" style="width:min(680px,94vw);">
-    <div class="modal-title" style="text-align:center;">📱 QR CODES</div>
-    <div style="color:var(--muted);font-size:12px;text-align:center;margin-bottom:20px;line-height:1.6;">
-      แปะหน้างานให้สแกน — ผู้ชมดูคะแนนสด / กรรมการเข้าแผงให้คะแนน
+<div id="qrModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="qrTitle" onclick="if(event.target===this)closeQrModal()">
+  <div class="ds-sheet qr-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t">
+        <h2 id="qrTitle" class="ds-sheet-title">QR ผู้ชม / กรรมการ</h2>
+        <p class="ds-help">แปะหน้างานให้สแกน — ผู้ชมดูคะแนนสด / กรรมการเข้าแผงให้คะแนน</p>
+      </div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeQrModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
     <div class="qr-grid">
-      <div class="qr-card">
+      <section class="qr-card" aria-labelledby="qrSpecH">
         <img id="qrSpectatorImg" class="qr-img" alt="QR ผู้ชม">
-        <div class="qr-card-title">👀 ดูคะแนนสด</div>
-        <div class="qr-card-desc">ผู้ชม — ดูอย่างเดียว ไม่ต้องล็อกอิน</div>
+        <h3 id="qrSpecH" class="qr-card-title"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-eye"/></svg>ดูคะแนนสด</h3>
+        <p class="qr-card-desc">ผู้ชม — ดูอย่างเดียว ไม่ต้องล็อกอิน</p>
         <div id="qrSpectatorUrl" class="qr-url"></div>
-        <button class="btn btn-outline btn-sm" onclick="copyQrLink('spectator')">📋 คัดลอกลิงก์</button>
-      </div>
-      <div class="qr-card">
+        <button type="button" class="ds-btn qr-copy" onclick="copyQrLink('spectator')"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-copy"/></svg>คัดลอกลิงก์</button>
+      </section>
+      <section class="qr-card" aria-labelledby="qrUmpH">
         <img id="qrUmpireImg" class="qr-img" alt="QR กรรมการ">
-        <div class="qr-card-title">🎯 กรรมการ</div>
-        <div class="qr-card-desc">กรรมการ — เข้าแผงให้คะแนน</div>
+        <h3 id="qrUmpH" class="qr-card-title"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg>กรรมการ</h3>
+        <p class="qr-card-desc">กรรมการ — เข้าแผงให้คะแนน</p>
         <div id="qrUmpireUrl" class="qr-url"></div>
-        <button class="btn btn-outline btn-sm" onclick="copyQrLink('umpire')">📋 คัดลอกลิงก์</button>
-      </div>
+        <button type="button" class="ds-btn qr-copy" onclick="copyQrLink('umpire')"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-copy"/></svg>คัดลอกลิงก์</button>
+      </section>
     </div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:22px;flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" onclick="printQrCodes()">🖨 พิมพ์ทั้งคู่</button>
-      <button class="btn btn-outline btn-sm" onclick="openTvScreen()">🖥️ เปิดจอ TV</button>
-      <button class="btn btn-outline btn-sm" onclick="closeQrModal()">ปิด</button>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="printQrCodes()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-qr-code"/></svg>พิมพ์ทั้งคู่</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="openTvScreen()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-television"/></svg>เปิดจอ TV</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeQrModal()">ปิด</button>
     </div>
   </div>
 </div>
 
 <!-- ── BACKUP & RESTORE MODAL (superadmin) ── -->
-<div id="backupModal" class="modal-overlay" onclick="if(event.target===this)closeBackupModal()">
-  <div class="modal-box" style="width:min(560px,94vw);text-align:left;">
-    <div class="modal-title" style="text-align:center;">🛟 BACKUP &amp; RESTORE</div>
-    <div style="color:var(--muted);font-size:12px;text-align:center;margin-bottom:16px;line-height:1.6;">
-      Backup อัตโนมัติทุกครั้งที่จบแมตช์ และก่อน Reset · เก็บ 30 ชุดล่าสุด
+<div id="backupModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="backupTitle" onclick="if(event.target===this)closeBackupModal()">
+  <div class="ds-sheet bk-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t">
+        <h2 id="backupTitle" class="ds-sheet-title">Backup &amp; Restore</h2>
+        <p class="ds-help">Backup อัตโนมัติทุกครั้งที่จบแมตช์ และก่อน Reset · เก็บ 30 ชุดล่าสุด</p>
+      </div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeBackupModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
-      <button class="btn btn-outline btn-sm" onclick="manualBackup()">💾 Backup ตอนนี้</button>
-      <button class="btn btn-outline btn-sm" onclick="renderBackupList()">🔄 รีเฟรช</button>
+    <div class="bk-tools">
+      <button type="button" class="ds-btn ds-btn-primary" onclick="manualBackup()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-floppy-disk"/></svg>Backup ตอนนี้</button>
+      <button type="button" class="ds-btn" onclick="renderBackupList()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-clockwise"/></svg>รีเฟรช</button>
     </div>
-    <div id="backupList" class="backup-list"></div>
+    <div id="backupList" class="backup-list" aria-live="polite"></div>
     <!-- one-time photo migration (superadmin) — see migratePlayerPhotos() -->
-    <div id="photoMigrateBox" class="superadmin-only"
-         style="margin-top:16px;padding:12px 14px;border:1px solid var(--border2);border-radius:10px;background:var(--surface2);font-size:12.5px;color:var(--text2);line-height:1.6;text-align:center;"></div>
-    <div style="text-align:center;margin-top:18px;">
-      <button class="btn btn-outline btn-sm" onclick="closeBackupModal()">ปิด</button>
+    <div id="photoMigrateBox" class="superadmin-only bk-box"></div>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeBackupModal()">ปิด</button>
     </div>
   </div>
 </div>
