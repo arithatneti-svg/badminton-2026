@@ -41,17 +41,24 @@ function setMe(playerId) {
 }
 
 // ── Picker ────────────────────────────────────────────────────
+let _mePickerOpener = null;      // what had focus before the sheet opened: focus goes back to it
 function openMePicker() {
   const ov = document.getElementById('mePickerOverlay');
   if (!ov) return;
+  if (!ov.classList.contains('open')) _mePickerOpener = document.activeElement;
   ov.classList.add('open');
   const input = document.getElementById('meSearch');
   if (input) { input.value = ''; setTimeout(() => input.focus(), 80); }
   renderMePickerList();
 }
 function closeMePicker() {
-  document.getElementById('mePickerOverlay')?.classList.remove('open');
+  const ov = document.getElementById('mePickerOverlay');
+  const wasOpen = !!ov && ov.classList.contains('open');
+  ov?.classList.remove('open');
+  if (wasOpen && _mePickerOpener && _mePickerOpener.isConnected && _mePickerOpener.focus) _mePickerOpener.focus();
+  _mePickerOpener = null;
 }
+const _teamTag = team => `<i class="tsh ${team === 'Red' ? 'tsh-red' : 'tsh-blue'}" aria-hidden="true"></i>`;   // circle = red, diamond = blue
 function renderMePickerList() {
   const el = document.getElementById('mePickerList');
   if (!el) return;
@@ -64,11 +71,11 @@ function renderMePickerList() {
     return;
   }
   el.innerHTML = list.map(p => `
-    <button class="me-opt${isMe(p.id) ? ' on' : ''}" onclick="setMe('${p.id}')">
-      ${avatarHtml(p, 34)}
+    <button type="button" class="me-opt${isMe(p.id) ? ' on' : ''}" onclick="setMe('${p.id}')" aria-pressed="${isMe(p.id)}">
+      ${avatarHtml(p, 40)}
       <span class="me-opt-name">${escHtml(p.name)}</span>
-      <span class="me-opt-meta ${p.team === 'Red' ? 'is-red' : 'is-blue'}">${p.team === 'Red' ? '🔴' : '🔵'} G${p.group}</span>
-      ${isMe(p.id) ? '<span class="me-opt-check">✓</span>' : ''}
+      <span class="me-opt-meta ${p.team === 'Red' ? 'is-red' : 'is-blue'}">${_teamTag(p.team)}G${escHtml(p.group)}</span>
+      ${isMe(p.id) ? `<span class="me-opt-check">${dsIcon('check')}</span>` : ''}
     </button>`).join('');
 }
 
@@ -77,12 +84,10 @@ function renderMeBar() {
   const el = document.getElementById('meBar');
   if (!el) return;
   const p = (appState.players || []).find(x => x.id === _meId);
+  // this runs on every data update: rewrite the bar only when what it says has changed (the face does not flash)
+  const put = html => { if (el.dataset.k !== html) { el.dataset.k = html; el.innerHTML = html; } };
   if (!p) {
-    el.innerHTML = `
-      <button class="me-cta" onclick="openMePicker()">
-        <span>⭐</span><b>เลือกชื่อคุณ</b>
-        <span class="me-cta-sub">เพื่อดูแมตช์ของตัวเองได้เร็วขึ้น</span>
-      </button>`;
+    put(`<button type="button" class="me-cta" onclick="openMePicker()">${dsIcon('star', { fill: true })}<b>เลือกชื่อคุณ</b></button>`);
     el.classList.remove('has-me');
     return;
   }
@@ -90,16 +95,16 @@ function renderMeBar() {
   const s = getPlayerStats()[p.id] || {};
   const live = (appState.ongoingMatches || []).some(matchHasMe);
   const next = (appState.ongoingMatches || []).filter(matchHasMe).length;
-  el.innerHTML = `
+  put(`
     <div class="me-chip" onclick="openPlayerProfile('${p.id}')" tabindex="0" role="button" aria-label="ดูโปรไฟล์ของคุณ" title="ดูโปรไฟล์ของคุณ">
-      ${avatarHtml(p, 34)}
+      ${avatarHtml(p, 36)}
       <div class="me-chip-txt">
         <b>${escHtml(p.name)}</b>
-        <span>${p.team === 'Red' ? '🔴' : '🔵'} G${p.group} · ${s.pts || 0} pts · ${s.matchWin || 0}W ${s.matchLose || 0}L</span>
+        <span><span class="${p.team === 'Red' ? 'is-red' : 'is-blue'}">${_teamTag(p.team)} G${escHtml(p.group)}</span> · ${s.pts || 0} คะแนน · ชนะ ${s.matchWin || 0} แพ้ ${s.matchLose || 0}</span>
       </div>
     </div>
-    ${live ? `<span class="me-live">● กำลังแข่ง ${next > 1 ? '×' + next : ''}</span>` : ''}
-    <button class="me-switch" onclick="openMePicker()" title="เปลี่ยนคน">เปลี่ยน</button>`;
+    ${live ? `<span class="me-live"><i class="ds-dot ds-dot-live"></i>กำลังแข่ง${next > 1 ? ' ×' + next : ''}</span>` : ''}
+    <button type="button" class="me-switch" onclick="openMePicker()" title="เปลี่ยนคน">เปลี่ยน</button>`);
 }
 
 // ── "only my matches" toggle, used by Ongoing and Finished ────
@@ -107,7 +112,7 @@ let _meFilterOn = false;
 function toggleMeFilter(btn) {
   if (!_meId) return openMePicker();
   _meFilterOn = !_meFilterOn;
-  document.querySelectorAll('.me-filter-btn').forEach(b => b.classList.toggle('on', _meFilterOn));
+  document.querySelectorAll('.me-filter-btn').forEach(b => { b.classList.toggle('on', _meFilterOn); b.setAttribute('aria-pressed', String(_meFilterOn)); });
   if (typeof renderFinishedMatches === 'function') renderFinishedMatches();
   if (typeof renderPublicOngoingMatches === 'function') renderPublicOngoingMatches();
 }
