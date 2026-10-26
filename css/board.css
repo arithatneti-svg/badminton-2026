@@ -16,6 +16,7 @@
 
 /* ── Quick Score line on the Scoreboard tab (superadmin; display is reverted by the role rules, so no display here) ── */
 .adm-qs { padding: var(--sp-3) var(--sp-4); text-align: center; border-top: 1px solid var(--line); }
+.adm-qs .ds-btn { min-height: var(--tap); }
 
 /* ── Player management: a folded section (the scenarios open it with .open) ── */
 .adm-collapse { margin-top: var(--sp-6); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
@@ -38,6 +39,8 @@
 .adm-csv { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); padding-top: var(--sp-4); border-top: 1px solid var(--line); }
 .adm-csv-t { display: grid; gap: 2px; min-width: 0; }
 .adm-file { position: relative; }
+.adm-file > input { position: absolute; width: 0; height: 0; margin: 0; padding: 0; border: 0; opacity: 0; }
+.adm-add .ds-input, .adm-add .ds-select { min-height: var(--tap-md); }   /* the global input rule (38 px) outranks a bare .ds-input */
 .adm-file:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 /* ── end of the day: the ceremony is a broadcast to every screen, so it sits alone ── */
@@ -95,7 +98,7 @@
 
 /* ── pools: who can be picked ── */
 .mb-pools { display: grid; gap: var(--sp-3); }
-.mb-pooltab-in { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); border: 0; }
+.mb-pooltab-in { position: absolute; width: 0; height: 0; margin: 0; padding: 0; border: 0; opacity: 0; }   /* still focusable and read by a screen reader; the label is the target */
 .mb-pooltabs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-1); padding: 3px; background: var(--s2); border: 1px solid var(--line); border-radius: var(--r-sm); }
 .mb-pooltab {
   display: flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--tap); border: 1px solid transparent; border-radius: 7px;
@@ -122,20 +125,18 @@
 .mb-search > .ds-ic { position: absolute; left: var(--sp-3); top: 50%; transform: translateY(-50%); color: var(--t-low); pointer-events: none; }
 .mb-search > .ds-input { padding-left: calc(var(--sp-3) + 1.25em + var(--sp-2)); background: var(--s1); }
 .mb-groups { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-.mb-groups .filter-pill { min-height: 40px; padding: 0 var(--sp-4); }
-@media (pointer: coarse) { .mb-groups .filter-pill { min-height: var(--tap); } }
+.mb-groups .filter-pill { min-height: var(--tap); padding: 0 var(--sp-4); }
 
 .mb-pool { display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--sp-2); max-height: 320px; max-height: min(44dvh, 320px); overflow-y: auto; overscroll-behavior: contain; padding: 2px; }
 @media (min-width: 640px) { .mb-pool { max-height: 300px; } }
 .mb-empty { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-4) var(--sp-2); color: var(--t-low); font: 500 var(--fs-14)/var(--lh-th) var(--font-th); }
 
 .mb-chip {
-  display: inline-flex; align-items: center; gap: var(--sp-2); max-width: 100%; min-height: 40px; padding: 4px var(--sp-3) 4px 6px;
+  display: inline-flex; align-items: center; gap: var(--sp-2); max-width: 100%; min-height: var(--tap); padding: 4px var(--sp-3) 4px 6px;
   border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--s3); color: var(--t-hi);
   font: 600 var(--fs-14)/1.3 var(--font-ui); text-align: left; cursor: pointer; touch-action: manipulation;
   transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out);
 }
-@media (pointer: coarse) { .mb-chip { min-height: var(--tap); } }
 @media (hover: hover) { .mb-chip:hover { background: var(--s4); } }
 .mb-chip:active { transform: scale(.98); }
 .mb-chip.red.picked { background: var(--red-fill); border-color: var(--red); color: var(--red-ink); }
@@ -168,6 +169,6 @@
 .am-court .ds-select { width: auto; min-width: 128px; min-height: var(--tap); margin-left: auto; padding-top: 4px; padding-bottom: 4px; font-size: var(--fs-14); }
 .am-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); padding-top: var(--sp-3); border-top: 1px solid var(--line); }
 .am-del { margin-left: auto; }
-@media (pointer: coarse) { .am-foot .ds-btn-sm { min-height: var(--tap); } }
+.am-foot .ds-btn-sm { min-height: var(--tap); }
 .am-empty .ds-empty-art { max-width: 200px; }
 @media (min-width: 1100px) { .am-empty-act { display: none; } }
