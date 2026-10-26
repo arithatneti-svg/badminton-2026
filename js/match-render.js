@@ -26,8 +26,8 @@ setInterval(() => {
   patchMatchStatusTags();
   if (document.getElementById('ongoing').classList.contains('active')) {
     appState.ongoingMatches.forEach(m => {
-      const elapsed = getCourtElapsed(m.id); const mins = Math.floor(elapsed / 60000); const col = elapsed === 0 ? 'var(--muted)' : mins >= 30 ? 'var(--danger)' : mins >= 20 ? 'var(--gold)' : 'var(--green)';
-      const pubEl = document.getElementById(`pubTimer-${m.id}`); if (pubEl) { pubEl.textContent = '⏱ ' + (elapsed > 0 ? formatTimer(elapsed) : '0:00'); pubEl.style.color = col; }
+      const elapsed = getCourtElapsed(m.id);
+      const pubEl = document.getElementById(`pubTimer-${m.id}`); if (pubEl) { pubEl.textContent = elapsed > 0 ? formatTimer(elapsed) : '0:00'; pubEl.dataset.tone = _timerTone(elapsed); }
     });
   }
   if (document.getElementById('dashboard')?.classList.contains('active')) {
@@ -78,6 +78,12 @@ function updateOngoingBadges() {
   if (navFB) { const fc = appState.matchHistory.length; navFB.textContent = fc; navFB.style.display = fc > 0 ? 'inline-block' : 'none'; }
 }
 
+// the clock on a court card: its tone says how long the match has been going (css/climax.css .court-card-timer)
+function _timerTone(elapsed) {
+  const mins = Math.floor(elapsed / 60000);
+  return elapsed === 0 ? 'none' : mins >= 30 ? 'late' : mins >= 20 ? 'warn' : 'ok';
+}
+
 function renderPublicOngoingMatches() {
   const liveContainer  = document.getElementById('publicLiveMatches');
   const queueContainer = document.getElementById('publicUpcomingMatches');
@@ -98,17 +104,15 @@ function renderPublicOngoingMatches() {
 
   if (liveMatches.length === 0) {
     liveContainer.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;font-weight:600;background:var(--surface2);border-radius:14px;border:1px dashed var(--border);">
-        🏸 ยังไม่มีแมตช์ที่กำลังแข่ง
-        <div style="font-size:12px;font-weight:600;margin-top:6px;">แมตช์ถัดไปจะขึ้นที่นี่</div>
+      <div class="court-empty ds-empty">
+        <div class="ds-empty-art">${dsArt('court')}</div>
+        <div class="ds-empty-title">ยังไม่มีแมตช์ที่กำลังแข่ง</div>
+        <div class="ds-empty-text">แมตช์ถัดไปจะขึ้นที่นี่</div>
       </div>`;
   } else {
     liveMatches.forEach(m => {
       const elapsed    = getCourtElapsed(m.id);
-      const mins       = Math.floor(elapsed / 60000);
-      const timerColor = elapsed === 0 ? 'var(--muted)' : mins >= 30 ? 'var(--danger)' : mins >= 20 ? 'var(--gold)' : 'var(--green)';
       const timerLabel = elapsed > 0 ? formatTimer(elapsed) : '0:00';
-      const timerLongClass = mins >= 30 ? ' long-game' : '';
 
       // ── Climax Detection ──
       // เช็คทั้ง G1 (ถ้ายังไม่ lock) และ G2 (ถ้า locked แล้ว)
@@ -131,9 +135,9 @@ function renderPublicOngoingMatches() {
       }
       const climaxClass = climaxLevel === 2 ? 'deuce' : climaxLevel === 1 ? 'climax' : '';
       const climaxBadge = climaxLevel === 2
-        ? `<span class="climax-badge type-deuce">⚡ DEUCE</span>`
+        ? `<span class="climax-badge type-deuce">${dsIcon('lightning')}DEUCE</span>`
         : climaxLevel === 1
-        ? `<span class="climax-badge type-climax">🔥 CLIMAX</span>`
+        ? `<span class="climax-badge type-climax">${dsIcon('fire')}ลุ้นสูสี</span>`
         : '';
 
       // ── Score rows ──
@@ -154,20 +158,20 @@ function renderPublicOngoingMatches() {
         const g1rDim = m.live.g1Locked && g1r < g1b;
         const g1bDim = m.live.g1Locked && g1b < g1r;
 
+        // "may turn it round": the side that is behind has been ahead before
         const cbBadge = (isRed, isBlue) => {
-          if (isRed)  return `<span class="court-comeback-badge" style="color:var(--red);background:rgba(255,59,92,0.15);border:1px solid rgba(255,59,92,0.3);">⚡COMEBACK?</span>`;
-          if (isBlue) return `<span class="court-comeback-badge" style="color:var(--blue);background:rgba(59,142,255,0.15);border:1px solid rgba(59,142,255,0.3);">⚡COMEBACK?</span>`;
+          if (isRed)  return `<span class="court-comeback-badge red">${dsIcon('arrow-counter-clockwise')}ลุ้นพลิก</span>`;
+          if (isBlue) return `<span class="court-comeback-badge blue">${dsIcon('arrow-counter-clockwise')}ลุ้นพลิก</span>`;
           return '';
         };
 
         const scoreRow = (labelCls, labelTxt, rS, bS, rDim, bDim, cbRed, cbBlue) => `
           <div class="court-score-row">
-            <span class="court-glabel ${labelCls}">${labelTxt}</span>
+            <div class="court-gside"><span class="court-glabel ${labelCls}">${labelTxt}</span>${cbBadge(cbRed, cbBlue)}</div>
             <div class="court-score-nums">
               <span class="court-snum red ${rDim?'dim':''}">${rS}</span>
               <span class="court-ssep">:</span>
               <span class="court-snum blue ${bDim?'dim':''}">${bS}</span>
-              ${cbBadge(cbRed, cbBlue)}
             </div>
           </div>`;
 
@@ -182,7 +186,7 @@ function renderPublicOngoingMatches() {
         scoreBlockHtml = `
           <div class="court-waiting">
             <div class="court-waiting-score">– : –</div>
-            <div class="court-waiting-label">${isReady ? 'พร้อมแข่ง · รอแต้มแรก' : 'รอ Umpire เริ่มนับ'}</div>
+            <div class="court-waiting-label">${isReady ? 'พร้อมแข่ง · รอคะแนนแรก' : 'รอกรรมการเริ่มนับ'}</div>
           </div>`;
       }
 
@@ -192,78 +196,74 @@ function renderPublicOngoingMatches() {
       // faces on the live card: this is the one place identification is
       // time-critical — who is on court right now
       const redIds  = [m.r1, m.r2], blueIds = [m.b1, m.b2];
-      const redPlayersHtml  = redParts.map((n, i)  => `<div class="court-player-name red">${avatarHtml(redIds[i], 24, {className:'court-pav'})}<span>${escHtml(n)}</span></div>`).join('');
-      const bluePlayersHtml = blueParts.map((n, i) => `<div class="court-player-name blue">${avatarHtml(blueIds[i], 24, {className:'court-pav'})}<span>${escHtml(n)}</span></div>`).join('');
-
-      const predHtml = '';
+      const redPlayersHtml  = redParts.map((n, i)  => `<div class="court-player-name red">${avatarHtml(redIds[i], 32, {className:'court-pav'})}<span>${escHtml(n)}</span></div>`).join('');
+      const bluePlayersHtml = blueParts.map((n, i) => `<div class="court-player-name blue">${avatarHtml(blueIds[i], 32, {className:'court-pav'})}<span>${escHtml(n)}</span></div>`).join('');
 
       const mineCls = (typeof matchHasMe === 'function' && matchHasMe(m)) ? ' is-mine' : '';
+      const meta = [
+        isReady
+          ? `<span class="court-ready">พร้อมแข่ง</span>`
+          : `<span class="ds-chip ds-chip-live"><i class="ds-dot ds-dot-live"></i>LIVE</span>`,
+        `<span class="court-card-round">รอบ ${escHtml(String(m.round))}</span>`,
+        m.umpire ? `<span class="court-card-umpire">${dsIcon('user')}<span>${escHtml(m.umpire)}</span></span>` : '',
+        matchStatusHtml(m),
+        climaxBadge
+      ].join('');
       liveContainer.innerHTML += `
-        <div class="court-card ${climaxClass}${mineCls}">
-          <div class="court-card-header">
+        <article class="court-card ${climaxClass}${mineCls}">
+          <header class="court-card-header">
             ${courtPillHtml(m)}
-            <span class="court-card-id">${m.id}</span>
-            <span class="court-card-round">รอบ ${m.round}</span>
-            ${m.umpire ? `<span class="court-card-umpire">👔 ${escHtml(m.umpire)}</span>` : ''}
-            ${matchStatusHtml(m)}
-            ${climaxBadge}
-            ${isReady
-              ? `<span class="court-ready" style="margin-left:auto;">พร้อมแข่ง</span>`
-              : `<div class="live-indicator" style="margin-left:auto;"><span class="live-dot"></span>LIVE</div>`}
-            <span class="court-card-timer${timerLongClass}" style="color:${timerColor};" id="pubTimer-${m.id}">⏱${timerLabel}</span>
-          </div>
+            <span class="court-card-id">${escHtml(m.id)}</span>
+            <span class="court-card-timer" data-tone="${_timerTone(elapsed)}" id="pubTimer-${m.id}">${timerLabel}</span>
+          </header>
+          <div class="court-card-meta">${meta}</div>
           ${scoreBlockHtml}
           <div class="court-players">
             <div class="court-team red">
-              <div class="court-team-label red">🔴 RED</div>
+              <div class="court-team-label ds-team ds-team-red">RED</div>
               ${redPlayersHtml}
             </div>
             <div class="court-team blue">
-              <div class="court-team-label blue">BLUE 🔵</div>
+              <div class="court-team-label ds-team ds-team-blue">BLUE</div>
               ${bluePlayersHtml}
             </div>
           </div>
-          ${predHtml}
-          ${(userRole==='superadmin') ? `<div class="frow-footer" style="border-top:1px solid rgba(255,255,255,0.05);padding:7px 12px 9px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
-            <span style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-right:auto;align-self:center;">👑 SUPERADMIN</span>
-            <button class="frow-admin-btn edit" onclick="openResultModal('${m.id}')" title="ใส่ผล manual">⚡ Force Result</button>
-            <button class="frow-admin-btn del" onclick="removeOngoingMatch('${m.id}')" title="ลบ match นี้">🗑 Delete</button>
+          ${(userRole==='superadmin') ? `<div class="court-admin">
+            <button type="button" class="ds-btn" onclick="openResultModal('${m.id}')" title="ใส่ผลแมตช์เอง">${dsIcon('lightning')}Force Result</button>
+            <button type="button" class="ds-btn ds-btn-danger" onclick="removeOngoingMatch('${m.id}')" title="ลบแมตช์นี้">${dsIcon('trash')}ลบ</button>
           </div>` : ''}
-        </div>`;
+        </article>`;
     });
   }
 
   // ── Queue list — compact horizontal rows ──
   if (upcomingMatches.length === 0) {
-    queueContainer.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;font-weight:600;">ไม่มีแมตช์รอคิว</div>`;
+    queueContainer.innerHTML = `<div class="queue-empty">ไม่มีแมตช์รอคิว</div>`;
   } else {
     upcomingMatches.forEach((m, i) => {
       // BUG-FIX: detect corrupt match (missing id, players, or names)
       const isCorrupt = !m.id || m.id === 'undefined' || !m.r1 || !m.r2 || !m.b1 || !m.b2 || !m.redNames || m.redNames.includes('undefined') || !m.blueNames || m.blueNames.includes('undefined');
-      const safeId    = m.id && m.id !== 'undefined' ? m.id : '⚠️ CORRUPT';
+      const safeId    = m.id && m.id !== 'undefined' ? m.id : '—';
       const redNames  = isCorrupt ? '—' : (m.redNames||'').split(' & ').map(n => stripGroup(n.trim())).join(' & ');
       const blueNames = isCorrupt ? '—' : (m.blueNames||'').split(' & ').map(n => stripGroup(n.trim())).join(' & ');
-      const qPredHtml = '';
-      const corruptBadge = isCorrupt ? `<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:rgba(255,69,96,0.15);color:var(--danger);border:1px solid rgba(255,69,96,0.3);">⚠️ ข้อมูลเสีย</span>` : '';
+      const corruptBadge = isCorrupt ? `<span class="queue-corrupt">${dsIcon('warning')}ข้อมูลเสีย</span>` : '';
       queueContainer.innerHTML += `
-        <div class="queue-row" style="flex-direction:column;align-items:stretch;padding:10px 14px;gap:6px;${isCorrupt?'border-color:rgba(255,69,96,0.3);background:rgba(255,69,96,0.04);':''}">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="queue-row${isCorrupt ? ' is-corrupt' : ''}">
+          <div class="queue-head">
             <span class="queue-num">#${i+1}</span>
-            <span class="queue-mid">${safeId}</span>
-            <span class="queue-round">รอบ ${m.round||'?'}</span>
-            <div class="queue-teams" style="flex:1;min-width:0;">
-              <span class="queue-team-names" style="color:var(--red-text);">${escHtml(redNames)}</span>
-              <span class="queue-vs">VS</span>
-              <span class="queue-team-names" style="color:var(--blue-text);">${escHtml(blueNames)}</span>
-            </div>
+            <span class="queue-mid">${escHtml(safeId)}</span>
+            <span class="queue-round">รอบ ${escHtml(String(m.round||'?'))}</span>
             ${corruptBadge}
-            <span class="queue-status">⏳ รอ</span>
+            <span class="queue-status">${dsIcon('hourglass-medium')}รอ</span>
           </div>
-          ${qPredHtml ? `<div style="margin:0 -14px -10px;border-radius:0 0 8px 8px;overflow:hidden;">${qPredHtml}</div>` : ''}
-          ${(userRole==='superadmin') ? `<div style="display:flex;gap:6px;justify-content:flex-end;padding-top:6px;border-top:1px solid rgba(255,255,255,0.04);">
-            <span style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-right:auto;align-self:center;">👑 SUPERADMIN</span>
-            ${!isCorrupt ? `<button class="frow-admin-btn edit" onclick="openResultModal('${m.id}')" title="ใส่ผล manual">⚡ Force Result</button>` : ''}
-            <button class="frow-admin-btn del" onclick="removeOngoingMatch('${isCorrupt ? '' : m.id}')" title="ลบ match นี้">🗑 Delete</button>
+          <div class="queue-teams">
+            <span class="queue-team-names red">${escHtml(redNames)}</span>
+            <span class="queue-vs">VS</span>
+            <span class="queue-team-names blue">${escHtml(blueNames)}</span>
+          </div>
+          ${(userRole==='superadmin') ? `<div class="court-admin">
+            ${!isCorrupt ? `<button type="button" class="ds-btn" onclick="openResultModal('${m.id}')" title="ใส่ผลแมตช์เอง">${dsIcon('lightning')}Force Result</button>` : ''}
+            <button type="button" class="ds-btn ds-btn-danger" onclick="removeOngoingMatch('${isCorrupt ? '' : m.id}')" title="ลบแมตช์นี้">${dsIcon('trash')}ลบ</button>
           </div>` : ''}
         </div>`;
     });
@@ -359,10 +359,25 @@ function renderAdminOngoingMatches() {
 let _finishedResultFilter = '';
 function setFinishedResultFilter(val) {
   _finishedResultFilter = val;
-  ['frAll','frRed','frDraw','frBlue'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  ['frAll','frRed','frDraw','frBlue'].forEach(id => { const b = document.getElementById(id); if (b) { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); } });
   const map = { '':'frAll', 'red':'frRed', 'draw':'frDraw', 'blue':'frBlue' };
-  document.getElementById(map[val])?.classList.add('active');
+  const on = document.getElementById(map[val]);
+  if (on) { on.classList.add('active'); on.setAttribute('aria-pressed', 'true'); }
   renderFinishedMatches();
+}
+
+// A tag (Epic Comeback, The Gladiators …) is stored with an emoji in its label: the chip draws an icon by tag id instead
+// and leaves the glyph off the shown text (the stored label is untouched). Used by the finished rows and the result pop-up.
+const TAG_ICON = { clutch: 'target', marathon: 'timer', rollercoaster: 'chart-line-up', blowout: 'lightning' };
+function _tagIconName(id) {
+  id = String(id || '');
+  return id.indexOf('epic') === 0 ? 'fire' : id.indexOf('flawless') === 0 ? 'star' : (TAG_ICON[id] || '');
+}
+function _tagChipHtml(t, cls) {
+  const raw = String(t.label || t.id || '');
+  const label = raw.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '') || raw;
+  const ic = _tagIconName(t.id);
+  return `<span class="${cls || 'finished-tag'} ${t.class || 'tag-normal'}">${ic ? dsIcon(ic) : ''}${escHtml(label)}</span>`;
 }
 
 function renderFinishedMatches() {
@@ -382,59 +397,59 @@ function renderFinishedMatches() {
   }).slice().reverse();
 
   if (!matches.length) {
-    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;font-weight:600;background:var(--surface2);border-radius:14px;border:1px dashed var(--border);">${appState.matchHistory.length ? '🔍 ไม่พบแมตช์ที่ตรงกับที่ค้นหา' : '🏁 ยังไม่มีแมตช์ที่จบแล้ว<div style="font-size:12px;font-weight:600;margin-top:6px;">ผลจะขึ้นที่นี่เมื่อแมตช์จบ</div>'}</div>`;
+    const none = appState.matchHistory.length === 0;
+    container.innerHTML = `<div class="fin-empty ds-empty">
+      <div class="ds-empty-art">${dsArt('court')}</div>
+      <div class="ds-empty-title">${none ? 'ยังไม่มีแมตช์ที่จบแล้ว' : 'ไม่พบแมตช์ที่ตรงกับที่ค้นหา'}</div>
+      <div class="ds-empty-text">${none ? 'ผลจะขึ้นที่นี่เมื่อแมตช์จบ' : 'ลองล้างคำค้นหาหรือตัวกรอง'}</div>
+    </div>`;
     return;
   }
 
-  // Head-to-head result card: RED · score · BLUE, winner highlighted and the
-  // loser dimmed, so the outcome reads at a glance (replaces the old wide row
-  // whose content clustered in the middle with dead space on both sides).
-  const teamCol = (namesStr, ids, isWin, side) => {
-    return (namesStr || '').split(' & ').map((n, i) => {
-      const nm = stripGroup(n.trim());
-      const cls = isWin ? (side === 'red' ? 'win-r' : 'win-b') : 'lose';
-      return `<div class="fmatch-p">${avatarHtml(ids[i], 30, { className: isWin ? '' : 'fmatch-av-dim' })}<span class="fmatch-name ${cls}">${escHtml(nm)}</span></div>`;
-    }).join('');
-  };
-
+  // One row per match: the two sides as two lines (red above blue, as in the umpire app) with their scores per game on
+  // the right; the side that won reads brighter, the game a side won reads brighter. No faces: the owner took them off
+  // the results log — they stay on live cards, the TV, the umpire app and the directory.
+  const names = namesStr => (namesStr || '').split(' & ').map(n => escHtml(stripGroup(n.trim()))).join(' <i>&amp;</i> ');
   container.innerHTML = matches.map(m => {
     const isRedWin = m.rStat === 'W', isBlueWin = m.bStat === 'W';
     const cls = isRedWin ? 'red' : isBlueWin ? 'blue' : 'draw';
-    const badge = isRedWin ? '🔴 ทีมแดงชนะ' : isBlueWin ? '🔵 ทีมน้ำเงินชนะ' : '🤝 เสมอ';
+    const result = isRedWin ? `<i class="tsh tsh-red" aria-hidden="true"></i>ทีมแดงชนะ` : isBlueWin ? `<i class="tsh tsh-blue" aria-hidden="true"></i>ทีมน้ำเงินชนะ` : 'เสมอ';
     const [g1r, g1b] = (m.game1 || '0:0').split(':').map(Number);
     const [g2r, g2b] = (m.game2 || '0:0').split(':').map(Number);
     const g2played = g2r > 0 || g2b > 0;
-    const redDim = isBlueWin, blueDim = isRedWin;   // dim the losing side's numbers
-    const gRow = (label, r, b) => `<div class="fmatch-g"><span class="gl">${label}</span><span class="r${redDim ? ' dim' : ''}">${r}</span><span class="sep">:</span><span class="b${blueDim ? ' dim' : ''}">${b}</span></div>`;
-    const scoreHtml = `<div class="fmatch-score">${gRow('เกม 1', g1r, g1b)}${g2played ? gRow('เกม 2', g2r, g2b) : ''}</div>`;
+    const cell = (mine, theirs) => `<span class="fm-g${mine > theirs ? ' w' : ''}">${mine}</span>`;
+    const side = (sideCls, namesStr, win, a1, b1, a2, b2) => `
+      <div class="fm-team ${sideCls}${win ? ' win' : ''}">
+        <span class="fm-name"><i class="tsh tsh-${sideCls}" aria-hidden="true"></i><span>${names(namesStr)}</span></span>
+        ${cell(a1, b1)}${g2played ? cell(a2, b2) : ''}
+      </div>`;
 
-    const tags = (m.analysis?.tags || []).slice(0, 3)
-      .map(t => `<span class="frow-tag-icon ${t.class || 'tag-normal'}">${t.label || t.id}</span>`).join('');
-    const umpire = m.umpire ? `<span class="fmatch-ump">👔 ${escHtml(m.umpire)}</span>` : '';
+    const tags = (m.analysis?.tags || []).slice(0, 3).map(t => _tagChipHtml(t, 'finished-tag')).join('');
+    const umpire = m.umpire ? `<span class="fm-ump">${dsIcon('user')}<span>${escHtml(m.umpire)}</span></span>` : '';
     let admin = '';
     if (userRole === 'admin' || userRole === 'superadmin') {
-      const tagsBtn = `<button class="frow-admin-btn" onclick="openEditTagsModal('${m.id}')" title="แก้ Tags">🏷</button>`;
-      const editBtn = userRole === 'superadmin' ? `<button class="frow-admin-btn edit" onclick="openEditResult('${m.id}')" title="แก้ผล">✏️</button>` : '';
-      const delBtn  = userRole === 'superadmin' ? `<button class="frow-admin-btn del" onclick="deleteFinishedMatch('${m.id}')" title="ลบ">🗑</button>` : '';
-      admin = `<div class="fmatch-admin">${tagsBtn}${editBtn}${delBtn}</div>`;
+      const tagsBtn = `<button type="button" class="fm-act" onclick="openEditTagsModal('${m.id}')" title="แก้ Tags" aria-label="แก้ Tags ของ ${escHtml(m.id)}">${dsIcon('medal')}</button>`;
+      const editBtn = userRole === 'superadmin' ? `<button type="button" class="fm-act" onclick="openEditResult('${m.id}')" title="แก้ผล" aria-label="แก้ผล ${escHtml(m.id)}">${dsIcon('pencil-simple')}</button>` : '';
+      const delBtn  = userRole === 'superadmin' ? `<button type="button" class="fm-act del" onclick="deleteFinishedMatch('${m.id}')" title="ลบ" aria-label="ลบ ${escHtml(m.id)}">${dsIcon('trash')}</button>` : '';
+      admin = `<span class="fm-admin">${tagsBtn}${editBtn}${delBtn}</span>`;
     }
     const foot = (tags || umpire || admin)
-      ? `<div class="fmatch-foot">${tags || '<span></span>'}<span class="fmatch-foot-r">${umpire}${admin}</span></div>` : '';
+      ? `<footer class="fm-foot"><span class="fm-tags">${tags}</span><span class="fm-meta">${umpire}${admin}</span></footer>` : '';
 
     const mineCls = (typeof matchHasMe === 'function' && matchHasMe(m)) ? ' is-mine' : '';
-    return `<div class="fmatch ${cls}${mineCls}">
-      <div class="fmatch-head">
-        <span class="fmatch-id">${m.id}</span>
-        <span class="fmatch-round">รอบ ${m.round}</span>
-        <span class="fmatch-badge ${cls}">${badge}</span>
-      </div>
-      <div class="fmatch-body">
-        <div class="fmatch-team left">${teamCol(m.redNames, [m.r1, m.r2], isRedWin, 'red')}</div>
-        ${scoreHtml}
-        <div class="fmatch-team right">${teamCol(m.blueNames, [m.b1, m.b2], isBlueWin, 'blue')}</div>
+    return `<article class="fm ${cls}${mineCls}">
+      <header class="fm-head">
+        <span class="fm-id">${escHtml(m.id)}</span>
+        <span class="fm-round">รอบ ${escHtml(String(m.round))}</span>
+        <span class="fm-result ${cls}">${result}</span>
+      </header>
+      <div class="fm-body${g2played ? ' g2' : ''}">
+        <div class="fm-cols" aria-hidden="true"><span></span><span>เกม 1</span>${g2played ? '<span>เกม 2</span>' : ''}</div>
+        ${side('red', m.redNames, isRedWin, g1r, g1b, g2r, g2b)}
+        ${side('blue', m.blueNames, isBlueWin, g1b, g1r, g2b, g2r)}
       </div>
       ${foot}
-    </div>`;
+    </article>`;
   }).join('');
 }
 

@@ -1,3 +1,9 @@
+// The pictures (icons, brand mark, line art) come from shared/icons.js and shared/art.js. If one of them did not load
+// (a blip on the hall Wi-Fi) the page must still score: the helpers then draw nothing instead of throwing.
+if (typeof dsIcon !== 'function') window.dsIcon = function () { return ''; };
+if (typeof dsArt !== 'function') window.dsArt = function () { return ''; };
+if (typeof dsMark !== 'function') window.dsMark = function () { return ''; };
+
 const dbRef = firebase.database().ref('sportsday_2026_data');
 
 let appState = null;
@@ -174,7 +180,7 @@ async function _sendResult(entry, pRed, pBlue) {
     const slow = new Promise(res => setTimeout(() => res({ slow: true }), UMP_TIMING.finalizeTimeoutMs));
     const first = await Promise.race([late, slow]);
     if (first.done) return first.done;
-    const question = showConfirm('⏳', 'ส่งนานกว่าปกติ',
+    const question = showConfirm('hourglass-medium', 'ส่งนานกว่าปกติ',
       'สัญญาณอาจไม่ดี — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้\nถ้าออกตอนนี้ ระบบจะส่งต่อเองเมื่อสัญญาณกลับ',
       { confirmLabel: 'ลองใหม่', cancelLabel: 'ออก — ส่งต่อเอง', noEscape: true });   // leaving here is a real choice, so Esc must not make it
     const out = await Promise.race([question.then(choice => ({ choice })), late]);
@@ -190,10 +196,10 @@ let _uClosedShown = false;
 function _uMatchClosed() {
   if (_uClosedShown || _isConfirming) return;
   _uClosedShown = true;
-  showAlert('⚠️', 'แมตช์นี้ปิดแล้ว', 'ทีมงานบันทึกผลหรือปิดแมตช์นี้แล้ว\nคะแนนที่กดต่อจากนี้จะไม่ถูกนับ', 'กลับไปรายการ').then(() => exitMatch());
+  showAlert('warning', 'แมตช์นี้ปิดแล้ว', 'ทีมงานบันทึกผลหรือปิดแมตช์นี้แล้ว\nคะแนนที่กดต่อจากนี้จะไม่ถูกนับ', 'กลับไปรายการ').then(() => exitMatch());
 }
 // "somebody else got this match first" — the same words wherever a claim loses the race
-const _uTakenFirst = name => showAlert('🔒', `${name} รับแมตช์นี้ไปก่อนแล้ว`, 'เลือกแมตช์อื่นได้', 'กลับไปรายการ');
+const _uTakenFirst = name => showAlert('lock-simple', `${name} รับแมตช์นี้ไปก่อนแล้ว`, 'เลือกแมตช์อื่นได้', 'กลับไปรายการ');
 // "This match is no longer yours" — an admin gave it back to the queue (an umpire walked away), or
 // someone else took it afterwards. Same once-only rule. Every write is also refused on the server
 // while the match belongs to someone else, so a phone that has not heard yet cannot write into it.
@@ -201,7 +207,7 @@ function _uMatchReleased(m) {
   if (_uClosedShown || _isConfirming) return;
   _uClosedShown = true;
   const back = !m.umpire;
-  showAlert(back ? '↩️' : '🔒',
+  showAlert(back ? 'arrow-counter-clockwise' : 'lock-simple',
     back ? 'แมตช์นี้ถูกปล่อยแล้ว' : 'แมตช์นี้มีกรรมการคนอื่นแล้ว',
     back ? 'ทีมงานปล่อยแมตช์นี้กลับเข้าคิว\nคะแนนที่นับไว้ไม่ถูกบันทึก\nถ้ายังต้องคุม เลือกแมตช์นี้ใหม่จากรายการ'
          : `${m.umpire} กำลังคุมแมตช์นี้อยู่\nคะแนนจากเครื่องนี้จะไม่ถูกส่ง`,
@@ -240,7 +246,7 @@ function _retryPoint(mId, gameKey, delta, before, game2) {
     if (delta > 0 && !cur.timerStartedAt) { cur.timerStartedAt = now; cur.live.totalPauseMs = 0; }
     checkEpicPossible(cur);
   }).then(r => {
-    if (r.ok) showNotice('ส่งแล้ว ✓', { tone: 'ok', ms: 2500 });
+    if (r.ok) showNotice('ส่งแล้ว', { tone: 'ok', ms: 2500 });
     else if (r.reason === 'refused') showNotice('คะแนนบนเซิร์ฟเวอร์เปลี่ยนไปแล้ว — ดูคะแนนบนจอ แล้วแตะใหม่ถ้ายังไม่ถูก', { tone: 'warn', ms: 8000 });
     else _uWriteFailed(r.reason, 'คะแนนล่าสุด', () => _retryPoint(mId, gameKey, delta, before, game2), () => _uSeenScore(mId, game2));
   });
@@ -254,14 +260,12 @@ function showNotice(text, opts) {
   if (!el) return;
   opts = opts || {};
   _noticeActions = opts.actions || [];
-  el.className = 'show ' + (opts.tone || 'warn');
-  el.innerHTML = `<span class="un-text">${_uEsc(text)}</span>`
+  const tone = opts.tone || 'warn';
+  el.className = 'show ' + tone;
+  // icon + words (+ one action) + close; where it sits (under the info row / menu bar, above the dialogs) is css
+  el.innerHTML = dsIcon(tone === 'ok' ? 'check-circle' : tone === 'err' ? 'warning-circle' : 'warning', { fill: tone === 'ok' }) + `<span class="un-text">${_uEsc(text)}</span>`
     + _noticeActions.map((a, i) => `<button type="button" class="un-btn" data-i="${i}">${_uEsc(a.label)}</button>`).join('')
-    + `<button type="button" class="un-x" data-x="1" aria-label="ปิดข้อความนี้">✕</button>`;
-  // under the bar that is on screen (the scoring info bar, or the menu bar), so it never covers the clock
-  const bar = document.querySelector('#screen-scoring.active .scoring-topbar') || document.getElementById('umpireNav');
-  const r = bar && bar.offsetParent ? bar.getBoundingClientRect() : null;
-  el.style.top = (r ? Math.round(r.bottom) + 6 : 10) + 'px';
+    + `<button type="button" class="un-x" data-x="1" aria-label="ปิดข้อความนี้">${dsIcon('x')}</button>`;
   clearTimeout(_noticeTimer);
   if (opts.ms) _noticeTimer = setTimeout(hideNotice, opts.ms);
 }
@@ -300,13 +304,13 @@ function _uPendingAdd(d) {
   // (the red bar used to vanish with no word that everything had arrived)
   if (before > 0 && _uPending === 0 && _uOnline && _uOfflinePoints > 0) {
     const n = _uOfflinePoints; _uOfflinePoints = 0;
-    showNotice(`ส่งครบแล้ว ✓ ${n} คะแนน`, { tone: 'ok', ms: 4000 });
+    showNotice(`ส่งครบแล้ว ${n} คะแนน`, { tone: 'ok', ms: 4000 });
   }
 }
 // The three states the umpire needs to know (P-17 stage 1) — always one of them, in words and an icon, never colour alone:
-//   ok       "✓ ส่งแล้ว 14:31:07"  everything this phone sent has been accepted (time of the last one)
-//   sending  "⏳ กำลังส่ง 3"        online, but a send has been waiting longer than SYNC_SLOW_MS (slow signal)
-//   offline  "📶 ออฟไลน์ · รอส่ง 3"  no connection; sends wait in the queue and go out by themselves
+//   ok       "ส่งแล้ว 14:31:07"  everything this phone sent has been accepted (time of the last one)
+//   sending  "กำลังส่ง 3 รายการ"   online, but a send has been waiting longer than SYNC_SLOW_MS (slow signal)
+//   offline  "ออฟไลน์ · รอส่ง 3"   no connection; sends wait in the queue and go out by themselves
 function _uSyncState(now) {
   const offline = !_uOnline && (_uEverOnline || now - _uLoadedAt > 3000);
   if (offline) return 'offline';
@@ -321,22 +325,23 @@ function _uRenderNet() {
   const st = _uSyncState(Date.now());
   document.body.classList.toggle('is-offline', st === 'offline');
   document.body.classList.toggle('is-slow', st === 'sending');
-  // the bar on top speaks up only when something is wrong; the strip above the bottom buttons always shows the state
+  // the banner speaks up only when something is wrong (empty = hidden, in the page flow so it never covers a name);
+  // the chip in the scoring info row always shows the state, in words and an icon
   const txt = st === 'offline'
-    ? `📶 ออฟไลน์ — คะแนนที่กดจะส่งเองเมื่อสัญญาณกลับ · อย่าปิดหรือรีเฟรชหน้านี้${_uPending ? ` · รอส่ง ${_uPending}` : ''}`
-    : st === 'sending' ? `⏳ กำลังส่ง ${_uPending} รายการ — สัญญาณช้า รอสักครู่ อย่าปิดหน้านี้` : '';
-  document.querySelectorAll('.net-banner').forEach(el => { el.textContent = txt; });
+    ? `ออฟไลน์ — คะแนนที่กดจะส่งเองเมื่อสัญญาณกลับ · อย่าปิดหรือรีเฟรชหน้านี้${_uPending ? ` · รอส่ง ${_uPending}` : ''}`
+    : st === 'sending' ? `กำลังส่ง ${_uPending} รายการ — สัญญาณช้า รอสักครู่ อย่าปิดหน้านี้` : '';
+  const bannerHtml = txt ? dsIcon(st === 'offline' ? 'wifi-slash' : 'hourglass-medium') + `<span>${txt}</span>` : '';
+  document.querySelectorAll('.net-banner').forEach(el => { el.innerHTML = bannerHtml; });
   const strip = document.getElementById('syncStrip');
   if (strip) {
     strip.className = 'sync-strip sync-' + st;
-    strip.textContent = st === 'offline' ? `📶 ออฟไลน์${_uPending ? ` · รอส่ง ${_uPending}` : ''}`
-      : st === 'sending' ? `⏳ กำลังส่ง ${_uPending}`
-      : _uLastSentAt ? `✓ ส่งแล้ว ${_uClock(_uLastSentAt)}` : '✓ เชื่อมต่อแล้ว';
+    const word = st === 'offline' ? 'ออฟไลน์' : st === 'sending' ? 'กำลังส่ง' : _uLastSentAt ? 'ส่งแล้ว' : 'เชื่อมต่อแล้ว';
+    const sub = st === 'offline' ? (_uPending ? `รอส่ง ${_uPending}` : '')
+      : st === 'sending' ? `${_uPending} รายการ`
+      : _uLastSentAt ? _uClock(_uLastSentAt) : '';
+    strip.innerHTML = dsIcon(st === 'offline' ? 'wifi-slash' : st === 'sending' ? 'hourglass-medium' : 'check-circle')
+      + `<span class="ss-text"><span>${word}</span>${sub ? `<span class="ss-sub">${sub}</span>` : ''}</span>`;
   }
-  // on the scoring screen the banner floats just under the top bar
-  const sb = document.querySelector('#screen-scoring > .net-banner');
-  const tb = document.querySelector('.scoring-topbar');
-  if (sb) sb.style.top = (tb && tb.offsetParent ? tb.offsetHeight : 0) + 'px';
 }
 firebase.database().ref('.info/connected').on('value', s => {
   _uOnline = s.val() === true;
@@ -356,10 +361,20 @@ function initDeviceSupport(force) {
   const standalone = force && force.standalone !== undefined ? force.standalone
     : !!((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true);
   const canFs = fsApi && !standalone;
-  document.querySelectorAll('#navFsBtn, #liFsBtn, .btn-login-fs').forEach(b => { b.style.display = canFs ? '' : 'none'; });
+  document.querySelectorAll('#navFsBtn, .btn-login-fs').forEach(b => { b.style.display = canFs ? '' : 'none'; });
   const hint = document.getElementById('fsHint');
   if (hint) hint.style.display = (!fsApi && !standalone) ? 'block' : 'none';
   return { fsApi, standalone, canFs };
+}
+// the brand mark above the login form (shared/art.js)
+{
+  const lm = document.getElementById('loginMark');
+  if (lm) {
+    lm.innerHTML = dsMark(72);
+    // decorative here: the title and subtitle next to it already say what this page is (the mark's own label is English)
+    const s = lm.firstElementChild;
+    if (s) { s.removeAttribute('role'); s.removeAttribute('aria-label'); s.setAttribute('aria-hidden', 'true'); }
+  }
 }
 initDeviceSupport();
 let _fsIndicatorTimer = null;
@@ -381,11 +396,10 @@ document.addEventListener('webkitfullscreenchange', onFsChange);
 function onFsChange() {
   const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
   // Update all FS buttons
-  document.querySelectorAll('#liFsBtn, #navFsBtn').forEach(btn => {
+  document.querySelectorAll('#navFsBtn').forEach(btn => {
     btn.classList.toggle('fs-active', isFs);
-    btn.textContent = isFs ? '⤢' : '⛶';
+    btn.setAttribute('aria-pressed', String(isFs));
   });
-  document.getElementById('fsBtn').textContent = isFs ? '⤢' : '⛶';
 
   // Show indicator briefly
   if (isFs) {
@@ -417,17 +431,13 @@ async function requestWakeLock() {
   if (!(navigator.wakeLock && navigator.wakeLock.request)) { _wakeWarn(); return; }
   try {
     _wakeLock = await navigator.wakeLock.request('screen');
-    document.getElementById('wakeLockBadge').style.display = 'block';
-    _wakeLock.addEventListener('release', () => {
-      document.getElementById('wakeLockBadge').style.display = 'none';
-      _wakeLock = null;
-    });
+    // no "screen stays on" chip any more: the normal state says nothing, only a failure speaks (_wakeWarn)
+    _wakeLock.addEventListener('release', () => { _wakeLock = null; });
   } catch (e) { _wakeWarn(); }   // refused (battery saver, page hidden)
 }
 
 function releaseWakeLock() {
   if (_wakeLock) { _wakeLock.release(); _wakeLock = null; }
-  document.getElementById('wakeLockBadge').style.display = 'none';
 }
 
 // Re-acquire wake lock when page becomes visible again
@@ -492,11 +502,11 @@ function _uEsc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 // "ก้อง (G2) & มิ้น (G2)" → "ก้อง & มิ้น": the group suffix is noise on a phone
-// (the scoreboard app strips it too); names are escaped, the "&" is styled.
+// (the scoreboard app strips it too); names are escaped, the "&" is styled by css (.amp).
 function formatNames(names) {
   return String(names || '').split(' & ')
     .map(n => _uEsc(n.replace(/\s*\(G\d\)/g, '').trim()))
-    .join(' <span style="color:var(--muted);font-size:0.88em;font-weight:600;">&amp;</span> ');
+    .join(' <span class="amp">&amp;</span> ');
 }
 
 // ── Player faces (read-only) ──────────────────────────────────
@@ -526,34 +536,31 @@ function _uPaintFaces(id) {
     if (photo) {
       if (img) { if (img.getAttribute('src') !== photo) img.src = photo; return; }
       const im = document.createElement('img'); im.src = photo; im.alt = ''; im.loading = 'lazy';
-      el.classList.remove('ua-initials'); el.style.fontSize = ''; el.replaceChildren(im);
+      el.classList.remove('ua-initials'); el.replaceChildren(im);
     } else if (img) {
       el.classList.add('ua-initials'); el.textContent = id;
-      el.style.fontSize = Math.round(el.offsetWidth * 0.36) + 'px';
     }
   });
 }
 function umpirePlayer(id) {
   return (appState && appState.players || []).find(p => p.id === id) || null;
 }
-function umpireAvatar(id, size) {
-  size = size || 30;
+// the size of a face comes from css (where it sits: card, scoring panel, VS intro), never from an inline style
+function umpireAvatar(id) {
   const p = umpirePlayer(id);
   const photo = umpirePhoto(id);
   const team = p && p.team === 'Blue' ? 'ua-blue' : 'ua-red';
-  const style = 'width:' + size + 'px;height:' + size + 'px;';
   const pid = p ? ' data-pid="' + p.id + '"' : '';
-  if (photo) return '<span class="uavatar ' + team + '"' + pid + ' style="' + style + '"><img src="' + photo + '" alt="" loading="lazy"></span>';
-  return '<span class="uavatar ' + team + ' ua-initials"' + pid + ' style="' + style + 'font-size:' + Math.round(size*0.36) + 'px;">' + (p ? p.id : '?') + '</span>';
+  if (photo) return '<span class="uavatar ' + team + '"' + pid + '><img src="' + photo + '" alt="" loading="lazy"></span>';
+  return '<span class="uavatar ' + team + ' ua-initials"' + pid + '>' + (p ? p.id : '?') + '</span>';
 }
-// two faces for a doubles pair, overlapped slightly
+// the pair's two faces, then the names (the panel lays them out in a row: faces never take a row of their own)
 function scoringNamesHtml(m, side) {
-  // names only — faces are on the match card; the scoring screen is height-
-  // constrained and the extra row pushed the panels into the action buttons
-  return formatNames(side === 'red' ? m.redNames : m.blueNames);
+  const red = side === 'red';
+  return umpirePairFaces(red ? m.r1 : m.b1, red ? m.r2 : m.b2) + '<span class="nm">' + formatNames(red ? m.redNames : m.blueNames) + '</span>';
 }
-function umpirePairFaces(id1, id2, size) {
-  return '<span class="uface-pair">' + umpireAvatar(id1, size) + umpireAvatar(id2, size) + '</span>';
+function umpirePairFaces(id1, id2) {
+  return '<span class="uface-pair">' + umpireAvatar(id1) + umpireAvatar(id2) + '</span>';
 }
 
 // ── VS intro — a brief pair-vs-pair reveal when a fresh match is opened ──
@@ -561,9 +568,9 @@ let _vsIntroTimer = null;
 function showVsIntro(m) {
   const ov = document.getElementById('vsIntro');
   if (!ov || !m) return;
-  document.getElementById('vsiCourt').textContent = '🟢 ' + (m.court ? `คอร์ต ${m.court} · ` : '') + m.id + (m.round ? ` · รอบ ${m.round}` : '');
-  document.getElementById('vsiRedFaces').innerHTML  = umpirePairFaces(m.r1, m.r2, 96);
-  document.getElementById('vsiBlueFaces').innerHTML = umpirePairFaces(m.b1, m.b2, 96);
+  document.getElementById('vsiCourt').textContent = (m.court ? `คอร์ต ${m.court} · ` : '') + m.id + (m.round ? ` · รอบ ${m.round}` : '');
+  document.getElementById('vsiRedFaces').innerHTML  = umpirePairFaces(m.r1, m.r2);
+  document.getElementById('vsiBlueFaces').innerHTML = umpirePairFaces(m.b1, m.b2);
   document.getElementById('vsiRedNames').innerHTML  = formatNames(m.redNames || '');
   document.getElementById('vsiBlueNames').innerHTML = formatNames(m.blueNames || '');
   ov.classList.add('show');
@@ -613,13 +620,13 @@ function updateLoginReady() {
   const sel = document.getElementById('umpireSelect');
   const ok = !!(sel && sel.value);
   const btn = document.getElementById('btnLogin');
-  if (btn) { btn.disabled = !ok; btn.textContent = ok ? 'เข้าสู่ระบบ →' : 'เลือกชื่อของคุณก่อน'; }
+  if (btn) { btn.disabled = !ok; btn.innerHTML = ok ? 'เข้าสู่ระบบ' + dsIcon('caret-right') : 'เลือกชื่อของคุณก่อน'; }
   const help = document.getElementById('loginHelp');
   if (help) help.style.display = ok ? 'none' : 'block';
 }
 function processLogin() {
   currentUmpire = document.getElementById('umpireSelect').value;
-  if (!currentUmpire) { vibrateDevice([80, 40, 80]); showAlert('⚠️', 'ยังไม่ได้เลือกชื่อ', 'เลือกชื่อของคุณจากรายการก่อนเข้าระบบ', 'เลือกชื่อ'); return; }
+  if (!currentUmpire) { vibrateDevice([80, 40, 80]); showAlert('warning', 'ยังไม่ได้เลือกชื่อ', 'เลือกชื่อของคุณจากรายการก่อนเข้าระบบ', 'เลือกชื่อ'); return; }
   localStorage.setItem('bdm_umpire_name', currentUmpire);
   goToTab('live');
 }
@@ -627,7 +634,7 @@ function processLogin() {
 async function logoutUmpire() {
   // matches stay in this name's hands: nothing is released by leaving (the same name on any phone carries on)
   const held = ((appState && appState.ongoingMatches) || []).filter(m => m && m.umpire === currentUmpire).map(m => m.id);
-  const ok = await showConfirm('🚪', `ออกจากชื่อ ${currentUmpire}?`,
+  const ok = await showConfirm('sign-out', `ออกจากชื่อ ${currentUmpire}?`,
     held.length ? `แมตช์ ${held.join(', ')} จะยังเป็นของ ${currentUmpire}\nเข้าชื่อเดิมเพื่อคุมต่อ หรือให้ทีมงานปล่อย`
                 : 'เลือกชื่อใหม่ได้ที่หน้าแรก', {
     confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ'
@@ -661,6 +668,11 @@ function goToTab(tabName) {
   document.getElementById('umpireNav').style.display = 'flex';
   document.getElementById('tab-live').classList.toggle('active', tabName === 'live');
   document.getElementById('tab-finished').classList.toggle('active', tabName === 'finished');
+  ['live', 'finished'].forEach(t => {
+    const b = document.getElementById('tab-' + t);
+    if (tabName === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('.who-name').forEach(el => { el.textContent = currentUmpire; });   // who is signed in
   if (tabName === 'live')     { switchScreen('screen-live');     renderMatchList(); }
   else                        { switchScreen('screen-finished'); renderFinishedList(); }
 }
@@ -709,8 +721,7 @@ setInterval(() => {
   const m = appState && appState.ongoingMatches.find(x => x.id === activeMatchId);
   if (!m) return;
 
-  const el      = document.getElementById('umpireTimerDisplay');
-  const liTimer = document.getElementById('liTimer');
+  const el = document.getElementById('umpireTimerDisplay');
 
   // The match clock starts with the first point (a match that is only taken shows 0:00, muted) and
   // keeps running through a pause. It used to start when the match was taken, so a stale time from
@@ -718,10 +729,9 @@ setInterval(() => {
   const started = !!m.timerStartedAt;
   const paused  = !!(m.live && m.live.isPaused);
   const timeStr = formatTimer(started ? Date.now() - m.timerStartedAt : 0);
-  const state   = paused ? ' paused' : (started ? '' : ' idle');   // paused keeps the gold pulse
+  const state   = paused ? ' paused' : (started ? '' : ' idle');   // paused = gold, idle = quiet
   el.className = 'timer-display' + state;
   el.textContent = timeStr;
-  if (liTimer) { liTimer.textContent = timeStr; liTimer.className = 'li-timer' + state; }
 
   if (paused) {
     // ─ Pause current session timer (นับเวลาพักครั้งนี้แยกต่างหาก)
@@ -752,6 +762,28 @@ let _modalResolve = null;
 let _modalReturnFocus = null;   // what had the focus before the box opened (it gets it back)
 let _modalEscape = null;        // { v } — what Esc answers; null = Esc does nothing (a question with no safe way out)
 
+// the icon of a box, in the colour of what it says (amber = careful, rose = offline, green = done ...). `icon` is a
+// dsIcon name; an empty key shows none
+const _MODAL_TONE = { 'warning': 'warn', 'lock-simple': 'warn', 'hourglass-medium': 'warn', 'wifi-slash': 'err', 'check-circle': 'ok',
+  'info': 'info', 'arrow-counter-clockwise': 'info', 'flag': 'gold', 'map-pin': 'gold' };
+function _modalIcon(icon) {
+  const el = document.getElementById('modalIcon');
+  el.className = 'modal-icon tone-' + (_MODAL_TONE[icon] || 'plain');
+  el.innerHTML = icon ? dsIcon(icon, { fill: icon === 'check-circle' || icon === 'warning' }) : '';
+}
+// the amber note above the buttons ("this does not look like a finished game"); '' hides it
+function _modalWarn(text) {
+  const el = document.getElementById('modalWarn');
+  el.hidden = !text;
+  el.innerHTML = text ? dsIcon('warning') + '<span>' + _uEsc(text) + '</span>' : '';
+}
+// the block between the title and the buttons (the court grid, the scores about to be sent, the result); '' hides it
+function _modalPreview(html) {
+  const p = document.getElementById('modalScorePreview');
+  p.innerHTML = html || '';
+  p.style.display = html ? 'block' : 'none';
+}
+
 // Every box goes through here: the screen reader is told it is a dialog (role/aria-modal/labels are on #modalBox
 // in umpire.html), the focus moves INTO it — onto the SAFE button, so Enter is never "yes, do it" — Tab stays
 // inside, and Esc answers `escapeWith` when given. Before, the focus stayed on the page behind and the
@@ -760,7 +792,7 @@ function _modalOpen(escapeWith) {
   const a = document.activeElement;
   _modalReturnFocus = a && a !== document.body ? a : null;
   _modalEscape = escapeWith === undefined ? null : { v: escapeWith };
-  document.getElementById('customModal').classList.add('open');
+  document.getElementById('customModal').classList.add('open', 'is-open');   // is-open: the ds-scrim of css/ui.css
   const box = document.getElementById('modalBox');
   // a score box (not the court picker, which shares the same slot) reads scores-first — see css .has-score
   box.classList.toggle('has-score', document.getElementById('modalScorePreview').style.display === 'block' && !box.classList.contains('is-courts'));
@@ -782,20 +814,22 @@ document.addEventListener('keydown', e => {
 });
 
 /**
- * showAlert(icon, title, body, okLabel) → Promise<void>   (Esc = the OK button)
- * showConfirm(icon, title, body, {confirmLabel, confirmClass, cancelLabel, scoreHtml, noEscape}) → Promise<bool>
- *   the cancel button is the safe one: first, plain, and it has the focus. Esc cancels, unless noEscape.
+ * showAlert(icon, title, body, okLabel, {scoreHtml}) → Promise<void>   (Esc = the OK button)
+ * showConfirm(icon, title, body, {confirmLabel, confirmClass, cancelLabel, scoreHtml, warn, noEscape}) → Promise<bool>
+ *   icon = a dsIcon name. The cancel button is the safe one: first, plain, and it has the focus. Esc cancels, unless
+ *   noEscape. `warn` is the amber note that comes with a score that does not look like a finished game.
  */
-function showAlert(icon, title, body, okLabel) {
+function showAlert(icon, title, body, okLabel, opts = {}) {
   return new Promise(resolve => {
     _modalResolve = resolve;
-    document.getElementById('modalIcon').textContent = icon;
+    _modalIcon(icon);
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').textContent = body;
-    document.getElementById('modalScorePreview').style.display = 'none';
+    _modalPreview(opts.scoreHtml);
+    _modalWarn('');
     const btns = document.getElementById('modalBtns');
     btns.className = 'modal-btns';
-    btns.innerHTML = `<button class="modal-btn modal-btn-ok" data-safe onclick="_modalDone(true)">${_uEsc(okLabel || 'ตกลง')}</button>`;
+    btns.innerHTML = `<button class="ds-btn ds-btn-primary ds-btn-lg modal-btn modal-btn-ok" data-safe onclick="_modalDone(true)">${_uEsc(okLabel || 'ตกลง')}</button>`;
     _modalOpen(true);
   });
 }
@@ -803,17 +837,11 @@ function showAlert(icon, title, body, okLabel) {
 function showConfirm(icon, title, body, opts = {}) {
   return new Promise(resolve => {
     _modalResolve = resolve;
-    document.getElementById('modalIcon').textContent = icon;
+    _modalIcon(icon);
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').textContent = body;
-
-    const preview = document.getElementById('modalScorePreview');
-    if (opts.scoreHtml) {
-      preview.innerHTML = opts.scoreHtml;
-      preview.style.display = 'block';
-    } else {
-      preview.style.display = 'none';
-    }
+    _modalPreview(opts.scoreHtml);
+    _modalWarn(opts.warn);
 
     const confirmLabel = opts.confirmLabel || 'ยืนยัน';
     const confirmClass = opts.confirmClass || 'modal-btn-confirm';
@@ -824,22 +852,22 @@ function showConfirm(icon, title, body, opts = {}) {
     const stack = window.innerWidth < 340 || (Math.max(cancelLabel.length, confirmLabel.length) > 9 && window.innerWidth < 500);
     const btns = document.getElementById('modalBtns');
     btns.className = 'modal-btns two-col' + (stack ? ' stack' : '');
+    const confirmKind = confirmClass === 'modal-btn-danger' ? 'ds-btn-danger' : 'ds-btn-primary';   // gold = sends, rose = leaves / discards
     btns.innerHTML = `
-      <button class="modal-btn modal-btn-cancel" data-safe onclick="_modalDone(false)">${_uEsc(cancelLabel)}</button>
-      <button class="modal-btn ${confirmClass}" onclick="_modalDone(true)">${_uEsc(confirmLabel)}</button>
+      <button class="ds-btn ds-btn-lg modal-btn modal-btn-cancel" data-safe onclick="_modalDone(false)">${_uEsc(cancelLabel)}</button>
+      <button class="ds-btn ds-btn-lg ${confirmKind} modal-btn ${confirmClass}" onclick="_modalDone(true)">${_uEsc(confirmLabel)}</button>
     `;
     _modalOpen(opts.noEscape ? undefined : false);
   });
 }
 
 function _modalDone(result) {
-  document.getElementById('customModal').classList.remove('open');
+  document.getElementById('customModal').classList.remove('open', 'is-open');
   document.getElementById('modalBox').classList.remove('is-courts', 'has-score');
   const back = _modalReturnFocus; _modalReturnFocus = null; _modalEscape = null;
   if (back && document.contains(back) && back.offsetParent !== null) back.focus({ preventScroll: true });
   if (_modalResolve) { _modalResolve(result); _modalResolve = null; }
 }
-
 // ==========================================
 // 4. UMPIRE LIST
 // ==========================================
@@ -861,7 +889,7 @@ function renderUmpireList() {
   );
 
   filtered.forEach(p => {
-    const prefix = p.team === 'Red' ? '🔴' : '🔵';
+    const prefix = p.team === 'Red' ? '●' : '◆';   // the team's shape (circle = red, diamond = blue), as everywhere else
     select.innerHTML += `<option value="${p.name}">${prefix} ${p.name} (G${p.group})</option>`;
   });
 
@@ -883,50 +911,58 @@ function toggleOnlyFree() {
   try { localStorage.setItem('bdm_umpire_onlyfree', _onlyFree ? '1' : '0'); } catch (e) { /* ignore */ }
   renderMatchList();
 }
+// Set an element's content only when it is different. A snapshot of ANY court's score re-renders every phone's screen, and
+// replacing the children of a button while a finger is on it can swallow that tap (the node under the finger is gone
+// when it lifts). Most snapshots change nothing on this phone's screen, so most renders now touch nothing.
+function _uSetHtml(el, html) {
+  if (!el || el._uHtml === html) return;
+  el._uHtml = html;
+  el.innerHTML = html;
+}
+// an empty / no-connection state: the court (or the shuttle) drawn in line art, one sentence, and - when there is
+// something to do - one button (css .ds-empty)
+function _uState(art, title, text, action) {
+  return `<div class="ds-empty"><div class="ds-empty-art">${dsArt(art)}</div><div class="ds-empty-title">${title}</div>`
+    + (text ? `<div class="ds-empty-text">${text}</div>` : '') + (action || '') + '</div>';
+}
+// a card is ONE target: the id, the court, the state (icon + word), the two pairs with their faces
 function _matchCardHtml(m, mine, next) {
-  const badge = mine
-    ? `<span class="badges">${m.court ? `<span class="badge badge-court">${courtLabel(m)}</span>` : ''}<span class="badge badge-mine">▶ คุมต่อ</span></span>`
-    : next ? '<span class="badge badge-next">⏭ ถัดไป</span>'
-    : '<span class="badge" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,192,64,0.3);">✦ ว่างอยู่</span>';
+  const status = mine ? `<span class="ds-chip ds-chip-gold">${dsIcon('play', { fill: true })}คุมต่อ</span>`
+    : next ? `<span class="ds-chip ds-chip-next">${dsIcon('caret-right')}ถัดไป</span>`
+    : `<span class="ds-chip">${dsIcon('lock-simple-open')}ว่างอยู่</span>`;
+  const court = mine && m.court ? `<span class="ds-chip ds-chip-gold">${courtLabel(m)}</span>` : '';
   return `
-    <div class="match-card ${mine ? 'claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
-      <div class="match-card-header">
-        <div class="match-id">${m.id} <span style="color:var(--muted);font-size:0.55em;letter-spacing:0;">รอบ ${m.round}</span></div>
-        ${badge}
-      </div>
-      <div class="team-row">${umpirePairFaces(m.r1, m.r2, 30)}<span style="color:var(--red);">${formatNames(m.redNames)}</span></div>
-      <div class="team-row">${umpirePairFaces(m.b1, m.b2, 30)}<span style="color:var(--blue);">${formatNames(m.blueNames)}</span></div>
-    </div>`;
+    <button type="button" class="match-card${mine ? ' claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
+      <span class="mc-head">
+        <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
+        <span class="mc-badges">${court}${status}</span>
+      </span>
+      <span class="mc-team ds-team ds-team-red">${umpirePairFaces(m.r1, m.r2)}<span class="mc-names">${formatNames(m.redNames)}</span></span>
+      <span class="mc-team ds-team ds-team-blue">${umpirePairFaces(m.b1, m.b2)}<span class="mc-names">${formatNames(m.blueNames)}</span></span>
+    </button>`;
 }
 function _matchTakenHtml(m) {
   return `
     <div class="match-card locked-other">
-      <div class="match-card-header">
-        <div class="match-id" style="color:var(--muted);">${m.id} <span style="font-size:0.55em;">รอบ ${m.round}</span></div>
-        <span class="badge badge-taken">🔒 ${_uEsc(m.umpire)}${m.court ? ' · ' + courtLabel(m) : ''}</span>
-      </div>
+      <span class="mc-head">
+        <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
+        <span class="ds-chip">${dsIcon('lock-simple')}${_uEsc(m.umpire)}${m.court ? ' · ' + courtLabel(m) : ''}</span>
+      </span>
     </div>`;
 }
 function renderMatchList() {
   const list = document.getElementById('matchList');
 
   if (!appState) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-icon">${_uLoadSlow ? '📶' : '⏳'}</span>
-        <div class="empty-title">${_uLoadSlow ? 'ยังเชื่อมต่อไม่ได้' : 'กำลังโหลดแมตช์…'}</div>
-        ${_uLoadSlow ? '<div class="empty-sub">ตรวจสัญญาณ — จะโหลดเองเมื่อเชื่อมต่อได้</div><button type="button" class="btn-retry" onclick="retryUmpireLoad()">ลองใหม่</button>' : ''}
-      </div>`;
+    _uSetHtml(list, _uLoadSlow
+      ? _uState('shuttle', 'ยังเชื่อมต่อไม่ได้', 'ตรวจสัญญาณ — จะโหลดเองเมื่อเชื่อมต่อได้',
+          `<button type="button" class="ds-btn btn-retry" onclick="retryUmpireLoad()">${dsIcon('arrow-clockwise')}ลองใหม่</button>`)
+      : `<div class="list-state" role="status">${'<div class="skel-card"><div class="ds-skel skel-line w30"></div><div class="ds-skel skel-line w80"></div><div class="ds-skel skel-line w60"></div></div>'.repeat(3)}<p class="list-state-text">กำลังโหลดแมตช์…</p></div>`);
     return;
   }
 
   if (appState.ongoingMatches.length === 0) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-icon">☕</span>
-        <div class="empty-title">ยังไม่มีแมตช์ให้คุม</div>
-        <div class="empty-sub">รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง</div>
-      </div>`;
+    _uSetHtml(list, _uState('court', 'ยังไม่มีแมตช์ให้คุม', 'รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง'));
     return;
   }
 
@@ -934,32 +970,23 @@ function renderMatchList() {
   const mine  = sortByCourt(all.filter(m => m.umpire === currentUmpire));
   const free  = all.filter(m => !m.umpire);                                   // queue order, as stored
   const taken = sortByCourt(all.filter(m => m.umpire && m.umpire !== currentUmpire));
-  const group = (title, n) => `<div class="list-group"><span>${title}</span><b>${n}</b></div>`;
+  const group = (title, n) => `<h2 class="list-group"><span>${title}</span><b>${n}</b></h2>`;
   const html = [];
 
   if (taken.length) {
-    html.push(`<button type="button" class="list-filter${_onlyFree ? ' on' : ''}" aria-pressed="${_onlyFree}" onclick="toggleOnlyFree()">${
+    html.push(`<button type="button" class="list-filter${_onlyFree ? ' on' : ''}" aria-pressed="${_onlyFree}" onclick="toggleOnlyFree()">${dsIcon('funnel')}${
       _onlyFree ? `ซ่อนอยู่ ${taken.length} แมตช์ — แตะเพื่อแสดงทั้งหมด` : 'เฉพาะแมตช์ที่ว่าง'}</button>`);
   }
   if (mine.length) { html.push(group('คุมอยู่', mine.length)); mine.forEach(m => html.push(_matchCardHtml(m, true, false))); }
   if (free.length) { html.push(group('ว่างอยู่ — ตามลำดับคิว', free.length)); free.forEach((m, i) => html.push(_matchCardHtml(m, false, i === 0))); }
   else if (_onlyFree && !mine.length) {
-    html.push('<div class="empty-state"><span class="empty-icon">🏸</span><div class="empty-title">ไม่มีแมตช์ว่าง</div><div class="empty-sub">ทุกแมตช์มีกรรมการคุมอยู่แล้ว</div></div>');
+    html.push(_uState('shuttle', 'ไม่มีแมตช์ว่าง', 'ทุกแมตช์มีกรรมการคุมอยู่แล้ว'));
   }
   if (taken.length && !_onlyFree) { html.push(group('มีกรรมการแล้ว', taken.length)); taken.forEach(m => html.push(_matchTakenHtml(m))); }
-  list.innerHTML = html.join('');
+  _uSetHtml(list, html.join(''));
 }
 
 function handleMatchCardTap(event, mId) {
-  // Ripple
-  const card = event.currentTarget;
-  const rect = card.getBoundingClientRect();
-  const rEl = document.createElement('span');
-  rEl.className = 'ripple';
-  rEl.style.left = (event.clientX - rect.left - 5) + 'px';
-  rEl.style.top  = (event.clientY - rect.top  - 5) + 'px';
-  card.appendChild(rEl);
-  setTimeout(() => rEl.remove(), 600);
   vibrateDevice([25]);
   selectMatch(mId);
 }
@@ -969,71 +996,45 @@ function handleMatchCardTap(event, mId) {
 // ==========================================
 function renderFinishedList() {
   const list = document.getElementById('finishedList');
-  list.innerHTML = '';
 
   if (!appState || appState.matchHistory.length === 0) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-icon">🏁</span>
-        <div class="empty-title">ยังไม่มีผล</div>
-        <div class="empty-sub">ผลการแข่งขันจะแสดงที่นี่เมื่อแมตช์จบแล้ว</div>
-      </div>`;
+    _uSetHtml(list, _uState('court', 'ยังไม่มีผล', 'ผลการแข่งขันจะแสดงที่นี่เมื่อแมตช์จบแล้ว'));
     return;
   }
 
   const reversedHistory = [...appState.matchHistory].reverse();
-  reversedHistory.forEach(m => {
+  _uSetHtml(list, reversedHistory.map(m => {
     const rWon = m.rStat === 'W', bWon = m.bStat === 'W';
-    const resultColor = rWon ? 'var(--red)' : bWon ? 'var(--blue)' : 'var(--gold)';
+    const side = rWon ? 'red' : bWon ? 'blue' : 'draw';
     const [g1r, g1b] = (m.game1 || '0:0').split(':');
     const [g2r, g2b] = (m.game2 || '0:0').split(':');
     // cleaned + escaped, like formatNames: no "(G2)" suffixes on a phone
     const _nm = s => String(s || '').split(' & ').map(n => _uEsc(n.replace(/\s*\(G\d\)/g, '').trim()));
     const [rP1, rP2] = _nm(m.redNames);
     const [bP1, bP2] = _nm(m.blueNames);
-    // the losing side's score is a quieter shade of its colour, not a see-through one: 40% opacity was
-    // 1.9-2.1:1 on the card; these are 4.6-5.1:1 and the 🏆 + the result badge still say who won
-    const rScoreColor = rWon ? 'var(--red)'  : bWon ? '#c86464' : 'var(--red)';
-    const bScoreColor = bWon ? 'var(--blue)' : rWon ? '#5090d0' : 'var(--blue)';
     // one malformed history row must not take down the whole list
     const resultLabel = _uEsc(_uResultLabel(m));
+    // a row per side: shape + the two names (+ a trophy and "ชนะ" on the winner), the score of each game, the higher one in gold
+    const row = (s, p1, p2, won) => {
+      const mine = s === 'red' ? [g1r, g2r] : [g1b, g2b], other = s === 'red' ? [g1b, g2b] : [g1r, g2r];
+      return `<tr><th scope="row"><div class="fc-side"><span class="ds-team ds-team-${s}"><span class="fc-names"><span>${p1 || ''}</span>${p2 ? `<span>${p2}</span>` : ''}</span></span>`
+        + (won ? dsIcon('trophy', { fill: true, label: 'ชนะ', cls: 'fc-won' }) : '') + '</div></th>'
+        + mine.map((v, i) => `<td${Number(v) > Number(other[i]) ? ' class="win"' : ''}>${v}</td>`).join('') + '</tr>';
+    };
 
-    list.innerHTML += `
-      <div class="finished-card" style="border-color:${rWon ? 'rgba(255,77,77,0.22)' : bWon ? 'rgba(77,159,255,0.22)' : 'rgba(240,192,64,0.22)'};">
+    return `
+      <div class="finished-card">
         <div class="finished-header">
-          <div style="font-family:'Bebas Neue';font-size:1.5em;color:var(--gold);letter-spacing:2px;">${m.id} <small style="font-family:'Noto Sans Thai',sans-serif;font-size:0.6em;letter-spacing:0;color:var(--muted);">รอบ ${m.round}</small></div>
-          <div class="result-badge" style="background:${resultColor}18;color:${resultColor};border:1px solid ${resultColor}44;">${resultLabel}</div>
+          <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
         </div>
-        <div class="score-grid" style="margin-bottom:6px;">
-          <div class="score-grid-header">ทีม</div>
-          <div class="score-grid-header">เกม 1</div>
-          <div class="score-grid-header">เกม 2</div>
-        </div>
-        <div class="score-grid" style="margin-bottom:8px;">
-          <div class="score-team-cell" style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.18);">
-            <div class="team-dot red"></div>
-            <div>
-              <div style="color:var(--red);font-size:0.95rem;">${rP1||''}${rWon?' 🏆':''}</div>
-              ${rP2 ? `<div style="color:var(--red);font-size:0.85rem;font-weight:600;">${rP2}</div>` : ''}
-            </div>
-          </div>
-          <div class="score-num-cell" style="background:rgba(255,77,77,0.08);color:${rScoreColor};">${g1r}</div>
-          <div class="score-num-cell" style="background:rgba(255,77,77,0.08);color:${rScoreColor};">${g2r}</div>
-        </div>
-        <div class="score-grid">
-          <div class="score-team-cell" style="background:rgba(77,159,255,0.08);border:1px solid rgba(77,159,255,0.18);">
-            <div class="team-dot blue"></div>
-            <div>
-              <div style="color:var(--blue);font-size:0.95rem;">${bP1||''}${bWon?' 🏆':''}</div>
-              ${bP2 ? `<div style="color:var(--blue);font-size:0.85rem;font-weight:600;">${bP2}</div>` : ''}
-            </div>
-          </div>
-          <div class="score-num-cell" style="background:rgba(77,159,255,0.08);color:${bScoreColor};">${g1b}</div>
-          <div class="score-num-cell" style="background:rgba(77,159,255,0.08);color:${bScoreColor};">${g2b}</div>
-        </div>
-        ${m.umpire ? `<div class="finished-umpire">👔 กรรมการ: ${_uEsc(m.umpire)}</div>` : ''}
+        <div class="result-badge ${side}">${resultLabel}</div>
+        <table class="score-grid">
+          <thead><tr><th scope="col"><span class="ds-sr-only">ทีม</span></th><th scope="col">เกม 1</th><th scope="col">เกม 2</th></tr></thead>
+          <tbody>${row('red', rP1, rP2, rWon)}${row('blue', bP1, bP2, bWon)}</tbody>
+        </table>
+        ${m.umpire ? `<div class="finished-umpire">${dsIcon('user')}กรรมการ: ${_uEsc(m.umpire)}</div>` : ''}
       </div>`;
-  });
+  }).join(''));
 }
 
 // ==========================================
@@ -1051,21 +1052,20 @@ function _courtTakenBy(n, exceptId) {
 function showCourtPicker(m, current, cancelLabel) {
   return new Promise(resolve => {
     _modalResolve = resolve;            // _modalDone(n) resolves it: a court number, or 0 to cancel
-    document.getElementById('modalIcon').textContent = '🏸';
+    _modalIcon('map-pin');
     document.getElementById('modalTitle').textContent = `${m.id} แข่งที่คอร์ตไหน?`;
     document.getElementById('modalBody').textContent = 'แตะเลขคอร์ตที่คุณคุมอยู่';
     const chips = [];
     for (let n = 1; n <= COURT_COUNT; n++) {
       const other = _courtTakenBy(n, m.id);
-      chips.push(`<button type="button" class="court-chip${n === current ? ' on' : ''}${other ? ' taken' : ''}" onclick="_modalDone(${n})" aria-label="คอร์ต ${n}${other ? ' มี ' + _uEsc(other.id) + ' อยู่' : ''}">${n}${other ? `<small>${_uEsc(other.id)}</small>` : ''}</button>`);
+      chips.push(`<button type="button" class="court-chip${n === current ? ' on' : ''}${other ? ' taken' : ''}" onclick="_modalDone(${n})" aria-label="คอร์ต ${n}${other ? ' มี ' + _uEsc(other.id) + ' อยู่' : ''}">${n === current ? dsIcon('check') : ''}<span>${n}</span>${other ? `<small>${_uEsc(other.id)}</small>` : ''}</button>`);
     }
-    const preview = document.getElementById('modalScorePreview');
-    preview.innerHTML = `<div class="court-grid">${chips.join('')}</div>`;
-    preview.style.display = 'block';
+    _modalPreview(`<div class="court-grid">${chips.join('')}</div>`);
+    _modalWarn('');
     document.getElementById('modalBox').classList.add('is-courts');   // wide + short layout on a landscape phone
     const btns = document.getElementById('modalBtns');
     btns.className = 'modal-btns';
-    btns.innerHTML = `<button class="modal-btn modal-btn-cancel" data-safe onclick="_modalDone(0)">${_uEsc(cancelLabel || 'ยกเลิก')}</button>`;
+    btns.innerHTML = `<button class="ds-btn ds-btn-lg modal-btn modal-btn-cancel" data-safe onclick="_modalDone(0)">${_uEsc(cancelLabel || 'ยกเลิก')}</button>`;
     _modalOpen(0);
   });
 }
@@ -1076,7 +1076,7 @@ async function chooseCourt(m, current, cancelLabel) {
     if (!n) return 0;
     const other = _courtTakenBy(n, m.id);
     if (!other) return n;
-    const ok = await showConfirm('⚠️', `คอร์ต ${n} มีแมตช์อยู่แล้ว`,
+    const ok = await showConfirm('warning', `คอร์ต ${n} มีแมตช์อยู่แล้ว`,
       `${other.id} ยังอยู่ในคอร์ตนี้\nถ้าจบไปแล้ว ให้แจ้งทีมงานปิดแมตช์นั้น\nใช้คอร์ต ${n} ต่อไหม?`,
       { confirmLabel: `ใช้คอร์ต ${n}`, cancelLabel: 'เลือกใหม่' });
     if (ok) return n;
@@ -1102,14 +1102,14 @@ function setMatchInfo(m) {
   if (key === _matchInfoKey && el.firstChild) return;   // runs on every data update; don't rebuild under a finger
   _matchInfoKey = key;
   const court = m.court ? `คอร์ต ${m.court}` : 'เลือกคอร์ต';
-  el.innerHTML = `<button type="button" class="court-edit${m.court ? '' : ' empty'}" onclick="changeCourt()" aria-label="${m.court ? 'เปลี่ยนเลขคอร์ต (ตอนนี้คอร์ต ' + m.court + ')' : 'เลือกคอร์ต'}"><span class="ce-pill">${court} ✎</span></button><span class="mi-rest">${_uEsc(m.id)} | ${_uEsc(currentUmpire)}</span>`;
+  el.innerHTML = `<button type="button" class="court-edit${m.court ? '' : ' empty'}" onclick="changeCourt()" aria-label="${m.court ? 'เปลี่ยนเลขคอร์ต (ตอนนี้คอร์ต ' + m.court + ')' : 'เลือกคอร์ต'}"><span class="ce-pill"><span>${court}</span>${dsIcon('pencil-simple')}</span></button><span class="mi-rest">${_uEsc(m.id)} · ${_uEsc(currentUmpire)}</span>`;
 }
 
 async function selectMatch(mId) {
   let m = appState.ongoingMatches.find(x => x.id === mId);
   if (!m) return;
   if (m.umpire && m.umpire !== currentUmpire) {
-    showAlert('🔒', `${m.umpire} คุมแมตช์ ${m.id} อยู่`, 'ถ้าต้องรับช่วงต่อ ให้ติดต่อทีมงาน', 'กลับ');
+    showAlert('lock-simple', `${m.umpire} คุมแมตช์ ${m.id} อยู่`, 'ถ้าต้องรับช่วงต่อ ให้ติดต่อทีมงาน', 'กลับ');
     return;
   }
   // A second match while one is still yours is allowed (some umpires run two courts) but is rarely what a
@@ -1117,7 +1117,7 @@ async function selectMatch(mId) {
   if (!m.umpire) {
     const held = appState.ongoingMatches.filter(x => x.id !== mId && x.umpire === currentUmpire);
     if (held.length) {
-      const more = await showConfirm('❓', `คุณคุม ${held.map(x => x.id).join(', ')} อยู่แล้ว`,
+      const more = await showConfirm('info', `คุณคุม ${held.map(x => x.id).join(', ')} อยู่แล้ว`,
         `รับ ${mId} เพิ่มอีกแมตช์จริงไหม?`, { confirmLabel: 'รับเพิ่ม', cancelLabel: 'กลับ' });
       if (!more) return;
       m = appState.ongoingMatches.find(x => x.id === mId);          // the data moved while the dialog was open
@@ -1201,19 +1201,7 @@ function _tapIgnored(team) {
   if (el) { el.classList.remove('ignored'); void el.offsetWidth; el.classList.add('ignored'); }
 }
 
-function addRipple(el, e) {
-  const rect = el.getBoundingClientRect();
-  const rEl = document.createElement('span');
-  rEl.className = 'ripple';
-  const x = e ? (e.clientX - rect.left - 6) : (rect.width / 2 - 6);
-  const y = e ? (e.clientY - rect.top  - 6) : (rect.height / 2 - 6);
-  rEl.style.left = x + 'px';
-  rEl.style.top  = y + 'px';
-  el.appendChild(rEl);
-  setTimeout(() => rEl.remove(), 600);
-}
-
-function updateScore(team, delta, event) {
+function updateScore(team, delta) {
   const now = Date.now();
 
   if (_isConfirming) return;              // result is being submitted
@@ -1231,13 +1219,6 @@ function updateScore(team, delta, event) {
   if (!tapGate(_tapState, team + delta, now).ok) { _tapIgnored(team); return; }
 
   if (!_uOnline) _uOfflinePoints++;
-
-  // Ripple on button
-  const btnId = delta > 0
-    ? (team === 'red' ? 'btnRedPlus'  : 'btnBluePlus')
-    : (team === 'red' ? 'btnRedMinus' : 'btnBlueMinus');
-  const btnEl = document.getElementById(btnId);
-  if (btnEl) addRipple(btnEl, event);
 
   // remember who just scored → "just scored" glow + next server.
   // a −1 correction leaves the last-scored read unchanged.
@@ -1306,15 +1287,12 @@ function renderGameUI() {
   const paused = match.live && match.live.isPaused;
   const btnPause = document.getElementById('btnPause');
   if (paused) {
-    btnPause.innerHTML = '▶ เล่นต่อ';
+    _uSetHtml(btnPause, dsIcon('play', { fill: true }) + '<span>เล่นต่อ</span>');
     btnPause.classList.add('paused');
   } else {
-    btnPause.innerHTML = '⏸ พัก';
+    _uSetHtml(btnPause, dsIcon('pause', { fill: true }) + '<span>พัก</span>');
     btnPause.classList.remove('paused');
   }
-  // Update landscape pause button
-  const liPause = document.getElementById('liPauseBtn');
-  if (liPause) liPause.textContent = paused ? '▶ เล่นต่อ' : '⏸ พัก';
 
   const g1r = Number(match.live.g1R||0), g1b = Number(match.live.g1B||0);
   const g2r = Number(match.live.g2R||0), g2b = Number(match.live.g2B||0);
@@ -1328,48 +1306,62 @@ function renderGameUI() {
   if (pauseScore) pauseScore.textContent = `${curR} – ${curB}`;
 
   // single submit button — label + ready state follow the current game (ส่งผลเกม 1 / ส่งผลแมตช์).
-  // muted until the game reads as a valid finish (still tappable: warn-then-allow)
+  // outlined until the game reads as a valid finish, solid gold + a check once it does (still tappable either way:
+  // warn-then-allow)
   const submitBtn = document.getElementById('btnSubmitGame');
   if (submitBtn) {
+    const ready = !_isConfirming && isValidBadmintonScore(curR, curB);
     submitBtn.disabled = _isConfirming;
-    submitBtn.textContent = _isConfirming ? '⏳ กำลังส่งผล…' : (isGame2 ? 'ส่งผลแมตช์' : 'ส่งผลเกม 1');
-    submitBtn.classList.toggle('is-ready', !_isConfirming && isValidBadmintonScore(curR, curB));
+    _uSetHtml(submitBtn, _isConfirming ? dsIcon('hourglass-medium') + '<span>กำลังส่งผล…</span>'
+      : (ready ? dsIcon('check') : '') + '<span>' + (isGame2 ? 'ส่งผลแมตช์' : 'ส่งผลเกม 1') + '</span>');
+    submitBtn.classList.toggle('is-ready', ready);
   }
 
   // the whole half-screen is the +1 button — say so, but only at 0–0
   const scr = document.getElementById('screen-scoring');
   if (scr) scr.classList.toggle('fresh-game', curR === 0 && curB === 0);
 
-  // landscape game label
-  const liInd = document.getElementById('liGameInd');
-  if (liInd) liInd.textContent = isGame2 ? 'เกม 2' : 'เกม 1';
-
-  // Game 1 recap line, shown only during game 2
+  // the net strip: the game, game 1's score during game 2, and the deuce / game-point read
+  const chip = document.getElementById('gameIndicator');
+  if (chip) chip.textContent = isGame2 ? 'เกม 2' : 'เกม 1';
   const g1Line = document.getElementById('g1Line');
   if (g1Line) {
-    if (isGame2) { g1Line.style.display = 'block'; g1Line.textContent = `เกม 1 · ${g1r}–${g1b}`; }
-    else g1Line.style.display = 'none';
+    g1Line.hidden = !isGame2;
+    if (isGame2) g1Line.textContent = `เกม 1 · ${g1r}–${g1b}`;
   }
-
-  // game chip carries the deuce / game-point read inline (no floating badge)
-  const chip = document.getElementById('gameIndicator');
-  if (chip) {
+  const sitChip = document.getElementById('sitChip');
+  if (sitChip) {
     const sit = gameSituation(curR, curB);
-    chip.classList.remove('gp-red', 'gp-blue', 'deuce');
-    if (!sit) {
-      chip.textContent = isGame2 ? 'เกม 2' : 'เกม 1';
-    } else if (sit.type === 'deuce') {
-      chip.textContent = 'DEUCE'; chip.classList.add('deuce');
-    } else {
-      chip.textContent = (sit.side === 'red' ? '🔴' : '🔵') + ' GAME POINT';
-      chip.classList.add(sit.side === 'red' ? 'gp-red' : 'gp-blue');
-    }
+    sitChip.hidden = !sit;
+    sitChip.className = 'net-chip sit-chip' + (!sit ? '' : sit.type === 'deuce' ? ' deuce' : sit.side === 'red' ? ' gp-red' : ' gp-blue');
+    // game point = the team's shape + the word + an arrow toward its panel (red is above the net strip, blue below it)
+    _uSetHtml(sitChip, !sit ? '' : sit.type === 'deuce' ? 'DEUCE'
+      : `<span class="ds-team ds-team-${sit.side}">GAME POINT</span>${dsIcon(sit.side === 'red' ? 'caret-up' : 'caret-down')}`);
   }
 
-  // steady glow on the side that just scored (also = who serves next)
+  // nothing to take back at 0: the minus says so (it never did anything there)
+  [['btnRedMinus', curR], ['btnBlueMinus', curB]].forEach(([id, v]) => {
+    const b = document.getElementById(id);
+    if (b) { b.classList.toggle('is-zero', v <= 0); b.setAttribute('aria-disabled', v <= 0 ? 'true' : 'false'); }
+  });
+
+  // the side that just scored (also = who serves next) lifts one step
   const rp = document.getElementById('redPanel'), bp = document.getElementById('bluePanel');
   if (rp) rp.classList.toggle('scored', _lastScored === 'red');
   if (bp) bp.classList.toggle('scored', _lastScored === 'blue');
+
+  _uAnnounceScore(`แดง ${curR} น้ำเงิน ${curB} เกม ${isGame2 ? 2 : 1}`);
+}
+
+// The score, said once taps have settled (700 ms) in a status region a screen reader hears; the digits themselves are
+// not live (they would be read on every tap). Nothing is shown.
+let _uAnnounceTimer = null, _uAnnounced = '';
+function _uAnnounceScore(text) {
+  clearTimeout(_uAnnounceTimer);
+  _uAnnounceTimer = setTimeout(() => {
+    const el = document.getElementById('scoreLive');
+    if (el && text !== _uAnnounced) { el.textContent = text; _uAnnounced = text; }
+  }, 700);
 }
 
 // ==========================================
@@ -1423,13 +1415,18 @@ function _uResultLabel(h) {
   return String(h.result || '').replace(/[🔴🔵🤝]/g, '').trim();
 }
 
-// The score box in the submit boxes: each game as "21 – 15" with the sides named under it (colour is never the
-// only cue), and — when given — the result that sending will record, in words.
+// The score table in the submit boxes: a row per side (shape + word, colour is never the only cue), a column per game,
+// the higher number of each game in gold — and, when given, the result that sending will record, in words.
+function _scoreTableHtml(games) {
+  const row = (side, word) => `<tr><th scope="row"><span class="ds-team ds-team-${side}">${word}</span></th>${games.map(g => {
+    const mine = side === 'red' ? g.r : g.b, other = side === 'red' ? g.b : g.r;
+    return `<td${mine > other ? ' class="win"' : ''}>${mine}</td>`;
+  }).join('')}</tr>`;
+  return `<table class="modal-score"><thead><tr><td></td>${games.map(g => `<th scope="col">${g.label}</th>`).join('')}</tr></thead>`
+    + `<tbody>${row('red', 'แดง')}${row('blue', 'น้ำเงิน')}</tbody></table>`;
+}
 function _scorePreviewHtml(games, resultLabel) {
-  const cell = g => `<div class="modal-score-game"><div class="modal-score-label">${g.label}</div>
-      <div class="modal-score-val"><span style="color:var(--red)">${g.r}</span><span class="msv-dash">–</span><span style="color:var(--blue)">${g.b}</span></div>
-      <div class="modal-score-sides"><span style="color:var(--red)">แดง</span> – <span style="color:var(--blue)">น้ำเงิน</span></div></div>`;
-  return `<div class="modal-score-preview">${games.map(cell).join('<div class="modal-score-sep">·</div>')}</div>`
+  return _scoreTableHtml(games)
     + (resultLabel ? `<div class="modal-result"><small>ผลที่จะบันทึก</small>${_uEsc(resultLabel)}</div>` : '');
 }
 
@@ -1451,8 +1448,9 @@ async function lockGame1() {
   if (warn) vibrateDevice([60, 30, 60]);
 
   // says that it cannot be undone from here (an admin fixes it), shows what is being sent, names the sides
-  const ok = await showConfirm('🏁', 'ส่งผลเกม 1?',
-    (warn ? `⚠️ ${warn}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ\n` : '') + 'ส่งแล้วแก้เกม 1 เองไม่ได้\nจากนั้นเริ่มเกม 2 ทันที', {
+  const ok = await showConfirm('flag', 'ส่งผลเกม 1?',
+    'ส่งแล้วแก้เกม 1 เองไม่ได้\nจากนั้นเริ่มเกม 2 ทันที', {
+    warn: warn ? `${warn}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ` : '',
     scoreHtml: _scorePreviewHtml([{ label: 'เกม 1', r: g1r, b: g1b }]),
     confirmLabel: 'ส่งผลเกม 1',
     confirmClass: 'modal-btn-confirm',
@@ -1495,6 +1493,7 @@ function togglePause() {
     if (totalEl) totalEl.textContent = formatTimer(match.live.totalPauseMs);
 
     document.getElementById('pauseOverlay').classList.remove('show');
+    document.getElementById('btnPause').focus({ preventScroll: true });   // the focus goes back where it came from
   } else {
     // ── Pause ──
     const now = Date.now();
@@ -1508,6 +1507,7 @@ function togglePause() {
     if (totalEl) totalEl.textContent = formatTimer(match.live.totalPauseMs || 0);
 
     document.getElementById('pauseOverlay').classList.add('show');
+    document.getElementById('btnResume').focus({ preventScroll: true });  // the break screen is a dialog: the focus moves in
   }
 
   // write just the pause fields, on this match (found by id); pausing and resuming both count as activity
@@ -1527,6 +1527,7 @@ function exitMatch() {
   releaseWakeLock();
   activeMatchId = '';
   _uOwned = '';
+  _uAnnounced = '';
   const pauseOv = document.getElementById('pauseOverlay');
   if (pauseOv) pauseOv.classList.remove('show');   // leaving while paused: the break screen must not stay over the list
   localStorage.removeItem('bdm_umpire_match');
@@ -1548,11 +1549,11 @@ async function confirmExit() {
   const offline = !_uOnline && (_uEverOnline || Date.now() - _uLoadedAt > 3000);
   const waiting = offline || _uPending > 0;
   const ok = waiting
-    ? await showConfirm('📶', 'ออกตอนที่ยังส่งไม่ครบ?',
+    ? await showConfirm('wifi-slash', 'ออกตอนที่ยังส่งไม่ครบ?',
         `${_uPending > 0 ? `ยังมี ${_uPending} รายการรอส่ง` : 'ตอนนี้ไม่มีสัญญาณ'}\nอย่าปิดหน้านี้จนกว่าสัญญาณกลับ\nระบบจะส่งต่อเองเมื่อสัญญาณกลับ`,
         { confirmLabel: 'ออกทั้งที่ยังไม่ส่ง', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' })
-    : await showConfirm('🚪', 'ออกจากหน้านี้?',
-        `คะแนน ${score} ถูกบันทึกแล้ว\nแตะ ▶ คุมต่อ ที่รายการเพื่อกลับมา`,
+    : await showConfirm('sign-out', 'ออกจากหน้านี้?',
+        `คะแนน ${score} ถูกบันทึกแล้ว\nแตะ “คุมต่อ” ที่รายการเพื่อกลับมา`,
         { confirmLabel: 'ออก', confirmClass: 'modal-btn-danger', cancelLabel: 'อยู่ต่อ' });
   if (ok) exitMatch();
 }
@@ -1607,8 +1608,9 @@ async function confirmMatch() {
   // what sending will record, worked out once: shown in the box, then written
   const { pRed, pBlue, rStat, bStat, resText, label: resLabel } = _uOutcome(g1r, g1b, g2r, g2b);
 
-  const ok = await showConfirm('🏁', 'ส่งผลแมตช์?',
-    (_warns.length ? `⚠️ ${_warns.join('\n')}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ\n` : '') + 'ส่งแล้วแก้เองไม่ได้\nต้องให้ทีมงานแก้', {
+  const ok = await showConfirm('flag', 'ส่งผลแมตช์?',
+    'ส่งแล้วแก้เองไม่ได้\nต้องให้ทีมงานแก้', {
+    warn: _warns.length ? `${_warns.join('\n')}\nส่งต่อได้ ถ้าเป็นการยอมแพ้หรือบาดเจ็บ` : '',
     scoreHtml: _scorePreviewHtml([{ label: 'เกม 1', r: g1r, b: g1b }, { label: 'เกม 2', r: g2r, b: g2b }], resLabel),
     confirmLabel: 'ส่งผลแมตช์',
     confirmClass: 'modal-btn-confirm',
@@ -1619,13 +1621,13 @@ async function confirmMatch() {
     // An earlier send of THIS match may still arrive (it timed out, the umpire left, it is queued in this
     // page). Sending the same scores again is safe; different scores would race it, so wait for it.
     if (_uSubmitPending && _uSubmitPending.id === m.id && (_uSubmitPending.game1 !== `${g1r}:${g1b}` || _uSubmitPending.game2 !== `${g2r}:${g2b}`)) {
-      await showAlert('⏳', 'ผลก่อนหน้านี้ยังส่งค้างอยู่', `ผลที่ส่งไปก่อน (เกม 1 ${_uSubmitPending.game1.replace(':', '–')} · เกม 2 ${_uSubmitPending.game2.replace(':', '–')})\nยังส่งไม่ถึงระบบ — รอให้ส่งเสร็จก่อน แล้วค่อยแก้`);
+      await showAlert('hourglass-medium', 'ผลก่อนหน้านี้ยังส่งค้างอยู่', `ผลที่ส่งไปก่อน (เกม 1 ${_uSubmitPending.game1.replace(':', '–')} · เกม 2 ${_uSubmitPending.game2.replace(':', '–')})\nยังส่งไม่ถึงระบบ — รอให้ส่งเสร็จก่อน แล้วค่อยแก้`);
       return;
     }
     // Finalizing needs the server: a queued offline result would be lost if the
     // phone is locked or the page closed before the signal returns.
     if (!_uOnline) {
-      await showAlert('📶', 'ยังส่งผลไม่ได้', 'ไม่มีสัญญาณ — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้\nเมื่อสัญญาณกลับ กด “ส่งผลแมตช์” อีกครั้ง');
+      await showAlert('wifi-slash', 'ยังส่งผลไม่ได้', 'ไม่มีสัญญาณ — คะแนนยังอยู่ครบในเครื่องนี้\nอย่าปิดหน้านี้\nเมื่อสัญญาณกลับ กด “ส่งผลแมตช์” อีกครั้ง');
       return;
     }
     _isConfirming = true; // ป้องกัน updateCurrentScreen แสดง modal ซ้ำ
@@ -1653,7 +1655,7 @@ async function confirmMatch() {
     while (!r.ok && !['already', 'missing', 'taken', 'abandoned'].includes(r.reason)) {
       _isConfirming = false;
       renderGameUI();
-      const again = await showConfirm('⚠️', 'ส่งผลไม่สำเร็จ', 'คะแนนยังอยู่ครบในเครื่องนี้\nตรวจสัญญาณแล้วลองส่งอีกครั้ง\nถ้ายังไม่ได้ แจ้งทีมงาน',
+      const again = await showConfirm('warning', 'ส่งผลไม่สำเร็จ', 'คะแนนยังอยู่ครบในเครื่องนี้\nตรวจสัญญาณแล้วลองส่งอีกครั้ง\nถ้ายังไม่ได้ แจ้งทีมงาน',
         { confirmLabel: 'ลองส่งอีกครั้ง', cancelLabel: 'ปิด' });
       if (!again) return;
       _isConfirming = true;
@@ -1664,23 +1666,28 @@ async function confirmMatch() {
 
     if (r.ok || (r.reason === 'already' && sameResult)) {
       vibrateDevice([60, 40, 60, 40, 120]);
-      await showAlert('✅', 'ส่งผลแล้ว ✓', `${m.id} · ${resLabel}`, 'กลับไปรายการ');
+      // the result as the viewers will see it: who won, both games, how long it took, and that it is in the system
+      const side = rStat === 'W' ? 'red' : bStat === 'W' ? 'blue' : 'draw';
+      const resultHtml = `<div class="result-win ${side}">${dsIcon(side === 'draw' ? 'medal' : 'trophy', { fill: side !== 'draw' })}<span>${_uEsc(resLabel)}</span></div>`
+        + _scoreTableHtml([{ label: 'เกม 1', r: g1r, b: g1b }, { label: 'เกม 2', r: g2r, b: g2b }])
+        + `<ul class="result-meta"><li>${_uEsc(m.id)}</li><li>${dsIcon('timer')}เวลาเล่น ${formatTimer(matchDuration)}</li><li>${dsIcon('check-circle', { fill: true })}ส่งแล้ว</li></ul>`;
+      await showAlert('check-circle', 'ส่งผลแล้ว', '', 'กลับไปรายการ', { scoreHtml: resultHtml });
       _isConfirming = false;
       exitMatch();
     } else if (r.reason === 'already') {
       // recorded by someone else first; when their scores are not the ones pressed here, say both
       const both = x => `${String(x.game1).replace(':', '–')} · ${String(x.game2).replace(':', '–')}`;
-      await showAlert('ℹ️', 'แมตช์นี้ถูกบันทึกผลไปแล้ว',
+      await showAlert('info', 'แมตช์นี้ถูกบันทึกผลไปแล้ว',
         'ทีมงานบันทึกผลไว้ก่อน — ผลจากเครื่องนี้ไม่ถูกส่งซ้ำ' + (r.existing ? `\nผลที่บันทึก ${both(r.existing)}\nต่างจากที่คุณกด ${both(entry)}\nแจ้งทีมงานหากไม่ถูกต้อง` : ''), 'กลับไปรายการ');
       _isConfirming = false;
       exitMatch();
     } else if (r.reason === 'missing') {
       // gone from the court list without a result in the history: nothing was recorded anywhere
-      await showAlert('ℹ️', 'แมตช์นี้ถูกปิดไปแล้ว', 'ทีมงานปิดแมตช์นี้ไปก่อน — ผลจากเครื่องนี้จึงไม่ถูกส่ง\nถ้ายังต้องบันทึกผล แจ้งทีมงาน', 'กลับไปรายการ');
+      await showAlert('info', 'แมตช์นี้ถูกปิดไปแล้ว', 'ทีมงานปิดแมตช์นี้ไปก่อน — ผลจากเครื่องนี้จึงไม่ถูกส่ง\nถ้ายังต้องบันทึกผล แจ้งทีมงาน', 'กลับไปรายการ');
       _isConfirming = false;
       exitMatch();
     } else if (r.reason === 'taken') {
-      await showAlert('🔒', 'แมตช์นี้ไม่ได้อยู่กับคุณแล้ว', 'ทีมงานปล่อยแมตช์นี้ หรือกรรมการคนอื่นรับไปแล้ว\nผลจากเครื่องนี้จึงไม่ถูกส่ง', 'กลับไปรายการ');
+      await showAlert('lock-simple', 'แมตช์นี้ไม่ได้อยู่กับคุณแล้ว', 'ทีมงานปล่อยแมตช์นี้ หรือกรรมการคนอื่นรับไปแล้ว\nผลจากเครื่องนี้จึงไม่ถูกส่ง', 'กลับไปรายการ');
       _isConfirming = false;
       exitMatch();
     } else {

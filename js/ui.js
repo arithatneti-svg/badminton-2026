@@ -27,7 +27,7 @@ window.addEventListener('DOMContentLoaded', () => {
   else window.addEventListener('resize', _syncNavHeight);
 });
 
-// ── Phone nav: the ⋯ menu and the tab strip's edge fade (css/nav.css, "PHONE NAV") ──
+// ── The ⋯ menu and the tab strip's edge fade (css/nav.css) ──
 function toggleNavMenu(force) {
   const nav = document.getElementById('mainNav');
   if (!nav) return;
@@ -42,8 +42,14 @@ document.addEventListener('click', (e) => {
   // a tap on a menu action runs it first (its own onclick), then the menu closes; a tap anywhere else just closes
   if (e.target.closest('#navActions button') || !e.target.closest('#navActions')) toggleNavMenu(false);
 });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleNavMenu(false); });
-window.addEventListener('resize', () => { if (window.innerWidth > 768) toggleNavMenu(false); });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const nav = document.getElementById('mainNav');
+  if (!nav || !nav.classList.contains('menu-open')) return;
+  toggleNavMenu(false);
+  const b = document.getElementById('navMoreBtn');
+  if (b) b.focus();                      // focus returns to the button that opened the menu
+});
 
 // a fade on the side of the tab strip that has more tabs behind it, so a hidden tab is not a secret
 function _navFade() {
@@ -75,9 +81,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function switchTab(tabId, btn) {
   document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
   document.getElementById(tabId).classList.add('active');
-  if (btn) btn.classList.add('active');
+  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-current', 'page'); }
   toggleNavMenu(false);
   _navRevealTab(btn);
   _navFade();
@@ -131,15 +137,16 @@ function updateUI() {
     return;
   }
 
-  // Role badge
+  // Role badge: an icon and the role's name (css/nav.css .role-chip; hidden for a spectator)
   const badge = document.getElementById('roleBadge');
   if (badge) {
-    if (userRole === 'superadmin') {
-      badge.textContent = '👑 SUPER ADMIN';
-      badge.style.cssText += 'display:inline-block;background:rgba(245,200,66,0.15);color:#f5c842;border:1px solid rgba(245,200,66,0.35);';
-    } else if (userRole === 'admin') {
-      badge.textContent = '⚙️ ADMIN';
-      badge.style.cssText += 'display:inline-block;background:rgba(255,255,255,0.07);color:#aaa;border:1px solid rgba(255,255,255,0.15);';
+    if (userRole === 'superadmin' || userRole === 'admin') {
+      if (badge.dataset.role !== userRole) {
+        const sup = userRole === 'superadmin';
+        badge.dataset.role = userRole;
+        badge.innerHTML = dsIcon(sup ? 'crown' : 'gear-six', { fill: sup }) + '<span>' + (sup ? 'Super Admin' : 'Admin') + '</span>';
+      }
+      badge.style.display = '';
     } else {
       badge.style.display = 'none';
     }
@@ -148,18 +155,25 @@ function updateUI() {
   const rEl = document.getElementById('displayRedScore'), bEl = document.getElementById('displayBlueScore');
   const rPanel = document.getElementById('redPanel'), bPanel = document.getElementById('bluePanel');
   const newRed = appState.globalScoreRed, newBlue = appState.globalScoreBlue;
-  if (newRed !== prevRed) { rEl.classList.remove('score-bump'); void rEl.offsetWidth; rEl.classList.add('score-bump'); if (newRed > prevRed) flashScore('displayRedScore','#ff3b3b'); prevRed = newRed; }
-  if (newBlue !== prevBlue) { bEl.classList.remove('score-bump'); void bEl.offsetWidth; bEl.classList.add('score-bump'); if (newBlue > prevBlue) flashScore('displayBlueScore','#3b8eff'); prevBlue = newBlue; }
+  const pop = el => { el.classList.remove('ds-pop'); void el.offsetWidth; el.classList.add('ds-pop'); };   // a changed digit settles in (css/ui.css)
+  if (newRed !== prevRed) { pop(rEl); if (newRed > prevRed) flashScore('displayRedScore','#ff3b3b'); prevRed = newRed; }
+  if (newBlue !== prevBlue) { pop(bEl); if (newBlue > prevBlue) flashScore('displayBlueScore','#3b8eff'); prevBlue = newBlue; }
   rEl.textContent = newRed; bEl.textContent = newBlue;
-  
+
   document.getElementById('redTeamName').value = appState.redTeamName || 'RED TEAM';
   document.getElementById('blueTeamName').value = appState.blueTeamName || 'BLUE TEAM';
-  
+  // only staff rename the teams: for everyone else the name is plain text, not a field to land on with the keyboard
+  const staff = userRole === 'admin' || userRole === 'superadmin';
+  ['redTeamName', 'blueTeamName'].forEach(id => { const el = document.getElementById(id); el.readOnly = !staff; el.tabIndex = staff ? 0 : -1; });
+
+  // "นำ" (ahead) and "นำขาด" (6+ ahead) badges: only the leading side's is visible (css/scoreboard.css .idl-lead)
   rPanel.classList.remove('leading','dominant'); bPanel.classList.remove('leading','dominant');
   const diff = newRed - newBlue;
-  if (diff > 0) { rPanel.classList.add(diff >= 6 ? 'dominant' : 'leading'); document.getElementById('redLeadBadge').textContent = diff >= 6 ? '🔥 นำขาด' : '▲ นำ'; document.getElementById('blueLeadBadge').textContent = '▲ นำ'; _fireWant = { red: diff >= 6, blue: false }; }
-  else if (diff < 0) { bPanel.classList.add(Math.abs(diff) >= 6 ? 'dominant' : 'leading'); document.getElementById('blueLeadBadge').textContent = Math.abs(diff) >= 6 ? '🔥 นำขาด' : '▲ นำ'; document.getElementById('redLeadBadge').textContent = '▲ นำ'; _fireWant = { red: false, blue: Math.abs(diff) >= 6 }; }
-  else { document.getElementById('redLeadBadge').textContent = '▲ นำ'; document.getElementById('blueLeadBadge').textContent = '▲ นำ'; _fireWant = { red: false, blue: false }; }
+  const leadHtml = dominant => dominant ? dsIcon('fire') + '<span>นำขาด</span>' : dsIcon('caret-up') + '<span>นำ</span>';
+  const setLead = (id, html) => { const el = document.getElementById(id); if (el && el.dataset.k !== html) { el.dataset.k = html; el.innerHTML = html; } };
+  if (diff > 0) { rPanel.classList.add(diff >= 6 ? 'dominant' : 'leading'); setLead('redLeadBadge', leadHtml(diff >= 6)); setLead('blueLeadBadge', leadHtml(false)); _fireWant = { red: diff >= 6, blue: false }; }
+  else if (diff < 0) { bPanel.classList.add(Math.abs(diff) >= 6 ? 'dominant' : 'leading'); setLead('blueLeadBadge', leadHtml(Math.abs(diff) >= 6)); setLead('redLeadBadge', leadHtml(false)); _fireWant = { red: false, blue: Math.abs(diff) >= 6 }; }
+  else { setLead('redLeadBadge', leadHtml(false)); setLead('blueLeadBadge', leadHtml(false)); _fireWant = { red: false, blue: false }; }
 
   if (typeof renderMeBar === 'function') renderMeBar();
   if (typeof renderLiveArena === 'function') renderLiveArena();
@@ -258,8 +272,9 @@ function renderLiveArena() {
 let _idleKey = '';
 const IDLE_QUEUE_SHOWN = 4;          // rows under the "next up" card
 
+// faces only for the match that is about to start; the rows under it are names alone (the owner took faces off the queue)
 function _idlePairHtml(ids, names, size) {
-  const faces = ids.map(id => avatarHtml(id, size)).join('');
+  const faces = size ? ids.map(id => avatarHtml(id, size)).join('') : '';
   const list = (names || '').split(' & ').map(n => escHtml(typeof stripGroup === 'function' ? stripGroup(n.trim()) : n.trim()));
   return { faces, names: list.join(' <i>·</i> ') };
 }
@@ -280,57 +295,63 @@ function renderIdleBoard() {
   const gap = document.getElementById('idleGap');
   if (gap) gap.textContent = r === b ? 'เสมอ' : `ห่าง ${Math.abs(r - b)}`;
 
-  // the cards only rebuild when the line-up changes
+  // the cards only rebuild when the line-up (or the role: the empty state has a staff button) changes
   const me = typeof getMe === 'function' ? getMe() : '';
-  const key = next.map(m => [m.id, m.round, m.umpire || '', m.court || 0, m.r1, m.r2, m.b1, m.b2].join(':')).join('|') + '|' + me + '|' + hist.length;
+  const key = next.map(m => [m.id, m.round, m.umpire || '', m.court || 0, m.r1, m.r2, m.b1, m.b2].join(':')).join('|') + '|' + me + '|' + hist.length + '|' + userRole;
   if (key === _idleKey && box.firstChild) return;
   _idleKey = key;
 
   if (!next.length) {
     const isAdmin = userRole === 'admin' || userRole === 'superadmin';
-    box.innerHTML = `<div class="idl-empty">
-      <b>${hist.length ? '🏁 ไม่มีแมตช์ในคิวตอนนี้' : '📋 ยังไม่มีแมตช์'}</b>
-      ${isAdmin ? 'สร้างแมตช์ใหม่ได้ที่แท็บ ⚙️ Admin' : 'รอแอดมินจัดคิวแมตช์ถัดไป'}
+    const action = isAdmin
+      ? `<button type="button" class="ds-btn ds-btn-primary" onclick="switchTab('admin', document.getElementById('tab-admin'))">${dsIcon('gear-six')} ไปที่ Admin</button>`
+      : hist.length ? `<button type="button" class="ds-btn" onclick="switchTab('finished', document.getElementById('tab-finished'))">${dsIcon('flag')} ดูแมตช์ที่จบแล้ว</button>` : '';
+    box.innerHTML = `<div class="idl-empty ds-empty">
+      <div class="ds-empty-art">${dsArt('court')}</div>
+      <div class="ds-empty-title">${hist.length ? 'ไม่มีแมตช์ในคิวตอนนี้' : 'ยังไม่มีแมตช์'}</div>
+      <div class="ds-empty-text">${isAdmin ? 'สร้างแมตช์ใหม่ได้ที่แท็บ Admin' : 'รอทีมงานจัดคิวแมตช์ถัดไป'}</div>
+      ${action}
     </div>`;
     return;
   }
 
   const mine = m => typeof matchHasMe === 'function' && matchHasMe(m);
   const m = next[0];
+  const rn = escHtml(appState.redTeamName || 'RED'), bn = escHtml(appState.blueTeamName || 'BLUE');
   const red = _idlePairHtml([m.r1, m.r2], m.redNames, 96), blue = _idlePairHtml([m.b1, m.b2], m.blueNames, 96);
   const state = m.umpire
-    ? `<span class="idl-next-state on">🟢 พร้อมแข่ง · 👔 ${escHtml(m.umpire)}</span>`
-    : `<span class="idl-next-state">⏳ รอเรียกลงสนาม</span>`;
+    ? `<span class="idl-next-state on">${dsIcon('check-circle', { fill: true })} พร้อมแข่ง · ${dsIcon('user')} ${escHtml(m.umpire)}</span>`
+    : `<span class="idl-next-state">${dsIcon('hourglass-medium')} รอเรียกลงสนาม</span>`;
   const hero = `<div class="idl-next${mine(m) ? ' me' : ''}">
     <div class="idl-next-head">
-      <span class="idl-next-tag">⏭ แมตช์ถัดไป</span>
+      <span class="idl-next-tag">${dsIcon('play', { fill: true })} แมตช์ถัดไป</span>
       ${m.court ? `<span class="court-no">${escHtml(courtLabel(m))}</span>` : ''}
       <span class="idl-next-id">${escHtml(m.id)} · รอบ ${escHtml(String(m.round || '?'))}</span>
       ${state}
     </div>
     <div class="idl-next-row">
-      <div class="idl-side red"><div class="idl-faces">${red.faces}</div><div class="idl-names">${red.names}</div></div>
+      <div class="idl-side red"><span class="idl-tag ds-team ds-team-red">${rn}</span><div class="idl-faces">${red.faces}</div><div class="idl-names">${red.names}</div></div>
       <div class="idl-next-vs">VS</div>
-      <div class="idl-side blue"><div class="idl-faces">${blue.faces}</div><div class="idl-names">${blue.names}</div></div>
+      <div class="idl-side blue"><span class="idl-tag ds-team ds-team-blue">${bn}</span><div class="idl-faces">${blue.faces}</div><div class="idl-names">${blue.names}</div></div>
     </div>
-    ${mine(m) ? `<div class="idl-me">⭐ แมตช์ของคุณ — เตรียมตัวได้เลย!</div>` : ''}
+    ${mine(m) ? `<div class="idl-me">${dsIcon('star', { fill: true })} แมตช์ของคุณ — เตรียมตัวได้เลย!</div>` : ''}
   </div>`;
 
   const rest = next.slice(1, 1 + IDLE_QUEUE_SHOWN);
   const more = next.length - 1 - rest.length;
   const rows = rest.map((x, i) => {
-    const xr = _idlePairHtml([x.r1, x.r2], x.redNames, 28), xb = _idlePairHtml([x.b1, x.b2], x.blueNames, 28);
+    const xr = _idlePairHtml([x.r1, x.r2], x.redNames, 0), xb = _idlePairHtml([x.b1, x.b2], x.blueNames, 0);
     return `<div class="idl-q${mine(x) ? ' me' : ''}">
       <span class="idl-q-no">#${i + 2}</span>
       <span class="idl-q-id">${escHtml(x.id)}</span>
-      <span class="idl-q-team red">${xr.faces}<span>${xr.names}</span></span>
-      <span class="idl-q-vs">vs</span>
-      <span class="idl-q-team blue"><span>${xb.names}</span>${xb.faces}</span>
+      <span class="idl-q-team red">${xr.names}</span>
+      <span class="idl-q-vs">VS</span>
+      <span class="idl-q-team blue">${xb.names}</span>
     </div>`;
   }).join('');
   const queueHtml = rest.length ? `<div class="idl-queue">
       <div class="idl-queue-h">ต่อจากนั้น</div>${rows}
-      ${more > 0 ? `<div class="idl-q-more">และอีก ${more} แมตช์ — ดูทั้งหมดที่แท็บ Ongoing</div>` : ''}
+      ${more > 0 ? `<div class="idl-q-more">และอีก ${more} แมตช์ — ดูทั้งหมดที่แท็บกำลังแข่ง</div>` : ''}
     </div>` : '';
 
   box.innerHTML = hero + queueHtml;
@@ -372,19 +393,32 @@ function _arenaScores(m) {
 
 function _arenaPatch(arena, m, live) {
   const s = _arenaScores(m);
-  const set = (sel, v) => { const el = arena.querySelector(sel); if (el) el.textContent = v; };
-  set('.lv-team.red .lv-snum',  s.curR);
-  set('.lv-team.blue .lv-snum', s.curB);
+  // a digit that changed settles in (css/ui.css .ds-pop); the selectors below are frozen hooks
+  const set = (sel, v, pop) => {
+    const el = arena.querySelector(sel); if (!el) return;
+    const t = String(v);
+    if (el.textContent === t) return;
+    el.textContent = t;
+    if (pop) { el.classList.remove('ds-pop'); void el.offsetWidth; el.classList.add('ds-pop'); }
+  };
+  set('.lv-team.red .lv-snum',  s.curR, true);
+  set('.lv-team.blue .lv-snum', s.curB, true);
   set('.lv-set .g.r', s.redGames);
   set('.lv-set .g.b', s.blueGames);
   const lead = s.curR > s.curB ? 'red' : s.curB > s.curR ? 'blue' : '';
   arena.querySelector('.lv-team.red') ?.classList.toggle('lead', lead === 'red');
   arena.querySelector('.lv-team.blue')?.classList.toggle('lead', lead === 'blue');
+  const sr = arena.querySelector('.lv-sr');           // the score, said aloud to a screen reader when it changes
+  if (sr) { const t = _arenaSpoken(m, s); if (sr.textContent !== t) sr.textContent = t; }
   // every court chip carries its own live score
   (live || []).forEach(x => {
     const b = arena.querySelector(`.lv-cchip[data-mid="${x.id}"] b`);
     if (b) { const xs = _arenaScores(x); b.textContent = `${xs.curR}–${xs.curB}`; }
   });
+}
+
+function _arenaSpoken(m, s) {
+  return `${m.court ? courtLabel(m) + ' ' : ''}เกม ${s.gameNo} แดง ${s.curR} น้ำเงิน ${s.curB}`;
 }
 
 // Court chips: see every court's score at a glance, tap one to stay on it.
@@ -397,11 +431,11 @@ function _arenaChipsHtml(m, live, mode) {
     const cls = shown ? (mode === 'auto' ? ' cur' : ' on') : '';
     // a viewer knows "คอร์ต 3", not a match number — the id is only the fallback when no court was chosen
     return `<button type="button" class="lv-cchip${cls}" data-mid="${escHtml(x.id)}" aria-pressed="${shown && mode !== 'auto'}"
-      onclick="arenaPick('${escHtml(x.id)}')" title="ดูคอร์ตนี้ค้างไว้">${mine(x) ? '⭐ ' : ''}${escHtml(x.court ? courtLabel(x) : x.id)} <b>${xs.curR}–${xs.curB}</b></button>`;
+      onclick="arenaPick('${escHtml(x.id)}')" title="ดูคอร์ตนี้ค้างไว้">${mine(x) ? dsIcon('star', { fill: true }) : ''}<span>${escHtml(x.court ? courtLabel(x) : x.id)}</span> <b>${xs.curR}–${xs.curB}</b></button>`;
   }).join('');
   return `<div class="lv-courts" role="group" aria-label="เลือกคอร์ต">
     <button type="button" class="lv-cchip auto${mode === 'auto' ? ' on' : ''}" aria-pressed="${mode === 'auto'}"
-      onclick="arenaPick('auto')" title="สลับทุกคอร์ตอัตโนมัติ">🔄 อัตโนมัติ</button>${chips}
+      onclick="arenaPick('auto')" title="สลับทุกคอร์ตอัตโนมัติ">${dsIcon('arrows-clockwise')}<span>อัตโนมัติ</span></button>${chips}
   </div>`;
 }
 
@@ -412,9 +446,10 @@ function _liveArenaHtml(m, live, mode) {
   const rn = (appState.redTeamName || 'RED'), bn = (appState.blueTeamName || 'BLUE');
   const lead = s.curR > s.curB ? 'red' : s.curB > s.curR ? 'blue' : '';
 
+  // a team = a flat colour field with an edge band, the team's word with its shape (circle red, diamond blue), faces, names, the number
   const teamCol = (cls, label, ids, players, score) => `
     <div class="lv-team ${cls}${lead === cls ? ' lead' : ''}">
-      <div class="lv-tname">${label}</div>
+      <div class="lv-tname ds-team ds-team-${cls}">${label}</div>
       <div class="lv-faces">${ids.map(id => avatarHtml(id, 104)).join('')}</div>
       <div class="lv-players">${players.map(escHtml).join(' <i>·</i> ')}</div>
       <div class="lv-score"><span class="lv-snum">${score}</span></div>
@@ -423,11 +458,11 @@ function _liveArenaHtml(m, live, mode) {
   return `
     <div class="lv-wrap">
       <div class="lv-top">
-        <span class="lv-live"><i></i> LIVE</span>
+        <span class="lv-live ds-chip ds-chip-live"><i class="ds-dot ds-dot-live"></i>LIVE</span>
         ${m.court ? `<span class="lv-courtno">${escHtml(courtLabel(m))}</span>` : ''}
         <span class="lv-match">${escHtml(m.id)} · รอบ ${escHtml(String(m.round))}</span>
-        ${m.umpire ? `<span class="lv-sep">·</span><span class="lv-ump">👔 ${escHtml(m.umpire)}</span>` : ''}
-        ${mode === 'me' ? `<span class="lv-sep">·</span><span class="lv-court">⭐ แมตช์ของคุณ</span>` : ''}
+        ${m.umpire ? `<span class="lv-ump">${dsIcon('user')}<span>${escHtml(m.umpire)}</span></span>` : ''}
+        ${mode === 'me' ? `<span class="lv-me">${dsIcon('star', { fill: true })}<span>แมตช์ของคุณ</span></span>` : ''}
         ${matchStatusHtml(m)}
       </div>
       ${_arenaChipsHtml(m, live, mode)}
@@ -436,10 +471,11 @@ function _liveArenaHtml(m, live, mode) {
         <div class="lv-hub">
           <span class="lv-gamechip">GAME ${s.gameNo}</span>
           <div class="lv-set"><span class="g r">${s.redGames}</span><span class="d">–</span><span class="g b">${s.blueGames}</span></div>
-          <span class="lv-setlbl">Games won</span>
+          <span class="lv-setlbl">เกมที่ชนะ</span>
         </div>
         ${teamCol('blue', escHtml(bn), [m.b1, m.b2], blueP, s.curB)}
       </div>
+      <p class="lv-sr ds-sr-only" role="status" aria-live="polite">${escHtml(_arenaSpoken(m, s))}</p>
     </div>`;
 }
 
@@ -459,6 +495,13 @@ function saveTeamNames() {
 // whatever lands in them (there was no live region at all).
 const TOAST_MAX = 4;
 const _toastTimers = new Map();
+const TOAST_ICON = { success: 'check-circle', error: 'warning-circle', warning: 'warning', info: 'info' };
+// callers still start their text with a status glyph (✅ ❌ ⚠️ ⛔ ⏳ ✓ …): the toast draws its own icon, so the glyph is left off
+// the shown text (the message itself, used to tell two toasts apart, is untouched)
+function _toastText(msg) {
+  const t = msg.replace(/^[\p{Extended_Pictographic}️‍✓✔✕✖\s]+/u, '');
+  return t || msg;
+}
 function showToast(msg, type = '') {
   msg = String(msg == null ? '' : msg);
   const kind = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'info';
@@ -469,10 +512,11 @@ function showToast(msg, type = '') {
   if (same) { _toastArm(same, kind, msg); return; }
   const el = document.createElement('div');
   el.className = 'toast-item ' + kind; el.dataset.msg = msg; el.dataset.kind = kind;
-  const txt = document.createElement('span'); txt.className = 'toast-txt'; txt.textContent = msg; el.appendChild(txt);
+  el.insertAdjacentHTML('afterbegin', dsIcon(TOAST_ICON[kind], { cls: 'toast-ic' }));   // the kind's icon replaces the glyph the message starts with
+  const txt = document.createElement('span'); txt.className = 'toast-txt'; txt.textContent = _toastText(msg); el.appendChild(txt);
   if (loud) {
     const x = document.createElement('button');
-    x.type = 'button'; x.className = 'toast-x'; x.setAttribute('aria-label', 'ปิดข้อความ'); x.textContent = '✕';
+    x.type = 'button'; x.className = 'toast-x'; x.setAttribute('aria-label', 'ปิดข้อความ'); x.innerHTML = dsIcon('x');
     x.onclick = () => _toastClose(el); el.appendChild(x);
   } else el.onclick = () => _toastClose(el);
   host.appendChild(el);
