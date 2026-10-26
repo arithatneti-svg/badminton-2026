@@ -435,6 +435,17 @@ try {
       <div id="dbRecentMatches"><div class="ds-skel db-skel-row"></div><div class="ds-skel db-skel-row"></div><div class="ds-skel db-skel-row"></div></div>
     </section>
 
+    <!-- Match duration: how long matches take (newest first) -->
+    <section class="db-card db-c-dur" aria-labelledby="dbTitleDur">
+      <header class="db-card-head">
+        <h3 class="db-card-title" id="dbTitleDur"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-timer"/></svg><span>Match Duration — เวลาเฉลี่ย</span></h3>
+      </header>
+      <div id="dbDurationSection">
+        <div class="db-mini" id="dbDurationKpi"></div>
+        <div class="db-dur-list" id="dbDurationList" role="region" aria-label="เวลาแข่งรายแมตช์" tabindex="0"></div>
+      </div>
+    </section>
+
     <!-- Raw score battle: every point scored, per match and in total -->
     <section class="db-card db-c-raw" aria-labelledby="dbTitleRaw">
       <header class="db-card-head">
@@ -448,17 +459,6 @@ try {
           <div class="db-empty" id="rawScoreEmpty" hidden><svg class="ds-ic ds-ic-lg" aria-hidden="true" focusable="false"><use href="#ic-chart-bar"/></svg><span>ยังไม่มีข้อมูลแมตช์</span></div>
         </div>
         <p class="ds-sr-only" id="rawScoreText"></p>
-      </div>
-    </section>
-
-    <!-- Match duration: how long matches take (newest first) -->
-    <section class="db-card db-c-dur" aria-labelledby="dbTitleDur">
-      <header class="db-card-head">
-        <h3 class="db-card-title" id="dbTitleDur"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-timer"/></svg><span>Match Duration — เวลาเฉลี่ย</span></h3>
-      </header>
-      <div id="dbDurationSection">
-        <div class="db-mini" id="dbDurationKpi"></div>
-        <div class="db-dur-list" id="dbDurationList" role="region" aria-label="เวลาแข่งรายแมตช์" tabindex="0"></div>
       </div>
     </section>
   </div>
@@ -758,12 +758,13 @@ try {
           </div>
         </div>
       </details>
-      <select id="reportFilterTeam" class="ds-select rp-a-f1" aria-label="ทีม" onchange="renderReports()">
+      <div class="rp-filters">
+      <select id="reportFilterTeam" class="ds-select" aria-label="ทีม" onchange="renderReports()">
         <option value="">ทุกทีม</option>
         <option value="Red">Red</option>
         <option value="Blue">Blue</option>
       </select>
-      <select id="reportSort" class="ds-select rp-a-f2 rp-sortsel" aria-label="เรียงตาม" onchange="sortPlayers(this.value)">
+      <select id="reportSort" class="ds-select rp-sortsel" aria-label="เรียงตาม" onchange="sortPlayers(this.value)">
         <option value="pts">เรียง: PTS</option>
         <option value="perf">เรียง: PERF</option>
         <option value="pointDiff">เรียง: ±PD</option>
@@ -775,6 +776,7 @@ try {
         <option value="team">เรียง: ทีม</option>
         <option value="group">เรียง: กลุ่ม</option>
       </select>
+      </div>
       <div class="ds-seg rp-a-f3" role="group" aria-label="กลุ่ม">
         <button type="button" id="gpAll" class="active" aria-pressed="true" onclick="setGroupFilter('')">ทั้งหมด</button>
         <button type="button" id="gp1" aria-pressed="false" onclick="setGroupFilter('1')">G1</button>
@@ -830,13 +832,14 @@ try {
         <input type="text" id="matchSearch" class="ds-input" placeholder="ค้นหา ID / ชื่อผู้เล่น" aria-label="ค้นหาแมตช์" autocomplete="off" enterkeyhint="search" oninput="renderMatchesPanel()">
       </label>
       <button type="button" class="ds-btn rp-a-act" onclick="exportRoundsPDF()" aria-label="ส่งออก PDF สรุปรายรอบ"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg><span>PDF</span></button>
-      <select id="perfFilterRound" class="ds-select rp-a-f1" aria-label="รอบ" onchange="renderMatchesPanel()">
+      <div class="rp-filters">
+      <select id="perfFilterRound" class="ds-select" aria-label="รอบ" onchange="renderMatchesPanel()">
         <option value="">ทุกรอบ</option>
         <option value="1">รอบ 1</option>
         <option value="2">รอบ 2</option>
         <option value="3">รอบ 3</option>
       </select>
-      <select id="perfFilterStatus" class="ds-select rp-a-f2" aria-label="ลักษณะเกม" onchange="renderMatchesPanel()">
+      <select id="perfFilterStatus" class="ds-select" aria-label="ลักษณะเกม" onchange="renderMatchesPanel()">
         <option value="">ทุกลักษณะเกม</option>
         <option value="Evenly Matched">Evenly Matched</option>
         <option value="Competitive Edge">Competitive Edge</option>
@@ -846,9 +849,14 @@ try {
         <option value="Close Encounter">Close Encounter</option>
         <option value="Deceptive Draw">Deceptive Draw</option>
       </select>
+      </div>
     </div>
 
-    <div id="perfTagFilterRow" class="rp-tagfilter" role="group" aria-label="กรองตามแท็ก"></div>
+    <!-- tag chips: folded so the match list starts near the top; the count shows how many are on -->
+    <details class="rp-tagfold" id="rpTagFold" hidden>
+      <summary><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-funnel"/></svg><span>กรองตามแท็ก</span><span class="rp-tagcount" id="rpTagCount" hidden></span><svg class="ds-ic rp-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg></summary>
+      <div id="perfTagFilterRow" class="rp-tagfilter" role="group" aria-label="กรองตามแท็ก"></div>
+    </details>
     <div id="matchesPanelContent" class="rp-rounds"></div>
 
     <details class="rp-fold">

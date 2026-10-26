@@ -1,7 +1,8 @@
 // ── REPORTS ──
-// Two panels, one per dataset: players (54) and matches (39).
-// Points chart, PERF score, round summary, match analysis and umpire load
-// are all views of those two, so each lives inside the panel it belongs to.
+// Two datasets, one panel each: players (54) and matches (39); a third panel compares seasons (js/career.js).
+// The points chart, PERF score, round summary, match analysis and umpire load are views of those two, so each
+// lives inside the panel it belongs to. Colour is never the only cue here: a team carries a shape (circle = red,
+// diamond = blue) and a word, a match quality carries its name, a tag carries an icon.
 
 const sortState = { players: { col: 'pts', dir: 'desc' } };
 function sortPlayers(col) {
@@ -14,37 +15,82 @@ function updateSortIcons(tableId, state) {
     th.classList.remove('sort-asc','sort-desc');
     const icon = th.querySelector('.sort-icon');
     if (!icon) return;
-    if (icon.getAttribute('data-col') === state.col) th.classList.add(state.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+    const on = icon.getAttribute('data-col') === state.col;
+    if (on) th.classList.add(state.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+    th.setAttribute('aria-sort', on ? (state.dir === 'asc' ? 'ascending' : 'descending') : 'none');
   });
 }
 let activeGroup = '';
 function setGroupFilter(g) {
   activeGroup = g;
-  ['gpAll','gp1','gp2','gp3'].forEach(id => document.getElementById(id)?.classList.remove('active'));
-  document.getElementById(g === '' ? 'gpAll' : `gp${g}`)?.classList.add('active');
+  ['gpAll','gp1','gp2','gp3'].forEach(id => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    const on = id === (g === '' ? 'gpAll' : `gp${g}`);
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
   renderReports();
+}
+// the way out of "no player matches": empty the search, the team and the group
+function clearReportFilters() {
+  const s = document.getElementById('reportSearch'); if (s) s.value = '';
+  const t = document.getElementById('reportFilterTeam'); if (t) t.value = '';
+  setGroupFilter('');
 }
 
 // ── Report sub-tab switcher ──
 let _activeReportTab = 'players';
 function switchReportTab(tab, btn) {
   _activeReportTab = tab;
-  document.querySelectorAll('.rpt-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.rpt-tab').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
   document.querySelectorAll('.rpt-panel').forEach(p => p.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
   document.getElementById('rpanel-' + tab)?.classList.add('active');
   if (tab === 'players') { renderReportHero(); renderReports(); }
   if (tab === 'matches') renderMatchesPanel();
   if (tab === 'compare') renderSeasonCompare();
 }
 
-// Export menu is a <details>; close it when the user taps anywhere else,
-// otherwise the panel stays open over the table on touch devices.
+// Export menu is a <details>; close it when the user taps anywhere else (or presses Esc),
+// otherwise the panel stays open over the list on touch devices.
 document.addEventListener('click', (e) => {
   document.querySelectorAll('#report .rp-export[open]').forEach(d => {
     if (!d.contains(e.target)) d.removeAttribute('open');
   });
 });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  document.querySelectorAll('#report .rp-export[open]').forEach(d => { d.removeAttribute('open'); d.querySelector('summary')?.focus(); });
+});
+
+// ── shared bits (also used by js/dashboard.js and js/career.js) ──
+// empty state: ds-empty with the court drawing, one sentence and, when there is a way out, one button
+function rpEmptyHtml(title, text, btn) {
+  return `<div class="ds-empty rp-empty"><div class="ds-empty-art">${dsArt('court')}</div>
+    <div class="ds-empty-title">${title}</div>${text ? `<div class="ds-empty-text">${text}</div>` : ''}${btn || ''}</div>`;
+}
+// match quality (stored in analysis.status) -> a step from "very close" (q1) to "one-sided" (q4); the colour is
+// only a helper, the status name is always printed next to it
+const RP_QUALITY = { 'Evenly Matched': 'q1', 'True Tie': 'q1', 'Competitive Edge': 'q2', 'Close Encounter': 'q2', 'Superior': 'q3', 'Deceptive Draw': 'q3', 'Outclassed': 'q4' };
+// special tags: one icon per kind (the stored labels start with an emoji; those are not shown)
+function rpTagIcon(id) {
+  id = String(id || '');
+  if (id.startsWith('epic')) return 'fire';
+  if (id === 'clutch') return 'target';
+  if (id === 'marathon') return 'timer';
+  if (id === 'rollercoaster') return 'arrows-left-right';
+  if (id === 'blowout') return 'lightning';
+  if (id.startsWith('flawless')) return 'star';
+  return 'flag';
+}
+// "🔥 Epic Comeback G1 Red" -> "Epic Comeback เกม 1 Red": no emoji as chrome, and games are เกม 1 / เกม 2, never G1 / G2
+function rpTagText(label) {
+  return String(label || '').replace(/^[^\p{L}\p{N}]+/u, '').replace(/\bG([12])\b/g, 'เกม $1');
+}
+function rpTagChip(t) { return `<span class="rp-tag">${dsIcon(rpTagIcon(t.id), { size: 14 })}${escHtml(rpTagText(t.label || t.id))}</span>`; }
+function rpSigned(n) { return (n > 0 ? '+' : '') + n; }
+function rpTeamTag(team) { const red = team === 'Red'; return `<span class="ds-team ds-team-${red ? 'red' : 'blue'}">${red ? 'RED' : 'BLUE'}</span>`; }
 
 // ── Hero stats row ──
 function renderReportHero() {
@@ -61,14 +107,14 @@ function renderReportHero() {
   set('rptHeroDraws',    draws);
   set('rptHeroBlueWins', blueWins);
 
-  // win-share bar — flex-grow carries the proportion, so a segment with
-  // zero wins is omitted rather than collapsing to a hairline
+  // win-share bar: flex-grow carries the proportion, so a segment with zero wins is omitted
+  // rather than collapsing to a hairline
   const bar = document.getElementById('rptHeroBar');
   if (bar) {
     bar.innerHTML = total === 0 ? '' : [
-      redWins  > 0 ? `<span class="rp-hb-red"  style="flex:${redWins}"></span>`  : '',
-      draws    > 0 ? `<span class="rp-hb-draw" style="flex:${draws}"></span>`    : '',
-      blueWins > 0 ? `<span class="rp-hb-blue" style="flex:${blueWins}"></span>` : '',
+      redWins  > 0 ? `<span class="rp-hb-red"  style="--n:${redWins}"></span>`  : '',
+      draws    > 0 ? `<span class="rp-hb-draw" style="--n:${draws}"></span>`    : '',
+      blueWins > 0 ? `<span class="rp-hb-blue" style="--n:${blueWins}"></span>` : '',
     ].join('');
   }
 }
@@ -88,6 +134,8 @@ function renderReports() {
   const rTeam   = document.getElementById('reportFilterTeam')?.value || '';
 
   const { col: pCol, dir: pDir } = sortState.players;
+  const sortSel = document.getElementById('reportSort');   // phone sort menu follows the table header
+  if (sortSel && sortSel.value !== pCol) sortSel.value = pCol;
   const playerArr = Object.values(stats).filter(s =>
       (!rSearch || s.name.toLowerCase().includes(rSearch) || s.id.toLowerCase().includes(rSearch)) &&
       (!rTeam || s.team === rTeam) &&
@@ -95,17 +143,20 @@ function renderReports() {
     ).sort((a,b) => {
       let av = a[pCol], bv = b[pCol];
       if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
-      return pDir === 'asc' ? (av < bv ? -1 : av > bv ? 1 : 0) : (av > bv ? -1 : av < bv ? 1 : 0);
+      const c = pDir === 'asc' ? (av < bv ? -1 : av > bv ? 1 : 0) : (av > bv ? -1 : av < bv ? 1 : 0);
+      // equal PTS: point difference, then game wins (what the legend promises and what the leader and the medals use)
+      return c || (pCol === 'pts' ? (b.pointDiff - a.pointDiff || b.w - a.w) : 0);
     });
 
   renderChart(playerArr);
   const byPts = [...playerArr].sort((a,b) => b.pts - a.pts || b.pointDiff - a.pointDiff || b.w - a.w);
-  const medalMap = {};
-  byPts.forEach((p,i) => { if (p.pts > 0) medalMap[p.id] = i===0?'🥇':i===1?'🥈':i===2?'🥉':''; });
+  // rank by points among the players shown; it stays the same whichever column the list is sorted by
+  const rankMap = {};
+  byPts.forEach((p, i) => { if (p.pts > 0 || p.matchesPlayed > 0) rankMap[p.id] = i + 1; });
 
   renderPlayerMetrics(playerArr, byPts);
-  renderPlayerCards(playerArr);
-  renderPlayerTable(playerArr, medalMap);
+  renderPlayerCards(playerArr, rankMap);
+  renderPlayerTable(playerArr, rankMap);
 }
 
 function renderPlayerMetrics(playerArr, byPts) {
@@ -114,108 +165,96 @@ function renderPlayerMetrics(playerArr, byPts) {
   const totalPts = playerArr.reduce((s,p) => s + (p.pts||0), 0);
   const avgWR    = playerArr.length ? Math.round(playerArr.reduce((s,p) => s + (p.winRate||0), 0) / playerArr.length) : 0;
   const epicPlayers = playerArr.filter(p => p.epicTags > 0).length;
-  const topPts = byPts[0];
-  el.innerHTML = [
-    { lbl:'PLAYERS',    val: playerArr.length,                    color:'var(--text)' },
-    { lbl:'TOTAL PTS',  val: totalPts,                            color:'var(--gold)' },
-    { lbl:'AVG WR',     val: avgWR + '%',                         color: avgWR>=50?'var(--green)':'var(--danger)' },
-    { lbl:'EPIC KINGS', val: epicPlayers,                         color:'var(--red)' },
-    { lbl:'LEADER',     val: topPts ? escHtml(topPts.name) : '—', color: topPts?.team==='Red'?'var(--red)':'var(--blue)' },
-  ].map(c => `<div class="rp-metric">
-    <div class="rp-metric-val" style="color:${c.color};" title="${c.val}">${c.val}</div>
-    <div class="rp-metric-lbl">${c.lbl}</div>
-  </div>`).join('');
+  const lead = byPts[0] && byPts[0].pts > 0 ? byPts[0] : null;   // nobody has points yet = no leader
+  const cell = (cls, val, lbl) => `<div class="rp-kpi ${cls}"><div class="rp-kpi-v">${val}</div><div class="rp-kpi-l">${lbl}</div></div>`;
+  const leader = lead
+    ? `<span class="ds-team ds-team-${lead.team === 'Red' ? 'red' : 'blue'}">${escHtml(lead.name)} · ${lead.team === 'Red' ? 'RED' : 'BLUE'}</span>`
+    : '—';
+  el.innerHTML =
+    cell('', playerArr.length, 'ผู้เล่น') +
+    cell('is-pts', totalPts, 'PTS รวม') +
+    cell('', avgWR + '%', 'WR เฉลี่ย') +
+    cell('', epicPlayers, 'Epic Kings') +
+    cell('is-leader', leader, 'ผู้นำ');
 }
 
 // shared bits between the card list and the table
-function wrColorOf(s)   { return s.winRate>=70?'var(--green)':s.winRate>=40?'var(--gold)':s.total>0?'var(--danger)':'var(--muted)'; }
-function pdColorOf(s)   { return s.pointDiff>0?'var(--green)':s.pointDiff<0?'var(--danger)':'var(--muted)'; }
-function perfColorOf(s) { return s.perf>0.3?'var(--green)':s.perf<-0.3?'var(--danger)':'var(--text2)'; }
 // one decimal: a 2–4 match sample does not support two
 function perfText(s)    { return (s.perf > 0 ? '+' : '') + s.perf.toFixed(1); }
-// Each special tag rides as a colour-coded chip (icon + count) instead of a
-// bare "🔥2⚔️1" run that squashed together and read as one cryptic token.
-// Colours mirror the tag legend at the top of the Reports tab.
+// match record as W L D; a zero is dimmed (CSS) so the real numbers stand out without any colour
+function wlHtml(s) {
+  const w = s.matchWin || 0, l = s.matchLose || 0, d = s.matchDraw || 0;
+  const z = n => n ? '' : ' class="is-zero"';
+  return `<span class="rp-wl"><i${z(w)}>${w}W</i><i${z(l)}>${l}L</i>${d ? `<i>${d}D</i>` : ''}</span>`;
+}
+// Each special tag rides as an icon + count chip. The kind is in the icon (and in the screen-reader text),
+// the legend at the top of the Reports tab lists the four icons.
+const RP_SPEC = [
+  { k: 'epicTags',     icon: 'fire',              name: 'Epic Comeback' },
+  { k: 'clutchTags',   icon: 'target',            name: 'The Gladiators' },
+  { k: 'marathonTags', icon: 'timer',             name: 'Marathon Match' },
+  { k: 'rollerTags',   icon: 'arrows-left-right', name: 'Rollercoaster' },
+];
 function specTagsOf(s) {
-  const chips = [];
-  if (s.epicTags>0)     chips.push(`<span class="rp-spec sp-epic"   title="Epic Comeback ×${s.epicTags}">🔥<b>${s.epicTags}</b></span>`);
-  if (s.clutchTags>0)   chips.push(`<span class="rp-spec sp-clutch" title="The Gladiators ×${s.clutchTags}">⚔️<b>${s.clutchTags}</b></span>`);
-  if (s.marathonTags>0) chips.push(`<span class="rp-spec sp-mara"   title="Marathon Match ×${s.marathonTags}">🏃<b>${s.marathonTags}</b></span>`);
-  if (s.rollerTags>0)   chips.push(`<span class="rp-spec sp-roll"   title="Rollercoaster ×${s.rollerTags}">🎢<b>${s.rollerTags}</b></span>`);
-  return chips.join('');
+  return RP_SPEC.filter(t => s[t.k] > 0).map(t =>
+    `<span class="rp-tag" title="${t.name} ×${s[t.k]}">${dsIcon(t.icon, { size: 14 })}<b>${s[t.k]}</b><span class="ds-sr-only">${t.name}</span></span>`).join('');
+}
+function rpNoPlayersHtml() {
+  const filtering = (document.getElementById('reportSearch')?.value || '') || (document.getElementById('reportFilterTeam')?.value || '') || activeGroup;
+  return filtering
+    ? rpEmptyHtml('ไม่พบผู้เล่นที่ตรงกับตัวกรอง', '', `<button type="button" class="ds-btn" onclick="clearReportFilters()">ล้างตัวกรอง</button>`)
+    : rpEmptyHtml('ยังไม่มีผู้เล่น', 'เพิ่มผู้เล่นได้ที่แท็บ Admin');
 }
 
-// Phone view — CSS decides card vs table, so both render from one array
-function renderPlayerCards(playerArr) {
+// Phone and tablet view — CSS decides card vs table, so both render from one array
+function renderPlayerCards(playerArr, rankMap) {
   const el = document.getElementById('statsCardList');
   if (!el) return;
-  if (playerArr.length === 0) {
-    el.innerHTML = `<div class="rp-empty"><span class="rp-empty-icon">🔍</span>ไม่พบผู้เล่นที่ตรงกับตัวกรอง</div>`;
-    return;
-  }
-  el.innerHTML = playerArr.map((s, i) => {
-    const posLabel = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-    const posClass = i < 3 ? `p${i+1}` : '';
-    const wrColor = wrColorOf(s), pdColor = pdColorOf(s);
+  if (playerArr.length === 0) { el.innerHTML = rpNoPlayersHtml(); return; }
+  el.innerHTML = playerArr.map(s => {
+    const red = s.team === 'Red', rank = rankMap[s.id];
     const tags = specTagsOf(s);
-    return `<div class="rp-prow ${s.team==='Red'?'is-red':'is-blue'}">
-      <div class="rp-prow-pos ${posClass}">${posLabel}</div>
-      <div class="rp-prow-id">
-        ${avatarHtml(s.id, 26)}
-        <span class="rp-prow-name" onclick="openPlayerProfile('${s.id}')" title="ดู Player Profile">${escHtml(s.name)}</span>
+    return `<article class="rp-prow ${red ? 'ds-edge-red' : 'ds-edge-blue'}">
+      <span class="rp-prow-pos${rank && rank <= 3 && s.pts > 0 ? ' is-top' : ''}">${rank ? `<span class="ds-sr-only">อันดับ </span>${rank}` : '–'}</span>
+      <button type="button" class="rp-prow-main" onclick="openPlayerProfile('${s.id}')" aria-label="ดูโปรไฟล์ ${escHtml(s.name)}">
+        <span class="rp-prow-name">${escHtml(s.name)}</span>
+        <span class="rp-prow-meta">${rpTeamTag(s.team)}<span>G${s.group}</span><span>${s.id}</span></span>
+      </button>
+      <span class="rp-prow-pts"><b>${s.pts}</b><i>PTS</i></span>
+      <div class="rp-prow-stats">
+        <div class="rp-st"><span class="rp-st-l">ผลแมตช์</span><span class="rp-st-v">${wlHtml(s)}</span></div>
+        <div class="rp-st"><span class="rp-st-l">WR%</span><span class="rp-st-v">${s.total > 0 ? s.winRate + '%' : '—'}</span></div>
+        <div class="rp-st"><span class="rp-st-l">±PD</span><span class="rp-st-v">${rpSigned(s.pointDiff)}</span></div>
+        <div class="rp-st"><span class="rp-st-l">PERF</span><span class="rp-st-v">${perfText(s)}</span></div>
       </div>
-      <div class="rp-prow-meta">
-        <span class="rp-badge ${s.team==='Red'?'b-red':'b-blue'}">${s.team}</span>
-        <span>G${s.group}</span><span class="sep">·</span><span>${s.id}</span>
-        <span class="sep">·</span><span title="Performance Score">PERF <b style="color:${perfColorOf(s)};">${perfText(s)}</b></span>
-      </div>
-      <div class="rp-prow-pts"><b>${s.pts}</b><span>PTS</span></div>
-      <div class="rp-prow-bar">
-        <div class="rp-bar"><div class="rp-bar-fill" style="width:${s.winRate}%;background:${wrColor};"></div></div>
-        <span class="rp-prow-wr" style="color:${wrColor};">${s.total>0?s.winRate+'%':'—'}</span>
-      </div>
-      <div class="rp-prow-foot">
-        <span>${s.matchWin||0}W ${s.matchLose||0}L${s.matchDraw?' '+s.matchDraw+'D':''}</span>
-        <span class="sep">·</span><span>${s.matchesPlayed||0} แมตช์</span>
-        <span class="sep">·</span><span style="color:${pdColor};font-weight:700;">${s.pointDiff>0?'+':''}${s.pointDiff} PD</span>
-        ${tags ? `<span class="rp-prow-tags">${tags}</span>` : ''}
-      </div>
-    </div>`;
+      ${tags ? `<div class="rp-prow-tags">${tags}</div>` : ''}
+    </article>`;
   }).join('');
 }
 
 // Laptop view — 10 columns. It was 15, but nobody plays more than 4 matches,
 // so the two win-rate columns and the two W/L columns said the same thing
 // twice, and "Form (last 5)" could never be a rolling window.
-function renderPlayerTable(playerArr, medalMap) {
+function renderPlayerTable(playerArr, rankMap) {
   const tb = document.getElementById('statsTableBody');
   if (!tb) return;
   tb.innerHTML = playerArr.length === 0
-    ? `<tr><td colspan="10"><div class="rp-empty"><span class="rp-empty-icon">🔍</span>ไม่พบผู้เล่นที่ตรงกับตัวกรอง</div></td></tr>`
+    ? `<tr><td colspan="10">${rpNoPlayersHtml()}</td></tr>`
     : playerArr.map(s => {
-      const medal = medalMap[s.id] ? `${medalMap[s.id]} ` : '';
-      const wrColor = wrColorOf(s);
-      const wrCell = s.total > 0
-        ? `<div class="wr-cell">
-             <span style="font-weight:700;color:${wrColor};min-width:32px;">${s.winRate}%</span>
-             <div class="wr-bar-wrap"><div class="wr-bar-fill" style="width:${s.winRate}%;background:${wrColor};"></div></div>
-           </div>`
-        : '—';
+      const rank = rankMap[s.id];
+      const top = rank && rank <= 3 && s.pts > 0;
+      const tags = specTagsOf(s);
       return `<tr>
-        <td class="gold-text">${s.id}</td>
-        <td><span class="rp-name-cell"><span class="rp-name-link" onclick="openPlayerProfile('${s.id}')" title="ดู Player Profile">${medal}${escHtml(s.name)}</span></span></td>
-        <td><span class="rp-badge ${s.team==='Red'?'b-red':'b-blue'}">${s.team}</span></td>
+        <td class="rp-id">${s.id}</td>
+        <td><button type="button" class="rp-name-link" onclick="openPlayerProfile('${s.id}')">${top ? `<span class="rp-rank"><span class="ds-sr-only">อันดับ </span>${rank}</span>` : ''}<span>${escHtml(s.name)}</span></button></td>
+        <td>${rpTeamTag(s.team)}</td>
         <td>G${s.group}</td>
-        <td style="font-size:1.1em;font-weight:700;color:var(--gold);">${s.pts}</td>
-        <td style="font-weight:700;color:${perfColorOf(s)};">${perfText(s)}</td>
-        <td style="font-weight:700;color:${pdColorOf(s)};">${s.pointDiff>0?'+':''}${s.pointDiff}</td>
-        <td style="white-space:nowrap;">
-          <span class="stat-pill pill-win">${s.matchWin||0}W</span>
-          <span class="stat-pill pill-lose">${s.matchLose||0}L</span>
-          ${s.matchDraw ? `<span class="stat-pill pill-draw">${s.matchDraw}D</span>` : ''}
-        </td>
-        <td style="min-width:110px;">${wrCell}</td>
-        <td>${specTagsOf(s) ? `<div class="rp-spec-cell">${specTagsOf(s)}</div>` : '<span style="color:var(--muted);">—</span>'}</td>
+        <td class="is-num rp-pts">${s.pts}</td>
+        <td class="is-num">${perfText(s)}</td>
+        <td class="is-num">${rpSigned(s.pointDiff)}</td>
+        <td>${wlHtml(s)}</td>
+        <td class="is-num">${s.total > 0 ? `<span class="rp-wr"><b>${s.winRate}%</b><span class="ds-bar"><i style="width:${s.winRate}%"></i></span></span>` : '—'}</td>
+        <td>${tags ? `<div class="rp-spec-cell">${tags}</div>` : '<span class="ds-muted">—</span>'}</td>
       </tr>`;
     }).join('');
   updateSortIcons('playerStatsTable', sortState.players);
@@ -230,8 +269,17 @@ function toggleMatchDetail(id) {
   const row = document.getElementById('mrow-' + id);
   const det = document.getElementById('mdet-' + id);
   if (!det) return;
-  if (_openMatchDetails.has(id)) { _openMatchDetails.delete(id); det.hidden = true;  row?.classList.remove('open'); }
-  else                           { _openMatchDetails.add(id);    det.hidden = false; row?.classList.add('open'); }
+  const open = !_openMatchDetails.has(id);
+  if (open) _openMatchDetails.add(id); else _openMatchDetails.delete(id);
+  det.hidden = !open;
+  if (row) { row.classList.toggle('open', open); row.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+}
+
+// the way out of "no match fits": empty the search, the round, the game type and the tag chips
+function clearMatchFilters() {
+  ['matchSearch', 'perfFilterRound', 'perfFilterStatus'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  _selectedTagFilters.clear();
+  renderMatchesPanel();
 }
 
 function renderMatchesPanel() {
@@ -260,11 +308,11 @@ function renderMatchesPanel() {
   });
 
   if (matches.length === 0) {
-    const filtering = search || fRound || fStatus || _selectedTagFilters.size > 0;
-    el.innerHTML = `<div class="rp-empty"><span class="rp-empty-icon">📋</span>${
-      all.length === 0 ? 'ยังไม่มีแมตช์ที่จบแล้ว<br>สรุปผลจะขึ้นหลังบันทึกผลแมตช์แรก'
-      : filtering ? 'ไม่พบแมตช์ที่ตรงกับตัวกรอง — ลองล้างตัวกรองดูครับ'
-      : 'ยังไม่มีแมตช์'}</div>`;
+    el.innerHTML = all.length === 0
+      ? rpEmptyHtml('ยังไม่มีแมตช์ที่จบแล้ว', 'สรุปผลจะขึ้นหลังบันทึกผลแมตช์แรก',
+          `<button type="button" class="ds-btn" onclick="switchTab('ongoing', document.getElementById('tab-ongoing'))">ดูแมตช์ที่กำลังแข่ง</button>`)
+      : rpEmptyHtml('ไม่พบแมตช์ที่ตรงกับตัวกรอง', '',
+          `<button type="button" class="ds-btn" onclick="clearMatchFilters()">ล้างตัวกรอง</button>`);
     return;
   }
 
@@ -274,40 +322,52 @@ function renderMatchesPanel() {
     const redW  = ms.filter(m => m.rStat === 'W').length;
     const blueW = ms.filter(m => m.bStat === 'W').length;
     const draws = ms.filter(m => m.rStat === 'D').length;
-    const winner = redW > blueW ? 'RED' : blueW > redW ? 'BLUE' : 'DRAW';
-    const wColor = winner==='RED'?'var(--red)':winner==='BLUE'?'var(--blue)':'var(--gold)';
-    return `<div class="rp-card">
-      <div class="rp-round-head">
-        <div class="rp-round-no">ROUND ${r}</div>
+    const lead  = redW > blueW ? 'red' : blueW > redW ? 'blue' : 'draw';
+    return `<section class="rp-round">
+      <header class="rp-round-head">
+        <h3 class="rp-round-no"><span>รอบ</span><b>${escHtml(r)}</b></h3>
+        <div class="rp-round-count">${ms.length} แมตช์</div>
         <div class="rp-round-tally">
-          <span class="rp-badge b-red">🔴 ${redW}W</span>
-          <span class="rp-badge b-gold">🤝 ${draws}D</span>
-          <span class="rp-badge b-blue">🔵 ${blueW}W</span>
+          <span class="ds-chip ds-chip-red"><i class="rp-mark is-red"></i>RED <b>${redW}W</b></span>
+          <span class="ds-chip">เสมอ <b>${draws}</b></span>
+          <span class="ds-chip ds-chip-blue"><i class="rp-mark is-blue"></i>BLUE <b>${blueW}W</b></span>
         </div>
-        <div class="rp-round-lead">${ms.length} แมตช์ · ผู้นำรอบ <b style="color:${wColor};">${winner}</b></div>
-      </div>
-      <div class="rp-round-bar">
-        ${redW  > 0 ? `<span style="flex:${redW};background:var(--red);"></span>`   : ''}
-        ${draws > 0 ? `<span style="flex:${draws};background:var(--gold);"></span>` : ''}
-        ${blueW > 0 ? `<span style="flex:${blueW};background:var(--blue);"></span>` : ''}
-      </div>
+        <div class="rp-round-lead">ผู้นำรอบ ${lead === 'draw' ? '<b>เสมอ</b>' : rpTeamTag(lead === 'red' ? 'Red' : 'Blue')}</div>
+        <div class="rp-round-bar" aria-hidden="true">
+          ${redW  > 0 ? `<span class="rp-hb-red"  style="--n:${redW}"></span>`  : ''}
+          ${draws > 0 ? `<span class="rp-hb-draw" style="--n:${draws}"></span>` : ''}
+          ${blueW > 0 ? `<span class="rp-hb-blue" style="--n:${blueW}"></span>` : ''}
+        </div>
+      </header>
       <div class="rp-round-body">${ms.map(matchItemHtml).join('')}</div>
-    </div>`;
+    </section>`;
   }).join('');
 }
 
+// "21:15" -> one team's score of that game, and whether that team won it
+function rpGameCells(g, side) {
+  const sc = String(g || '').split(':').map(Number);
+  if (!g || sc.length < 2 || sc.some(isNaN) || (sc[0] === 0 && sc[1] === 0)) return '<b class="rp-g">–</b>';
+  return `<b class="rp-g${sc[side] > sc[1 - side] ? ' is-win' : ''}">${sc[side]}</b>`;
+}
+
+// one match = a small scoreboard: red line over blue line, one column per game (same at every width)
 function matchItemHtml(m) {
-  const rc  = m.rStat==='W'?'var(--red)':m.bStat==='W'?'var(--blue)':'var(--gold)';
   const res = (m.result||'').replace(/[🔴🔵🤝]/g,'').trim();
+  const resCls = m.rStat === 'W' ? 'is-red' : m.bStat === 'W' ? 'is-blue' : '';
   const open = _openMatchDetails.has(m.id);
+  const a = m.analysis;
+  const q = a ? RP_QUALITY[a.status] || '' : '';
+  const team = (cls, word, names, side) => `<span class="rp-mteam ${cls}"><i class="rp-mark ${cls}"></i>` +
+    `<span class="rp-mnames"><span class="ds-sr-only">${word} </span>${escHtml(names)}</span>${rpGameCells(m.game1, side)}${rpGameCells(m.game2, side)}</span>`;
   return `<div class="rp-mitem">
-    <div class="rp-mrow${open?' open':''}" id="mrow-${m.id}" onclick="toggleMatchDetail('${m.id}')" title="แตะเพื่อดูรายละเอียด">
-      <div class="rp-mrow-id">${m.id}<span class="rp-mrow-caret">▾</span></div>
-      <div class="rp-mrow-red">${escHtml(m.redNames)}</div>
-      <div class="rp-mrow-score">${m.game1} / ${m.game2||'—'}</div>
-      <div class="rp-mrow-blue">${escHtml(m.blueNames)}</div>
-      <div class="rp-mrow-res" style="color:${rc};">${escHtml(res)}</div>
-    </div>
+    <button type="button" class="rp-mrow${open?' open':''}" id="mrow-${m.id}" aria-expanded="${open}" aria-controls="mdet-${m.id}" onclick="toggleMatchDetail('${m.id}')">
+      <span class="rp-mrow-id">${m.id}</span>
+      <span class="rp-mres rp-mrow-res ${resCls}">${escHtml(res)}</span>
+      <span class="rp-mteams">${team('is-red', 'แดง', m.redNames, 0)}${team('is-blue', 'น้ำเงิน', m.blueNames, 1)}</span>
+      <span class="rp-mrow-q">${a ? `<span class="rp-q ${q}">${escHtml(a.status)}</span>` : ''}${((a && a.tags) || []).map(t => `<span class="rp-tag" title="${escHtml(rpTagText(t.label || t.id))}">${dsIcon(rpTagIcon(t.id), { size: 14 })}<span class="ds-sr-only">${escHtml(rpTagText(t.label || t.id))}</span></span>`).join('')}</span>
+      ${dsIcon('caret-down', { cls: 'rp-caret' })}
+    </button>
     <div class="rp-mdetail" id="mdet-${m.id}"${open?'':' hidden'}>${matchDetailHtml(m)}</div>
   </div>`;
 }
@@ -315,23 +375,22 @@ function matchItemHtml(m) {
 function matchDetailHtml(m) {
   const a = m.analysis;
   const dur = m.duration > 0 ? formatTimer(m.duration) : '–';
-  const tagHtml = a && a.tags && a.tags.length
-    ? `<div class="perf-tags">${a.tags.map(t => `<span class="perf-tag ${t.class||''}">${t.label}</span>`).join('')}</div>`
-    : '';
-  const metrics = a ? `<div class="perf-metrics">
-      <div class="perf-metric"><div class="perf-metric-val">${a.totalMargin}</div><div class="perf-metric-label">Total Margin</div></div>
-      <div class="perf-metric"><div class="perf-metric-val">${a.netMargin}</div><div class="perf-metric-label">Net Margin</div></div>
-      <div class="perf-metric"><div class="perf-metric-val">${a.volatility}</div><div class="perf-metric-label">Volatility</div></div>
-    </div>` : '';
+  const q = a ? RP_QUALITY[a.status] || '' : '';
+  const tagHtml = a && a.tags && a.tags.length ? `<div class="rp-tags">${a.tags.map(rpTagChip).join('')}</div>` : '';
+  const metrics = a ? `<dl class="rp-m3">
+      <div><dt>Total Margin</dt><dd>${a.totalMargin}</dd></div>
+      <div><dt>Net Margin</dt><dd>${a.netMargin}</dd></div>
+      <div><dt>Volatility</dt><dd>${a.volatility}</dd></div>
+    </dl>` : '';
   return `
     <div class="rp-mdetail-head">
-      ${a ? `<span class="perf-status-badge" style="color:${a.statusColor};border-color:${a.statusColor}44;background:${a.statusColor}11;">${a.status}</span>` : ''}
-      <span class="rp-badge b-mute">⏱ ${dur}</span>
-      <span class="rp-badge b-gold">👔 ${escHtml(m.umpire||'ไม่ระบุ')}</span>
-      <button class="btn btn-sm rp-mdetail-edit" onclick="event.stopPropagation();openEditResult('${m.id}')">✏️ แก้ไขผล</button>
+      ${a ? `<span class="rp-q ${q}">${escHtml(a.status)}</span>` : ''}
+      <span class="ds-chip">${dsIcon('timer')}${dur}</span>
+      <span class="ds-chip">${dsIcon('user')}${escHtml(m.umpire||'ไม่ระบุ')}</span>
+      <button type="button" class="ds-btn rp-mdetail-edit" onclick="event.stopPropagation();openEditResult('${m.id}')">${dsIcon('pencil-simple')}แก้ไขผล</button>
     </div>
     ${tagHtml}
-    ${a && a.summary ? `<div class="perf-summary">💬 ${escHtml(a.summary)}</div>` : ''}
+    ${a && a.summary ? `<p class="rp-summary">${escHtml(a.summary)}</p>` : ''}
     ${metrics}`;
 }
 
@@ -362,7 +421,7 @@ function renderUmpireWorkload() {
 
   if (umpires.length === 0) {
     if (subEl) subEl.textContent = 'ยังไม่มีการบันทึกชื่อกรรมการ';
-    el.innerHTML = `<div class="rp-empty"><span class="rp-empty-icon">👔</span>ยังไม่มีข้อมูล Umpire<br>ชื่อกรรมการจะถูกบันทึกเมื่อเริ่มแมตช์จากแผงกรรมการ</div>`;
+    el.innerHTML = rpEmptyHtml('ยังไม่มีข้อมูลกรรมการ', 'ชื่อกรรมการจะถูกบันทึกเมื่อเริ่มแมตช์จากแผงกรรมการ');
     return;
   }
 
@@ -372,28 +431,25 @@ function renderUmpireWorkload() {
   const fewest = umpires[umpires.length - 1];
 
   const rows = umpires.map((u, i) => {
-    const pct = Math.round(u.total / maxTotal * 100);
-    const barColor = u.live > 0 ? 'var(--green)' : 'var(--gold)';
-    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
-    const liveBadge = u.live > 0 ? `<span class="rp-badge b-green">● LIVE ×${u.live}</span>` : '';
     // "ว่างสุด" is the question the desk actually asks mid-event. The old
     // ">1.5x average" overload warning fired on anyone with 4+ matches when
     // the average is ~2, i.e. on perfectly normal workloads.
-    const freeBadge = u === fewest && umpires.length > 1 ? `<span class="rp-badge b-blue">✋ ว่างสุด</span>` : '';
-
-    return `<div class="rp-ucard">
-      <div class="rp-uhead">
-        <span class="rp-upos">${medal}</span>
-        <span class="rp-uname">👔 ${escHtml(u.name)}</span>
-        ${liveBadge}${freeBadge}
-        <span class="rp-ucount"><b style="color:${barColor};">${u.total}</b><span>แมตช์</span></span>
-      </div>
-      <div class="rp-bar"><div class="rp-bar-fill" style="width:${pct}%;background:${barColor};"></div></div>
+    const badges =
+      (u.live > 0 ? `<span class="ds-chip ds-chip-live"><i class="ds-dot ds-dot-live"></i>LIVE ×${u.live}</span>` : '') +
+      (u === fewest && umpires.length > 1 ? `<span class="ds-chip ds-chip-gold">${dsIcon('check-circle')}ว่างสุด</span>` : '');
+    return `<article class="rp-ucard">
+      <header class="rp-uhead">
+        <span class="rp-upos${i < 3 ? ' is-top' : ''}"><span class="ds-sr-only">อันดับ </span>${i + 1}</span>
+        <span class="rp-uname">${dsIcon('user')}<span>${escHtml(u.name)}</span></span>
+        <span class="rp-ucount"><b>${u.total}</b><span>แมตช์</span></span>
+        <span class="rp-ubadges">${badges}</span>
+      </header>
+      <div class="rp-ubar" aria-hidden="true"><i class="is-done" style="--w:${u.done / maxTotal * 100}%"></i><i class="is-live" style="--w:${u.live / maxTotal * 100}%"></i></div>
       <div class="rp-ufoot">
-        <span>✅ จบแล้ว <b>${u.done}</b></span>
-        <span>⏱ กำลังตัดสิน <b style="color:var(--green);">${u.live}</b></span>
+        <span class="is-done">${dsIcon('check-circle')}จบแล้ว <b>${u.done}</b></span>
+        <span class="is-live">${dsIcon('timer')}กำลังตัดสิน <b>${u.live}</b></span>
       </div>
-    </div>`;
+    </article>`;
   }).join('');
 
   const liveCount = live.filter(m => m.umpire).length;

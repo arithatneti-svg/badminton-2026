@@ -267,10 +267,16 @@ async function renderPdPastMatches(playerId) {
 // ══════════════════════════════════════════════════════════════
 let _cmpArchives = null;
 
+// "try again" after a failed or empty load: forget what was cached, then draw the tab again
+function retrySeasonCompare() {
+  _cmpArchives = null; _masterLoaded = false;
+  renderSeasonCompare();
+}
+
 async function renderSeasonCompare() {
   const el = document.getElementById('cmpContent');
   if (!el) return;
-  el.innerHTML = `<div class="rp-empty"><span class="rp-empty-icon">⏳</span>กำลังโหลดข้อมูลซีซั่น...</div>`;
+  el.innerHTML = `<div class="rp-state" role="status"><div class="cmp-skel" aria-hidden="true"><div class="ds-skel"></div><div class="ds-skel"></div></div><span class="ds-muted">กำลังโหลดข้อมูลซีซั่น...</span></div>`;
   if (!_masterLoaded) await loadMasterPlayers();
   if (!_cmpArchives) _cmpArchives = await loadSeasonArchives();
 
@@ -302,9 +308,12 @@ async function renderSeasonCompare() {
   seasons.sort((a, b) => b.year.localeCompare(a.year));
 
   if (seasons.length < 2) {
-    el.innerHTML = `<div class="rp-empty"><span class="rp-empty-icon">🗓️</span>
-      ยังมีซีซั่นเดียว — เปรียบเทียบได้หลัง archive ซีซั่นแรกและเริ่มซีซั่นใหม่<br>
-      <span style="font-size:12px;">(Admin → New Season Wizard → Archive)</span></div>`;
+    // the loaders answer "nothing" when the connection is down, so say so instead of implying there is no history
+    const offline = typeof _dbOnline !== 'undefined' && !_dbOnline;
+    el.innerHTML = `<div class="rp-state">${offline
+      ? `<div class="ds-banner is-warn" role="status">${dsIcon('wifi-slash')}<span>ออฟไลน์ — ข้อมูลซีซั่นเก่าอาจโหลดไม่ได้</span></div>` : ''}
+      ${rpEmptyHtml('ยังมีซีซั่นเดียว', 'เปรียบเทียบได้หลัง archive ซีซั่นแรกและเริ่มซีซั่นใหม่<br>Admin → New Season Wizard → Archive',
+        offline ? `<button type="button" class="ds-btn" onclick="retrySeasonCompare()">ลองใหม่</button>` : '')}</div>`;
     return;
   }
 
@@ -338,61 +347,57 @@ async function renderSeasonCompare() {
   el.innerHTML = `
     <div class="cmp-seasons">
       ${seasons.map(s => {
-        const lead = s.red > s.blue ? 'RED' : s.blue > s.red ? 'BLUE' : 'เสมอ';
-        const lc = s.red > s.blue ? 'var(--red)' : s.blue > s.red ? 'var(--blue)' : 'var(--gold)';
-        const tot = s.redWins + s.blueWins + s.draws || 1;
-        return `<div class="cmp-season-card${s.isCurrent ? ' is-current' : ''}">
+        const lead = s.red > s.blue ? 'Red' : s.blue > s.red ? 'Blue' : '';
+        return `<article class="cmp-season-card${s.isCurrent ? ' is-current' : ''}">
           <div class="cmp-season-head">
             <span class="cmp-year">${s.year}</span>
             ${s.isCurrent ? '<span class="cmp-live">กำลังเล่น</span>' : ''}
             <span class="cmp-name">${escHtml(s.name)}</span>
           </div>
-          <div class="cmp-score">
-            <span style="color:var(--red);">${s.red}</span>
+          <div class="cmp-score" aria-label="คะแนน RED ${s.red} BLUE ${s.blue}">
+            <span class="is-red">${s.red}</span>
             <span class="cmp-vs">:</span>
-            <span style="color:var(--blue);">${s.blue}</span>
+            <span class="is-blue">${s.blue}</span>
           </div>
-          <div class="cmp-lead" style="color:${lc};">${lead} นำ</div>
-          <div class="rp-hero-bar" style="margin-top:10px;">
-            ${s.redWins  ? `<span class="rp-hb-red"  style="flex:${s.redWins}"></span>`  : ''}
-            ${s.draws    ? `<span class="rp-hb-draw" style="flex:${s.draws}"></span>`    : ''}
-            ${s.blueWins ? `<span class="rp-hb-blue" style="flex:${s.blueWins}"></span>` : ''}
+          <div class="cmp-lead">${lead ? `${rpTeamTag(lead)} นำ` : 'เสมอ'}</div>
+          <div class="cmp-card-bar" aria-hidden="true">
+            ${s.redWins  ? `<span class="rp-hb-red"  style="--n:${s.redWins}"></span>`  : ''}
+            ${s.draws    ? `<span class="rp-hb-draw" style="--n:${s.draws}"></span>`    : ''}
+            ${s.blueWins ? `<span class="rp-hb-blue" style="--n:${s.blueWins}"></span>` : ''}
           </div>
-          <div class="cmp-meta">${s.players} คน · ${s.matches} แมตช์ · 🔴${s.redWins} 🤝${s.draws} 🔵${s.blueWins}</div>
-        </div>`;
+          <div class="cmp-meta">${s.players} คน · ${s.matches} แมตช์ · RED ${s.redWins}W · เสมอ ${s.draws} · BLUE ${s.blueWins}W</div>
+        </article>`;
       }).join('')}
     </div>
 
-    <div class="rp-sec-title" style="margin-top:22px;">ผู้เล่นข้ามซีซั่น</div>
-    <div class="rp-sec-sub">${people.length} คนที่เล่นมากกว่าหนึ่งซีซั่น — สีที่ใส่ในแต่ละปีและคะแนนที่ทำได้</div>
+    <h3 class="rp-sec-title th">ผู้เล่นข้ามซีซั่น</h3>
+    <p class="rp-sec-sub">${people.length} คนที่เล่นมากกว่าหนึ่งซีซั่น — สีที่ใส่ในแต่ละปีและคะแนนที่ทำได้</p>
     ${people.length === 0
-      ? `<div class="rp-empty"><span class="rp-empty-icon">👤</span>ยังไม่มีใครเล่นข้ามซีซั่น</div>`
-      : `<div class="table-wrap"><table class="cmp-table">
+      ? rpEmptyHtml('ยังไม่มีใครเล่นข้ามซีซั่น', '')
+      : `<table class="ds-table cmp-table">
           <thead><tr>
-            <th>ผู้เล่น</th>
-            ${yearCols.map(y => `<th>${y}</th>`).join('')}
-            <th>รวม PTS</th>
+            <th scope="col">ผู้เล่น</th>
+            ${yearCols.map(y => `<th scope="col">${y}</th>`).join('')}
+            <th scope="col">รวม PTS</th>
           </tr></thead>
           <tbody>${people.map(p => {
             const total = p.yrs.reduce((a, y) => a + (p.per[y].pts || 0), 0);
             return `<tr${p.stillPlaying ? '' : ' class="cmp-gone"'}>
-              <td>
+              <td class="cmp-person">
                 <span class="cmp-pname">${escHtml(p.name)}</span>
-                ${p.switched ? '<span class="cmp-swap" title="เคยเล่นทั้งสองสี">↔</span>' : ''}
+                ${p.switched ? `<span class="cmp-swap" title="เคยเล่นทั้งสองสี">${dsIcon('arrows-left-right')}<span class="ds-sr-only">เคยเล่นทั้งสองสี</span></span>` : ''}
                 ${p.stillPlaying ? '' : '<span class="cmp-out">ไม่ได้เล่นแล้ว</span>'}
               </td>
               ${yearCols.map(y => {
                 const d = p.per[y];
-                if (!d) return `<td class="cmp-none">—</td>`;
-                const tc = d.team === 'Red' ? 'var(--red)' : 'var(--blue)';
-                return `<td><span class="cmp-dot" style="background:${tc};"></span>
-                  <b style="color:var(--gold);">${d.pts || 0}</b>
-                  <span class="cmp-sub">${d.matchWin || 0}W ${d.matchLose || 0}L</span></td>`;
+                if (!d) return `<td data-label="${y}"><span class="cmp-none">—</span></td>`;
+                const red = d.team === 'Red';
+                return `<td data-label="${y}"><span class="cmp-cell"><i class="rp-mark ${red ? 'is-red' : 'is-blue'}"></i><span class="ds-sr-only">${red ? 'แดง' : 'น้ำเงิน'} </span><b>${d.pts || 0}</b><span class="cmp-sub">${d.matchWin || 0}W ${d.matchLose || 0}L</span></span></td>`;
               }).join('')}
-              <td><b style="color:var(--gold);font-size:1.1em;">${total}</b></td>
+              <td data-label="รวม PTS"><b class="cmp-total">${total}</b></td>
             </tr>`;
           }).join('')}</tbody>
-        </table></div>`}`;
+        </table>`}`;
 }
 
 // ══════════════════════════════════════════════════════════════
