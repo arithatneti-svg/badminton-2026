@@ -4,6 +4,7 @@
 let userRole = null; 
 let prevRed = 0, prevBlue = 0; 
 let _pendingLoginRole = null; // 'admin' or 'superadmin' — which button was clicked
+let _passcodeOpener = null;   // the button that opened the passcode sheet (focus returns to it)
 
 // DOMContentLoaded (not window load): every deferred script has run by then, and
 // the data request no longer waits for fonts/images to finish downloading.
@@ -72,8 +73,9 @@ function loginAdmin() {
     const input = document.getElementById('passcodeInput');
     const err = document.getElementById('passcodeError');
     if (!modal) { alert('Error: passcodeModal not found'); return; }
-    document.getElementById('passcodeModalTitle').textContent = '⚙️ ADMIN LOGIN';
+    document.getElementById('passcodeModalTitle').innerHTML = dsIcon('gear-six') + '<span>Admin</span>';
     document.getElementById('passcodeModalSub').textContent = 'สร้างแมตช์ / จัดการผู้เล่น';
+    _passcodeOpener = document.activeElement;
     modal.style.display = 'flex';
     document.getElementById('loginOverlay').classList.add('modal-open');
     err.style.display = 'none';
@@ -89,8 +91,9 @@ function loginSuperAdmin() {
     const input = document.getElementById('passcodeInput');
     const err = document.getElementById('passcodeError');
     if (!modal) { alert('Error: passcodeModal not found'); return; }
-    document.getElementById('passcodeModalTitle').textContent = '👑 SUPER ADMIN';
+    document.getElementById('passcodeModalTitle').innerHTML = dsIcon('crown') + '<span>Super Admin</span>';
     document.getElementById('passcodeModalSub').textContent = 'แก้ผล / แก้คะแนน / ทุกสิทธิ์';
+    _passcodeOpener = document.activeElement;
     modal.style.display = 'flex';
     document.getElementById('loginOverlay').classList.add('modal-open');
     err.style.display = 'none';
@@ -119,10 +122,10 @@ function submitPasscode() {
     switchTab('scoreboard', document.getElementById('tab-scoreboard'));
     updateUI();
   } else {
-    err.style.display = 'block';
+    err.style.display = 'flex';
     input.value = '';
     // UX-3: shake the input box to signal wrong passcode
-    const box = input.closest('div[style*="background"]') || input.parentElement;
+    const box = input.closest('.passcode-box') || input.parentElement;
     box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
     setTimeout(() => box.classList.remove('shake'), 500);
     input.focus();
@@ -133,11 +136,14 @@ function closePasscodeModal() {
   document.getElementById('passcodeModal').style.display = 'none';
   const ov = document.getElementById('loginOverlay');
   if (ov) ov.classList.remove('modal-open');
+  // focus goes back to the button that opened the sheet (when the overlay is still there to take it)
+  if (_passcodeOpener && _passcodeOpener.isConnected && _passcodeOpener.focus && ov && ov.style.display !== 'none') _passcodeOpener.focus();
+  _passcodeOpener = null;
 }
 
 function logout() {
   // UX-11: use custom confirm dialog instead of blocking confirm()
-  showConfirmDialog('ออกจากระบบ / Logout?', () => {
+  showConfirmDialog('ออกจากระบบ?', () => {
     userRole = null;
     _pendingLoginRole = null;
     localStorage.removeItem('bdm_scoreboard_role');

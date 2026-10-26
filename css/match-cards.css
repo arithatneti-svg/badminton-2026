@@ -14,50 +14,23 @@
   color: var(--green);
   text-transform: uppercase;
 }
-/* ── G1 DONE TOAST ── */
+/* ── GAME 1 DONE: a small, non-blocking note over the page (js/notifications.js showG1DoneToast) ── */
 .g1-toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  opacity: 0;
-  z-index: 99000;
-  transition: opacity 0.3s, transform 0.3s;
-  pointer-events: none;
+  position: fixed; left: 50%; bottom: calc(96px + var(--sab)); z-index: var(--z-toast); max-width: calc(100vw - 2 * var(--sp-4));
+  transform: translateX(-50%) translateY(16px); opacity: 0; pointer-events: none;
+  transition: opacity var(--dur-in) var(--ease-out), transform var(--dur-in) var(--ease-out);
 }
-.g1-toast.g1-toast-show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
+.g1-toast.g1-toast-show { opacity: 1; transform: translateX(-50%); }
 .g1-toast-inner {
-  background: rgba(20,20,28,0.96);
-  border: 1px solid rgba(245,200,66,0.35);
-  border-radius: 14px;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,200,66,0.1);
-  white-space: nowrap;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: var(--sp-3) var(--sp-4);
+  background: var(--s2); border: 1px solid var(--gold-line); border-radius: var(--r-md); box-shadow: var(--shadow-pop);
 }
-.g1-toast-badge {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  color: var(--gold);
-  background: rgba(245,200,66,0.12);
-  border: 1px solid rgba(245,200,66,0.25);
-  border-radius: 6px;
-  padding: 2px 7px;
-}
-.g1-toast-score { display: flex; align-items: center; }
-.g1-toast-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-}
+.g1-toast-badge { padding: 4px var(--sp-3); border: 1px solid var(--gold-line); border-radius: var(--r-pill); background: var(--gold-dim); color: var(--gold); font: 800 var(--fs-13)/1.2 var(--font-ui); white-space: nowrap; }
+.g1-toast-score { display: inline-flex; align-items: baseline; gap: 6px; font: 400 2rem/1 var(--font-num); font-variant-numeric: tabular-nums; }
+.g1-toast-score .r { color: var(--red); }
+.g1-toast-score .b { color: var(--blue); }
+.g1-toast-score .sep { color: var(--t-low); }
+.g1-toast-label { color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
 
 .live-dot {
   width: 7px; height: 7px;
@@ -83,24 +56,15 @@
 .blue-text { color: var(--blue); font-weight: 700; }
 .gold-text { color: var(--gold); }
 
-/* MATCH TAGS */
+/* MATCH TAGS — the badges a match earns (Epic Comeback, The Gladiators …). A chip with an icon and the name; the colour is
+   rare on purpose: amber for a comeback, gold for a close one, the rest neutral. Shared with the player profile and the pop-up. */
 .finished-tag {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 6px;
-  margin: 2px 2px 0 0;
-  display: inline-block;
-  letter-spacing: 0.3px;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 var(--sp-3);
+  border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--s3); color: var(--t-mid);
+  font: 700 var(--fs-13)/1.2 var(--font-ui); white-space: nowrap;
 }
-.tag-comeback { background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
-.tag-blowout { background: rgba(255,69,96,0.1); color: #ff7090; border: 1px solid rgba(255,69,96,0.25); }
-.tag-clutch { background: rgba(245,200,66,0.1); color: var(--gold); border: 1px solid rgba(245,200,66,0.25); }
-.tag-normal { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
-.tag-custom { background: rgba(59,142,255,0.1); color: #80bfff; border: 1px solid rgba(59,142,255,0.25); }
-
-
-/* face beside each name on a live court card */
-.court-player-name { display: flex; align-items: center; gap: 7px; }
-.court-player-name.blue { flex-direction: row-reverse; }
-.court-pav { --pav-size: 24px; border-width: 1px; }
+.finished-tag .ds-ic { flex: none; width: 14px; height: 14px; }
+.tag-comeback { color: var(--warn); border-color: var(--warn-line); background: var(--warn-fill); }
+.tag-clutch { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
+.tag-blowout, .tag-custom { color: var(--t-hi); border-color: var(--line-strong); background: var(--s3); }
+.tag-normal { color: var(--t-mid); border-color: var(--line); background: transparent; }
