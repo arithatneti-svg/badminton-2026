@@ -90,10 +90,12 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
    ============================================================ */
 .ds-scrim.open { display: flex; }
 #confirmModal.ds-scrim { z-index: calc(var(--z-modal) + 10); }   /* opens over the force-result sheet */
+.ds-scrim > .ds-sheet:focus { outline: none; }   /* focus is moved to the sheet itself when it opens (js/export-import.js); Tab then reaches its controls */
+.ds-banner[hidden] { display: none; }            /* .ds-banner is display:flex, which would beat the hidden attribute */
 
 /* header: title (+ a chip under it) and the close button; sticks while a long sheet scrolls */
 .dlg-head {
-  position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3);
+  position: sticky; top: calc(-1 * var(--sp-5)); z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);   /* sticky offsets count from the scroller's CONTENT box: minus the sheet's padding = flush with its edge */
   margin: calc(-1 * var(--sp-5)) calc(-1 * var(--sp-5)) var(--sp-4); padding: var(--sp-4) var(--sp-3) var(--sp-3) var(--sp-5);
   background: var(--s2); border-bottom: 1px solid var(--line);
 }
@@ -102,11 +104,11 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 .ds-sheet-title { overflow-wrap: anywhere; }
 /* footer with the actions; sticks to the bottom of a long sheet */
 .dlg-foot {
-  position: sticky; bottom: 0; z-index: 2; margin: var(--sp-5) calc(-1 * var(--sp-5)) calc(-1 * (var(--sp-5) + var(--sab)));
+  position: sticky; bottom: calc(-1 * (var(--sp-5) + var(--sab))); z-index: 2; margin: var(--sp-5) calc(-1 * var(--sp-5)) calc(-1 * (var(--sp-5) + var(--sab)));
   padding: var(--sp-3) var(--sp-5) calc(var(--sp-3) + var(--sab)); background: var(--s2); border-top: 1px solid var(--line);
 }
 @media (min-width: 640px) {
-  .dlg-foot { margin-bottom: calc(-1 * var(--sp-5)); padding-bottom: var(--sp-3); }
+  .dlg-foot { bottom: calc(-1 * var(--sp-5)); margin-bottom: calc(-1 * var(--sp-5)); padding-bottom: var(--sp-3); }
 }
 .dlg-info { display: grid; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); font: 500 var(--fs-14)/var(--lh-th) var(--font-th); color: var(--t-mid); overflow-wrap: anywhere; }
 .dlg-info .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-2); }
@@ -151,13 +153,16 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 .fr-stepper.red .fr-step:active { background: var(--red-fill-hi); }
 .fr-stepper.blue .fr-step:active { background: var(--blue-fill-hi); }
 .fr-stepper:not(.red):not(.blue) .fr-step:active { background: var(--s4); }
-.fr-in {
-  width: 100%; min-width: 0; height: var(--tap-lg); padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+/* .fr-stepper .fr-in outranks the global input[type="number"] rule (border, 38 px box): the number sits straight on the team fill */
+.fr-stepper .fr-in {
+  width: 100%; min-width: 0; height: var(--tap-lg); min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
   color: var(--t-hi); text-align: center; font: 400 var(--fs-40)/1 var(--font-num); letter-spacing: .02em; -moz-appearance: textfield; appearance: textfield;
 }
-.fr-in:focus { outline: none; box-shadow: none; }
+.fr-stepper .fr-in:focus { border: 0; box-shadow: none; outline: none; }
 .fr-in::-webkit-outer-spin-button, .fr-in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .fr-in::placeholder { color: var(--t-low); }
+.fr-step:first-child { border-right: 1px solid var(--line-strong); }
+.fr-step:last-child { border-left: 1px solid var(--line-strong); }
 
 .fr-live { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); min-height: var(--tap-lg); margin-top: var(--sp-4); padding: var(--sp-3) var(--sp-4); background: var(--s1); border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
 .fr-live .lbl { font: 600 var(--fs-13)/var(--lh-th) var(--font-th); color: var(--t-mid); }
@@ -175,6 +180,7 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 .fr-help { margin-top: var(--sp-3); text-align: center; }
 
 .ed-sec { display: grid; gap: var(--sp-2); margin-top: var(--sp-4); }
+.ed-sec .fr-scores { margin-top: 0; }
 .ed-h { font: 700 var(--fs-14)/var(--lh-th) var(--font-th); color: var(--t-hi); }
 .ed-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); }
 .ed-col { display: grid; gap: var(--sp-2); align-content: start; min-width: 0; padding: var(--sp-3); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }

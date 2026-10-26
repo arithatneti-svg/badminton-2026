@@ -1,29 +1,22 @@
-/* ── BACKUP & RESTORE ── */
-.backup-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 48vh;
-  overflow-y: auto;
-}
-.backup-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 14px;
-}
-.backup-info { min-width: 0; }
-.backup-when { font-weight: 700; font-size: 13px; color: var(--text); }
-.backup-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.backup-row .btn { flex-shrink: 0; }
-.backup-empty {
-  text-align: center;
-  color: var(--muted);
-  font-size: 13px;
-  padding: 24px 12px;
-  line-height: 1.6;
-}
+/* ── BACKUP & RESTORE DIALOG (superadmin) ── */
+.bk-sheet { max-width: 600px; }
+.bk-tools { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-4); }
+.bk-tools .ds-btn { flex: 1 1 auto; }
+
+.backup-list { display: grid; align-content: start; gap: var(--sp-2); margin-top: var(--sp-4); max-height: 44vh; max-height: min(44dvh, 420px); overflow-y: auto; overscroll-behavior: contain; }
+.bk-skel { height: 64px; border-radius: var(--r-md); }
+.backup-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
+.backup-info { display: grid; gap: var(--sp-1); min-width: 0; }
+.backup-when { font: 700 var(--fs-14)/var(--lh-th) var(--font-th); color: var(--t-hi); font-variant-numeric: tabular-nums; }
+.backup-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); font: 500 var(--fs-13)/var(--lh-th) var(--font-th); color: var(--t-mid); }
+.bk-reason { display: inline-flex; align-items: center; gap: 4px; min-height: 24px; padding: 0 var(--sp-2); background: var(--s3); border: 1px solid var(--line); border-radius: var(--r-pill); font: 600 var(--fs-12)/1.2 var(--font-th); color: var(--t-mid); }
+.bk-reason.is-warn { background: var(--warn-fill); border-color: var(--warn-line); color: var(--warn); }
+.backup-row .ds-btn { flex: none; }
+@media (pointer: coarse) { .backup-row .ds-btn-sm { min-height: var(--tap); } }
+
+/* nothing yet: icon + one sentence (the retry banner and its button share the list's grid) */
+.backup-empty { display: grid; justify-items: center; gap: var(--sp-2); padding: var(--sp-6) var(--sp-4); text-align: center; color: var(--t-low); }
+
+/* the one-time photo move (its text and button come from js/player-photo.js) */
+.bk-box { margin-top: var(--sp-4); padding: var(--sp-3) var(--sp-4); background: var(--s1); border: 1px solid var(--line-strong); border-radius: var(--r-md); font: 500 var(--fs-13)/var(--lh-th) var(--font-th); color: var(--t-mid); }
+.bk-box:empty { padding: 0; border: 0; margin: 0; }
