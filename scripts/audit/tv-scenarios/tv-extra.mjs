@@ -2,54 +2,64 @@
 // long names, courts with "no activity" tags, hot courts. Run with:
 //   node "C:\Badminton 2026\ux-wt\scripts\audit\shots\shots.mjs" --root "C:\Badminton 2026\ux-v3\tv" --label tv-extra --scenarios "C:\Badminton 2026\ux-v3\tv\scripts\audit\tv-scenarios" --only tv-courts
 // Each scenario also notes the grid metrics (overlap with heading / footer, fit class) so the manifest carries the numbers.
-const VP = ['1920x1080', '1280x720', '2560x1440'];
-const base = { app: 'tv', path: '/?view=tv', viewports: VP };
+import { base, show, noteGrid, noteHero, noteAudit } from './_tv-lib.mjs';
 
-async function show(page, { panel = ['live'], courts = 0, court = true, history = 0, longest = false, quiet = 0, hot = 0, g2 = -1 }) {
-  await page.run(async (o) => {
-    const A = __audit, sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    try { dbRef.off(); } catch (e) { /* the canned database never pushes anyway */ }
-    A.guard();
-    clearInterval(_tvTimer);
-    clearInterval(_tvHealthTimer);
-    _tvEvent = null; _tvClimaxOn = false; _tvClimaxCooldown = 99999;
-    const idx = o.panel.map((n) => TV_PANELS.indexOf(n)).find((i) => i >= 0);
-    _tvPanel = idx === undefined ? 0 : idx;
-    appState.ongoingMatches = o.courts ? A.mockMatches(o.courts, { court: o.court, longest: o.longest }) : [];
-    const now = Date.now();
-    appState.ongoingMatches.forEach((m, i) => {
-      if (!m || !m.live) return;
-      m.live.lastAt = now - (i < o.quiet ? 700000 : 4000);
-      if (i < o.hot) { m.live.g1R = 20; m.live.g1B = 19; m.live.g1Locked = false; m.live.g2R = 0; m.live.g2B = 0; }
-      if (o.g2 >= 0 && i >= o.g2) { m.live.g1R = 21; m.live.g1B = 17; m.live.g1Locked = true; m.live.g2R = 9 + i; m.live.g2B = 7 + i; }
-    });
-    if (o.history) appState.matchHistory = A.mockHistory(o.history);
-    _tvBoardPage = 0;
-    renderTvPanel(true);
-    await sleep(500);
-  }, { panel, courts, court, history, longest, quiet, hot, g2 });
-}
-async function note(page) {
-  const j = await page.eval('JSON.stringify(__audit.tvGridMetrics())');
-  page.note(String(j));
-}
+// a pair name far longer than the screen has room for: Thai without spaces inside a word, Latin with a hyphen
+const LONG = { red: 'ปรีชาพัฒน์ศรีสุวรรณพงศ์ชัย & Christopher Montgomery-Wellington', blue: 'ณัฐธิดาวรรณวิสุทธิ์เจริญสุข & Bartholomew Featherstonehaugh' };
 
 const out = [];
 for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
-  out.push(Object.assign({ id: 'tv-courts-' + n, setup: async (page) => { await show(page, { courts: n }); await note(page); } }, base));
+  out.push(Object.assign({ id: 'tv-courts-' + n, setup: async (page) => { await show(page, { courts: n }); await (n === 1 ? noteHero(page) : noteGrid(page)); await noteAudit(page); } }, base));
 }
-// long Thai / Latin names, the worst case for wrapping
+// the longest names in the data, then names of 30+ characters, the worst case for wrapping
 for (const n of [3, 5, 6, 10]) {
-  out.push(Object.assign({ id: 'tv-courts-' + n + '-long', setup: async (page) => { await show(page, { courts: n, longest: true }); await note(page); } }, base));
+  out.push(Object.assign({ id: 'tv-courts-' + n + '-long', setup: async (page) => { await show(page, { courts: n, longest: true }); await noteGrid(page); } }, base));
+}
+for (const n of [1, 2, 4, 5, 10]) {
+  out.push(Object.assign({ id: 'tv-courts-' + n + '-names', setup: async (page) => { await show(page, { courts: n, names: LONG }); await (n === 1 ? noteHero(page) : noteGrid(page)); } }, base));
 }
 // every court tagged "no activity", some in game 2, one hot: the busiest the grid gets
 for (const n of [5, 6, 10]) {
-  out.push(Object.assign({ id: 'tv-courts-' + n + '-busy', setup: async (page) => { await show(page, { courts: n, quiet: n, hot: 1, g2: Math.floor(n / 2) }); await note(page); } }, base));
+  out.push(Object.assign({ id: 'tv-courts-' + n + '-busy', setup: async (page) => { await show(page, { courts: n, quiet: n, hot: 1, g2: Math.floor(n / 2) }); await noteGrid(page); await noteAudit(page); } }, base));
 }
-out.push(Object.assign({ id: 'tv-board-big', setup: async (page) => { await show(page, { panel: ['board'], history: 30 }); } }, base));
-out.push(Object.assign({ id: 'tv-battle-lead', setup: async (page) => {
+// states of a court the plain scenarios do not reach: ready (no point yet), game 2 + status + hot on the hero, two hot courts taking turns
+const zero = (n) => `(() => { appState.ongoingMatches.slice(0, ${n}).forEach((m) => { m.live.g1R = 0; m.live.g1B = 0; m.live.g2R = 0; m.live.g2B = 0; m.live.g1Locked = false; }); renderTvPanel(true); })()`;
+out.push(Object.assign({ id: 'tv-ready-grid', setup: async (page) => { await show(page, { courts: 4 }); await page.eval(zero(2)); await page.wait(200); await noteGrid(page); } }, base));
+out.push(Object.assign({ id: 'tv-ready-10', setup: async (page) => { await show(page, { courts: 10 }); await page.eval(zero(3)); await page.wait(200); await noteGrid(page); } }, base));
+out.push(Object.assign({ id: 'tv-ready-hero', setup: async (page) => { await show(page, { courts: 1 }); await page.eval(zero(1)); await page.wait(200); await noteHero(page); } }, base));
+out.push(Object.assign({ id: 'tv-courts-1-busy', setup: async (page) => { await show(page, { courts: 1, quiet: 1, hot: 0, g2: 0 }); await page.eval('(() => { const m = appState.ongoingMatches[0]; m.live.g2R = 20; m.live.g2B = 19; renderTvPanel(true); })()'); await page.wait(200); await noteHero(page); } }, base));
+out.push(Object.assign({ id: 'tv-climax-2', setup: async (page) => {
+  await show(page, { courts: 3, hot: 2 });
+  await page.eval('(() => { _tvClimaxOn = true; _tvClimaxIdx = 1; _tvClimaxCooldown = 99999; renderTvPanel(true); })()');
+  await page.wait(300);
+  await noteHero(page);
+} }, base));
+// the other panels, with the type-size and contrast audit
+out.push(Object.assign({ id: 'tv-panel-board', setup: async (page) => { await show(page, { panel: ['board'], history: 30 }); await noteAudit(page); } }, base));
+out.push(Object.assign({ id: 'tv-panel-battle', setup: async (page) => {
   await show(page, { panel: ['battle'] });
   await page.eval('(() => { appState.globalScoreRed = 12; appState.globalScoreBlue = 9; renderTvPanel(true); })()');
   await page.wait(300);
+  await noteAudit(page);
+} }, base));
+out.push(Object.assign({ id: 'tv-panel-idle', setup: async (page) => { await show(page, { courts: 0 }); await noteAudit(page); } }, base));
+out.push(Object.assign({ id: 'tv-panel-finished', setup: async (page) => {
+  await show(page, { courts: 2, history: 3 });
+  await page.eval(`(() => { const h = appState.matchHistory[0]; clearTimeout(_tvEventTimer); _tvEvent = { type: 'finished', m: Object.assign({}, h, { rStat: 'L', bStat: 'W', game1: '15:21', game2: '19:21' }) }; renderTvPanel(true); })()`);
+  await page.wait(300);
+  await noteAudit(page);
+} }, base));
+out.push(Object.assign({ id: 'tv-panel-game1', setup: async (page) => {
+  await show(page, { courts: 2 });
+  await page.eval(`(() => { const m = appState.ongoingMatches[1]; m.redNames = ${JSON.stringify(LONG.red)}; clearTimeout(_tvEventTimer); _tvEvent = { type: 'game1', m }; renderTvPanel(true); })()`);
+  await page.wait(300);
+  await noteAudit(page);
+} }, base));
+out.push(Object.assign({ id: 'tv-panel-stale', setup: async (page) => {
+  await show(page, { courts: 5, quiet: 1 });
+  await page.eval('(() => { _tvProbeBusy = true; _tvProbeFails = 3; _tvAliveAt = Date.now() - 180000; _tvOfflineSince = _tvAliveAt; _tvHealth(); })()');
+  await page.wait(300);
+  await noteGrid(page);
+  await noteAudit(page);
 } }, base));
 export default out;

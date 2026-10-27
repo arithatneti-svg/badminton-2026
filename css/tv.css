@@ -151,7 +151,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 
 .tv-faces { display: inline-flex; align-items: center; }
 .tv-faces .pav { width: var(--face, calc(var(--u) * 6)); height: var(--face, calc(var(--u) * 6)); border-width: calc(var(--u) * .3); }
-.tv-faces .pav-initials { font-size: calc(var(--face, calc(var(--u) * 6)) * .36); }
+.tv-faces .pav-initials { font-size: max(calc(var(--u) * 2.6), calc(var(--face, calc(var(--u) * 6)) * .36)); }
 .tv-faces .pav + .pav { margin-left: calc(var(--face, calc(var(--u) * 6)) * -.16); }
 
 /* ── TEAM BATTLE ── */
@@ -187,7 +187,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-net::before, .tv-net::after { content: ''; flex: 1; width: calc(var(--u) * .2); background: var(--line-strong); }
 
 /* ── ONE live court, big (also the climax takeover) ── */
-.tv-vs-panel { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 14; --namen: 5.6; --tagn: 3.6; --digit: calc(var(--u) * 48); }
+.tv-vs-panel { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 14; --namen: 5.6; --tagn: 3.6; --digit: calc(var(--u) * 44); }
 .tv-vs-panel .tv-field { border-radius: var(--tv-r); }
 .tv-vs-panel .tv-court { height: calc(var(--u) * 5.2); font-size: calc(var(--u) * 3.8); }
 .tv-vs-panel .tv-names { -webkit-line-clamp: 2; }
@@ -231,7 +231,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
   --namen: clamp(2.6, calc(var(--fw) * .115 * var(--s)), 5.2);
   --tagn: calc(2.6 * var(--s));
   --dw: calc((var(--fw) - 2 * var(--fpad) - var(--edgen)) / .84);                           /* the widest digit pair that fits the field */
-  --dh: calc((var(--fh) - 2 * var(--fpad) - var(--facen) - 2 * var(--namen) * 1.4 - 1.6) / .85);   /* what is left in height after faces and two lines of names */
+  --dh: calc((var(--fh) - 2 * var(--fpad) - var(--facen) - 2 * var(--namen) * 1.4 - 2.2) / .85);   /* what is left in height after faces and two lines of names */
   --digit: calc(var(--u) * min(var(--dw), var(--dh)));
   flex: 1; min-height: 0; display: grid; gap: var(--gap-y) var(--col-gap);
   grid-template-columns: repeat(var(--tv-cols, 3), minmax(0, 1fr));
@@ -271,10 +271,10 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 /* 7+ courts, or whenever the regular card does not fit: number-led cards. No faces, the team's shape instead of its word;
    the game-1 result moves from the header to its own line above the fields. */
 .tv-live-grid.is-compact {
-  --s: 1; --cpad: 1.3; --fpad: .7; --edgen: .6; --fgap: calc(var(--u) * 1);
+  --s: 1; --cpad: 1.3; --fpad: .7; --edgen: .6; --fgap: calc(var(--u) * 1); --shape: 1.3em;
   --fw: calc((var(--cwn) - 2 * (.25 + var(--cpad)) - 1) / 2);
-  --fh: calc(var(--chn) - 2 * (.25 + var(--cpad)) - 9.4);
-  --facen: 2.4;
+  --fh: calc(var(--chn) - 2 * (.25 + var(--cpad)) - 9.4);                                    /* header row, the game-1 line and their gaps taken off */
+  --facen: 3.4;                                                                              /* the face row is just the team's shape */
   --namen: clamp(2.6, calc(var(--fw) * .16), 3.4);
   --tagn: 2.6;
 }
@@ -282,7 +282,8 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .is-compact .tv-fh { justify-content: center; }
 /* three or more cards across: the shape alone tags the team (the field colour, the edge band and the left / right side say the rest) */
 .no-word .tv-tag-name { display: none; }
-.no-word .tv-tag::before { width: 1.6em; height: 1.6em; }
+.no-word .tv-tag::before { width: var(--shape, 1.6em); height: var(--shape, 1.6em); }
+/* a narrow card has no room for the game-1 result in the header: it gets its own line above the fields (only on the courts that are in game 2) */
 .is-compact .tv-live-card.is-g2, .is-compact .tv-live-card.is-ready {
   grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(min-content, 1fr);
   grid-template-areas: "id" "games" "score";
@@ -303,36 +304,38 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 
 /* ── LEADERBOARD: two columns read top to bottom, left then right ── */
 .tv-board {
-  flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-rows: repeat(var(--tv-board-rows, 4), minmax(min-content, 1fr)); gap: calc(var(--u) * 1.6) calc(var(--u) * 2.6);
+  --bs: calc(1 + .15 * max(0, 4 - var(--tv-board-rows, 4)));                                     /* fewer rows on the page (a small screen, the last page): everything a little bigger */
+  --row-share: calc((78.8 - (var(--tv-board-rows, 4) - 1) * 1.6) / var(--tv-board-rows, 4));   /* what one row gets of the room, in u */
+  flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-content: start;
+  grid-template-rows: repeat(var(--tv-board-rows, 4), minmax(min-content, calc(var(--u) * min(24, var(--row-share))))); gap: calc(var(--u) * 1.6) calc(var(--u) * 2.6);
 }
 .tv-board.is-empty { display: flex; }
 .tv-board-row {
-  min-width: 0; display: grid; grid-template-columns: calc(var(--u) * 8) auto minmax(0, 1fr) auto; align-items: center; gap: calc(var(--u) * 2.2);
+  min-width: 0; display: grid; grid-template-columns: calc(var(--u) * 8 * var(--bs)) auto minmax(0, 1fr) auto; align-items: center; gap: calc(var(--u) * 2.2);
   padding: calc(var(--u) * 1) calc(var(--u) * 2.6) calc(var(--u) * 1) calc(var(--u) * 3.4);
   background: var(--s1); border: calc(var(--u) * .2) solid var(--line); border-radius: var(--tv-r);
 }
 .tv-board-row.is-red  { box-shadow: inset calc(var(--u) * .8) 0 0 var(--red); }
 .tv-board-row.is-blue { box-shadow: inset calc(var(--u) * .8) 0 0 var(--blue); }
 .tv-rank {
-  display: grid; place-items: center; height: calc(var(--u) * 8); border-radius: var(--tv-r-sm);
-  background: var(--s3); color: var(--t-mid); font: 400 calc(var(--u) * 5.2)/1 var(--font-num);
+  display: grid; place-items: center; height: calc(var(--u) * 8 * var(--bs)); border-radius: var(--tv-r-sm);
+  background: var(--s3); color: var(--t-mid); font: 400 calc(var(--u) * 5.2 * var(--bs))/1 var(--font-num);
 }
 .tv-rank.r1 { background: var(--gold); color: var(--gold-ink); }
 .tv-rank.r2 { background: var(--t-mid); color: var(--bg); }
 .tv-rank.r3 { background: var(--warn); color: var(--bg); }
 .tv-board-face { display: flex; align-items: center; }
-.tv-board-face .pav { width: calc(var(--u) * 12); height: calc(var(--u) * 12); border-width: calc(var(--u) * .3); }
-.tv-board-face .pav-initials { font-size: calc(var(--u) * 4.3); }
+.tv-board-face .pav { width: calc(var(--u) * 12 * var(--bs)); height: calc(var(--u) * 12 * var(--bs)); border-width: calc(var(--u) * .3); }
+.tv-board-face .pav-initials { font-size: calc(var(--u) * 4.3 * var(--bs)); }
 .tv-pinfo { min-width: 0; display: grid; gap: calc(var(--u) * .4); }
 .tv-pname {
-  font: 700 calc(var(--u) * 4.6)/1.4 var(--font-ui); color: var(--t-hi); overflow-wrap: anywhere;
+  font: 700 calc(var(--u) * 4.6 * var(--bs))/1.4 var(--font-ui); color: var(--t-hi); overflow-wrap: anywhere;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
 }
 .tv-pmeta { display: flex; align-items: center; flex-wrap: wrap; gap: calc(var(--u) * .4) calc(var(--u) * 1.8); font: 600 calc(var(--u) * 2.6)/1.4 var(--font-ui); color: var(--t-mid); }
 .tv-pmeta .ds-team { font-size: inherit; }
 .tv-ppts { display: flex; align-items: baseline; gap: calc(var(--u) * .8); color: var(--gold); }
-.tv-ppts b { font: 400 calc(var(--u) * 11)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; }
+.tv-ppts b { font: 400 calc(var(--u) * 11 * var(--bs))/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; }
 .tv-ppts span { font: 600 calc(var(--u) * 2.6)/1 var(--font-ui); color: var(--t-mid); }
 
 /* ── announcements: a match finished, a game 1 wrapped up ── */
