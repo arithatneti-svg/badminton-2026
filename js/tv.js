@@ -390,7 +390,7 @@ function _tvHotHtml(cx) {
 }
 function _tvFacesHtml(ids) { return `<span class="tv-faces">${ids.map(id => avatarHtml(id, 64)).join('')}</span>`; }
 // A team's field (the same flat team colour, edge band and shape + word tag as the phone screens): tag and faces on top,
-// the digit (white, the biggest thing on the screen), the names under it. css/tv.css sizes it for the panel that holds it.
+// the digit (the biggest thing on the screen), the names under it. css/tv.css sizes it for the panel that holds it.
 function _tvFieldHtml(side, ids, names, digitHtml) {
   return `<div class="tv-field is-${side}"><div class="tv-fh">${_tvTag(side)}${_tvFacesHtml(ids)}</div>${digitHtml}<span class="tv-names">${escHtml(_tvStrip(names))}</span></div>`;
 }

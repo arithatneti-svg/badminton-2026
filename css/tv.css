@@ -92,7 +92,7 @@ body.tv-mode #tvView {
 body.tv-mode .tv-stale:not([hidden]) {
   position: fixed; top: 0; left: 0; right: 0; z-index: calc(var(--z-toast) - 50); height: calc(var(--u) * 9);
   display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 1.6); padding: 0 var(--tv-px);
-  background: var(--err); color: var(--bg); text-align: center;
+  background: var(--s2); border-bottom: calc(var(--u) * .8) solid var(--err); color: var(--err); text-align: center;
   font: 800 calc(var(--u) * 4)/1.2 var(--font-ui);
 }
 .tv-stale .ds-ic { width: 1.15em; height: 1.15em; }
@@ -101,7 +101,7 @@ body.tv-mode .tv-stale:not([hidden]) {
 .tv-fs-btn { display: none; }
 body.tv-mode .tv-fs-btn {
   position: fixed; top: calc(var(--u) * 2); right: calc(var(--u) * 2); z-index: calc(var(--z-toast) - 80);
-  display: grid; place-items: center; width: calc(var(--u) * 5.2); height: calc(var(--u) * 5.2);
+  display: grid; place-items: center; width: max(var(--tap), calc(var(--u) * 5.2)); height: max(var(--tap), calc(var(--u) * 5.2));
   border-radius: 50%; border: calc(var(--u) * .2) solid var(--line-strong); background: var(--s2); color: var(--t-mid);
   font-size: calc(var(--u) * 2.8); line-height: 1; cursor: pointer;
   transition: opacity var(--dur-in) var(--ease-out), background-color var(--dur-state) var(--ease-out), color var(--dur-state) var(--ease-out);
@@ -114,9 +114,10 @@ body.tv-mode .tv-fs-btn.idle { opacity: 0; }
 }
 body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 
-/* ── a team's field: the phone screens' flat team colour + edge band, shape + word tag and faces on top, the digit (white, the biggest
+/* ── a team's field: the phone screens' flat team colour + edge band, shape + word tag and faces on top, the digit (the biggest
    thing on the screen), the names under it. The panel that holds it sets the sizes (numbers in u): --fpad padding, --facen face, --namen
-   name size, --tagn tag size, --digit digit font, --fgap gap between the two fields. ── */
+   name size, --tagn tag size, --digit-fs digit font size, --fgap gap between the two fields. What is printed on a team fill (tag, digit, names)
+   takes that team's -ink token; the digit colour lives in ONE variable, --digit (same name as the umpire panels), and --dim is the quiet numeral. ── */
 .tv-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--fgap, calc(var(--u) * 2.6)); min-height: 0; }
 .tv-field {
   --edge: calc(var(--u) * var(--edgen, .8)); --face: calc(var(--u) * var(--facen, 5));
@@ -124,19 +125,19 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
   gap: calc(var(--u) * .8); padding: calc(var(--u) * var(--fpad, 1.2)); border-radius: var(--tv-r-sm);
   background: var(--fill); box-shadow: inset 0 var(--edge) 0 var(--edge-c);
 }
-.tv-field.is-red  { --fill: var(--red-fill);  --edge-c: var(--red);  }
-.tv-field.is-blue { --fill: var(--blue-fill); --edge-c: var(--blue); }
+.tv-field.is-red  { --fill: var(--red-fill);  --edge-c: var(--red);  --ink: var(--red-ink);  --digit: var(--red-ink);  --dim: var(--red-lost); }
+.tv-field.is-blue { --fill: var(--blue-fill); --edge-c: var(--blue); --ink: var(--blue-ink); --digit: var(--blue-ink); --dim: var(--blue-lost); }
 .tv-fh { grid-area: head; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: calc(var(--u) * .8); min-width: 0; min-height: var(--face); }
 .tv-fh .tv-tag { flex: none; }   /* the word is never squeezed: when tag + faces do not fit one line, the faces drop under it */
 .tv-field.is-blue .tv-fh { flex-direction: row-reverse; }
 .tv-fh-l { display: inline-flex; align-items: center; gap: calc(var(--u) * 1.2); min-width: 0; }
 .tv-fd {
-  grid-area: digit; align-self: center; justify-self: center; font: 400 var(--digit, calc(var(--u) * 14))/var(--lh-num) var(--font-num);
-  letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--t-hi);
+  grid-area: digit; align-self: center; justify-self: center; font: 400 var(--digit-fs, calc(var(--u) * 14))/var(--lh-num) var(--font-num);
+  letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--digit);
 }
-.tv-fd.is-ready { color: var(--t-low); }
+.tv-fd.is-ready { color: var(--dim); }
 .tv-field .tv-names {
-  grid-area: names; min-width: 0; font: 700 calc(var(--u) * var(--namen, 3))/1.4 var(--font-ui); color: var(--t-hi); overflow-wrap: anywhere;
+  grid-area: names; min-width: 0; font: 700 calc(var(--u) * var(--namen, 3))/1.4 var(--font-ui); color: var(--ink); overflow-wrap: anywhere;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
 .tv-field.is-blue .tv-names { text-align: right; }
@@ -144,9 +145,8 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-tag { min-width: 0; max-width: 100%; font-weight: 800; line-height: 1.2; white-space: nowrap; }
 .tv-tag::before { width: .8em; height: .8em; }
 .tv-tag-name { overflow: hidden; text-overflow: ellipsis; }
-.tv-field.is-red .tv-tag { color: var(--red-ink); }
+.tv-field .tv-tag { color: var(--ink); }
 .tv-field.is-red .tv-tag::before { background: var(--red); }
-.tv-field.is-blue .tv-tag { color: var(--blue-ink); }
 .tv-field.is-blue .tv-tag::before { background: var(--blue); }
 
 .tv-faces { display: inline-flex; align-items: center; }
@@ -160,15 +160,13 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
   min-width: 0; display: flex; flex-direction: column; padding: calc(var(--u) * 3) calc(var(--u) * 3.4);
   border-radius: var(--tv-r); background: var(--fill); box-shadow: inset 0 calc(var(--u) * 1) 0 var(--edge-c);
 }
-.tv-team.red  { --fill: var(--red-fill);  --fill-hi: var(--red-fill-hi);  --edge-c: var(--red);  }
-.tv-team.blue { --fill: var(--blue-fill); --fill-hi: var(--blue-fill-hi); --edge-c: var(--blue); }
+.tv-team.red  { --fill: var(--red-fill);  --fill-hi: var(--red-fill-hi);  --edge-c: var(--red);  --ink: var(--red-ink);  }
+.tv-team.blue { --fill: var(--blue-fill); --fill-hi: var(--blue-fill-hi); --edge-c: var(--blue); --ink: var(--blue-ink); }
 .tv-team.lead { background: var(--fill-hi); }
 .tv-team-top { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 2); min-height: calc(var(--u) * 5.2); }
 .tv-team.blue .tv-team-top { flex-direction: row-reverse; }
-.tv-team .tv-tag { font-size: calc(var(--u) * 5); }
-.tv-team.red .tv-tag { color: var(--red-ink); }
+.tv-team .tv-tag { font-size: calc(var(--u) * 5); color: var(--ink); }
 .tv-team.red .tv-tag::before { background: var(--red); }
-.tv-team.blue .tv-tag { color: var(--blue-ink); }
 .tv-team.blue .tv-tag::before { background: var(--blue); }
 .tv-lead {
   display: none; align-items: center; gap: calc(var(--u) * .8); height: calc(var(--u) * 4.6); padding: 0 calc(var(--u) * 2);
@@ -177,7 +175,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-team.lead .tv-lead { display: inline-flex; }
 .tv-team-score {
   flex: 1; display: grid; place-items: center; min-height: 0;
-  font: 400 calc(var(--u) * 58)/var(--lh-num) var(--font-num); letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--t-hi);
+  font: 400 calc(var(--u) * 58)/var(--lh-num) var(--font-num); letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--ink);
 }
 /* the net: a line, VS, a line */
 .tv-net {
@@ -187,7 +185,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-net::before, .tv-net::after { content: ''; flex: 1; width: calc(var(--u) * .2); background: var(--line-strong); }
 
 /* ── ONE live court, big (also the climax takeover) ── */
-.tv-vs-panel { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 14; --namen: 5.6; --tagn: 3.6; --digit: calc(var(--u) * 44); }
+.tv-vs-panel { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 14; --namen: 5.6; --tagn: 3.6; --digit-fs: calc(var(--u) * 44); }
 .tv-vs-panel .tv-field { border-radius: var(--tv-r); }
 .tv-vs-panel .tv-court { height: calc(var(--u) * 5.2); font-size: calc(var(--u) * 3.8); }
 .tv-vs-panel .tv-names { -webkit-line-clamp: 2; }
@@ -232,7 +230,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
   --tagn: calc(2.6 * var(--s));
   --dw: calc((var(--fw) - 2 * var(--fpad) - var(--edgen)) / .84);                           /* the widest digit pair that fits the field */
   --dh: calc((var(--fh) - 2 * var(--fpad) - var(--facen) - 2 * var(--namen) * 1.4 - 2.2) / .85);   /* what is left in height after faces and two lines of names */
-  --digit: calc(var(--u) * min(var(--dw), var(--dh)));
+  --digit-fs: calc(var(--u) * min(var(--dw), var(--dh)));
   flex: 1; min-height: 0; display: grid; gap: var(--gap-y) var(--col-gap);
   grid-template-columns: repeat(var(--tv-cols, 3), minmax(0, 1fr));
   grid-auto-rows: minmax(min-content, 1fr);
@@ -244,7 +242,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
   grid-template-areas: "id games" "score score";
   background: var(--s1); border: calc(var(--u) * .25) solid var(--line-strong); border-radius: var(--tv-r);
 }
-.tv-live-card .tv-status { position: absolute; top: 0; right: calc(var(--u) * 1.8); transform: translateY(-50%); z-index: 1; max-width: calc(100% - var(--u) * 3.6); }
+.tv-live-card .tv-status { position: absolute; top: 0; right: calc(var(--u) * 1.8); transform: translateY(-50%); max-width: calc(100% - var(--u) * 3.6); }
 .tv-live-id { grid-area: id; display: flex; align-items: center; gap: calc(var(--u) * 1.2 * var(--s)); min-width: 0; min-height: calc(var(--u) * 4.6 * var(--s)); }
 .tv-live-game { flex: none; background: var(--s3); border-color: var(--line-strong); color: var(--t-hi); font-size: calc(var(--u) * 2.6 * var(--s)); }
 .tv-live-mid { margin-left: auto; font: 600 calc(var(--u) * 2.6 * var(--s))/1.2 var(--font-ui); color: var(--t-low); white-space: nowrap; }
@@ -322,8 +320,8 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
   background: var(--s3); color: var(--t-mid); font: 400 calc(var(--u) * 5.2 * var(--bs))/1 var(--font-num);
 }
 .tv-rank.r1 { background: var(--gold); color: var(--gold-ink); }
-.tv-rank.r2 { background: var(--t-mid); color: var(--bg); }
-.tv-rank.r3 { background: var(--warn); color: var(--bg); }
+.tv-rank.r2 { color: var(--t-hi); box-shadow: inset 0 0 0 calc(var(--u) * .35) var(--t-mid); }
+.tv-rank.r3 { color: var(--t-hi); box-shadow: inset 0 0 0 calc(var(--u) * .35) var(--warn); }
 .tv-board-face { display: flex; align-items: center; }
 .tv-board-face .pav { width: calc(var(--u) * 12 * var(--bs)); height: calc(var(--u) * 12 * var(--bs)); border-width: calc(var(--u) * .3); }
 .tv-board-face .pav-initials { font-size: calc(var(--u) * 4.3 * var(--bs)); }
@@ -344,13 +342,13 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-ev-tag { display: inline-flex; align-items: center; gap: calc(var(--u) * 1.4); font: 600 calc(var(--u) * 3.4)/1.2 var(--font-ui); letter-spacing: .12em; color: var(--t-mid); }
 .tv-ev-tag .ds-ic { color: var(--gold); }
 .tv-ev-big { font: 400 calc(var(--u) * 12)/var(--lh-num) var(--font-num); letter-spacing: .04em; color: var(--gold); }
-.tv-ev-g1 { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 11; --namen: 4.8; --tagn: 3.2; --digit: calc(var(--u) * 32); }
+.tv-ev-g1 { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 11; --namen: 4.8; --tagn: 3.2; --digit-fs: calc(var(--u) * 32); }
 .tv-ev-g1 .tv-field { border-radius: var(--tv-r); }
 .tv-ev-note { font: 600 calc(var(--u) * 4.4)/1.4 var(--font-ui); color: var(--t-hi); }
 .tv-ev-note b { font-weight: 800; }
 .tv-ev-note b.is-red { color: var(--red-text); }
 .tv-ev-note b.is-blue { color: var(--blue-text); }
-.tv-ev-card { --fgap: calc(var(--u) * 3.2); --fpad: 3; --edgen: .9; --facen: 15; --namen: 5.4; --tagn: 3.6; --digit: calc(var(--u) * 12); }
+.tv-ev-card { --fgap: calc(var(--u) * 3.2); --fpad: 3; --edgen: .9; --facen: 15; --namen: 5.4; --tagn: 3.6; --digit-fs: calc(var(--u) * 12); }
 .tv-ev-card .tv-field { border-radius: var(--tv-r); }
 .tv-ev-field.win { background: var(--fill-hi); }
 .tv-ev-field.is-red { --fill-hi: var(--red-fill-hi); }
@@ -359,8 +357,8 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-ev-games { grid-area: digit; align-self: center; display: grid; gap: calc(var(--u) * 1.4); justify-items: center; }
 .tv-ev-game { display: flex; align-items: baseline; gap: calc(var(--u) * 2); }
 .tv-ev-game .tv-fd { grid-area: auto; }
-.tv-ev-gl { font: 600 calc(var(--u) * 2.8)/1.2 var(--font-ui); color: var(--t-mid); }
-.tv-fd.lost { color: var(--t-low); }
+.tv-ev-gl { font: 600 calc(var(--u) * 2.8)/1.2 var(--font-ui); color: var(--ink); }
+.tv-fd.lost { color: var(--dim); }
 .tv-ev-raw { font: 600 calc(var(--u) * 3.4)/1.4 var(--font-ui); color: var(--t-mid); }
 .tv-ev-result {
   display: inline-flex; align-items: center; gap: calc(var(--u) * 2.4); padding: calc(var(--u) * 1.6) calc(var(--u) * 6); border-radius: var(--tv-r);
