@@ -89,8 +89,10 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
    The JS opens them with .open (the Escape handler and the shot scenarios look for it).
    ============================================================ */
 .ds-scrim.open { display: flex; }
+.ds-scrim { overflow: hidden; overscroll-behavior: contain; }   /* a swipe on the dark area does not scroll the page behind the dialog */
 #confirmModal.ds-scrim { z-index: calc(var(--z-modal) + 10); }   /* opens over the force-result sheet */
 .ds-scrim .ds-input, .ds-scrim .ds-select { min-height: var(--tap-md); }   /* the global input rule (38 px) outranks a bare .ds-input */
+#confirmDialogMsg { white-space: pre-line; overflow-wrap: anywhere; }   /* showConfirmDialog() text keeps its line breaks (the identity-repair and photo-move confirms are lists); the dialog itself is the foundation's */
 .ds-scrim > .ds-sheet:focus { outline: none; }   /* focus is moved to the sheet itself when it opens (js/export-import.js); Tab then reaches its controls */
 .ds-banner[hidden] { display: none; }            /* .ds-banner is display:flex, which would beat the hidden attribute */
 
