@@ -132,6 +132,8 @@
 
 /* ============================================================
    PAPER THEME - the Color War poster as a UI: warm cream paper, navy ink, solid red / cobalt inks, a yellow marker.
+   On paper the "just scored / pressed" fill goes DEEPER (a richer ink), not lighter: the lighter step failed 4.5:1 for the
+   cream text on it.
    Switch: <html data-theme="paper"> (set before first paint by the head script of both pages; ?theme=paper or
    ?theme=dark picks one and remembers it on the device). Only tokens change here; css/paper.css adds the grain,
    ink-coloured court lines and the "ink on a solid field" remap. Colours sampled from the poster
@@ -144,13 +146,14 @@
   --line: rgba(11, 42, 82, .14); --line-strong: rgba(11, 42, 82, .30);
   --t-hi: #0b2a52; --t-mid: #2c4a76; --t-low: #3e5780;
   --gold: #f4c430; --gold-hi: #f8d45e; --gold-ink: #0b2a52; --gold-dim: rgba(244, 196, 48, .30); --gold-line: rgba(11, 42, 82, .35); --gold-text: #7a5200;
-  --red: #e11d24; --red-text: #a01217; --red-ink: #fff6ea; --red-fill: #d81a21; --red-fill-hi: #e8343a; --red-lost: #b8454a; --red-dim: rgba(225, 29, 36, .12);
-  --blue: #0a5fc4; --blue-text: #064aa0; --blue-ink: #fff6ea; --blue-fill: #0956b8; --blue-fill-hi: #2a74d6; --blue-lost: #5a86cc; --blue-dim: rgba(10, 95, 196, .12);
+  --red: #e11d24; --red-text: #a01217; --red-ink: #fff6ea; --red-fill: #d81a21; --red-fill-hi: #bd141b; --red-lost: #b8454a; --red-dim: rgba(225, 29, 36, .12);
+  --blue: #0a5fc4; --blue-text: #064aa0; --blue-ink: #fff6ea; --blue-fill: #0956b8; --blue-fill-hi: #06469a; --blue-lost: #5a86cc; --blue-dim: rgba(10, 95, 196, .12);
   --live: #05683f; --live-fill: rgba(5, 104, 63, .12); --live-line: rgba(5, 104, 63, .40); --ok: #05683f;
   --warn: #8f4b00; --warn-fill: rgba(143, 75, 0, .12); --warn-line: rgba(143, 75, 0, .42);
   --err: #a81c40; --err-fill: rgba(168, 28, 64, .10); --err-line: rgba(168, 28, 64, .42); --info: #064aa0;
   --focus: #0b2a52;
   --on-field: #fff6ea;
+  --field-lost: rgba(255, 246, 234, .74);   /* the losing side's numeral ON a solid field: cream at 74 % = 3.1 on red, 4.2 on blue (large text needs 3) */
   --scrim: rgba(11, 42, 82, .78);
   --shadow-pop: 0 8px 24px rgba(11, 42, 82, .18); --shadow-sheet: 0 -8px 30px rgba(11, 42, 82, .20);
 }

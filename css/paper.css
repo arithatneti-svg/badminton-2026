@@ -28,10 +28,27 @@
   .wz-stat.is-red, .wz-stat.is-blue, .arc-stat.is-red, .arc-stat.is-blue,
   .cf-result.is-red, .cf-result.is-blue, .fr-stepper, .fr-live.is-red, .fr-live.is-blue,
   .qs-team.red, .qs-team.blue, .cer-stat.is-red, .cer-stat.is-blue, #trophyBg,
-  .mb-slot.filled, .mb-chip.picked, .mb-pooltab.red, .mb-pooltab.blue,
+  .mb-slot.filled, .mb-chip.picked,
+  :where(#mbPoolTabRed:checked) ~ .mb-pooltabs .mb-pooltab.red, :where(#mbPoolTabBlue:checked) ~ .mb-pooltabs .mb-pooltab.blue,   /* only the SELECTED pool tab is a field; the other is a quiet tab on the track */
   #matchNotiResultLine[data-tone="red"], #matchNotiResultLine[data-tone="blue"]
 ) {
   --t-hi: var(--on-field); --t-mid: var(--on-field); --t-low: var(--on-field);
   --red-text: var(--red-ink); --blue-text: var(--blue-ink); --gold-text: var(--on-field);
   --digit: var(--on-field); --word: var(--on-field);
+  --red-lost: var(--field-lost); --blue-lost: var(--field-lost);   /* the losing numeral: cream, one step quieter */
+  --ic-ghost: transparent;                                          /* one cream ink on a field: no overprint ghost (section 5) */
 }
+
+/* 4 · small marks that carry their own colour on a field. The team shape beside a TV tag is the edge colour in the dark
+   theme (red on dark red); on a solid ink field it would vanish, so it takes the cream of the words next to it. */
+[data-theme="paper"] :is(.tv-field, .tv-team) .tv-tag::before { background: var(--on-field); }
+
+/* the -1 disc in a scoring panel: a cream face ringed (--edge) and inked (--fill) in the team's own colour; the dark theme's
+   --t-hi glyph is cream here, which on the cream face would be invisible. Pressed = the deep ink fill with the cream glyph. */
+[data-theme="paper"] .score-btn-minus { background: var(--on-field); color: var(--fill); }
+[data-theme="paper"] .score-btn-minus:active { background: var(--fill-hi); color: var(--on-field); }
+[data-theme="paper"] .score-btn-minus.is-zero { border-color: var(--on-field); opacity: .6; }   /* nothing to take back */
+
+/* 5 · Riso mis-registration: every line icon is printed in its ink with a thin red ghost a pixel off, like a second drum
+   that did not line up. Zero blur, em-based so it scales with the icon; icons on a solid field switch it off (--ic-ghost, section 3). */
+[data-theme="paper"] .ds-ic { filter: drop-shadow(.07em .07em 0 var(--ic-ghost, rgba(225, 29, 36, .5))); }

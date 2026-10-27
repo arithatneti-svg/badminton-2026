@@ -16,7 +16,7 @@
 
 .filter-pill { display: inline-flex; align-items: center; padding: 6px 14px; min-height: 32px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: transparent; color: var(--t-mid); font-family: var(--font-ui); font-size: var(--fs-13); font-weight: 600; letter-spacing: 0; cursor: pointer; transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out), color var(--dur-state) var(--ease-out); touch-action: manipulation; }
 .filter-pill:hover { border-color: var(--t-low); color: var(--t-hi); }
-.filter-pill.active { background: var(--pill-active-bg, var(--gold-dim)); border-color: var(--pill-active-border, var(--gold-line)); color: var(--pill-active-color, var(--gold)); }
+.filter-pill.active { background: var(--pill-active-bg, var(--gold-dim)); border-color: var(--pill-active-border, var(--gold-line)); color: var(--pill-active-color, var(--gold-text)); }
 
 .selected-slots { display: flex; gap: 8px; padding: 10px 14px; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border); }
 .selected-slot { flex: 1; height: 42px; border-radius: 8px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--muted); transition: all 0.2s; gap: 7px; padding: 0 10px; }
