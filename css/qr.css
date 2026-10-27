@@ -1,11 +1,11 @@
 /* ── QR CODES DIALOG (admin / superadmin) ──
-   Two tiles that look like the paper they get printed on: a white QR sticker (a scanner needs the white quiet zone), what it is,
-   the link as text (selectable, in case the camera is not an option), and a copy button. */
+   Two tiles that look like the paper they get printed on: the QR (its image carries its own white quiet zone, which a scanner needs),
+   what it is, the link as text (selectable, in case the camera is not an option), and a copy button. */
 .qr-sheet { max-width: 680px; }
 .qr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin-top: var(--sp-4); }
 @media (max-width: 559px) { .qr-grid { grid-template-columns: 1fr; } }
 .qr-card { display: grid; justify-items: center; align-content: start; gap: var(--sp-2); min-width: 0; padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); text-align: center; }
-.qr-img { --paper: #fff; width: 208px; height: 208px; max-width: 62vw; max-height: 62vw; padding: 8px; background: var(--paper); border-radius: var(--r-sm); image-rendering: pixelated; /* sharp, not blurred, for the scanner */ }
+.qr-img { width: 208px; height: 208px; max-width: 62vw; max-height: 62vw; border: 1px solid var(--line-strong); border-radius: var(--r-sm); image-rendering: pixelated; /* sharp, not blurred, for the scanner */ }
 .qr-card-title { display: inline-flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-2); font: 800 var(--fs-18)/var(--lh-th) var(--font-th); color: var(--t-hi); }
 .qr-card-desc { font: 500 var(--fs-13)/var(--lh-th) var(--font-th); color: var(--t-mid); }
 .qr-url { width: 100%; padding: var(--sp-2) var(--sp-3); background: var(--s2); border: 1px solid var(--line); border-radius: var(--r-xs); color: var(--t-mid); font: 500 var(--fs-12)/1.4 var(--font-ui); overflow-wrap: anywhere; user-select: all; }

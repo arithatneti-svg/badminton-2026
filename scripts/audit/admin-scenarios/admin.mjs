@@ -149,6 +149,7 @@ out.push(mk('board-superadmin-tags', S, VP, async (page) => {
   await boardBench(page, { role: S, tab: 'finished' });
   await page.eval("openEditTagsModal('H01')");
   await page.waitFor('#editTagsModal.open');
+  await page.eval("(() => { const b = document.querySelectorAll('.tag-checkbox-item input'); b[0].checked = true; b[2].checked = true; })()");   // one red-only tag and one for all four: both drawn states
   await page.wait(200);
   await page.shot('', {}); await page.shot('full', { tall: '#editTagsModal .ds-sheet' });
 }));

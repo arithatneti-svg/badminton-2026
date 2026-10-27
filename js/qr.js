@@ -66,15 +66,16 @@ function printQrCodes() {
 <style>
   @page { size: A4; margin: 14mm; }
   * { box-sizing: border-box; }
-  body { margin: 0; padding: 32px 24px; font-family: 'Noto Sans Thai','Segoe UI',Tahoma,Arial,sans-serif; color: #111; text-align: center; }
+  :root { color-scheme: light; }   /* paper and ink: the browser's own Canvas / CanvasText, so a print is never dark */
+  body { margin: 0; padding: 32px 24px; font-family: 'Noto Sans Thai','Segoe UI',Tahoma,Arial,sans-serif; color: CanvasText; background: Canvas; text-align: center; }
   h1 { margin: 0; font-size: 30px; line-height: 1.3; }
-  .sub { margin: 4px 0 28px; color: #555; font-size: 16px; }
+  .sub { margin: 4px 0 28px; color: GrayText; font-size: 16px; }
   .tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; }
-  .tile { width: 320px; padding: 24px 20px; border: 2px solid #111; border-radius: 16px; break-inside: avoid; }
+  .tile { width: 320px; padding: 24px 20px; border: 2px solid CanvasText; border-radius: 16px; break-inside: avoid; }
   .tile img { width: 270px; height: 270px; image-rendering: pixelated; }
   .tile h2 { margin: 14px 0 2px; font-size: 26px; line-height: 1.3; }
-  .desc { margin: 0; color: #444; font-size: 15px; line-height: 1.5; }
-  .url { margin: 12px auto 0; max-width: 270px; color: #666; font-size: 11px; word-break: break-all; }
+  .desc { margin: 0; color: GrayText; font-size: 15px; line-height: 1.5; }
+  .url { margin: 12px auto 0; max-width: 270px; color: GrayText; font-size: 11px; word-break: break-all; }
   .actions { margin-top: 28px; }
   button { padding: 10px 26px; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer; }
   @media print { .actions { display: none; } }

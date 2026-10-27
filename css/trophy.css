@@ -1,7 +1,7 @@
 /* ============================================================
    TROPHY CEREMONY (#trophyOverlay, js/effects.js openEndGame).
    The stage keeps its spectacle: the gold cup, the confetti, the staggered reveal. The chrome - buttons, stat cards, award cards,
-   the MVP lists - is the design system on tokens. It is the one screen that keeps a glow (the winner's name) and its medals.
+   the MVP lists - is the design system on tokens: flat fills, no glow, no gradient. The cup is artwork (its own colours); the medals stay.
    js/effects.js shows the overlay with display:block and fades each piece in by writing opacity/transform inline after two frames,
    so every piece starts at opacity 0 here and carries its own transition (closeTrophy() puts them back).
    ============================================================ */
@@ -9,9 +9,9 @@
   display: none; position: fixed; inset: 0; z-index: var(--z-modal); overflow-x: hidden; overflow-y: auto; background: var(--bg); }
 #confettiCanvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: var(--cer-z-confetti); }
 #trophyBg { position: fixed; inset: 0; z-index: var(--cer-z-bg); transition: background 1.2s; }
-#trophyBg.is-red { background: radial-gradient(ellipse at 35% 25%, var(--red-fill) 0%, var(--bg) 65%); }
-#trophyBg.is-blue { background: radial-gradient(ellipse at 65% 25%, var(--blue-fill) 0%, var(--bg) 65%); }
-#trophyBg.is-draw { background: radial-gradient(ellipse at 50% 25%, var(--gold-dim) 0%, var(--bg) 65%); }
+#trophyBg.is-red { background: var(--red-fill); }
+#trophyBg.is-blue { background: var(--blue-fill); }
+#trophyBg.is-draw { background: var(--gold-dim); }
 
 /* the two buttons stay on screen while the ceremony scrolls */
 .cer-bar { position: fixed; z-index: var(--cer-z-bar); top: calc(var(--sat) + var(--sp-3)); right: calc(var(--sar) + var(--sp-3)); display: flex; gap: var(--sp-2); }
@@ -33,12 +33,10 @@
 @media (max-width: 599px) { #trophyWinnerLabel { letter-spacing: .24em; } }
 #trophySvgWrap { margin-bottom: var(--sp-5); opacity: 0; transform: scale(.2) translateY(80px); transition: opacity 1s .4s, transform 1s .4s cubic-bezier(.34, 1.56, .64, 1); }
 #trophySvgWrap svg { max-width: 90vw; height: auto; }
-#trophySvg { filter: drop-shadow(0 0 40px color-mix(in srgb, var(--gold) 80%, transparent)) drop-shadow(0 0 90px color-mix(in srgb, var(--gold) 40%, transparent)); }
 
 #trophyTeamName {
   font-family: var(--font-num); font-size: clamp(3em, 11vw, 7.5em); line-height: 1; letter-spacing: .06em;
   opacity: 0; transform: scale(.6); transition: opacity .8s 1s, transform .8s 1s cubic-bezier(.34, 1.56, .64, 1);
-  text-shadow: 0 0 60px currentColor, 0 0 120px currentColor, 0 6px 30px rgba(0, 0, 0, .6);
 }
 #trophyScore { display: flex; align-items: center; justify-content: center; gap: var(--sp-3); margin-top: var(--sp-2); font: 400 clamp(1.4em, 4.5vw, 2.8em)/1 var(--font-num); letter-spacing: .08em; opacity: 0; transition: opacity .6s 1.4s; }
 .cer-r { color: var(--red); }
@@ -51,9 +49,9 @@
 .cer-stat-l { font: 700 var(--fs-12)/1.3 var(--font-ui); letter-spacing: .12em; color: var(--t-mid); }
 .cer-stat-n { margin-top: 4px; font: 400 var(--fs-40)/1 var(--font-num); color: var(--t-hi); }
 .cer-stat.is-red { background: var(--red-fill); border-color: var(--red); }
-.cer-stat.is-red .cer-stat-l { color: var(--red-ink); }
+.cer-stat.is-red .cer-stat-l, .cer-stat.is-red .cer-stat-n { color: var(--red-ink); }
 .cer-stat.is-blue { background: var(--blue-fill); border-color: var(--blue); }
-.cer-stat.is-blue .cer-stat-l { color: var(--blue-ink); }
+.cer-stat.is-blue .cer-stat-l, .cer-stat.is-blue .cer-stat-n { color: var(--blue-ink); }
 .cer-stat.is-gold { background: var(--gold-dim); border-color: var(--gold-line); }
 .cer-stat.is-gold .cer-stat-n { color: var(--gold); }
 

@@ -155,18 +155,18 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
   .fr-ins > .fr-stepper.red { margin-bottom: var(--sp-2); }
 }
 .fr-dash { text-align: center; color: var(--t-low); font: 400 var(--fs-24)/1 var(--font-num); }
-.fr-stepper { display: grid; grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap); min-width: 0; overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--s1); }
-.fr-stepper.red { background: var(--red-fill); border-color: var(--red); }
-.fr-stepper.blue { background: var(--blue-fill); border-color: var(--blue); }
+.fr-stepper { display: grid; grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap); min-width: 0; overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--s1); color: var(--t-hi); }
+.fr-stepper.red { background: var(--red-fill); border-color: var(--red); color: var(--red-ink); }
+.fr-stepper.blue { background: var(--blue-fill); border-color: var(--blue); color: var(--blue-ink); }
 .fr-stepper:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
-.fr-step { display: grid; place-items: center; min-height: var(--tap-lg); padding: 0; border: 0; background: transparent; color: var(--t-hi); cursor: pointer; touch-action: manipulation; transition: background-color var(--dur-press) var(--ease-out); }
+.fr-step { display: grid; place-items: center; min-height: var(--tap-lg); padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; touch-action: manipulation; transition: background-color var(--dur-press) var(--ease-out); }
 .fr-stepper.red .fr-step:active { background: var(--red-fill-hi); }
 .fr-stepper.blue .fr-step:active { background: var(--blue-fill-hi); }
 .fr-stepper:not(.red):not(.blue) .fr-step:active { background: var(--s4); }
 /* .fr-stepper .fr-in outranks the global input[type="number"] rule (border, 38 px box): the number sits straight on the team fill */
 .fr-stepper .fr-in {
   width: 100%; min-width: 0; height: var(--tap-lg); min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
-  color: var(--t-hi); text-align: center; font: 400 var(--fs-40)/1 var(--font-num); letter-spacing: .02em; -moz-appearance: textfield; appearance: textfield;
+  color: inherit; text-align: center; font: 400 var(--fs-40)/1 var(--font-num); letter-spacing: .02em; -moz-appearance: textfield; appearance: textfield;
 }
 .fr-stepper .fr-in:focus { border: 0; box-shadow: none; outline: none; }
 .fr-in::-webkit-outer-spin-button, .fr-in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -209,7 +209,9 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 .tag-checkbox-item input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .tag-checkbox-item span { display: flex; align-items: center; gap: var(--sp-3); font: 600 var(--fs-14)/var(--lh-th) var(--font-th); color: var(--t-hi); overflow-wrap: anywhere; }
 .tag-checkbox-item span::before { content: ""; flex: none; width: 24px; height: 24px; border: 2px solid var(--t-low); border-radius: 6px; background: var(--s3); transition: background-color var(--dur-press) var(--ease-out), border-color var(--dur-press) var(--ease-out); }
-.tag-checkbox-item input:checked + span::before { background: var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%2314120a'%3E%3Cpath d='M229.66 77.66l-128 128a8 8 0 0 1-11.32 0l-56-56a8 8 0 0 1 11.32-11.32L96 188.69 218.34 66.34a8 8 0 0 1 11.32 11.32Z'/%3E%3C/svg%3E") center / 18px no-repeat; border-color: var(--gold); }
+.tag-checkbox-item input:checked + span::before { background: var(--gold); border-color: var(--gold); }
+.tag-checkbox-item::after { content: ""; position: absolute; left: calc(var(--sp-4) + 9px); top: 50%; width: 6px; height: 12px; margin-top: -9px; border: solid var(--gold-ink); border-width: 0 3px 3px 0; transform: rotate(45deg); opacity: 0; pointer-events: none; }
+.tag-checkbox-item:has(input:checked)::after { opacity: 1; }
 
 /* ── quick score (team totals) ── */
 .qs-sheet { max-width: 440px; }
@@ -222,6 +224,8 @@ th.sort-desc .sort-icon::after { content: ' ↓'; font-size: 13px; }
 .qs-team.red .ds-team { color: var(--red-ink); }
 .qs-team.blue .ds-team { color: var(--blue-ink); }
 .qs-n { min-width: 2ch; text-align: center; font: 400 var(--fs-56)/var(--lh-num) var(--font-num); color: var(--t-hi); }
+.qs-team.red .qs-n { color: var(--red-ink); }
+.qs-team.blue .qs-n { color: var(--blue-ink); }
 .qs-btns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); width: 100%; }
 .qs-btns .ds-btn { min-height: var(--tap-lg); padding: 0; }
 
