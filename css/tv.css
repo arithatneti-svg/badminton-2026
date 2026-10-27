@@ -165,7 +165,8 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-team.lead { background: var(--fill-hi); }
 .tv-team-top { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 2); min-height: calc(var(--u) * 5.2); }
 .tv-team.blue .tv-team-top { flex-direction: row-reverse; }
-.tv-team .tv-tag { font-size: calc(var(--u) * 5); color: var(--ink); }
+.tv-team .tv-tag { font-size: calc(var(--u) * 5); color: var(--ink); white-space: normal; }   /* a long team name wraps here, it is the identity of the whole field */
+.tv-team .tv-tag-name { overflow: visible; }
 .tv-team.red .tv-tag::before { background: var(--red); }
 .tv-team.blue .tv-tag::before { background: var(--blue); }
 .tv-lead {

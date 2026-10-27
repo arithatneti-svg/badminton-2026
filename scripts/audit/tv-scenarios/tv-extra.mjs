@@ -34,6 +34,14 @@ out.push(Object.assign({ id: 'tv-climax-2', setup: async (page) => {
   await page.wait(300);
   await noteHero(page);
 } }, base));
+// custom team names (the setup lets the organiser rename the two teams) and matches without a court number
+const TEAMS = `(() => { appState.redTeamName = 'ทีมสีแดงผู้พิชิตสนามแบดมินตันปี 2026'; appState.blueTeamName = 'Blue Thunder Badminton Club'; renderTvPanel(true); })()`;
+out.push(Object.assign({ id: 'tv-teamnames-battle', setup: async (page) => { await show(page, { panel: ['battle'] }); await page.eval(TEAMS); await page.wait(200); await noteAudit(page); } }, base));
+out.push(Object.assign({ id: 'tv-teamnames-hero', setup: async (page) => { await show(page, { courts: 1 }); await page.eval(TEAMS); await page.wait(200); await noteHero(page); } }, base));
+out.push(Object.assign({ id: 'tv-teamnames-4', setup: async (page) => { await show(page, { courts: 4 }); await page.eval(TEAMS); await page.wait(200); await noteGrid(page); } }, base));
+out.push(Object.assign({ id: 'tv-teamnames-6', setup: async (page) => { await show(page, { courts: 6 }); await page.eval(TEAMS); await page.wait(200); await noteGrid(page); } }, base));
+out.push(Object.assign({ id: 'tv-nocourt-4', setup: async (page) => { await show(page, { courts: 4, court: false, quiet: 1 }); await noteGrid(page); await noteAudit(page); } }, base));
+out.push(Object.assign({ id: 'tv-nocourt-1', setup: async (page) => { await show(page, { courts: 1, court: false }); await noteHero(page); await noteAudit(page); } }, base));
 // the other panels, with the type-size and contrast audit
 out.push(Object.assign({ id: 'tv-panel-board', setup: async (page) => { await show(page, { panel: ['board'], history: 30 }); await noteAudit(page); } }, base));
 out.push(Object.assign({ id: 'tv-panel-battle', setup: async (page) => {
