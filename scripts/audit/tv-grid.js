@@ -54,7 +54,7 @@
     const vh = window.innerHeight, vw = window.innerWidth;
     const foot = document.querySelector(".tv-foot"), head = document.querySelector(".tv-heading");
     const footTop = foot ? R(foot).top : vh;
-    const out = { vw, vh, cards: cards.length, heading: head ? head.textContent.trim() : null, cols: 0, rows: 0, w: 0, h: 0, overflowRight: 0, overflowLeft: 0, overlaps: 0, innerOverlaps: 0, intoFooter: 0, belowViewport: 0 };
+    const out = { vw, vh, cards: cards.length, heading: head ? head.textContent.trim() : null, cols: 0, rows: 0, w: 0, h: 0, overflowRight: 0, overflowLeft: 0, overlaps: 0, innerOverlaps: 0, fieldOverflow: 0, fieldOverlap: 0, intoFooter: 0, belowViewport: 0 };
     if (!cards.length) return out;
     const rects = cards.map(R);
     out.cols = new Set(rects.map((r) => Math.round(r.left))).size; out.rows = new Set(rects.map((r) => Math.round(r.top))).size;
@@ -67,10 +67,16 @@
     cards.forEach((c, i) => {
       const cr = rects[i];
       c.querySelectorAll("*").forEach((e) => { const r = R(e); if (r.width < 1) return; out.overflowRight = Math.max(out.overflowRight, Math.round(r.right - cr.right)); out.overflowLeft = Math.max(out.overflowLeft, Math.round(cr.left - r.left)); });
-      const parts = [...c.querySelectorAll(".tv-lt, .tv-live-score, .tv-faces, .tv-live-id, .tv-live-games")].map(R);
+      const parts = [...c.querySelectorAll(".tv-field, .tv-fh, .tv-fd, .tv-names, .tv-faces, .tv-live-id, .tv-live-games")].map(R);
       parts.forEach((p) => rects.forEach((o, j) => { if (j !== i && hit(p, o)) out.overlaps++; }));
-      const three = [c.querySelector(".tv-lt.red"), c.querySelector(".tv-live-score"), c.querySelector(".tv-lt.blue")].filter(Boolean).map(R);
+      // the two team fields and the header row must not touch each other; inside a field the face row, the digit and the names must stay inside it and apart
+      const three = [c.querySelector(".tv-field.is-red"), c.querySelector(".tv-field.is-blue"), c.querySelector(".tv-live-id")].filter(Boolean).map(R);
       for (let a = 0; a < three.length; a++) for (let b = a + 1; b < three.length; b++) if (hit(three[a], three[b])) out.innerOverlaps++;
+      c.querySelectorAll(".tv-field").forEach((f) => {
+        const fr = R(f), kids = [".tv-fh", ".tv-fd", ".tv-names"].map((s) => f.querySelector(s)).filter(Boolean);
+        kids.forEach((k) => { const r = R(k); if (r.left < fr.left - 1 || r.right > fr.right + 1 || r.top < fr.top - 1 || r.bottom > fr.bottom + 1) out.fieldOverflow++; });
+        for (let a = 0; a < kids.length; a++) for (let b = a + 1; b < kids.length; b++) if (hit(R(kids[a]), R(kids[b]))) out.fieldOverlap++;
+      });
     });
     // status labels hang on the card's top edge: they must not touch another card or the heading, or leave their own card sideways
     const labels = [...document.querySelectorAll(".tv-live-card .tv-status")].filter((e) => e.textContent.trim());
