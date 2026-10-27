@@ -20,10 +20,14 @@ function renderMatchBoard() {
       const id = arr[i];
       if (id) {
         el.className = 'mb-slot filled ' + team;
-        el.innerHTML = `<span class="mb-slot-num">${i+1}</span><span class="mb-slot-name">${escHtml(nameOf(id))}</span><span class="mb-slot-x" aria-hidden="true">✕</span>`;
+        el.innerHTML = `<span class="mb-slot-num">${i+1}</span><span class="mb-slot-name">${escHtml(nameOf(id))}</span>${dsIcon('x', { cls: 'mb-slot-x' })}`;
+        el.disabled = false;
+        el.setAttribute('aria-label', 'เอา ' + nameOf(id) + ' ออก');
       } else {
         el.className = 'mb-slot ' + team;
         el.innerHTML = `<span class="mb-slot-num">${i+1}</span><span class="mb-slot-hint">แตะเลือกคนที่ ${i+1}</span>`;
+        el.disabled = true;      // an empty slot has nothing to remove: not a tab stop, not a tap target
+        el.removeAttribute('aria-label');
       }
     });
   });
@@ -40,21 +44,23 @@ function renderMatchBoard() {
     const sel = isRed ? picker.red : picker.blue;
     const players = (appState.players||[]).filter(p =>
       p.team === (isRed?'Red':'Blue') && (!group || p.group === group) && (!search || p.name.toLowerCase().includes(search)));
-    if (!players.length) { el.innerHTML = `<div class="mb-empty">ไม่พบผู้เล่น</div>`; return; }
+    const cntEl = document.getElementById(isRed ? 'mbCntRed' : 'mbCntBlue');
+    if (cntEl) cntEl.textContent = sel.length + '/2';
+    if (!players.length) { el.innerHTML = `<div class="mb-empty">${dsIcon('magnifying-glass')}ไม่พบผู้เล่น</div>`; return; }
     el.innerHTML = players.map(p => {
       const picked  = sel.includes(p.id);
       const inMatch = activeIds.includes(p.id);
       const cnt = getPlayerMatchCountInRound(p.id, round);
-      const meta = inMatch ? 'กำลังแข่ง' : (cnt > 0 ? `R${round}·${cnt}` : '');
+      const meta = inMatch ? 'กำลังแข่ง' : (cnt > 0 ? `เล่นแล้ว ${cnt}` : '');
       const cls = 'mb-chip ' + team + (picked ? ' picked' : '') + (inMatch ? ' live' : '');
-      return `<button class="${cls}" onclick="boardToggle('${p.id}','${team}')">${avatarHtml(p, 22, {className:'mb-chip-pav'})}${escHtml(p.name)}${meta ? `<span class="mb-chip-meta">${meta}</span>` : ''}</button>`;
+      return `<button type="button" class="${cls}" aria-pressed="${picked}" onclick="boardToggle('${p.id}','${team}')">${avatarHtml(p, 28, {className:'mb-chip-pav'})}${escHtml(p.name)}${meta ? `<span class="mb-chip-meta">${meta}</span>` : ''}${picked ? dsIcon('check') : ''}</button>`;
     }).join('');
   };
   renderPool('red'); renderPool('blue');
 
   const n = picker.red.length + picker.blue.length;
   const st = document.getElementById('mbStatus');
-  if (st) { st.textContent = n === 4 ? '✓ พร้อมสร้างแมตช์' : `เลือกแล้ว ${n}/4`; st.style.color = n === 4 ? 'var(--green)' : 'var(--muted)'; }
+  if (st) { st.innerHTML = n === 4 ? dsIcon('check') + 'พร้อมสร้างแมตช์' : `เลือกแล้ว ${n}/4`; st.classList.toggle('is-ready', n === 4); }
   // dim the create button until both teams are full — it still guards on
   // tap, but a lit button that cannot succeed reads as broken
   const cb = document.getElementById('mbCreateBtn');
@@ -101,14 +107,14 @@ function boardFillRandom() {
 
 function selectRound(r) {
   picker.round = String(r);
-  [1,2,3].forEach(n => document.getElementById('rpill'+n)?.classList.toggle('round-active', String(n) === String(r)));
+  [1,2,3].forEach(n => { const b = document.getElementById('rpill'+n); if (!b) return; const on = String(n) === String(r); b.classList.toggle('round-active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
   renderMatchBoard();
 }
 
 function setBoardGroup(team, g) {
   if (team === 'red') picker.redGroup = g; else picker.blueGroup = g;
   const wrap = document.getElementById(team === 'red' ? 'mbGroupRed' : 'mbGroupBlue');
-  if (wrap) wrap.querySelectorAll('.filter-pill').forEach((b,i) => b.classList.toggle('active', (i===0 && g==='') || (g===String(i))));
+  if (wrap) wrap.querySelectorAll('.filter-pill').forEach((b,i) => { const on = (i===0 && g==='') || (g===String(i)); b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
   renderMatchBoard();
 }
 
@@ -117,11 +123,11 @@ function resetPicker() { picker.red = []; picker.blue = []; renderMatchBoard(); 
 let _creatingMatch = false;
 async function createMatch() {
   if (_creatingMatch) return;
-  if (picker.red.length < 2 || picker.blue.length < 2) return showToast('❌ เลือกผู้เล่นให้ครบ 2 คนต่อทีมก่อน', 'error');
+  if (picker.red.length < 2 || picker.blue.length < 2) return showToast('เลือกผู้เล่นให้ครบ 2 คนต่อทีมก่อน', 'error');
   const r1 = picker.red[0], r2 = picker.red[1], b1 = picker.blue[0], b2 = picker.blue[1];
   const getP = id => (appState.players || []).find(p => p.id === id);
   const p_r1 = getP(r1), p_r2 = getP(r2), p_b1 = getP(b1), p_b2 = getP(b2);
-  if (!p_r1 || !p_r2 || !p_b1 || !p_b2) return showToast('❌ ไม่พบข้อมูลผู้เล่น กรุณาลองใหม่', 'error');
+  if (!p_r1 || !p_r2 || !p_b1 || !p_b2) return showToast('ไม่พบข้อมูลผู้เล่น กรุณาลองใหม่', 'error');
   const round = picker.round || '1';
 
   // Reserve the match number atomically: two admins creating at the same
@@ -134,7 +140,7 @@ async function createMatch() {
     if (res.committed) n = Number(res.snapshot.val()) - 1;
   } catch (e) { console.error('matchCounter reserve failed:', e); }
   _creatingMatch = false; if (btn) btn.disabled = false;
-  if (n === null) return showToast('❌ สร้างแมตช์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อแล้วลองใหม่', 'error');
+  if (n === null) return showToast('สร้างแมตช์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อแล้วลองใหม่', 'error');
 
   const mId = 'M' + (n < 10 ? '0'+n : n);
   appState.ongoingMatches.push({
@@ -145,7 +151,7 @@ async function createMatch() {
   appState.matchCounter = Math.max(Number(appState.matchCounter) || 0, n + 1);
   resetPicker();
   saveData(true);
-  showToast(`✅ ${mId} (R${round}): ${p_r1.name} & ${p_r2.name}  vs  ${p_b1.name} & ${p_b2.name} → คิว`, 'success');
+  showToast(`สร้าง ${mId} (รอบ ${round}) เข้าคิวแล้ว: ${p_r1.name} & ${p_r2.name}  vs  ${p_b1.name} & ${p_b2.name}`, 'success');
   playSound('match');
 }
 
@@ -155,11 +161,11 @@ function removeOngoingMatch(mId) {
     showConfirmDialog('ลบแมตช์ที่ข้อมูลเสีย (undefined) ทั้งหมด?', function() {
       appState.ongoingMatches = appState.ongoingMatches.filter(m => m.id && m.id !== 'undefined' && m.r1 && m.r2 && m.b1 && m.b2);
       saveData(true);
-      showToast('🗑 ลบแมตช์ที่ข้อมูลเสียออกแล้ว', 'success');
+      showToast('ลบแมตช์ที่ข้อมูลเสียออกแล้ว', 'success');
     });
     return;
   }
-  showConfirmDialog(`Force remove match ${mId}?`, function() {
+  showConfirmDialog(`ลบแมตช์ ${mId} ออกจากระบบ?`, function() {
     appState.ongoingMatches = appState.ongoingMatches.filter(m => m.id !== mId);
     if (appState.courtTimers?.[mId]) delete appState.courtTimers[mId];
     saveData(true);

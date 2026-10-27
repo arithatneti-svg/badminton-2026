@@ -12,12 +12,14 @@ const backupsRef = firebase.database().ref('sportsday_2026_backups');
 const MAX_BACKUPS = 30;
 let _lastBackupTs = 0;
 
+// how a backup's reason is shown (the stored value never changes): an icon + a word
 const BACKUP_REASON_LABEL = {
-  finalize:      '🏁 จบแมตช์',
-  manual:        '✋ กดเอง',
-  'pre-reset':   '⚠️ ก่อน Reset',
-  'pre-restore': '↩️ ก่อนกู้คืน',
-  auto:          '🔄 อัตโนมัติ'
+  finalize:        { icon: 'flag',                    text: 'จบแมตช์' },
+  manual:          { icon: 'floppy-disk',             text: 'กดเอง' },
+  'pre-reset':     { icon: 'warning',                 text: 'ก่อน Reset', warn: true },
+  'pre-restore':   { icon: 'arrow-counter-clockwise', text: 'ก่อนกู้คืน', warn: true },
+  'pre-migration': { icon: 'arrows-clockwise',        text: 'ก่อนซ่อมประวัติ', warn: true },
+  auto:            { icon: 'arrows-clockwise',        text: 'อัตโนมัติ' }
 };
 
 // สร้าง backup 1 ชุด — คืน Promise เสมอ (safe ต่อการ chain .then())
@@ -63,9 +65,9 @@ function pruneBackups() {
 
 function manualBackup() {
   if (userRole !== 'admin' && userRole !== 'superadmin')
-    return showToast('⛔ ต้องใช้สิทธิ์ Admin ขึ้นไป', 'error');
+    return showToast('ต้องใช้สิทธิ์ Admin ขึ้นไป', 'error');
   backupState('manual', 'กดเอง').then(() => {
-    showToast('✅ Backup เรียบร้อย', 'success');
+    showToast('Backup เรียบร้อย', 'success');
     const modal = document.getElementById('backupModal');
     if (modal && modal.classList.contains('open')) renderBackupList();
   });
@@ -73,7 +75,7 @@ function manualBackup() {
 
 function openBackupModal() {
   if (userRole !== 'superadmin')
-    return showToast('⛔ ต้องใช้สิทธิ์ Super Admin', 'error');
+    return showToast('ต้องใช้สิทธิ์ Super Admin', 'error');
   document.getElementById('backupModal').classList.add('open');
   renderBackupList();
   if (typeof renderPhotoMigrationStatus === 'function') renderPhotoMigrationStatus();
@@ -91,10 +93,17 @@ function _fmtBackupTime(ts) {
   } catch (e) { return d.toLocaleString(); }
 }
 
+// one row per backup: when, why (chip with icon + word), what it holds - and the restore button, styled as the risky action it is
+function _backupReasonChip(reason) {
+  const L = BACKUP_REASON_LABEL[reason];
+  if (L) return `<span class="bk-reason${L.warn ? ' is-warn' : ''}">${dsIcon(L.icon, { cls: 'ds-ic-sm' })}${L.text}</span>`;
+  return reason ? `<span class="bk-reason">${escHtml(String(reason))}</span>` : '';
+}
+
 function renderBackupList() {
   const el = document.getElementById('backupList');
   if (!el) return;
-  el.innerHTML = '<div class="backup-empty">กำลังโหลด…</div>';
+  el.innerHTML = '<div class="ds-skel bk-skel"></div><div class="ds-skel bk-skel"></div><div class="ds-skel bk-skel"></div>';
   backupsRef.orderByKey().limitToLast(MAX_BACKUPS).once('value').then(snap => {
     const items = [];
     snap.forEach(c => {
@@ -103,31 +112,30 @@ function renderBackupList() {
     });
     items.reverse(); // ใหม่สุดขึ้นก่อน
     if (!items.length) {
-      el.innerHTML = '<div class="backup-empty">ยังไม่มี backup — กด “💾 Backup ตอนนี้” เพื่อสร้างชุดแรก</div>';
+      el.innerHTML = `<div class="backup-empty">${dsIcon('floppy-disk', { cls: 'ds-ic-xl' })}<div class="ds-empty-title">ยังไม่มี Backup</div><div class="ds-empty-text">กด Backup ตอนนี้ เพื่อสร้างชุดแรก</div></div>`;
       return;
     }
     el.innerHTML = items.map(b => {
       const c = b.counts || {};
-      const reason = BACKUP_REASON_LABEL[b.reason] || b.reason || '';
       return `<div class="backup-row">
         <div class="backup-info">
           <div class="backup-when">${_fmtBackupTime(b.ts)}</div>
-          <div class="backup-meta">${reason} · ${c.players || 0} ผู้เล่น · ${c.history || 0} แมตช์ · แต้มรวม ${c.scoreRed || 0}–${c.scoreBlue || 0}</div>
+          <div class="backup-meta">${_backupReasonChip(b.reason)}<span>${c.players || 0} ผู้เล่น</span><span>${c.history || 0} แมตช์</span><span>คะแนนรวม ${c.scoreRed || 0}–${c.scoreBlue || 0}</span></div>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="restoreBackup('${b.key}')">↩ กู้คืน</button>
+        <button type="button" class="ds-btn ds-btn-sm ds-btn-danger" onclick="restoreBackup('${b.key}')">${dsIcon('arrow-counter-clockwise')}กู้คืน</button>
       </div>`;
     }).join('');
   }).catch(e => {
-    el.innerHTML = '<div class="backup-empty">โหลด backup ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ</div>';
+    el.innerHTML = `<div class="ds-banner is-err">${dsIcon('warning-circle')}<div>โหลด Backup ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ</div></div><button type="button" class="ds-btn" onclick="renderBackupList()">${dsIcon('arrow-clockwise')}ลองใหม่</button>`;
     console.error('renderBackupList failed:', e);
   });
 }
 
 function restoreBackup(key) {
-  if (userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Super Admin', 'error');
+  if (userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Super Admin', 'error');
   backupsRef.child(key).once('value').then(snap => {
     const b = snap.val();
-    if (!b || !b.state) return showToast('❌ ไม่พบข้อมูล backup นี้', 'error');
+    if (!b || !b.state) return showToast('ไม่พบข้อมูล backup นี้', 'error');
     const c = b.counts || {};
     const when = _fmtBackupTime(b.ts);
     showConfirmDialog(
@@ -140,12 +148,12 @@ function restoreBackup(key) {
           if (!appState.ongoingMatches) appState.ongoingMatches = [];
           if (!appState.matchHistory)   appState.matchHistory   = [];
           dbRef.set(appState).then(() => {
-            showToast('✅ กู้คืนข้อมูลเรียบร้อย', 'success');
+            showToast('กู้คืนข้อมูลเรียบร้อย', 'success');
             closeBackupModal();
             updateUI();
-          }).catch(e => { showToast('❌ กู้คืนไม่สำเร็จ', 'error'); console.error(e); });
+          }).catch(e => { showToast('กู้คืนไม่สำเร็จ', 'error'); console.error(e); });
         });
       }
     );
-  }).catch(e => { showToast('❌ อ่าน backup ไม่สำเร็จ', 'error'); console.error(e); });
+  }).catch(e => { showToast('อ่าน backup ไม่สำเร็จ', 'error'); console.error(e); });
 }

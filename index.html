@@ -167,30 +167,28 @@ try {
 
 <!-- ── CUSTOM CONFIRM DIALOG MODAL ── -->
 <!-- ── RESET CHOICE MODAL ── -->
-<div id="resetChoiceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:20000;flex-direction:column;justify-content:center;align-items:center;">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,0.6);">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6em;letter-spacing:4px;color:var(--danger);margin-bottom:6px;">↺ RESET DATA</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;">เลือกว่าจะ Reset อะไร — การกระทำนี้ไม่สามารถย้อนกลับได้</div>
+<div id="resetChoiceModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="resetChoiceTitle" style="display:none; z-index:calc(var(--z-modal) + 10);">
+  <div class="ds-sheet rs-sheet">
+    <h2 id="resetChoiceTitle" class="ds-sheet-title">รีเซ็ตข้อมูลการแข่งขัน</h2>
+    <p class="ds-help rs-lead">เลือกว่าจะรีเซ็ตอะไร — การกระทำนี้ย้อนกลับไม่ได้</p>
 
-    <!-- Option A: Match Only -->
-    <button onclick="doResetMatchOnly()" style="width:100%;background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.25);border-radius:14px;padding:18px 20px;text-align:left;cursor:pointer;margin-bottom:12px;transition:background 0.2s;" onmouseover="this.style.background='rgba(245,200,66,0.12)'" onmouseout="this.style.background='rgba(245,200,66,0.07)'">
-      <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:6px;">🗂 Reset เฉพาะผลแมตช์</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;">
-        <span style="color:var(--danger);">🗑 จะลบ:</span> ผลการแข่งขัน, คะแนนทีม, Win/Loss สถิติ, Ongoing matches<br>
-        <span style="color:var(--green);">✅ เก็บไว้:</span> ชื่อผู้เล่น, ทีม, กลุ่ม
-      </div>
-    </button>
+    <div class="rs-opts">
+      <button type="button" class="rs-opt" onclick="doResetMatchOnly()">
+        <span class="rs-opt-t"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-counter-clockwise"/></svg>รีเซ็ตเฉพาะผลแมตช์</span>
+        <span class="rs-line is-del"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg><span><b>ลบ</b> ผลการแข่งขัน, คะแนนทีม, สถิติแพ้ชนะ, แมตช์ที่กำลังแข่งและรอคิว</span></span>
+        <span class="rs-line is-keep"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg><span><b>เก็บไว้</b> รายชื่อผู้เล่น (ชื่อ ทีม กลุ่ม) และโปรไฟล์</span></span>
+      </button>
 
-    <!-- Option B: Full Reset -->
-    <button onclick="doResetFull()" style="width:100%;background:rgba(255,59,92,0.06);border:1px solid rgba(255,59,92,0.2);border-radius:14px;padding:18px 20px;text-align:left;cursor:pointer;margin-bottom:20px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,59,92,0.12)'" onmouseout="this.style.background='rgba(255,59,92,0.06)'">
-      <div style="font-size:14px;font-weight:700;color:var(--danger);margin-bottom:6px;">💣 Reset ทั้งหมด (Full Reset)</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;">
-        <span style="color:var(--danger);">🗑 จะลบ:</span> ทุกอย่างรวมถึงผู้เล่นและประวัติการแข่งทั้งหมด<br>
-        <span style="color:var(--green);">✅ เก็บไว้:</span> รายชื่อผู้เล่น (ID, ชื่อ, ทีม, กลุ่ม) เท่านั้น
-      </div>
-    </button>
+      <button type="button" class="rs-opt is-danger" onclick="doResetFull()">
+        <span class="rs-opt-t"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-warning"/></svg>รีเซ็ตทั้งหมด (Full Reset)</span>
+        <span class="rs-line is-del"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg><span><b>ลบ</b> ทุกอย่างรวมถึงโปรไฟล์ผู้เล่นและประวัติการแข่งทั้งหมด</span></span>
+        <span class="rs-line is-keep"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg><span><b>เก็บไว้</b> เฉพาะรายชื่อผู้เล่น (ID ชื่อ ทีม กลุ่ม)</span></span>
+      </button>
+    </div>
 
-    <button onclick="document.getElementById('resetChoiceModal').style.display = 'none'" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;">ยกเลิก</button>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-lg" onclick="document.getElementById('resetChoiceModal').style.display = 'none'">ยกเลิก</button>
+    </div>
   </div>
 </div>
 
@@ -350,8 +348,8 @@ try {
     <div id="idleNext"></div>
   </div>
   
-  <div class="admin-only superadmin-only" style="text-align:center; padding:6px 10px; background:rgba(255,255,255,0.015); border-top:1px solid var(--border);">
-    <button class="btn" onclick="openQuickScore()" style="font-size:12px;padding:5px 16px;background:rgba(245,200,66,0.07);color:var(--gold);border:1px solid rgba(245,200,66,0.18);letter-spacing:1px;">⚡ Quick Score Adjust</button>
+  <div class="admin-only superadmin-only adm-qs">
+    <button type="button" class="ds-btn ds-btn-ghost ds-btn-sm" onclick="openQuickScore()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-sliders-horizontal"/></svg>ปรับคะแนนรวมทีม</button>
   </div>
 </div>
 
@@ -519,89 +517,140 @@ try {
   </div>
 </div>
 
-<!-- ADMIN TAB (Admin) -->
+<!-- ADMIN TAB (Admin) — two columns on a laptop (build a match | manage the matches), one column on a phone -->
 <div id="admin" class="container admin-only">
-  <div class="app-version" data-app-version style="text-align:right;margin:0 0 8px;"></div>
+  <div class="adm-grid">
+
+    <section class="adm-col" aria-labelledby="admCreateH">
+      <div class="adm-head"><h2 id="admCreateH" class="adm-h">สร้างแมตช์</h2></div>
+
+      <div class="mb-card" id="matchBoard">
+        <!-- the ticket: round, the four slots, the three actions -->
+        <div class="mb-ticket">
+          <div class="mb-topbar">
+            <span class="mb-topbar-lbl" id="mbRoundLbl">รอบ</span>
+            <div class="mb-rounds" role="group" aria-labelledby="mbRoundLbl">
+              <button type="button" class="round-pill round-active" id="rpill1" aria-pressed="true" aria-label="รอบ 1" onclick="selectRound('1')">1</button>
+              <button type="button" class="round-pill" id="rpill2" aria-pressed="false" aria-label="รอบ 2" onclick="selectRound('2')">2</button>
+              <button type="button" class="round-pill" id="rpill3" aria-pressed="false" aria-label="รอบ 3" onclick="selectRound('3')">3</button>
+            </div>
+            <span id="mbStatus" class="mb-status" role="status">เลือกแล้ว 0/4</span>
+          </div>
+          <div class="mb-slots">
+            <div class="mb-team">
+              <div class="mb-team-title ds-team ds-team-red">RED</div>
+              <button type="button" class="mb-slot red" id="mbSlotR0" onclick="boardRemove('red',0)" disabled></button>
+              <button type="button" class="mb-slot red" id="mbSlotR1" onclick="boardRemove('red',1)" disabled></button>
+            </div>
+            <div class="mb-vs" aria-hidden="true">VS</div>
+            <div class="mb-team">
+              <div class="mb-team-title ds-team ds-team-blue">BLUE</div>
+              <button type="button" class="mb-slot blue" id="mbSlotB0" onclick="boardRemove('blue',0)" disabled></button>
+              <button type="button" class="mb-slot blue" id="mbSlotB1" onclick="boardRemove('blue',1)" disabled></button>
+            </div>
+          </div>
+          <div class="mb-actions">
+            <button type="button" class="ds-btn mb-random" onclick="boardFillRandom()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-shuffle"/></svg>สุ่มจับคู่</button>
+            <button type="button" class="ds-btn ds-btn-ghost mb-clear" onclick="resetPicker()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg>ล้าง</button>
+            <button type="button" id="mbCreateBtn" class="ds-btn ds-btn-primary mb-create" aria-disabled="true" onclick="createMatch()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg>สร้างแมตช์</button>
+          </div>
+        </div>
+
+        <!-- who can be picked. Phone: one team at a time (the two radios + labels are a CSS-only switch); from 640 px both pools side by side -->
+        <div class="mb-pools">
+          <input type="radio" name="mbPoolTab" id="mbPoolTabRed" class="mb-pooltab-in" checked>
+          <input type="radio" name="mbPoolTab" id="mbPoolTabBlue" class="mb-pooltab-in">
+          <div class="mb-pooltabs">
+            <label for="mbPoolTabRed" class="mb-pooltab red"><span class="ds-team ds-team-red">RED</span><span class="mb-pooltab-n" id="mbCntRed">0/2</span></label>
+            <label for="mbPoolTabBlue" class="mb-pooltab blue"><span class="ds-team ds-team-blue">BLUE</span><span class="mb-pooltab-n" id="mbCntBlue">0/2</span></label>
+          </div>
+
+          <div class="mb-pool-col red">
+            <div class="mb-pool-head">
+              <div class="mb-search">
+                <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+                <input type="search" id="mbSearchRed" class="ds-input" placeholder="ค้นหาทีมแดง" aria-label="ค้นหาผู้เล่นทีมแดง" autocomplete="off" oninput="renderMatchBoard()">
+              </div>
+              <div class="mb-groups" id="mbGroupRed" role="group" aria-label="กลุ่มทีมแดง">
+                <button type="button" class="filter-pill active" aria-pressed="true" onclick="setBoardGroup('red','')">ทั้งหมด</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('red','1')">G1</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('red','2')">G2</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('red','3')">G3</button>
+              </div>
+            </div>
+            <div id="mbPoolRed" class="mb-pool"></div>
+          </div>
+
+          <div class="mb-pool-col blue">
+            <div class="mb-pool-head">
+              <div class="mb-search">
+                <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-magnifying-glass"/></svg>
+                <input type="search" id="mbSearchBlue" class="ds-input" placeholder="ค้นหาทีมน้ำเงิน" aria-label="ค้นหาผู้เล่นทีมน้ำเงิน" autocomplete="off" oninput="renderMatchBoard()">
+              </div>
+              <div class="mb-groups" id="mbGroupBlue" role="group" aria-label="กลุ่มทีมน้ำเงิน">
+                <button type="button" class="filter-pill active" aria-pressed="true" onclick="setBoardGroup('blue','')">ทั้งหมด</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('blue','1')">G1</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('blue','2')">G2</button>
+                <button type="button" class="filter-pill" aria-pressed="false" onclick="setBoardGroup('blue','3')">G3</button>
+              </div>
+            </div>
+            <div id="mbPoolBlue" class="mb-pool"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="adm-col" aria-labelledby="admManageH">
+      <div class="adm-head">
+        <h2 id="admManageH" class="adm-h">แมตช์ทั้งหมด</h2>
+        <span class="ds-chip"><b id="ongoingCount">0</b>&nbsp;แมตช์</span>
+      </div>
+      <div id="adminOngoingMatchesContainer" class="am-list"></div>
+    </section>
+
+  </div>
 
   <details class="adm-collapse">
-    <summary>👤 Player Management (Add/Import)</summary>
+    <summary>
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-users"/></svg>
+      <span class="adm-sum-t">เพิ่ม / นำเข้าผู้เล่น</span>
+      <svg class="ds-ic adm-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg>
+    </summary>
     <div class="adm-collapse-body">
-      <div class="form-row">
-        <div class="field-group"><input type="text" id="newPlayerName" placeholder="ชื่อผู้เล่น (Enter เพื่อเพิ่ม)" style="width:180px;" onkeydown="if(event.key==='Enter')addPlayer()"></div>
-        <div class="field-group"><select id="newPlayerTeam"><option value="Red">🔴 Red Team</option><option value="Blue">🔵 Blue Team</option></select></div>
-        <div class="field-group"><select id="newPlayerGroup"><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option></select></div>
-        <div class="field-group"><button class="btn btn-primary" onclick="addPlayer()">+ Add</button></div>
+      <div class="adm-add" role="group" aria-label="เพิ่มผู้เล่น">
+        <div class="ds-field adm-add-name">
+          <label class="ds-label" for="newPlayerName">ชื่อผู้เล่น</label>
+          <input type="text" id="newPlayerName" class="ds-input" placeholder="พิมพ์ชื่อ แล้วกด Enter" autocomplete="off" onkeydown="if(event.key==='Enter')addPlayer()">
+        </div>
+        <div class="ds-field">
+          <label class="ds-label" for="newPlayerTeam">ทีม</label>
+          <select id="newPlayerTeam" class="ds-select"><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
+        </div>
+        <div class="ds-field">
+          <label class="ds-label" for="newPlayerGroup">กลุ่ม</label>
+          <select id="newPlayerGroup" class="ds-select"><option value="1">กลุ่ม G1</option><option value="2">กลุ่ม G2</option><option value="3">กลุ่ม G3</option></select>
+        </div>
+        <button type="button" class="ds-btn ds-btn-primary adm-add-btn" onclick="addPlayer()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg>เพิ่ม</button>
       </div>
-      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <span style="font-size:12px;letter-spacing:2px;color:var(--muted);font-weight:700;">IMPORT FROM CSV</span>
-        <label class="btn btn-info btn-sm" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;">📂 Choose File <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="importCSV(this)"></label>
+      <div class="adm-csv">
+        <div class="adm-csv-t">
+          <span class="ds-label">นำเข้าจากไฟล์ CSV</span>
+          <span class="ds-help">คอลัมน์: ชื่อ, ทีม (Red / Blue), กลุ่ม (1-3)</span>
+        </div>
+        <label class="ds-btn adm-file"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-upload-simple"/></svg>เลือกไฟล์<input type="file" id="csvFileInput" class="ds-sr-only" accept=".csv" onchange="importCSV(this)"></label>
       </div>
     </div>
   </details>
 
-  <div class="section-title" style="margin-top: 0;">Create Match (Queue) <span class="count-chip" id="ongoingCount">0</span></div>
-
-  <div class="card mb-card" id="matchBoard">
-    <div class="mb-topbar">
-      <span class="mb-topbar-lbl">ROUND</span>
-      <button class="round-pill round-active" id="rpill1" onclick="selectRound('1')">1</button>
-      <button class="round-pill" id="rpill2" onclick="selectRound('2')">2</button>
-      <button class="round-pill" id="rpill3" onclick="selectRound('3')">3</button>
-      <span id="mbStatus" class="mb-status">เลือกแล้ว 0/4</span>
+  <section class="adm-end" aria-labelledby="admEndH">
+    <div class="adm-end-t">
+      <h2 id="admEndH" class="adm-h">จบการแข่งขัน</h2>
+      <p class="ds-help">แสดงหน้าสรุปผลและพิธีมอบรางวัลบนทุกหน้าจอ</p>
     </div>
-    <div class="mb-slots">
-      <div class="mb-team">
-        <div class="mb-team-title red-text">🔴 RED</div>
-        <div class="mb-slot red" id="mbSlotR0" onclick="boardRemove('red',0)"></div>
-        <div class="mb-slot red" id="mbSlotR1" onclick="boardRemove('red',1)"></div>
-      </div>
-      <div class="mb-vs">VS</div>
-      <div class="mb-team">
-        <div class="mb-team-title blue-text" style="text-align:right;">BLUE 🔵</div>
-        <div class="mb-slot blue" id="mbSlotB0" onclick="boardRemove('blue',0)"></div>
-        <div class="mb-slot blue" id="mbSlotB1" onclick="boardRemove('blue',1)"></div>
-      </div>
-    </div>
-    <div class="mb-pools">
-      <div class="mb-pool-col">
-        <div class="mb-pool-head">
-          <input type="text" id="mbSearchRed" placeholder="🔍 ค้นหาทีมแดง" oninput="renderMatchBoard()">
-          <div class="mb-groups" id="mbGroupRed">
-            <button class="filter-pill active" onclick="setBoardGroup('red','')">ทั้งหมด</button>
-            <button class="filter-pill" onclick="setBoardGroup('red','1')">G1</button>
-            <button class="filter-pill" onclick="setBoardGroup('red','2')">G2</button>
-            <button class="filter-pill" onclick="setBoardGroup('red','3')">G3</button>
-          </div>
-        </div>
-        <div id="mbPoolRed" class="mb-pool"></div>
-      </div>
-      <div class="mb-pool-col">
-        <div class="mb-pool-head">
-          <input type="text" id="mbSearchBlue" placeholder="🔍 ค้นหาทีมน้ำเงิน" oninput="renderMatchBoard()">
-          <div class="mb-groups" id="mbGroupBlue">
-            <button class="filter-pill active" onclick="setBoardGroup('blue','')">ทั้งหมด</button>
-            <button class="filter-pill" onclick="setBoardGroup('blue','1')">G1</button>
-            <button class="filter-pill" onclick="setBoardGroup('blue','2')">G2</button>
-            <button class="filter-pill" onclick="setBoardGroup('blue','3')">G3</button>
-          </div>
-        </div>
-        <div id="mbPoolBlue" class="mb-pool"></div>
-      </div>
-    </div>
-    <div class="mb-actions">
-      <button class="btn btn-info btn-sm" onclick="boardFillRandom()">🎲 สุ่มจับคู่</button>
-      <button class="btn btn-sm" onclick="resetPicker()" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);">✕ ล้าง</button>
-      <button id="mbCreateBtn" class="btn btn-primary mb-create" onclick="createMatch()" style="margin-left:auto;">⚡ สร้างแมตช์</button>
-    </div>
-  </div>
+    <button type="button" class="ds-btn ds-btn-lg adm-end-btn" onclick="openEndGame()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trophy"/></svg>สรุปผลการแข่งขัน (Ceremony)</button>
+  </section>
 
-  <div style="margin:16px 0 20px; display:flex;">
-    <button class="btn btn-primary" onclick="openEndGame()" style="margin-left:auto; font-size:16px; padding:12px 24px; box-shadow:0 0 15px rgba(245,200,66,0.3);">🏆 สรุปผลการแข่งขัน (Ceremony)</button>
-  </div>
-
-  <div class="section-title">Manage All Matches (Live & Queue)</div>
-  <div id="adminOngoingMatchesContainer" class="match-grid"></div>
-
+  <div class="app-version adm-ver" data-app-version></div>
 </div>
 
 <!-- ── PLAYERS TAB ── -->
@@ -631,34 +680,48 @@ try {
     </div>
   </div>
 
-  <!-- Export / Import bar (superadmin only) -->
-  <div class="export-import-bar superadmin-only">
-    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">📦 PLAYER DATA</span>
-    <button class="btn btn-outline btn-sm" onclick="exportPlayerProfiles()">📤 Export JSON</button>
-    <button class="btn btn-outline btn-sm" onclick="exportPlayerCSV()">📊 Export CSV</button>
-    <label class="btn btn-outline btn-sm" style="cursor:pointer;margin:0;">
-      📥 Import JSON
-      <input type="file" accept=".json" style="display:none;" onchange="importPlayerProfiles(this)">
-    </label>
-  </div>
+  <!-- Staff tools (superadmin only): player data, backup, season champion. Folded, so a tab everyone uses never opens with three toolbars. -->
+  <details class="stf superadmin-only" id="staffTools">
+    <summary>
+      <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-gear-six"/></svg>
+      <span>เครื่องมือทีมงาน</span>
+      <svg class="ds-ic stf-caret" aria-hidden="true" focusable="false"><use href="#ic-caret-down"/></svg>
+    </summary>
+    <div class="stf-body">
+      <section class="stf-group" aria-labelledby="stfDataH">
+        <h3 id="stfDataH" class="stf-h">ข้อมูลผู้เล่น</h3>
+        <div class="stf-btns">
+          <button type="button" class="ds-btn" onclick="exportPlayerProfiles()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg>ส่งออก JSON</button>
+          <button type="button" class="ds-btn" onclick="exportPlayerCSV()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg>ส่งออก CSV</button>
+          <label class="ds-btn stf-file"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-upload-simple"/></svg>นำเข้า JSON<input type="file" accept=".json" class="ds-sr-only" onchange="importPlayerProfiles(this)"></label>
+        </div>
+      </section>
 
-  <!-- Backup & Restore bar (superadmin only) -->
-  <div class="export-import-bar superadmin-only">
-    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">🛟 BACKUP</span>
-    <button class="btn btn-outline btn-sm" onclick="manualBackup()">💾 Backup ตอนนี้</button>
-    <button class="btn btn-primary btn-sm" onclick="openBackupModal()">🛟 Backup &amp; Restore</button>
-    <button class="btn btn-outline btn-sm" onclick="runIdentityMigration()" title="เชื่อมประวัติซีซั่นเก่าเข้ากับผู้เล่นปัจจุบัน (ทำครั้งเดียว)">🔗 ซ่อมการเชื่อมประวัติ</button>
-  </div>
+      <section class="stf-group" aria-labelledby="stfBackupH">
+        <h3 id="stfBackupH" class="stf-h">สำรองข้อมูล</h3>
+        <div class="stf-btns">
+          <button type="button" class="ds-btn" onclick="manualBackup()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-floppy-disk"/></svg>Backup ตอนนี้</button>
+          <button type="button" class="ds-btn ds-btn-primary" onclick="openBackupModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-counter-clockwise"/></svg>Backup &amp; Restore</button>
+          <button type="button" class="ds-btn" onclick="runIdentityMigration()" title="เชื่อมประวัติซีซั่นเก่าเข้ากับผู้เล่นปัจจุบัน (ทำครั้งเดียว)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrows-clockwise"/></svg>ซ่อมการเชื่อมประวัติ</button>
+        </div>
+      </section>
 
-  <!-- Declare season champion (superadmin only) — gives the ⭐ Champion medal to every player on that team -->
-  <div class="export-import-bar superadmin-only">
-    <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);">🏆 CHAMPION</span>
-    <input type="text" id="champLabel" placeholder="เช่น Summer 2026" style="width:130px;font-size:13px;padding:6px 10px;">
-    <button class="btn btn-outline btn-sm" onclick="declareChampion('Red')" title="ให้ทีมแดงเป็นแชมป์">🔴 Red</button>
-    <button class="btn btn-outline btn-sm" onclick="declareChampion('Blue')" title="ให้ทีมน้ำเงินเป็นแชมป์">🔵 Blue</button>
-    <button class="btn btn-outline btn-sm" onclick="declareChampion('')" title="ล้างแชมป์">✖ ล้าง</button>
-    <span id="champStatus" style="font-size:11px;color:var(--gold);font-weight:700;"></span>
-  </div>
+      <!-- declare the season champion: gives the Champion medal to every player on that team -->
+      <section class="stf-group" aria-labelledby="stfChampH">
+        <h3 id="stfChampH" class="stf-h">แชมป์ประจำซีซั่น</h3>
+        <div class="ds-field">
+          <label class="ds-label" for="champLabel">ชื่อรายการ (ไม่ต้องกรอกก็ได้)</label>
+          <input type="text" id="champLabel" class="ds-input" placeholder="เช่น Summer 2026" autocomplete="off">
+        </div>
+        <div class="stf-btns">
+          <button type="button" class="ds-btn ds-btn-red" onclick="declareChampion('Red')" title="ให้ทีมแดงเป็นแชมป์" aria-label="ให้ทีมแดงเป็นแชมป์"><span class="ds-team ds-team-red">RED</span></button>
+          <button type="button" class="ds-btn ds-btn-blue" onclick="declareChampion('Blue')" title="ให้ทีมน้ำเงินเป็นแชมป์" aria-label="ให้ทีมน้ำเงินเป็นแชมป์"><span class="ds-team ds-team-blue">BLUE</span></button>
+          <button type="button" class="ds-btn ds-btn-danger" onclick="declareChampion('')" title="ล้างแชมป์"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg>ล้างแชมป์</button>
+        </div>
+        <p id="champStatus" class="stf-status" role="status"></p>
+      </section>
+    </div>
+  </details>
 
   <div class="pdir-meta" id="playersTabMeta" role="status"></div>
   <div id="playersTabGrid"></div>
@@ -935,261 +998,312 @@ try {
 <!-- ── MODALS (ADMIN ONLY) ── -->
 
 <!-- RESULT CONFIRM MODAL -->
-<div id="confirmModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title" style="color:var(--green);">✅ Confirm Result</div>
-    <div id="confirmText" style="margin:20px 0; font-size:1.2em; line-height:1.6;"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="finalizeResult()">✓ Confirm & Save</button>
-      <button class="btn btn-danger" onclick="closeConfirm()">✕ Back</button>
+<div id="confirmModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="ds-sheet">
+    <h2 id="confirmTitle" class="ds-sheet-title">ยืนยันผลการแข่งขัน</h2>
+    <div id="confirmText" class="cf-body"></div>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="finalizeResult()">ยืนยันและบันทึก</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeConfirm()">กลับไปแก้</button>
     </div>
   </div>
 </div>
 
-<!-- FORCE RESULT MODAL -->
-<div id="resultModal" class="modal-overlay">
-  <div class="modal-box fr-box">
-    <div class="fr-head">
-      <div class="fr-title">⚡ FORCE RESULT</div>
-      <span class="fr-chip" id="forceMatchSub"></span>
+<!-- FORCE RESULT MODAL (ใส่ผลเอง) -->
+<div id="resultModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="forceTitle">
+  <div class="ds-sheet fr-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t">
+        <h2 id="forceTitle" class="ds-sheet-title">ใส่ผลเอง</h2>
+        <span class="ds-chip" id="forceMatchSub"></span>
+      </div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
     <input type="hidden" id="currentMatchId">
     <div class="fr-teams" id="forceTeams"></div>
     <div class="fr-scores">
-      <div class="fr-grow">
-        <span class="fr-glabel">GAME 1</span>
+      <div class="fr-sides" aria-hidden="true"><span class="ds-team ds-team-red">RED</span><span></span><span class="ds-team ds-team-blue">BLUE</span></div>
+      <div class="fr-game" role="group" aria-labelledby="frG1">
+        <div class="fr-glabel" id="frG1">เกม 1</div>
         <div class="fr-ins">
-          <input type="number" id="g1Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
-          <span class="fr-dash">–</span>
-          <input type="number" id="g1Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+          <span class="fr-tag ds-team ds-team-red" aria-hidden="true">RED</span>
+          <div class="fr-stepper red">
+            <button type="button" class="fr-step" aria-label="ลดคะแนนทีมแดง เกม 1" onclick="scoreStep('g1Red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+            <input type="number" id="g1Red" class="fr-in" min="0" max="30" inputmode="numeric" aria-label="คะแนนทีมแดง เกม 1" oninput="updateForceLiveResult()">
+            <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมแดง เกม 1" onclick="scoreStep('g1Red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+          </div>
+          <span class="fr-dash" aria-hidden="true">–</span>
+          <span class="fr-tag ds-team ds-team-blue" aria-hidden="true">BLUE</span>
+          <div class="fr-stepper blue">
+            <button type="button" class="fr-step" aria-label="ลดคะแนนทีมน้ำเงิน เกม 1" onclick="scoreStep('g1Blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+            <input type="number" id="g1Blue" class="fr-in" min="0" max="30" inputmode="numeric" aria-label="คะแนนทีมน้ำเงิน เกม 1" oninput="updateForceLiveResult()">
+            <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมน้ำเงิน เกม 1" onclick="scoreStep('g1Blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+          </div>
         </div>
       </div>
-      <div class="fr-grow">
-        <span class="fr-glabel">GAME 2</span>
+      <div class="fr-game" role="group" aria-labelledby="frG2">
+        <div class="fr-glabel" id="frG2">เกม 2</div>
         <div class="fr-ins">
-          <input type="number" id="g2Red"  class="fr-in red"  min="0" inputmode="numeric" oninput="updateForceLiveResult()">
-          <span class="fr-dash">–</span>
-          <input type="number" id="g2Blue" class="fr-in blue" min="0" inputmode="numeric" oninput="updateForceLiveResult()">
+          <span class="fr-tag ds-team ds-team-red" aria-hidden="true">RED</span>
+          <div class="fr-stepper red">
+            <button type="button" class="fr-step" aria-label="ลดคะแนนทีมแดง เกม 2" onclick="scoreStep('g2Red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+            <input type="number" id="g2Red" class="fr-in" min="0" max="30" inputmode="numeric" aria-label="คะแนนทีมแดง เกม 2" oninput="updateForceLiveResult()">
+            <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมแดง เกม 2" onclick="scoreStep('g2Red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+          </div>
+          <span class="fr-dash" aria-hidden="true">–</span>
+          <span class="fr-tag ds-team ds-team-blue" aria-hidden="true">BLUE</span>
+          <div class="fr-stepper blue">
+            <button type="button" class="fr-step" aria-label="ลดคะแนนทีมน้ำเงิน เกม 2" onclick="scoreStep('g2Blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+            <input type="number" id="g2Blue" class="fr-in" min="0" max="30" inputmode="numeric" aria-label="คะแนนทีมน้ำเงิน เกม 2" oninput="updateForceLiveResult()">
+            <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมน้ำเงิน เกม 2" onclick="scoreStep('g2Blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+          </div>
         </div>
       </div>
     </div>
-    <div class="fr-live" id="forceLiveResult"></div>
-    <div class="fr-btns">
-      <button class="fr-cancel" onclick="closeModal()">ยกเลิก</button>
-      <button class="fr-save" onclick="previewResult()">✓ บันทึกผล</button>
+    <div id="forceErr" class="ds-banner is-err fr-err" role="alert" hidden></div>
+    <div class="fr-live" id="forceLiveResult" role="status" aria-live="polite"></div>
+    <p class="ds-help fr-help">พิมพ์คะแนน → ดูผลที่คำนวณ → กดบันทึกผลเพื่อยืนยัน</p>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="previewResult()">บันทึกผล</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeModal()">ยกเลิก</button>
     </div>
-    <div class="fr-help">พิมพ์คะแนน → แสดงผลคำนวณอัตโนมัติ → กดบันทึกผลเพื่อยืนยัน</div>
   </div>
 </div>
 
 
 
-<!-- SEASON WIZARD MODAL -->
-<div id="seasonWizardModal" class="modal-overlay" onclick="if(event.target===this)closeSeasonWizard()">
-  <div class="modal-box" style="max-width:700px;width:95%;max-height:92vh;overflow-y:auto;padding:0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;letter-spacing:3px;color:var(--gold);">🔄 NEW SEASON WIZARD</div>
-      <button onclick="closeSeasonWizard()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">✕</button>
+<!-- SEASON WIZARD MODAL (superadmin) -->
+<div id="seasonWizardModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="wzTitle" onclick="if(event.target===this)closeSeasonWizard()">
+  <div class="ds-sheet wz-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t"><h2 id="wzTitle" class="ds-sheet-title">เริ่ม Season ใหม่</h2></div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeSeasonWizard()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
-    <div style="padding:20px 24px;">
-      <!-- Steps indicator -->
-      <div class="wizard-steps">
-        <div class="wizard-step active" id="wzStep1Ind">1 Archive</div>
-        <div class="wizard-step" id="wzStep2Ind">2 Season</div>
-        <div class="wizard-step" id="wzStep3Ind">3 ผู้เล่น</div>
-        <div class="wizard-step" id="wzStep4Ind">4 ยืนยัน</div>
-      </div>
 
-      <!-- Step 1: Archive current season -->
-      <div id="wzStep1" class="wz-step-content">
-        <div style="font-size:15px;font-weight:700;margin-bottom:12px;">📦 Archive Season ปัจจุบัน</div>
-        <div style="font-size:13px;color:var(--text2);line-height:1.7;padding:12px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);margin-bottom:16px;">
-          ระบบจะบันทึก <b>snapshot</b> ของ Season ปัจจุบันลง Firebase<br>
-          <code style="color:var(--gold);font-size:12px;">/seasons_archive/<span id="wzCurrentYear">2026</span>/</code><br><br>
-          ข้อมูลที่จะ archive:
-          <ul style="margin:8px 0 0;padding-left:18px;color:var(--text2);">
-            <li>ผลการแข่งขันทั้งหมด (<span id="wzMatchCount">0</span> แมตช์)</li>
-            <li>สถิติผู้เล่น W/L/PTS</li>
-            <li>คะแนนทีม Red vs Blue</li>
-            <li>ข้อมูลผู้เล่น (ability, style)</li>
-          </ul>
-        </div>
-        <div id="wzArchiveStatus" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;"></div>
-        <div style="display:flex;gap:10px;margin-top:16px;">
-          <button onclick="wzArchiveSeason()" class="btn btn-primary">📦 Archive Now</button>
-          <button onclick="wzSkipArchive()" class="btn btn-outline btn-sm" style="font-size:11px;">ข้ามขั้นตอนนี้</button>
-        </div>
-      </div>
+    <ol class="wizard-steps" aria-label="ขั้นตอน">
+      <li class="wizard-step active" id="wzStep1Ind" aria-current="step"><span class="wz-n"><span class="wz-num">1</span><svg class="ds-ic wz-ck" aria-hidden="true" focusable="false"><use href="#ic-check"/></svg></span><span class="wz-lbl">Archive</span></li>
+      <li class="wizard-step" id="wzStep2Ind"><span class="wz-n"><span class="wz-num">2</span><svg class="ds-ic wz-ck" aria-hidden="true" focusable="false"><use href="#ic-check"/></svg></span><span class="wz-lbl">Season</span></li>
+      <li class="wizard-step" id="wzStep3Ind"><span class="wz-n"><span class="wz-num">3</span><svg class="ds-ic wz-ck" aria-hidden="true" focusable="false"><use href="#ic-check"/></svg></span><span class="wz-lbl">ผู้เล่น</span></li>
+      <li class="wizard-step" id="wzStep4Ind"><span class="wz-n"><span class="wz-num">4</span><svg class="ds-ic wz-ck" aria-hidden="true" focusable="false"><use href="#ic-check"/></svg></span><span class="wz-lbl">ยืนยัน</span></li>
+    </ol>
 
-      <!-- Step 2: Name new season -->
-      <div id="wzStep2" class="wz-step-content" style="display:none;">
-        <div style="font-size:15px;font-weight:700;margin-bottom:12px;">🗓️ ตั้งค่า Season ใหม่</div>
-        <div style="display:flex;flex-direction:column;gap:14px;">
-          <div class="profile-field">
-            <label>ชื่องาน Season ใหม่</label>
-            <input type="text" id="wzNewSeasonName" value="Sports Day 2027" style="font-size:14px;padding:10px 14px;" placeholder="Sports Day 2027">
-          </div>
-          <div class="profile-field">
-            <label>ปี (ใช้ใน archive key)</label>
-            <input type="text" id="wzNewSeasonYear" value="2027" style="font-size:14px;padding:10px 14px;" placeholder="2027">
-          </div>
-          <div style="padding:12px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);font-size:12px;color:var(--muted);">
-            ⚠️ ข้อมูลการแข่งขัน (ongoing, finished matches, คะแนน) จะถูก <b style="color:var(--danger);">reset ทั้งหมด</b><br>
-            ข้อมูลผู้เล่น (ชื่อ, ability, style) จะ <b style="color:var(--green);">ยกมาทั้งหมด</b>
-          </div>
+    <!-- Step 1: Archive current season -->
+    <div id="wzStep1" class="wz-step-content">
+      <h3 class="wz-h">เก็บ Archive ของ Season ปัจจุบัน</h3>
+      <div class="dlg-info wz-card">
+        <p>ระบบจะบันทึก <b>snapshot</b> ของ Season ปัจจุบันลง Firebase ที่ <code class="wz-code">/seasons_archive/<span id="wzCurrentYear">2026</span>/</code></p>
+        <ul class="wz-list">
+          <li><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg>ผลการแข่งขันทั้งหมด (<span id="wzMatchCount">0</span> แมตช์)</li>
+          <li><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg>สถิติผู้เล่น W/L/PTS</li>
+          <li><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg>คะแนนทีม Red vs Blue</li>
+          <li><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg>ข้อมูลผู้เล่นและโปรไฟล์</li>
+        </ul>
+      </div>
+      <div id="wzArchiveStatus" class="ds-banner" role="status" hidden></div>
+      <div class="ds-sheet-actions dlg-foot wz-actions">
+        <button type="button" id="wzArchiveBtn" class="ds-btn ds-btn-primary ds-btn-lg" onclick="wzArchiveSeason()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-floppy-disk"/></svg>Archive เลย</button>
+        <button type="button" class="ds-btn ds-btn-ghost" onclick="wzSkipArchive()">ข้ามขั้นตอนนี้</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Name new season -->
+    <div id="wzStep2" class="wz-step-content" style="display:none;">
+      <h3 class="wz-h">ตั้งค่า Season ใหม่</h3>
+      <div class="wz-fields">
+        <div class="ds-field">
+          <label class="ds-label" for="wzNewSeasonName">ชื่องาน Season ใหม่</label>
+          <input type="text" id="wzNewSeasonName" class="ds-input" value="Sports Day 2027" placeholder="Sports Day 2027" autocomplete="off">
         </div>
-        <div style="display:flex;gap:10px;margin-top:20px;">
-          <button onclick="wzGoStep(1)" class="btn btn-outline btn-sm">← กลับ</button>
-          <button onclick="wzGoStep(3)" class="btn btn-primary">ถัดไป →</button>
+        <div class="ds-field">
+          <label class="ds-label" for="wzNewSeasonYear">ปี (ใช้ใน archive key)</label>
+          <input type="text" id="wzNewSeasonYear" class="ds-input" value="2027" placeholder="2027" inputmode="numeric" autocomplete="off">
         </div>
       </div>
+      <div class="dlg-info wz-card">
+        <div class="rs-line is-del"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-trash"/></svg><span><b>รีเซ็ตทั้งหมด</b> ข้อมูลการแข่งขัน (แมตช์ที่กำลังแข่ง, ผลที่จบแล้ว, คะแนน)</span></div>
+        <div class="rs-line is-keep"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-check-circle"/></svg><span><b>ยกมาทั้งหมด</b> ข้อมูลผู้เล่น (ชื่อ ทีม กลุ่ม โปรไฟล์)</span></div>
+      </div>
+      <div class="ds-sheet-actions dlg-foot wz-actions">
+        <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="wzGoStep(3)">ถัดไป<svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg></button>
+        <button type="button" class="ds-btn" onclick="wzGoStep(1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-left"/></svg>กลับ</button>
+      </div>
+    </div>
 
-      <!-- Step 3: who returns, on which side, plus brand-new players -->
-      <div id="wzStep3" class="wz-step-content" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
-          <div style="font-size:15px;font-weight:700;">🔀 ใครไปต่อ &amp; อยู่สีไหน</div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-            <span class="wz-keep-count">เล่นต่อ <b id="wzKeepCount">0 / 0</b></span>
-            <button onclick="wzKeepAll(true)"  class="btn btn-outline btn-sm">เลือกทั้งหมด</button>
-            <button onclick="wzKeepAll(false)" class="btn btn-outline btn-sm">ล้าง</button>
-            <button onclick="wzShufflePlayers()" class="btn btn-outline btn-sm">🎲 สุ่มสี</button>
-          </div>
-        </div>
-        <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;line-height:1.6;">
-          ติ๊ก = ลงเล่นซีซั่นใหม่ · เอาติ๊กออก = ไม่ได้ไปต่อ แต่<b style="color:var(--text2);">ประวัติยังเก็บไว้ครบ</b><br>
-          คนที่ย้ายสีจะได้เบอร์เสื้อใหม่ให้ตรงสี แต่เป็นคนเดิม (pid ไม่เปลี่ยน)
-        </div>
-        <div class="reassign-grid" id="wzReassignGrid"></div>
+    <!-- Step 3: who returns, on which side, plus brand-new players -->
+    <div id="wzStep3" class="wz-step-content" style="display:none;">
+      <div class="wz-h-row">
+        <h3 class="wz-h">ใครไปต่อ &amp; อยู่สีไหน</h3>
+        <span class="ds-chip ds-chip-gold wz-keep-count">เล่นต่อ <b id="wzKeepCount">0 / 0</b></span>
+      </div>
+      <p class="ds-help wz-note">ติ๊ก = ลงเล่นซีซั่นใหม่ · เอาติ๊กออก = ไม่ได้ไปต่อ แต่ประวัติยังเก็บไว้ครบ<br>คนที่ย้ายสีจะได้เบอร์เสื้อใหม่ให้ตรงสี แต่เป็นคนเดิม (pid ไม่เปลี่ยน)</p>
+      <div class="wz-tools">
+        <button type="button" class="ds-btn ds-btn-sm" onclick="wzKeepAll(true)">เลือกทั้งหมด</button>
+        <button type="button" class="ds-btn ds-btn-sm" onclick="wzKeepAll(false)">ล้าง</button>
+        <button type="button" class="ds-btn ds-btn-sm" onclick="wzShufflePlayers()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-shuffle"/></svg>สุ่มสี</button>
+      </div>
+      <div class="reassign-grid" id="wzReassignGrid"></div>
 
-        <div class="wz-newblock">
-          <div style="font-size:13px;font-weight:700;margin-bottom:8px;">➕ ผู้เล่นใหม่ของซีซั่นนี้</div>
-          <div class="wz-newrow">
-            <input type="text" id="wzNewPlayerName" placeholder="ชื่อผู้เล่นใหม่ (Enter เพื่อเพิ่ม)" onkeydown="if(event.key==='Enter'){event.preventDefault();wzAddNewPlayer();}">
-            <select id="wzNewPlayerTeam"><option value="Red">🔴 Red</option><option value="Blue">🔵 Blue</option></select>
-            <select id="wzNewPlayerGroup"><option value="1">G1</option><option value="2">G2</option><option value="3">G3</option></select>
-            <button class="btn btn-primary btn-sm" onclick="wzAddNewPlayer()">+ เพิ่ม</button>
-          </div>
-          <div class="wz-newlist" id="wzNewPlayerList"></div>
+      <div class="wz-newblock">
+        <h4 class="wz-h2">ผู้เล่นใหม่ของซีซั่นนี้</h4>
+        <div class="wz-newrow">
+          <input type="text" id="wzNewPlayerName" class="ds-input" placeholder="ชื่อผู้เล่นใหม่ (Enter เพื่อเพิ่ม)" aria-label="ชื่อผู้เล่นใหม่" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();wzAddNewPlayer();}">
+          <select id="wzNewPlayerTeam" class="ds-select" aria-label="ทีม"><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
+          <select id="wzNewPlayerGroup" class="ds-select" aria-label="กลุ่ม"><option value="1">G1</option><option value="2">G2</option><option value="3">G3</option></select>
+          <button type="button" class="ds-btn" onclick="wzAddNewPlayer()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg>เพิ่ม</button>
         </div>
-
-        <div style="display:flex;gap:10px;margin-top:16px;">
-          <button onclick="wzGoStep(2)" class="btn btn-outline btn-sm">← กลับ</button>
-          <button onclick="wzGoStep(4)" class="btn btn-primary">ถัดไป →</button>
-        </div>
+        <div class="wz-newlist" id="wzNewPlayerList"></div>
       </div>
 
-      <!-- Step 4: Confirm -->
-      <div id="wzStep4" class="wz-step-content" style="display:none;">
-        <div style="font-size:15px;font-weight:700;margin-bottom:12px;">✅ ยืนยันเริ่ม Season ใหม่</div>
-        <div id="wzConfirmSummary" style="padding:14px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);font-size:13px;line-height:1.8;margin-bottom:16px;"></div>
-        <div style="padding:10px 14px;background:rgba(255,59,92,0.06);border:1px solid rgba(255,59,92,0.2);border-radius:8px;font-size:12px;color:var(--danger);margin-bottom:16px;">
-          ⚠️ การกระทำนี้ไม่สามารถย้อนกลับได้ — ตรวจสอบให้แน่ใจก่อนกด
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button onclick="wzGoStep(3)" class="btn btn-outline btn-sm">← กลับ</button>
-          <button onclick="wzConfirmNewSeason()" class="btn btn-danger" style="letter-spacing:1px;">🚀 เริ่ม Season ใหม่</button>
-        </div>
+      <div class="ds-sheet-actions dlg-foot wz-actions">
+        <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="wzGoStep(4)">ถัดไป<svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg></button>
+        <button type="button" class="ds-btn" onclick="wzGoStep(2)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-left"/></svg>กลับ</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Confirm -->
+    <div id="wzStep4" class="wz-step-content" style="display:none;">
+      <h3 class="wz-h">ยืนยันเริ่ม Season ใหม่</h3>
+      <div id="wzConfirmSummary" class="wz-sum"></div>
+      <div class="ds-banner is-err"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-warning"/></svg><div>การกระทำนี้ไม่สามารถย้อนกลับได้ — ตรวจสอบให้แน่ใจก่อนกด</div></div>
+      <div class="ds-sheet-actions dlg-foot wz-actions">
+        <button type="button" class="ds-btn ds-btn-danger ds-btn-lg" onclick="wzConfirmNewSeason()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg>เริ่ม Season ใหม่</button>
+        <button type="button" class="ds-btn" onclick="wzGoStep(3)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-left"/></svg>กลับ</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- SEASON ARCHIVE VIEWER MODAL -->
-<div id="seasonArchiveModal" class="modal-overlay" onclick="if(event.target===this)closeSeasonArchive()">
-  <div class="modal-box" style="max-width:700px;width:95%;max-height:90vh;overflow-y:auto;padding:0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;letter-spacing:3px;color:var(--gold);">📅 SEASON ARCHIVE</div>
-      <button onclick="closeSeasonArchive()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">✕</button>
+<div id="seasonArchiveModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="arcTitle" onclick="if(event.target===this)closeSeasonArchive()">
+  <div class="ds-sheet wz-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t"><h2 id="arcTitle" class="ds-sheet-title">Season Archive</h2></div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeSeasonArchive()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
-    <div style="padding:20px 24px;" id="seasonArchiveContent">
-      <div style="text-align:center;color:var(--muted);padding:24px;">กำลังโหลด...</div>
-    </div>
-  </div>
-</div>
-
-<!-- QUICK SCORE MODAL -->
-<div id="quickScoreModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:400px;">
-    <div class="modal-title" style="font-size:1.5em;">⚡ Quick Score</div>
-    <div style="display:flex;gap:20px;justify-content:center;margin-bottom:28px; margin-top:20px;">
-      <div style="text-align:center;">
-        <div class="red-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:3px;margin-bottom:10px;">RED TEAM</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button class="btn btn-danger" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';" onclick="quickAdj('red',-1)">−</button>
-          <span id="qsRed" style="font-family:'Bebas Neue',sans-serif;font-size:2em;color:var(--red);min-width:40px;">0</span>
-          <button class="btn" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';background:rgba(255,59,59,0.15);color:var(--red);" onclick="quickAdj('red',1)">+</button>
-        </div>
-      </div>
-      <div style="text-align:center;">
-        <div class="blue-text" style="font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:3px;margin-bottom:10px;">BLUE TEAM</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button class="btn btn-danger" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';" onclick="quickAdj('blue',-1)">−</button>
-          <span id="qsBlue" style="font-family:'Bebas Neue',sans-serif;font-size:2em;color:var(--blue);min-width:40px;">0</span>
-          <button class="btn" style="font-size:1.4em;padding:8px 16px;font-family:'Bebas Neue';background:rgba(59,142,255,0.15);color:var(--blue);" onclick="quickAdj('blue',1)">+</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="applyQuickScore()">✓ Apply</button>
-      <button class="btn btn-danger" onclick="closeQuickScore()">✕ Cancel</button>
+    <div id="seasonArchiveContent" class="arc-list" aria-live="polite">
+      <div class="ds-skel arc-skel"></div>
     </div>
   </div>
 </div>
 
-<!-- EDIT RESULT MODAL -->
-<div id="editResultModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:560px;">
-    <div class="modal-title" style="color:#f5c842;">✏️ Edit Match</div>
-    <div class="modal-match-info" id="editModalMatchInfo"></div>
+<!-- QUICK SCORE MODAL (team totals, superadmin) -->
+<div id="quickScoreModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="quickScoreTitle">
+  <div class="ds-sheet qs-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t"><h2 id="quickScoreTitle" class="ds-sheet-title">ปรับคะแนนรวมทีม</h2></div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeQuickScore()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+    </div>
+    <div class="qs-teams">
+      <div class="qs-team red">
+        <span class="ds-team ds-team-red">RED</span>
+        <div class="qs-n" id="qsRed" role="status" aria-live="polite">0</div>
+        <div class="qs-btns">
+          <button type="button" class="ds-btn" aria-label="ลดคะแนนทีมแดง" onclick="quickAdj('red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+          <button type="button" class="ds-btn" aria-label="เพิ่มคะแนนทีมแดง" onclick="quickAdj('red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+        </div>
+      </div>
+      <div class="qs-team blue">
+        <span class="ds-team ds-team-blue">BLUE</span>
+        <div class="qs-n" id="qsBlue" role="status" aria-live="polite">0</div>
+        <div class="qs-btns">
+          <button type="button" class="ds-btn" aria-label="ลดคะแนนทีมน้ำเงิน" onclick="quickAdj('blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+          <button type="button" class="ds-btn" aria-label="เพิ่มคะแนนทีมน้ำเงิน" onclick="quickAdj('blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="ds-sheet-actions">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="applyQuickScore()">ใช้ค่านี้</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeQuickScore()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT RESULT MODAL (superadmin) -->
+<div id="editResultModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="editResTitle">
+  <div class="ds-sheet fr-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t"><h2 id="editResTitle" class="ds-sheet-title">แก้ไขผลแมตช์</h2></div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeEditModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+    </div>
+    <div class="dlg-info" id="editModalMatchInfo"></div>
     <input type="hidden" id="editMatchHistoryId">
 
-    <!-- ── Player Reassignment Section ── -->
-    <div id="editPlayersSection" style="margin-bottom:18px;">
-      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">🔄 แก้ไขผู้เล่น (เลือกใหม่ได้)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:5px;letter-spacing:1px;">🔴 RED TEAM</div>
-          <select id="editR1" class="rpt-select" style="width:100%;margin-bottom:6px;border-color:rgba(255,59,92,0.3);background:rgba(255,59,92,0.05);"></select>
-          <select id="editR2" class="rpt-select" style="width:100%;border-color:rgba(255,59,92,0.3);background:rgba(255,59,92,0.05);"></select>
+    <section id="editPlayersSection" class="ed-sec">
+      <h3 class="ed-h">ผู้เล่น (เลือกใหม่ได้)</h3>
+      <div class="ed-cols">
+        <div class="ed-col red">
+          <span class="ds-team ds-team-red">RED</span>
+          <select id="editR1" class="ds-select" aria-label="ผู้เล่นทีมแดง คนที่ 1"></select>
+          <select id="editR2" class="ds-select" aria-label="ผู้เล่นทีมแดง คนที่ 2"></select>
         </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:5px;letter-spacing:1px;">🔵 BLUE TEAM</div>
-          <select id="editB1" class="rpt-select" style="width:100%;margin-bottom:6px;border-color:rgba(59,142,255,0.3);background:rgba(59,142,255,0.05);"></select>
-          <select id="editB2" class="rpt-select" style="width:100%;border-color:rgba(59,142,255,0.3);background:rgba(59,142,255,0.05);"></select>
+        <div class="ed-col blue">
+          <span class="ds-team ds-team-blue">BLUE</span>
+          <select id="editB1" class="ds-select" aria-label="ผู้เล่นทีมน้ำเงิน คนที่ 1"></select>
+          <select id="editB2" class="ds-select" aria-label="ผู้เล่นทีมน้ำเงิน คนที่ 2"></select>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ── Score Edit ── -->
-    <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">📝 แก้ไขคะแนน</div>
-    <div class="score-inputs">
-      <div class="score-input-row">
-        <span class="game-label">Game 1</span>
-        <input type="number" id="eg1Red" placeholder="R" min="0">
-        <span class="score-sep">—</span>
-        <input type="number" id="eg1Blue" placeholder="B" min="0">
+    <section class="ed-sec">
+      <h3 class="ed-h">คะแนน</h3>
+      <div class="fr-scores">
+        <div class="fr-sides" aria-hidden="true"><span class="ds-team ds-team-red">RED</span><span></span><span class="ds-team ds-team-blue">BLUE</span></div>
+        <div class="fr-game" role="group" aria-labelledby="efG1">
+          <div class="fr-glabel" id="efG1">เกม 1</div>
+          <div class="fr-ins">
+            <span class="fr-tag ds-team ds-team-red" aria-hidden="true">RED</span>
+            <div class="fr-stepper red">
+              <button type="button" class="fr-step" aria-label="ลดคะแนนทีมแดง เกม 1" onclick="scoreStep('eg1Red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+              <input type="number" id="eg1Red" class="fr-in" min="0" inputmode="numeric" aria-label="คะแนนทีมแดง เกม 1">
+              <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมแดง เกม 1" onclick="scoreStep('eg1Red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+            </div>
+            <span class="fr-dash" aria-hidden="true">–</span>
+            <span class="fr-tag ds-team ds-team-blue" aria-hidden="true">BLUE</span>
+            <div class="fr-stepper blue">
+              <button type="button" class="fr-step" aria-label="ลดคะแนนทีมน้ำเงิน เกม 1" onclick="scoreStep('eg1Blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+              <input type="number" id="eg1Blue" class="fr-in" min="0" inputmode="numeric" aria-label="คะแนนทีมน้ำเงิน เกม 1">
+              <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมน้ำเงิน เกม 1" onclick="scoreStep('eg1Blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="fr-game" role="group" aria-labelledby="efG2">
+          <div class="fr-glabel" id="efG2">เกม 2</div>
+          <div class="fr-ins">
+            <span class="fr-tag ds-team ds-team-red" aria-hidden="true">RED</span>
+            <div class="fr-stepper red">
+              <button type="button" class="fr-step" aria-label="ลดคะแนนทีมแดง เกม 2" onclick="scoreStep('eg2Red',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+              <input type="number" id="eg2Red" class="fr-in" min="0" inputmode="numeric" aria-label="คะแนนทีมแดง เกม 2">
+              <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมแดง เกม 2" onclick="scoreStep('eg2Red',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+            </div>
+            <span class="fr-dash" aria-hidden="true">–</span>
+            <span class="fr-tag ds-team ds-team-blue" aria-hidden="true">BLUE</span>
+            <div class="fr-stepper blue">
+              <button type="button" class="fr-step" aria-label="ลดคะแนนทีมน้ำเงิน เกม 2" onclick="scoreStep('eg2Blue',-1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-minus"/></svg></button>
+              <input type="number" id="eg2Blue" class="fr-in" min="0" inputmode="numeric" aria-label="คะแนนทีมน้ำเงิน เกม 2">
+              <button type="button" class="fr-step" aria-label="เพิ่มคะแนนทีมน้ำเงิน เกม 2" onclick="scoreStep('eg2Blue',1)"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-plus"/></svg></button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="score-input-row">
-        <span class="game-label">Game 2</span>
-        <input type="number" id="eg2Red" placeholder="R" min="0">
-        <span class="score-sep">—</span>
-        <input type="number" id="eg2Blue" placeholder="B" min="0">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="submitEditResult()" style="font-size:16px; padding:12px 28px;">✓ Save Edit</button>
-      <button class="btn btn-danger" onclick="closeEditModal()" style="font-size:16px; padding:12px 28px;">✕ Cancel</button>
+    </section>
+
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="submitEditResult()">บันทึก</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeEditModal()">ยกเลิก</button>
     </div>
   </div>
 </div>
 
 <!-- TAG EDIT MODAL -->
-<div id="editTagsModal" class="modal-overlay">
-  <div class="modal-box" style="max-width: 500px;">
-    <div class="modal-title" style="color:var(--gold);">🏷️ Edit Match Tags</div>
-    <div class="modal-match-info" id="editTagsMatchInfo"></div>
+<div id="editTagsModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="editTagsTitle">
+  <div class="ds-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t"><h2 id="editTagsTitle" class="ds-sheet-title">แก้ Tag ของแมตช์</h2></div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeEditTagsModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+    </div>
+    <div class="dlg-info" id="editTagsMatchInfo"></div>
     <input type="hidden" id="editTagsMatchId">
-    
+
     <div class="tag-checkbox-list" id="tagCheckboxList">
         <label class="tag-checkbox-item"><input type="checkbox" value="epic_red" data-label="🔥 Epic Comeback G1 Red" data-class="tag-comeback"><span>🔥 Epic Comeback (เฉพาะทีมแดง)</span></label>
         <label class="tag-checkbox-item"><input type="checkbox" value="epic_blue" data-label="🔥 Epic Comeback G1 Blue" data-class="tag-comeback"><span>🔥 Epic Comeback (เฉพาะทีมน้ำเงิน)</span></label>
@@ -1199,9 +1313,9 @@ try {
         <label class="tag-checkbox-item"><input type="checkbox" value="blowout" data-label="🌪️ ยำใหญ่ (Blowout)" data-class="tag-blowout"><span>🌪️ ยำใหญ่ (Blowout)</span></label>
     </div>
 
-    <div class="modal-actions" style="margin-top: 20px;">
-      <button class="btn btn-primary" onclick="saveMatchTags()">✓ Save Tags</button>
-      <button class="btn btn-danger" onclick="closeEditTagsModal()">✕ Cancel</button>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="saveMatchTags()">บันทึก Tag</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeEditTagsModal()">ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -1326,20 +1440,20 @@ try {
   <div id="toastStatus" role="status" aria-live="polite" aria-atomic="false"></div>
 </div>
 
-<!-- TROPHY CEREMONY OVERLAY -->
-<div id="trophyOverlay" style="display:none; position:fixed; inset:0; z-index:2000; overflow-y:auto; overflow-x:hidden;">
-<canvas id="confettiCanvas" style="position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:1;"></canvas>
-  <div id="trophyBg" style="position:fixed; inset:0; transition:background 1.2s; z-index:0;"></div>
-  <svg id="starLayer" style="position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:2;" xmlns="http://www.w3.org/2000/svg"></svg>
-  
-  <div style="position:absolute; top:20px; right:20px; z-index:100;">
-      <button class="btn btn-outline" style="border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.7); font-size:13px;" onclick="document.getElementById('awardInfoModal').classList.add('open')">ℹ️ กติกาการตัดสินรางวัล</button>
+<!-- TROPHY CEREMONY OVERLAY - the cup, the confetti and the staggered reveal are the spectacle; the buttons, cards and lists follow the design system (css/trophy.css) -->
+<div id="trophyOverlay" role="dialog" aria-modal="true" aria-labelledby="trophyTeamName" style="display:none;">
+  <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+  <div id="trophyBg"></div>
+
+  <div class="cer-bar">
+    <button type="button" class="ds-btn ds-btn-ghost cer-info" onclick="document.getElementById('awardInfoModal').classList.add('open')"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-info"/></svg>กติกาการตัดสินรางวัล</button>
+    <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon" onclick="closeTrophy()" aria-label="ปิด" title="ปิด"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
   </div>
 
   <div class="trophy-content">
-    <div id="trophyWinnerLabel" style="font-family:'Rajdhani',sans-serif;font-size:clamp(12px,2vw,18px);font-weight:700;letter-spacing:8px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:20px;opacity:0;transform:translateY(-20px);transition:opacity 0.6s 0.2s,transform 0.6s 0.2s;">🏸 SPORTS DAY 2026 · CHAMPION</div>
-    <div id="trophySvgWrap" style="opacity:0;transform:scale(0.2) translateY(80px);transition:opacity 1s 0.4s,transform 1s 0.4s cubic-bezier(0.34,1.56,0.64,1);margin-bottom:24px;">
-      <svg id="trophySvg" width="320" height="380" viewBox="0 0 320 380" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 40px rgba(245,200,66,0.8)) drop-shadow(0 0 90px rgba(245,180,0,0.4));">
+    <div id="trophyWinnerLabel"></div>
+    <div id="trophySvgWrap">
+<svg id="trophySvg" width="320" height="380" viewBox="0 0 320 380" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="tgBody" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#FFF8DC"/>
@@ -1491,19 +1605,17 @@ try {
         <circle cx="50" cy="150" r="2.5" fill="#FFF8DC" opacity="0.5"/>
       </svg>
     </div>
-    <div id="trophyTeamName" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(3em,11vw,7.5em);line-height:1;letter-spacing:8px;opacity:0;transform:scale(0.6);transition:opacity 0.8s 1s,transform 0.8s 1s cubic-bezier(0.34,1.56,0.64,1);text-shadow:0 0 60px currentColor,0 0 120px currentColor,0 6px 30px rgba(0,0,0,0.6);">RED TEAM</div>
-    <div id="trophyScore" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(1.4em,4.5vw,2.8em);letter-spacing:8px;color:rgba(255,255,255,0.65);margin-top:10px;opacity:0;transition:opacity 0.6s 1.4s;"></div>
-    <div id="trophyStats" style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:28px;opacity:0;transition:opacity 0.7s 1.6s;"></div>
-    
-    <!-- SPECIAL AWARDS SECTION (แสดง 5 รางวัลที่ขอมา) -->
-    <div id="trophySpecialAwards" style="margin-top:36px;width:100%;max-width:1100px;opacity:0;transform:translateY(16px);transition:opacity 0.7s 1.9s,transform 0.7s 1.9s; display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
-        <!-- Inject by JS -->
-    </div>
-    
-    <!-- MVP TOP 5 -->
-    <div id="trophyTop5" style="margin-top:26px;width:100%;max-width:1100px;opacity:0;transform:translateY(16px);transition:opacity 0.7s 2.1s,transform 0.7s 2.1s;"></div>
-    
-    <button onclick="closeTrophy()" id="trophyCloseBtn">✕ Close Ceremony</button>
+    <div id="trophyTeamName"></div>
+    <div id="trophyScore"></div>
+    <div id="trophyStats"></div>
+
+    <!-- SPECIAL AWARDS (filled by openEndGame) -->
+    <div id="trophySpecialAwards"></div>
+
+    <!-- MVP TOP 5 (filled by openEndGame) -->
+    <div id="trophyTop5"></div>
+
+    <button type="button" id="trophyCloseBtn" class="ds-btn ds-btn-lg" onclick="closeTrophy()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg>ปิดพิธีมอบรางวัล</button>
   </div>
 </div>
 
@@ -1571,80 +1683,91 @@ try {
 <button id="tvFsBtn" class="tv-fs-btn" onclick="toggleTvFullscreen()" title="เต็มจอ (กด F)" aria-label="เต็มจอ">⛶</button>
 
 <!-- ── EDIT PLAYER MODAL (admin) ── -->
-<div id="playerEditModal" class="modal-overlay" onclick="if(event.target===this)closePlayerEdit()">
-  <div class="modal-box" style="max-width:380px;">
-    <div class="modal-title" style="font-size:1.4em;">✏️ แก้ไขผู้เล่น <span id="editPlayerIdLabel" style="color:var(--muted);font-size:0.7em;"></span></div>
-    <div style="display:flex;flex-direction:column;gap:12px;margin:20px 0;text-align:left;">
-      <div>
-        <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">ชื่อ</label>
-        <input type="text" id="editPlayerName" style="width:100%;margin-top:4px;" onkeydown="if(event.key==='Enter')savePlayerEdit()">
+<div id="playerEditModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="editPlayerTitle" onclick="if(event.target===this)closePlayerEdit()">
+  <div class="ds-sheet pe-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t">
+        <h2 id="editPlayerTitle" class="ds-sheet-title">แก้ไขผู้เล่น</h2>
+        <span class="pe-id" id="editPlayerIdLabel"></span>
       </div>
-      <div style="display:flex;gap:10px;">
-        <div style="flex:1;">
-          <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">ทีม</label>
-          <select id="editPlayerTeam" style="width:100%;margin-top:4px;"><option value="Red">🔴 Red</option><option value="Blue">🔵 Blue</option></select>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closePlayerEdit()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
+    </div>
+    <div class="pe-form">
+      <div class="ds-field">
+        <label class="ds-label" for="editPlayerName">ชื่อ</label>
+        <input type="text" id="editPlayerName" class="ds-input" autocomplete="off" onkeydown="if(event.key==='Enter')savePlayerEdit()">
+      </div>
+      <div class="pe-row">
+        <div class="ds-field">
+          <label class="ds-label" for="editPlayerTeam">ทีม</label>
+          <select id="editPlayerTeam" class="ds-select"><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
         </div>
-        <div style="flex:1;">
-          <label style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">กลุ่ม</label>
-          <select id="editPlayerGroup" style="width:100%;margin-top:4px;"><option value="1">Group 1</option><option value="2">Group 2</option><option value="3">Group 3</option></select>
+        <div class="ds-field">
+          <label class="ds-label" for="editPlayerGroup">กลุ่ม</label>
+          <select id="editPlayerGroup" class="ds-select"><option value="1">กลุ่ม G1</option><option value="2">กลุ่ม G2</option><option value="3">กลุ่ม G3</option></select>
         </div>
       </div>
     </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="closePlayerEdit()" style="flex:1;">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="savePlayerEdit()" style="flex:1;">💾 บันทึก</button>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="savePlayerEdit()">บันทึก</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closePlayerEdit()">ยกเลิก</button>
     </div>
   </div>
 </div>
 
 <!-- ── QR CODES MODAL (admin/superadmin) ── -->
-<div id="qrModal" class="modal-overlay" onclick="if(event.target===this)closeQrModal()">
-  <div class="modal-box" style="width:min(680px,94vw);">
-    <div class="modal-title" style="text-align:center;">📱 QR CODES</div>
-    <div style="color:var(--muted);font-size:12px;text-align:center;margin-bottom:20px;line-height:1.6;">
-      แปะหน้างานให้สแกน — ผู้ชมดูคะแนนสด / กรรมการเข้าแผงให้คะแนน
+<div id="qrModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="qrTitle" onclick="if(event.target===this)closeQrModal()">
+  <div class="ds-sheet qr-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t">
+        <h2 id="qrTitle" class="ds-sheet-title">QR ผู้ชม / กรรมการ</h2>
+        <p class="ds-help">แปะหน้างานให้สแกน — ผู้ชมดูคะแนนสด / กรรมการเข้าแผงให้คะแนน</p>
+      </div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeQrModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
     <div class="qr-grid">
-      <div class="qr-card">
+      <section class="qr-card" aria-labelledby="qrSpecH">
         <img id="qrSpectatorImg" class="qr-img" alt="QR ผู้ชม">
-        <div class="qr-card-title">👀 ดูคะแนนสด</div>
-        <div class="qr-card-desc">ผู้ชม — ดูอย่างเดียว ไม่ต้องล็อกอิน</div>
+        <h3 id="qrSpecH" class="qr-card-title"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-eye"/></svg>ดูคะแนนสด</h3>
+        <p class="qr-card-desc">ผู้ชม — ดูอย่างเดียว ไม่ต้องล็อกอิน</p>
         <div id="qrSpectatorUrl" class="qr-url"></div>
-        <button class="btn btn-outline btn-sm" onclick="copyQrLink('spectator')">📋 คัดลอกลิงก์</button>
-      </div>
-      <div class="qr-card">
+        <button type="button" class="ds-btn qr-copy" onclick="copyQrLink('spectator')"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-copy"/></svg>คัดลอกลิงก์</button>
+      </section>
+      <section class="qr-card" aria-labelledby="qrUmpH">
         <img id="qrUmpireImg" class="qr-img" alt="QR กรรมการ">
-        <div class="qr-card-title">🎯 กรรมการ</div>
-        <div class="qr-card-desc">กรรมการ — เข้าแผงให้คะแนน</div>
+        <h3 id="qrUmpH" class="qr-card-title"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-flag"/></svg>กรรมการ</h3>
+        <p class="qr-card-desc">กรรมการ — เข้าแผงให้คะแนน</p>
         <div id="qrUmpireUrl" class="qr-url"></div>
-        <button class="btn btn-outline btn-sm" onclick="copyQrLink('umpire')">📋 คัดลอกลิงก์</button>
-      </div>
+        <button type="button" class="ds-btn qr-copy" onclick="copyQrLink('umpire')"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-copy"/></svg>คัดลอกลิงก์</button>
+      </section>
     </div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:22px;flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" onclick="printQrCodes()">🖨 พิมพ์ทั้งคู่</button>
-      <button class="btn btn-outline btn-sm" onclick="openTvScreen()">🖥️ เปิดจอ TV</button>
-      <button class="btn btn-outline btn-sm" onclick="closeQrModal()">ปิด</button>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-primary ds-btn-lg" onclick="printQrCodes()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-qr-code"/></svg>พิมพ์ทั้งคู่</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="openTvScreen()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-television"/></svg>เปิดจอ TV</button>
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeQrModal()">ปิด</button>
     </div>
   </div>
 </div>
 
 <!-- ── BACKUP & RESTORE MODAL (superadmin) ── -->
-<div id="backupModal" class="modal-overlay" onclick="if(event.target===this)closeBackupModal()">
-  <div class="modal-box" style="width:min(560px,94vw);text-align:left;">
-    <div class="modal-title" style="text-align:center;">🛟 BACKUP &amp; RESTORE</div>
-    <div style="color:var(--muted);font-size:12px;text-align:center;margin-bottom:16px;line-height:1.6;">
-      Backup อัตโนมัติทุกครั้งที่จบแมตช์ และก่อน Reset · เก็บ 30 ชุดล่าสุด
+<div id="backupModal" class="ds-scrim" role="dialog" aria-modal="true" aria-labelledby="backupTitle" onclick="if(event.target===this)closeBackupModal()">
+  <div class="ds-sheet bk-sheet">
+    <div class="dlg-head">
+      <div class="dlg-t">
+        <h2 id="backupTitle" class="ds-sheet-title">Backup &amp; Restore</h2>
+        <p class="ds-help">Backup อัตโนมัติทุกครั้งที่จบแมตช์ และก่อน Reset · เก็บ 30 ชุดล่าสุด</p>
+      </div>
+      <button type="button" class="ds-btn ds-btn-ghost ds-btn-icon dlg-x" aria-label="ปิด" onclick="closeBackupModal()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-x"/></svg></button>
     </div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
-      <button class="btn btn-outline btn-sm" onclick="manualBackup()">💾 Backup ตอนนี้</button>
-      <button class="btn btn-outline btn-sm" onclick="renderBackupList()">🔄 รีเฟรช</button>
+    <div class="bk-tools">
+      <button type="button" class="ds-btn ds-btn-primary" onclick="manualBackup()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-floppy-disk"/></svg>Backup ตอนนี้</button>
+      <button type="button" class="ds-btn" onclick="renderBackupList()"><svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-arrow-clockwise"/></svg>รีเฟรช</button>
     </div>
-    <div id="backupList" class="backup-list"></div>
+    <div id="backupList" class="backup-list" aria-live="polite"></div>
     <!-- one-time photo migration (superadmin) — see migratePlayerPhotos() -->
-    <div id="photoMigrateBox" class="superadmin-only"
-         style="margin-top:16px;padding:12px 14px;border:1px solid var(--border2);border-radius:10px;background:var(--surface2);font-size:12.5px;color:var(--text2);line-height:1.6;text-align:center;"></div>
-    <div style="text-align:center;margin-top:18px;">
-      <button class="btn btn-outline btn-sm" onclick="closeBackupModal()">ปิด</button>
+    <div id="photoMigrateBox" class="superadmin-only bk-box"></div>
+    <div class="ds-sheet-actions dlg-foot">
+      <button type="button" class="ds-btn ds-btn-lg" onclick="closeBackupModal()">ปิด</button>
     </div>
   </div>
 </div>

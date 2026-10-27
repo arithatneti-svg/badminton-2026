@@ -19,7 +19,7 @@ async function exportPlayerProfiles() {
   a.href = URL.createObjectURL(blob);
   a.download = `player_profiles_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
-  showToast('📤 Export สำเร็จ','success');
+  showToast('ส่งออกข้อมูลผู้เล่นแล้ว','success');
 }
 
 function exportPlayerCSV() {
@@ -38,7 +38,7 @@ function exportPlayerCSV() {
   a.href = URL.createObjectURL(blob);
   a.download = `player_stats_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
-  showToast('📊 Export CSV สำเร็จ','success');
+  showToast('ส่งออก CSV แล้ว','success');
 }
 
 function importPlayerProfiles(input) {
@@ -69,32 +69,34 @@ function importPlayerProfiles(input) {
           });
       }
       renderPlayersTab();
-      showToast(`📥 Import สำเร็จ ${imported} ผู้เล่น`, 'success');
+      showToast(`นำเข้าแล้ว ${imported} คน`, 'success');
     } catch(err) {
-      showToast('❌ ไฟล์ไม่ถูกต้อง', 'error');
+      showToast('ไฟล์ไม่ถูกต้อง', 'error');
     }
     input.value = '';
   };
   reader.readAsText(file);
 }
 
-// UX-9: Escape key closes any open modal
+// UX-9: Escape key closes any open modal - the one on top first (a confirm opens over the sheet that asked for it)
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   const modals = [
+    { el: document.getElementById('confirmDialogModal'), close: () => closeConfirmDialog() },
+    { el: document.getElementById('confirmModal'),       close: () => closeConfirm() },
+    { el: document.getElementById('resetChoiceModal'),   close: () => document.getElementById('resetChoiceModal').style.display = 'none' },
     { el: document.getElementById('seasonWizardModal'),  close: () => closeSeasonWizard() },
     { el: document.getElementById('seasonArchiveModal'), close: () => closeSeasonArchive() },
     { el: document.getElementById('passcodeModal'),      close: () => closePasscodeModal() },
     { el: document.getElementById('resultModal'),        close: () => closeModal() },
-    { el: document.getElementById('confirmModal'),       close: () => closeConfirm() },
     { el: document.getElementById('editResultModal'),    close: () => closeEditModal() },
     { el: document.getElementById('editTagsModal'),      close: () => closeEditTagsModal() },
     { el: document.getElementById('quickScoreModal'),    close: () => closeQuickScore() },
+    { el: document.getElementById('playerEditModal'),    close: () => closePlayerEdit() },
+    { el: document.getElementById('qrModal'),            close: () => closeQrModal() },
+    { el: document.getElementById('backupModal'),        close: () => closeBackupModal() },
     { el: document.getElementById('matchNotiOverlay'),   close: () => closeMatchNoti() },
     { el: document.getElementById('playerProfileOverlay'), close: () => closePlayerProfile() },
-    { el: document.getElementById('playerProfileOverlay'), close: () => closePlayerProfile() },
-    { el: document.getElementById('confirmDialogModal'), close: () => closeConfirmDialog() },
-    { el: document.getElementById('resetChoiceModal'),   close: () => document.getElementById('resetChoiceModal').style.display = 'none' },
   ];
   for (const m of modals) {
     if (m.el && (m.el.style.display === 'flex' || m.el.classList.contains('open'))) {
@@ -102,6 +104,32 @@ document.addEventListener('keydown', e => {
     }
   }
 });
+
+// Dialogs a11y: when one of the admin dialogs opens, focus moves into its sheet; when it closes, focus goes back to the
+// button that opened it (if that button is still on the page). Watches the class / style the open and close functions
+// already toggle, so none of them changed.
+(function () {
+  const IDS = ['confirmModal', 'resultModal', 'seasonWizardModal', 'seasonArchiveModal', 'quickScoreModal', 'editResultModal',
+               'editTagsModal', 'playerEditModal', 'qrModal', 'backupModal', 'resetChoiceModal'];
+  const isOpen = el => el.classList.contains('open') || el.style.display === 'flex';
+  IDS.forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    let was = isOpen(el), opener = null;
+    new MutationObserver(() => {
+      const now = isOpen(el);
+      if (now === was) return;
+      was = now;
+      if (now) {
+        const a = document.activeElement; opener = a && a !== document.body ? a : null;
+        const sheet = el.querySelector('.ds-sheet');
+        if (sheet) { sheet.tabIndex = -1; sheet.focus({ preventScroll: true }); }
+      } else {
+        if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+        opener = null;
+      }
+    }).observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+  });
+})();
 
 // ── ADMIN PLAYER MANAGEMENT ──
 function addPlayer() {
@@ -122,11 +150,11 @@ function addPlayer() {
   saveKeys(['players']);
   if (typeof renderPlayersTab === 'function') renderPlayersTab();
   if (typeof renderMatchBoard === 'function') renderMatchBoard();
-  showToast(`✅ เพิ่ม ${name} (${newId})`, 'success');
+  showToast(`เพิ่ม ${name} (${newId}) แล้ว`, 'success');
 }
 
 function deletePlayer(id) {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   const inMatch = appState.ongoingMatches.some(m => [m.r1,m.r2,m.b1,m.b2].includes(id));
   if (inMatch) return showToast('ลบไม่ได้ — ผู้เล่นกำลังอยู่ในแมตช์สด (เอาออกจากคิวก่อน)', 'error');
   showConfirmDialog(`ลบผู้เล่น ${id}?`, function() {
@@ -135,14 +163,14 @@ function deletePlayer(id) {
     saveKeys(['players']);
     if (typeof renderPlayersTab === 'function') renderPlayersTab();
     if (typeof renderMatchBoard === 'function') renderMatchBoard();
-    showToast('🗑 ลบผู้เล่นแล้ว', 'success');
+    showToast('ลบผู้เล่นแล้ว', 'success');
   });
 }
 
 // ── EDIT PLAYER (name / team / group) — admin/superadmin ──
 let _editingPlayerId = null;
 function openPlayerEdit(id) {
-  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('⛔ ต้องใช้สิทธิ์ Admin', 'error');
+  if (userRole !== 'admin' && userRole !== 'superadmin') return showToast('ต้องใช้สิทธิ์ Admin', 'error');
   const p = (appState.players || []).find(x => x.id === id);
   if (!p) return;
   _editingPlayerId = id;
@@ -168,7 +196,7 @@ function savePlayerEdit() {
   closePlayerEdit();
   if (typeof renderPlayersTab === 'function') renderPlayersTab();
   if (typeof renderMatchBoard === 'function') renderMatchBoard();
-  showToast('✅ อัปเดตผู้เล่นแล้ว', 'success');
+  showToast('อัปเดตผู้เล่นแล้ว', 'success');
 }
 
 function importCSV(input) {
@@ -184,7 +212,7 @@ function importCSV(input) {
       appState.players.push({ id: nextJersey(team), pid: nextPid(), name, team, group: group||'1' });
       added++;
     });
-    input.value = ''; saveKeys(['players'], true); showToast(`Imported ${added} players`, 'success');
+    input.value = ''; saveKeys(['players'], true); showToast(`นำเข้าแล้ว ${added} คน`, 'success');
   };
   reader.readAsText(file);
 }

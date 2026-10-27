@@ -10,13 +10,15 @@ let _wzStep = 1;
 let _wzReassignData = []; // [{id, name, team, group}]
 
 function openSeasonWizard() {
-  if (userRole !== 'superadmin') return showToast('⛔ Superadmin เท่านั้น', 'error');
+  if (userRole !== 'superadmin') return showToast('Superadmin เท่านั้น', 'error');
   _wzStep = 1;
   document.getElementById('wzCurrentYear').textContent = new Date().getFullYear();
   document.getElementById('wzMatchCount').textContent = (appState.matchHistory||[]).length;
   document.getElementById('wzNewSeasonYear').value = String(new Date().getFullYear() + 1);
   document.getElementById('wzNewSeasonName').value = `Sports Day ${new Date().getFullYear() + 1}`;
-  document.getElementById('wzArchiveStatus').style.display = 'none';
+  document.getElementById('wzArchiveStatus').hidden = true;
+  const ab = document.getElementById('wzArchiveBtn');   // a wizard reopened after an archive must not show a stuck "กำลัง Archive"
+  if (ab) { ab.disabled = false; ab.innerHTML = dsIcon('floppy-disk') + 'Archive เลย'; }
   wzGoStep(1);
   document.getElementById('seasonWizardModal').classList.add('open');
 }
@@ -28,13 +30,16 @@ function wzGoStep(step) {
     document.getElementById(`wzStep${n}`).style.display   = n===step ? 'block' : 'none';
     const ind = document.getElementById(`wzStep${n}Ind`);
     ind.className = 'wizard-step' + (n===step?' active':n<step?' done':'');
+    if (n === step) ind.setAttribute('aria-current', 'step'); else ind.removeAttribute('aria-current');
   });
   if (step === 3) wzBuildReassignGrid();
   if (step === 4) wzBuildConfirmSummary();
+  const sheet = document.querySelector('#seasonWizardModal .ds-sheet'); if (sheet) sheet.scrollTop = 0;   // a new step starts at the top
 }
 
 async function wzArchiveSeason() {
-  const btn = event.target; btn.disabled = true; btn.textContent = '⏳ กำลัง Archive...';
+  const btn = event.currentTarget || (event.target && event.target.closest && event.target.closest('button'));
+  if (btn) { btn.disabled = true; btn.innerHTML = dsIcon('hourglass-medium') + 'กำลัง Archive…'; }
   const statusEl = document.getElementById('wzArchiveStatus');
   try {
     const year = String(appState.seasonYear || new Date().getFullYear());
@@ -79,18 +84,15 @@ async function wzArchiveSeason() {
     if (Object.keys(updates).length) await masterPlayersRef.update(updates);
     await loadMasterPlayers();
 
-    statusEl.style.display = 'block';
-    statusEl.style.background = 'rgba(0,230,118,0.08)';
-    statusEl.style.border = '1px solid rgba(0,230,118,0.2)';
-    statusEl.style.color = 'var(--green)';
-    statusEl.textContent = `✅ Archive season ${year} สำเร็จ! (${hist.length} แมตช์ · ${(appState.players||[]).length} คน${assigned ? ` · ออก pid ใหม่ ${assigned}` : ''})`;
+    statusEl.hidden = false;
+    statusEl.className = 'ds-banner is-ok';
+    statusEl.innerHTML = `${dsIcon('check-circle')}<div>Archive season ${escHtml(year)} สำเร็จ (${hist.length} แมตช์ · ${(appState.players||[]).length} คน${assigned ? ` · ออก pid ใหม่ ${assigned}` : ''})</div>`;
     setTimeout(() => wzGoStep(2), 1400);
   } catch(e) {
-    statusEl.style.display='block';
-    statusEl.style.background='rgba(255,59,92,0.08)';
-    statusEl.style.color='var(--danger)';
-    statusEl.textContent = `❌ Error: ${e.message}`;
-    btn.disabled = false; btn.textContent = '📦 Archive Now';
+    statusEl.hidden = false;
+    statusEl.className = 'ds-banner is-err';
+    statusEl.innerHTML = `${dsIcon('warning-circle')}<div>Archive ไม่สำเร็จ: ${escHtml(e.message)}</div>`;
+    if (btn) { btn.disabled = false; btn.innerHTML = dsIcon('floppy-disk') + 'Archive เลย'; }
   }
 }
 function wzSkipArchive() { wzGoStep(2); }
@@ -113,14 +115,14 @@ function wzPaintReassignGrid() {
   grid.innerHTML = _wzReassignData.map((p, i) => `
     <div class="reassign-card${p.keep ? '' : ' wz-dropped'}">
       <label class="wz-keep" title="ติ๊ก = เล่นซีซั่นใหม่ด้วย">
-        <input type="checkbox" ${p.keep ? 'checked' : ''} data-idx="${i}" onchange="wzToggleKeep(this)">
+        <input type="checkbox" ${p.keep ? 'checked' : ''} data-idx="${i}" aria-label="${escHtml(p.name)} เล่นต่อ" onchange="wzToggleKeep(this)">
       </label>
-      <div class="reassign-name">${escHtml(p.name)}<span class="wz-pid">${p.pid || '—'}</span></div>
-      <select class="reassign-select" data-idx="${i}" data-field="team" onchange="wzUpdatePlayer(this)" ${p.keep ? '' : 'disabled'}>
-        <option value="Red"  ${p.team==='Red' ?'selected':''}>🔴 Red</option>
-        <option value="Blue" ${p.team==='Blue'?'selected':''}>🔵 Blue</option>
+      <div class="reassign-name"><span class="reassign-n">${escHtml(p.name)}</span><span class="wz-pid">${escHtml(p.pid || '—')}</span></div>
+      <select class="ds-select reassign-select ${p.team==='Red' ? 'is-red' : 'is-blue'}" aria-label="ทีมของ ${escHtml(p.name)}" data-idx="${i}" data-field="team" onchange="wzUpdatePlayer(this)" ${p.keep ? '' : 'disabled'}>
+        <option value="Red"  ${p.team==='Red' ?'selected':''}>Red</option>
+        <option value="Blue" ${p.team==='Blue'?'selected':''}>Blue</option>
       </select>
-      <select class="reassign-select" data-idx="${i}" data-field="group" onchange="wzUpdatePlayer(this)" style="width:52px;" ${p.keep ? '' : 'disabled'}>
+      <select class="ds-select reassign-select" aria-label="กลุ่มของ ${escHtml(p.name)}" data-idx="${i}" data-field="group" onchange="wzUpdatePlayer(this)" ${p.keep ? '' : 'disabled'}>
         <option value="1" ${p.group==='1'?'selected':''}>G1</option>
         <option value="2" ${p.group==='2'?'selected':''}>G2</option>
         <option value="3" ${p.group==='3'?'selected':''}>G3</option>
@@ -140,6 +142,7 @@ function wzKeepAll(on) {
 function wzUpdatePlayer(sel) {
   const idx = Number(sel.dataset.idx);
   _wzReassignData[idx][sel.dataset.field] = sel.value;
+  if (sel.dataset.field === 'team') { sel.classList.toggle('is-red', sel.value === 'Red'); sel.classList.toggle('is-blue', sel.value === 'Blue'); }
 }
 
 function wzShufflePlayers() {
@@ -152,7 +155,7 @@ function wzShufflePlayers() {
   }
   keep.forEach((p, i) => { p.team = teams[i]; });
   wzPaintReassignGrid();
-  showToast('🎲 สุ่มทีมใหม่แล้ว แก้รายคนได้', 'info');
+  showToast('สุ่มทีมใหม่แล้ว แก้รายคนได้', 'info');
 }
 
 // ── Step 3b: brand-new players for the coming season ───────────
@@ -176,10 +179,11 @@ function wzPaintNewPlayers() {
   el.innerHTML = _wzNewPlayers.length
     ? _wzNewPlayers.map((p, i) => `
         <span class="wz-newchip ${p.team === 'Red' ? 'is-red' : 'is-blue'}">
-          ${escHtml(p.name)} <b>G${p.group}</b>
-          <button onclick="wzRemoveNewPlayer(${i})" title="เอาออก">✕</button>
+          <span class="ds-team ${p.team === 'Red' ? 'ds-team-red' : 'ds-team-blue'}">${p.team === 'Red' ? 'RED' : 'BLUE'}</span>
+          <span class="wz-newchip-n">${escHtml(p.name)} <b>G${escHtml(p.group)}</b></span>
+          <button type="button" onclick="wzRemoveNewPlayer(${i})" title="เอาออก" aria-label="เอา ${escHtml(p.name)} ออก">${dsIcon('x')}</button>
         </span>`).join('')
-    : '<span style="font-size:12px;color:var(--muted);">ยังไม่ได้เพิ่มใคร</span>';
+    : '<span class="ds-help">ยังไม่ได้เพิ่มใคร</span>';
 }
 
 function wzBuildConfirmSummary() {
@@ -195,13 +199,19 @@ function wzBuildConfirmSummary() {
     return orig && orig.team !== p.team;
   }).length;
   document.getElementById('wzConfirmSummary').innerHTML = `
-    <b style="color:var(--gold);">📅 Season ใหม่:</b> ${escHtml(name)} (${escHtml(year)})<br>
-    <b style="color:var(--gold);">👥 ผู้เล่น:</b> ${total} คน — 🔴 ${reds} / 🔵 ${blues}<br>
-    <span style="color:var(--text2);">• กลับมาเล่นต่อ ${keep.length} คน${switched ? ` (ย้ายสี ${switched} คน — จะได้เบอร์เสื้อใหม่)` : ''}</span><br>
-    <span style="color:var(--text2);">• ผู้เล่นใหม่ ${_wzNewPlayers.length} คน</span><br>
-    ${dropped ? `<span style="color:var(--muted);">• ไม่ได้ไปต่อ ${dropped} คน — ประวัติยังอยู่ใน masterPlayers</span><br>` : ''}
-    <b style="color:var(--danger);">🗑️ Reset:</b> ผลการแข่ง, คะแนนทีม, ongoing matches<br>
-    <b style="color:var(--green);">✅ ยกมา:</b> รูป, โปรไฟล์, โน้ตสกาวต์ ของคนที่ไปต่อ
+    <div class="wz-sum-h"><b>${escHtml(name)}</b><span class="ds-chip ds-chip-gold">${escHtml(year)}</span></div>
+    <div class="wz-sum-stats">
+      <div class="wz-stat"><span class="ds-num">${total}</span><span>ผู้เล่น</span></div>
+      <div class="wz-stat is-red"><span class="ds-num">${reds}</span><span class="ds-team ds-team-red">RED</span></div>
+      <div class="wz-stat is-blue"><span class="ds-num">${blues}</span><span class="ds-team ds-team-blue">BLUE</span></div>
+    </div>
+    <ul class="wz-list">
+      <li>${dsIcon('check-circle')}กลับมาเล่นต่อ ${keep.length} คน${switched ? ` (ย้ายสี ${switched} คน — จะได้เบอร์เสื้อใหม่)` : ''}</li>
+      <li>${dsIcon('plus')}ผู้เล่นใหม่ ${_wzNewPlayers.length} คน</li>
+      ${dropped ? `<li class="is-muted">${dsIcon('minus')}ไม่ได้ไปต่อ ${dropped} คน — ประวัติยังอยู่ใน masterPlayers</li>` : ''}
+    </ul>
+    <div class="rs-line is-del">${dsIcon('trash')}<span><b>รีเซ็ต</b> ผลการแข่ง, คะแนนทีม, แมตช์ที่กำลังแข่ง</span></div>
+    <div class="rs-line is-keep">${dsIcon('check-circle')}<span><b>ยกมา</b> รูปและโปรไฟล์ของคนที่ไปต่อ</span></div>
   `;
 }
 
@@ -250,12 +260,12 @@ function wzConfirmNewSeason() {
   appState.seasonYear   = year;
 
   document.getElementById('seasonNavTitle').textContent = `SPORTS DAY ${year}`;
-  document.getElementById('seasonBadge').textContent = `📅 ${year}`;
+  document.getElementById('seasonBadge').innerHTML = `${dsIcon('calendar-blank')} ${escHtml(year)}`;
   invalidateStatsCache();
   saveData(true);
   _wzNewPlayers = [];
   closeSeasonWizard();
-  showToast(`🚀 ${name} เริ่มแล้ว! (${roster.length} คน)`, 'success');
+  showToast(`${name} เริ่มแล้ว! (${roster.length} คน)`, 'success');
   updateUI();
 }
 
@@ -263,12 +273,17 @@ function wzConfirmNewSeason() {
 async function openSeasonArchive() {
   document.getElementById('seasonArchiveModal').classList.add('open');
   const el = document.getElementById('seasonArchiveContent');
-  el.innerHTML = `<div style="text-align:center;color:var(--muted);padding:24px;">⏳ กำลังโหลด archives...</div>`;
-  const snap = await seasonsArchiveRef.once('value');
-  const archives = snap.val() || {};
+  el.innerHTML = '<div class="ds-skel arc-skel"></div><div class="ds-skel arc-skel"></div>';
+  let archives;
+  try { archives = (await seasonsArchiveRef.once('value')).val() || {}; }
+  catch (e) {
+    console.error('season archive failed:', e);
+    el.innerHTML = `<div class="ds-banner is-err">${dsIcon('warning-circle')}<div>โหลด Archive ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ</div></div><button type="button" class="ds-btn" onclick="openSeasonArchive()">${dsIcon('arrow-clockwise')}ลองใหม่</button>`;
+    return;
+  }
   const years = Object.keys(archives).sort((a,b) => b.localeCompare(a));
   if (!years.length) {
-    el.innerHTML = `<div style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">ยังไม่มี Season ที่ archive ไว้<br><span style="font-size:11px;margin-top:6px;display:block;">ใช้ New Season Wizard เพื่อ archive season ปัจจุบัน</span></div>`;
+    el.innerHTML = `<div class="ds-empty">${dsArt('court')}<div class="ds-empty-title">ยังไม่มี Season ที่ archive ไว้</div><div class="ds-empty-text">ใช้ เริ่ม Season ใหม่ เพื่อ archive season ปัจจุบัน</div></div>`;
     return;
   }
   el.innerHTML = years.map(year => {
@@ -276,36 +291,43 @@ async function openSeasonArchive() {
     const mCount = (d.matchHistory||[]).length;
     const pCount = (d.players||[]).length;
     const rScore = d.globalScoreRed||0, bScore = d.globalScoreBlue||0;
-    const winner = rScore>bScore?'🔴 RED':'🔵 BLUE';
-    const wc = rScore>bScore?'var(--red)':'var(--blue)';
-    return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4em;letter-spacing:3px;color:var(--gold);">📅 ${escHtml(d.seasonName||year)}</div>
-        <div style="font-size:11px;color:var(--muted);">archived ${d.archivedAt?new Date(d.archivedAt).toLocaleDateString('th-TH'):year}</div>
+    const win = rScore === bScore ? { cls: 'draw', html: 'เสมอ' }
+      : rScore > bScore ? { cls: 'red', html: '<span class="ds-team ds-team-red">RED</span> ชนะ' }
+      : { cls: 'blue', html: '<span class="ds-team ds-team-blue">BLUE</span> ชนะ' };
+    return `<article class="arc-card">
+      <div class="arc-head">
+        <h3 class="arc-name">${escHtml(d.seasonName||year)}</h3>
+        <span class="arc-date">เก็บเมื่อ ${d.archivedAt ? new Date(d.archivedAt).toLocaleDateString('th-TH') : escHtml(year)}</span>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-        <div class="career-stat-box"><div class="career-stat-val" style="color:var(--text);">${pCount}</div><div class="career-stat-lbl">ผู้เล่น</div></div>
-        <div class="career-stat-box"><div class="career-stat-val" style="color:var(--text);">${mCount}</div><div class="career-stat-lbl">แมตช์</div></div>
-        <div class="career-stat-box"><div class="career-stat-val" style="color:var(--red);">${rScore}</div><div class="career-stat-lbl">RED PTS</div></div>
-        <div class="career-stat-box"><div class="career-stat-val" style="color:var(--blue);">${bScore}</div><div class="career-stat-lbl">BLUE PTS</div></div>
-        <div class="career-stat-box"><div class="career-stat-val" style="color:${wc};font-size:0.9em;">${winner}</div><div class="career-stat-lbl">ชนะ</div></div>
+      <div class="arc-stats">
+        <div class="arc-stat"><span class="ds-num">${pCount}</span><span>ผู้เล่น</span></div>
+        <div class="arc-stat"><span class="ds-num">${mCount}</span><span>แมตช์</span></div>
+        <div class="arc-stat is-red"><span class="ds-num">${rScore}</span><span>RED คะแนน</span></div>
+        <div class="arc-stat is-blue"><span class="ds-num">${bScore}</span><span>BLUE คะแนน</span></div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="wzLoadArchivePlayers('${year}')" style="font-size:11px;">👥 ดูรายชื่อผู้เล่น</button>
-    </div>`;
-  }).join('') + `<div style="padding:12px 0;border-top:1px solid var(--border);margin-top:8px;text-align:center;">
-    <span style="font-size:12px;color:var(--muted);">Season ปัจจุบัน: 2026 (live)</span>
-  </div>`;
+      <div class="arc-foot">
+        <span class="arc-win is-${win.cls}">${win.html}</span>
+        <button type="button" class="ds-btn ds-btn-sm" aria-expanded="false" aria-controls="arcRoster-${escHtml(year)}" onclick="wzLoadArchivePlayers('${escHtml(year)}', this)">${dsIcon('users')}ดูรายชื่อผู้เล่น</button>
+      </div>
+      <div class="arc-roster" id="arcRoster-${escHtml(year)}" hidden></div>
+    </article>`;
+  }).join('') + `<p class="ds-help arc-now">Season ปัจจุบัน: ${escHtml(String(appState.seasonYear || new Date().getFullYear()))} (live)</p>`;
 }
 function closeSeasonArchive() { document.getElementById('seasonArchiveModal').classList.remove('open'); }
 
-async function wzLoadArchivePlayers(year) {
-  const snap = await seasonsArchiveRef.child(`${year}/players`).once('value');
-  const players = snap.val() || [];
-  if (!players.length) return showToast('ไม่พบข้อมูลผู้เล่น', 'warning');
-  const reds = players.filter(p=>p.team==='Red').map(p=>escHtml(p.name)).join(', ');
-  const blues = players.filter(p=>p.team==='Blue').map(p=>escHtml(p.name)).join(', ');
-  showToast(`🔴 Red: ${reds||'—'}`, 'info');
-  setTimeout(() => showToast(`🔵 Blue: ${blues||'—'}`, 'info'), 800);
+// the roster of an archived season, folded open under its card (a second tap folds it again)
+async function wzLoadArchivePlayers(year, btn) {
+  const box = document.getElementById('arcRoster-' + year);
+  if (box && !box.hidden) { box.hidden = true; if (btn) btn.setAttribute('aria-expanded', 'false'); return; }
+  let players;
+  try { players = (await seasonsArchiveRef.child(`${year}/players`).once('value')).val() || []; }
+  catch (e) { return showToast('โหลดรายชื่อไม่สำเร็จ', 'error'); }
+  if (!Array.isArray(players)) players = Object.values(players);
+  if (!players.length || !box) return showToast('ไม่พบข้อมูลผู้เล่น', 'warning');
+  const list = team => players.filter(p => p.team === team).map(p => `<li>${escHtml(p.name)}</li>`).join('') || '<li class="ds-muted">—</li>';
+  box.innerHTML = `<div class="arc-col"><span class="ds-team ds-team-red">RED</span><ul>${list('Red')}</ul></div><div class="arc-col"><span class="ds-team ds-team-blue">BLUE</span><ul>${list('Blue')}</ul></div>`;
+  box.hidden = false;
+  if (btn) btn.setAttribute('aria-expanded', 'true');
 }
 
 // เพิ่ม season modals ใน Escape handler
