@@ -57,7 +57,7 @@
 }
 .mnoti-game-winner.red { color: var(--red-text); border-color: var(--red); background: var(--red-dim); }
 .mnoti-game-winner.blue { color: var(--blue-text); border-color: var(--blue); background: var(--blue-dim); }
-.mnoti-game-winner.draw { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
+.mnoti-game-winner.draw { color: var(--gold-text); border-color: var(--gold-line); background: var(--gold-dim); }
 
 /* the verdict */
 #matchNotiResultLine {
@@ -67,7 +67,7 @@
 #matchNotiResultLine:empty { display: none; }
 #matchNotiResultLine[data-tone="red"] { background: var(--red-fill); border-color: var(--red); color: var(--red-ink); }
 #matchNotiResultLine[data-tone="blue"] { background: var(--blue-fill); border-color: var(--blue); color: var(--blue-ink); }
-#matchNotiResultLine[data-tone="draw"] { background: var(--gold-dim); border-color: var(--gold-line); color: var(--gold); }
+#matchNotiResultLine[data-tone="draw"] { background: var(--gold-dim); border-color: var(--gold-line); color: var(--gold-text); }
 #matchNotiResultLine small { display: block; margin-top: 2px; color: inherit; font: 600 var(--fs-13)/var(--lh-th) var(--font-ui); opacity: .85; }
 #matchNotiTags { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); }
 #matchNotiTags:empty { display: none; }
@@ -79,7 +79,7 @@
 #matchNotiNarrative:empty { display: none; }
 #matchNotiNarrative p { margin: 0; overflow-wrap: anywhere; }
 #matchNotiNarrative .mnoti-sit { display: flex; align-items: flex-start; gap: var(--sp-2); color: var(--t-hi); }
-#matchNotiNarrative .mnoti-sit .ds-ic { flex: none; margin-top: 3px; color: var(--gold); }
+#matchNotiNarrative .mnoti-sit .ds-ic { flex: none; margin-top: 3px; color: var(--gold-text); }
 
 /* the reaction (emoji burst, the one place emoji are the content) */
 #matchNotiGifWrap:empty { display: none; }

@@ -87,7 +87,7 @@
 }
 .gal-selbar[hidden] { display: none; }
 .gal-sel-count { color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
-.gal-sel-count b { margin: 0 2px; color: var(--gold); font: 400 var(--fs-24)/1 var(--font-num); }
+.gal-sel-count b { margin: 0 2px; color: var(--gold-text); font: 400 var(--fs-24)/1 var(--font-num); }
 .gal-sel-hint { color: var(--t-low); font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); }
 .gal-sel-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); }
 /* in fullscreen the app's bottom nav (about 72 px) sits where this bar would */

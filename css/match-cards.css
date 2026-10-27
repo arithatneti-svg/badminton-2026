@@ -25,7 +25,7 @@
   display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: var(--sp-3) var(--sp-4);
   background: var(--s2); border: 1px solid var(--gold-line); border-radius: var(--r-md); box-shadow: var(--shadow-pop);
 }
-.g1-toast-badge { padding: 4px var(--sp-3); border: 1px solid var(--gold-line); border-radius: var(--r-pill); background: var(--gold-dim); color: var(--gold); font: 800 var(--fs-13)/1.2 var(--font-ui); white-space: nowrap; }
+.g1-toast-badge { padding: 4px var(--sp-3); border: 1px solid var(--gold-line); border-radius: var(--r-pill); background: var(--gold-dim); color: var(--gold-text); font: 800 var(--fs-13)/1.2 var(--font-ui); white-space: nowrap; }
 .g1-toast-score { display: inline-flex; align-items: baseline; gap: 6px; font: 400 2rem/1 var(--font-num); font-variant-numeric: tabular-nums; }
 .g1-toast-score .r { color: var(--red); }
 .g1-toast-score .b { color: var(--blue); }
@@ -50,11 +50,11 @@
 }
 .result-badge.win-red { background: rgba(255,59,92,0.12); color: var(--red); border: 1px solid rgba(255,59,92,0.2); }
 .result-badge.win-blue { background: rgba(59,142,255,0.12); color: var(--blue); border: 1px solid rgba(59,142,255,0.2); }
-.result-badge.draw { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(245,200,66,0.2); }
+.result-badge.draw { background: var(--gold-dim); color: var(--gold-text); border: 1px solid rgba(245,200,66,0.2); }
 
 .red-text { color: var(--red); font-weight: 700; }
 .blue-text { color: var(--blue); font-weight: 700; }
-.gold-text { color: var(--gold); }
+.gold-text { color: var(--gold-text); }
 
 /* MATCH TAGS — the badges a match earns (Epic Comeback, The Gladiators …). A chip with an icon and the name; the colour is
    rare on purpose: amber for a comeback, gold for a close one, the rest neutral. Shared with the player profile and the pop-up. */
@@ -65,6 +65,6 @@
 }
 .finished-tag .ds-ic { flex: none; width: 14px; height: 14px; }
 .tag-comeback { color: var(--warn); border-color: var(--warn-line); background: var(--warn-fill); }
-.tag-clutch { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
+.tag-clutch { color: var(--gold-text); border-color: var(--gold-line); background: var(--gold-dim); }
 .tag-blowout, .tag-custom { color: var(--t-hi); border-color: var(--line-strong); background: var(--s3); }
 .tag-normal { color: var(--t-mid); border-color: var(--line); background: transparent; }

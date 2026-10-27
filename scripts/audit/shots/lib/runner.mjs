@@ -181,7 +181,7 @@ export async function runAttempt({ cdp, env, scenario, vp, handle }) {
       await S('Emulation.setSafeAreaInsetsOverride', { insets: land ? { top: 0, bottom: 21, left: 47, right: 47 } : { top: 47, bottom: 34, left: 0, right: 0 } }).catch(() => {});
     }
 
-    const cfg = Object.assign({ now: env.realTime ? 0 : FIXED_NOW, seed: 20261024, role: scenario.role || '', hold: !!scenario.hold, storage: scenario.storage || {}, dataDelayMs: 15 }, scenario.cfg || {});
+    const cfg = Object.assign({ now: env.realTime ? 0 : FIXED_NOW, seed: 20261024, role: scenario.role || '', hold: !!scenario.hold, storage: Object.assign({}, scenario.storage || {}, process.env.SHOTS_THEME ? { bdm_theme: process.env.SHOTS_THEME } : {}), dataDelayMs: 15 }, scenario.cfg || {});
     const preload = `window.__SHOTS_CFG = ${JSON.stringify(cfg)};\n` + env.preloadSource;
     await S('Page.addScriptToEvaluateOnNewDocument', { source: preload });
 

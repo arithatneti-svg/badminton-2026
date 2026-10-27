@@ -24,13 +24,13 @@
   -webkit-mask: var(--ic-timer) center / contain no-repeat; mask: var(--ic-timer) center / contain no-repeat;
 }
 .court-card-timer[data-tone="ok"] { color: var(--live); }
-.court-card-timer[data-tone="warn"] { color: var(--gold); }
+.court-card-timer[data-tone="warn"] { color: var(--gold-text); }
 .court-card-timer[data-tone="late"] { color: var(--err); }
 .court-card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: 0 var(--sp-4); }
 .court-card-umpire { display: inline-flex; align-items: center; gap: 6px; color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
 
 .climax-badge { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 var(--sp-3); border: 1px solid; border-radius: var(--r-pill); font: 800 var(--fs-13)/1 var(--font-ui); }
-.climax-badge.type-climax { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
+.climax-badge.type-climax { color: var(--gold-text); border-color: var(--gold-line); background: var(--gold-dim); }
 .climax-badge.type-deuce { color: var(--warn); border-color: var(--warn-line); background: var(--warn-fill); letter-spacing: .1em; }
 
 /* ── the score: one line per game, a plate per side ── */
@@ -38,7 +38,7 @@
 .court-score-row { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: var(--sp-3); }
 .court-gside { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
 .court-glabel { padding: 2px var(--sp-2); border-radius: var(--r-xs); background: var(--s3); color: var(--t-mid); font: 700 var(--fs-13)/1.4 var(--font-ui); white-space: nowrap; }
-.court-glabel.g2 { background: var(--gold-dim); color: var(--gold); }
+.court-glabel.g2 { background: var(--gold-dim); color: var(--gold-text); }
 .court-score-nums { display: flex; align-items: center; justify-content: center; gap: var(--sp-2); min-width: 0; }
 .court-snum {
   --fill: var(--red-fill); --edge: var(--red);

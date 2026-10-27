@@ -18,7 +18,7 @@ const ASSETS = join(DIST, 'assets');
 // ---- load order (must match index.html / umpire.html) ----
 const CSS = ['tokens','base','ui','login','nav','scoreboard','match-cards','tables-modals','dashboard','picker','board',
   'notifications','ongoing-finished','climax','fullscreen','report','gallery','trophy',
-  'responsive','profile','components','backup','qr','tv'].map(n => `css/${n}.css`);
+  'responsive','profile','components','backup','qr','tv','paper'].map(n => `css/${n}.css`);
 
 const JS = [
   'shared/firebase-config.js','shared/icons.js','shared/art.js',
@@ -31,7 +31,7 @@ const JS = [
   'shared/version.js','shared/pwa.js',
 ];
 
-const UMP_CSS = ['css/tokens.css','css/ui.css','css/umpire.css'];
+const UMP_CSS = ['css/tokens.css','css/ui.css','css/umpire.css','css/paper.css'];
 const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/icons.js','shared/art.js','shared/sync-merge.js','shared/match-time.js','umpire/tap-gate.js','umpire/umpire.js'];
 
 const ICONS = readdirSync(join(root,'icons')).filter(f => f.endsWith('.png'));

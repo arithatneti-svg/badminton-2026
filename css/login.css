@@ -67,7 +67,7 @@ html.skip-login #loginOverlay { display: none; }
 }
 .login-role:active { background: var(--s4); }
 @media (hover: hover) { .login-role:hover { background: var(--s3); border-color: var(--t-low); } }
-.login-role-ic { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--s3); color: var(--gold); }
+.login-role-ic { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--s3); color: var(--gold-text); }
 .login-role-txt { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .login-role-main { font: 700 var(--fs-16)/1.3 var(--font-ui); }
 .login-role-sub { font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); color: var(--t-low); }
@@ -84,7 +84,7 @@ html.skip-login #loginOverlay { display: none; }
 /* ── PASSCODE SHEET ── */
 .passcode-box { display: grid; gap: var(--sp-3); align-content: start; }
 .passcode-box .ds-sheet-title { display: flex; align-items: center; gap: var(--sp-2); }
-.passcode-box .ds-sheet-title .ds-ic { color: var(--gold); }
+.passcode-box .ds-sheet-title .ds-ic { color: var(--gold-text); }
 .passcode-box .ds-sheet-actions { margin-top: var(--sp-2); }
 .passcode-field .ds-input { letter-spacing: .2em; }
 

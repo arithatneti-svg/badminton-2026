@@ -1,0 +1,37 @@
+/* ============================================================
+   PAPER THEME LAYER - loaded last, every rule scoped to [data-theme="paper"], so the dark theme never sees it.
+   Colours come from the token block in css/tokens.css. This file adds what a token cannot:
+   1. a grain of paper fibre (a tiny tiled SVG, multiplied into the page)
+   2. ink-coloured court lines and flat, hard "print" shadows instead of soft ones
+   3. the "ink on a solid team field" remap: inside a red / blue field the text tokens become the cream ink, so a
+      tag word, a digit or a quiet line stays readable without every component knowing about the theme
+   ============================================================ */
+
+/* 1 · grain (behind the content: .container and the fixed bars sit above it) */
+[data-theme="paper"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .55; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .30 0 0 0 0 .22 0 0 0 0 .12 0 0 0 .20 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* 2 · ink court lines + print shadows */
+[data-theme="paper"] .ds-court-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 134 61' fill='none' stroke='%230b2a52' stroke-opacity='.14' stroke-width='.5'%3E%3Crect x='.25' y='.25' width='133.5' height='60.5'/%3E%3Cpath d='M0 4.6H134M0 56.4H134M67 0V61M47.2 0V61M86.8 0V61M7.6 0V61M126.4 0V61M0 30.5H47.2M86.8 30.5H134'/%3E%3C/svg%3E");
+}
+[data-theme="paper"] :is(.ds-card, .ds-hero, .login-card, .ds-sheet) { box-shadow: 3px 3px 0 rgba(11, 42, 82, .14); }
+
+/* 3 · ink on a solid team field. The list is every component that paints a solid red / blue field. */
+[data-theme="paper"] :is(
+  .score-panel, .result-win, .vsi-side,
+  .lv-team, .idl-team, .court-snum,
+  .tv-field, .tv-team, .tv-ev-result,
+  .db-kpi.is-red, .db-kpi.is-blue, .rp-hs-red, .rp-hs-blue,
+  .wz-stat.is-red, .wz-stat.is-blue, .arc-stat.is-red, .arc-stat.is-blue,
+  .cf-result.is-red, .cf-result.is-blue, .fr-stepper, .fr-live.is-red, .fr-live.is-blue,
+  .qs-team.red, .qs-team.blue, .cer-stat.is-red, .cer-stat.is-blue, #trophyBg,
+  .mb-slot.filled, .mb-chip.picked, .mb-pooltab.red, .mb-pooltab.blue,
+  #matchNotiResultLine[data-tone="red"], #matchNotiResultLine[data-tone="blue"]
+) {
+  --t-hi: var(--on-field); --t-mid: var(--on-field); --t-low: var(--on-field);
+  --red-text: var(--red-ink); --blue-text: var(--blue-ink); --gold-text: var(--on-field);
+  --digit: var(--on-field); --word: var(--on-field);
+}

@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Badminton Sports Day 2026 - Scoreboard</title>
+<!-- theme: dark (default) or paper. ?theme=paper / ?theme=dark picks one and remembers it on this device.
+     Set before first paint so there is no flash. The default is the 'dark' below. -->
+<script>
+try {
+  var _q = new URLSearchParams(location.search).get('theme');
+  if (_q === 'paper' || _q === 'dark') localStorage.setItem('bdm_theme', _q);
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('bdm_theme') === 'paper' ? 'paper' : 'dark');
+} catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+</script>
 <!-- Returning viewers / TV / QR links never see the login screen: decide before
      first paint instead of waiting for window load (which flashed the login). -->
 <script>
@@ -62,6 +71,7 @@ try {
 <link rel="stylesheet" href="css/backup.css?v=2026.10.27.1">
 <link rel="stylesheet" href="css/qr.css?v=2026.10.27.1">
 <link rel="stylesheet" href="css/tv.css?v=2026.10.27.1">
+<link rel="stylesheet" href="css/paper.css?v=2026.10.27.1">
 <!-- App scripts. defer keeps original order AND avoids the cross-file load race. -->
 <script defer src="js/utils.js?v=2026.10.27.1"></script>
 <script defer src="js/auth.js?v=2026.10.27.1"></script>

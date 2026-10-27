@@ -52,7 +52,7 @@
 .pf-kpi { display: grid; justify-items: center; align-content: center; gap: var(--sp-1); }
 .pf-kpi + .pf-kpi { border-left: 1px solid var(--line-strong); }
 .pf-kpi b { color: var(--t-hi); font: 400 var(--fs-56)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; }
-.pf-kpi:first-child b { color: var(--gold); }
+.pf-kpi:first-child b { color: var(--gold-text); }
 .pf-kpi b small { margin-left: 2px; color: var(--t-low); font-size: var(--fs-20); }
 .pf-kpi > span { color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
 
@@ -182,13 +182,13 @@
 .pd-career-row.is-blue { --edge: var(--blue); }
 .pd-career-row.is-current { background: var(--gold-dim); border-color: var(--gold-line); }
 .pdc-year { display: grid; justify-items: start; align-content: center; gap: 2px; color: var(--t-hi); font: 400 var(--fs-24)/1 var(--font-num); }
-.pdc-now { color: var(--gold); font: 700 var(--fs-12)/1.2 var(--font-ui); white-space: nowrap; }
+.pdc-now { color: var(--gold-text); font: 700 var(--fs-12)/1.2 var(--font-ui); white-space: nowrap; }
 .pdc-team { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); color: var(--t-mid); font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); }
 .pdc-stats { display: flex; flex-wrap: wrap; gap: 0 var(--sp-3); color: var(--t-mid); font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); font-variant-numeric: tabular-nums; }
 .pdc-stats b { color: var(--t-hi); }
 .pd-career-note { margin: 0; }
 .pd-past-season { display: grid; gap: var(--sp-2); }
-.pd-past-head { display: flex; align-items: baseline; gap: var(--sp-3); color: var(--gold); font: 400 var(--fs-24)/1 var(--font-num); }
+.pd-past-head { display: flex; align-items: baseline; gap: var(--sp-3); color: var(--gold-text); font: 400 var(--fs-24)/1 var(--font-num); }
 .pd-past-head span { color: var(--t-low); font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); }
 @media (min-width: 640px) {
   .pd-career-row { grid-template-columns: 84px minmax(0, 1fr); align-items: center; }
@@ -248,9 +248,9 @@
 .awi-box .modal-title { text-align: center; margin: 0; }
 .awi-list { list-style: none; display: grid; gap: var(--sp-3); }
 .awi-item { display: flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
-.awi-ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--gold-dim); color: var(--gold); font-size: 20px; }
+.awi-ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--gold-dim); color: var(--gold-text); font-size: 20px; }
 .awi-txt { display: grid; gap: 2px; min-width: 0; }
-.awi-txt b { color: var(--gold); font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); }
+.awi-txt b { color: var(--gold-text); font: 700 var(--fs-16)/var(--lh-th) var(--font-ui); }
 .awi-txt b span { color: var(--t-mid); font-weight: 600; }
 .awi-txt p { margin: 0; color: var(--t-hi); font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); }
 .awi-txt small { color: var(--t-low); font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); }

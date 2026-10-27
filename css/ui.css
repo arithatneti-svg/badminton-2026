@@ -65,7 +65,7 @@
 }
 .ds-chip.is-btn { min-height: var(--tap); cursor: pointer; touch-action: manipulation; padding: 0 var(--sp-4); }
 .ds-chip.is-on { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
-.ds-chip-gold { background: var(--gold-dim); border-color: var(--gold-line); color: var(--gold); }
+.ds-chip-gold { background: var(--gold-dim); border-color: var(--gold-line); color: var(--gold-text); }
 .ds-chip-live { background: var(--live-fill); border-color: var(--live-line); color: var(--live); }
 .ds-chip-warn { background: var(--warn-fill); border-color: var(--warn-line); color: var(--warn); }
 .ds-chip-err { background: var(--err-fill); border-color: var(--err-line); color: var(--err); }
@@ -109,7 +109,7 @@
 }
 
 /* ── dialog / bottom sheet (phone: slides up; laptop: centred) ── */
-.ds-scrim { position: fixed; inset: 0; z-index: var(--z-modal); display: none; align-items: flex-end; justify-content: center; background: rgba(3, 3, 8, .86); }
+.ds-scrim { position: fixed; inset: 0; z-index: var(--z-modal); display: none; align-items: flex-end; justify-content: center; background: var(--scrim); }
 .ds-scrim.is-open { display: flex; }
 .ds-sheet {
   width: 100%; max-width: 520px; max-height: calc(100dvh - var(--sat) - 12px); overflow: auto; overscroll-behavior: contain;

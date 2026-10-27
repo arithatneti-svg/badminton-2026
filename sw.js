@@ -50,6 +50,7 @@ const SHELL = [
     "css/tables-modals.css",
     "css/trophy.css",
     "css/umpire.css",
+    "css/paper.css",
     "js/auth.js",
     "js/backup.js",
     "js/career.js",

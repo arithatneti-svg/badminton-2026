@@ -57,7 +57,7 @@
   transform: scaleX(0); transition: transform var(--dur-state) var(--ease-out);
 }
 .tab-btn.active { color: var(--t-hi); }
-.tab-btn.active .tab-ico { color: var(--gold); }
+.tab-btn.active .tab-ico { color: var(--gold-text); }
 .tab-btn.active::after { transform: scaleX(1); }
 .tab-btn:focus-visible { outline-offset: -3px; }
 @media (hover: hover) { .tab-btn:hover { color: var(--t-hi); background: var(--s1); } }
@@ -78,7 +78,7 @@
   border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--s2); color: var(--t-mid);
   font: 700 var(--fs-12)/1 var(--font-ui); white-space: nowrap;
 }
-.role-chip[data-role="superadmin"] { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
+.role-chip[data-role="superadmin"] { color: var(--gold-text); border-color: var(--gold-line); background: var(--gold-dim); }
 .nav-season {
   height: var(--tap); padding: 0 var(--sp-3); border: 1px solid var(--line-strong); border-radius: var(--r-pill);
   background: var(--s2); color: var(--t-mid); font: 700 var(--fs-12)/42px var(--font-ui); white-space: nowrap;

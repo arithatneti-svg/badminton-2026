@@ -26,7 +26,7 @@
 #finished { max-width: 1120px; }
 .fin-bar { display: grid; gap: var(--sp-3); }
 .fin-title { margin: 0; }
-.fin-title .ds-ic { color: var(--gold); }
+.fin-title .ds-ic { color: var(--gold-text); }
 .fin-controls { display: flex; gap: var(--sp-2); }
 .fin-search {
   flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-2); min-height: var(--tap); padding: 0 var(--sp-3);
@@ -92,7 +92,7 @@
 }
 .fm-result.red { color: var(--red-text); border-color: var(--red); background: var(--red-dim); }
 .fm-result.blue { color: var(--blue-text); border-color: var(--blue); background: var(--blue-dim); }
-.fm-result.draw { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }
+.fm-result.draw { color: var(--gold-text); border-color: var(--gold-line); background: var(--gold-dim); }
 
 .fm-body { display: grid; gap: var(--sp-1); }
 .fm-cols, .fm-team { display: grid; grid-template-columns: minmax(0, 1fr) 56px; align-items: center; column-gap: var(--sp-2); }

@@ -32,7 +32,7 @@
   line-height: 1.3;
   letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-text);
   margin: var(--sp-6) 0 var(--sp-3);
   display: flex;
   align-items: center;
@@ -95,7 +95,7 @@ select option { background: var(--s2); }
 .lv-live { font-weight: 800; letter-spacing: .12em; }
 .lv-match { font-variant-numeric: tabular-nums; }
 .lv-ump, .lv-me { display: inline-flex; align-items: center; gap: 6px; }
-.lv-me { color: var(--gold); font-weight: 700; }
+.lv-me { color: var(--gold-text); font-weight: 700; }
 
 /* ── court chips: every court's score at a glance; tap one to stay on it (a swipeable row on a phone) ── */
 .lv-courts { display: flex; gap: var(--sp-2); overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--sp-4)); padding: 0 var(--sp-4); }
@@ -108,10 +108,10 @@ select option { background: var(--s2); }
   transition: background-color var(--dur-state) var(--ease-out), border-color var(--dur-state) var(--ease-out), color var(--dur-state) var(--ease-out);
 }
 .lv-cchip b { font: 400 1.4em/1 var(--font-num); letter-spacing: .02em; color: var(--t-hi); font-variant-numeric: tabular-nums; }
-.lv-cchip .ds-ic { width: 16px; height: 16px; color: var(--gold); }
+.lv-cchip .ds-ic { width: 16px; height: 16px; color: var(--gold-text); }
 @media (hover: hover) { .lv-cchip:hover { background: var(--s2); color: var(--t-hi); } }
 .lv-cchip.cur { border-color: var(--t-low); color: var(--t-hi); }                                          /* shown now, auto mode */
-.lv-cchip.on { color: var(--gold); border-color: var(--gold-line); background: var(--gold-dim); }          /* pinned */
+.lv-cchip.on { color: var(--gold-text); border-color: var(--gold-line); background: var(--gold-dim); }          /* pinned */
 .lv-cchip.auto.on { color: var(--live); border-color: var(--live-line); background: var(--live-fill); }
 
 /* ── arena ── */
@@ -158,7 +158,7 @@ select option { background: var(--s2); }
 }
 .lv-gamechip {
   display: inline-flex; align-items: center; min-height: 28px; padding: 0 var(--sp-3); border-radius: var(--r-pill);
-  border: 1px solid var(--gold-line); background: var(--gold-dim); color: var(--gold); font: 800 var(--fs-13)/1 var(--font-ui); letter-spacing: .14em;
+  border: 1px solid var(--gold-line); background: var(--gold-dim); color: var(--gold-text); font: 800 var(--fs-13)/1 var(--font-ui); letter-spacing: .14em;
 }
 .lv-set { display: flex; align-items: baseline; gap: var(--sp-2); font: 400 2.25rem/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; }
 .lv-set .g.r { color: var(--red); }
@@ -184,7 +184,7 @@ select option { background: var(--s2); }
 .idl-top { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-4); }
 .idl-pill {
   display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 var(--sp-3); border-radius: var(--r-pill);
-  border: 1px solid var(--gold-line); background: var(--gold-dim); color: var(--gold); font: 700 var(--fs-13)/1 var(--font-ui);
+  border: 1px solid var(--gold-line); background: var(--gold-dim); color: var(--gold-text); font: 700 var(--fs-13)/1 var(--font-ui);
 }
 .idl-sum { color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
 
@@ -235,7 +235,7 @@ body.admin-mode .idl-team .idl-tname:hover, body.admin-mode .idl-team .idl-tname
 .idl-next { padding: var(--sp-4); background: var(--s1); border: 1px solid var(--line-strong); border-radius: var(--r-md); box-shadow: inset 5px 0 0 var(--gold); }
 .idl-next.me { background: var(--s2); border-color: var(--gold-line); }
 .idl-next-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-4); color: var(--t-mid); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); }
-.idl-next-tag { display: inline-flex; align-items: center; gap: 6px; color: var(--gold); font-weight: 800; }
+.idl-next-tag { display: inline-flex; align-items: center; gap: 6px; color: var(--gold-text); font-weight: 800; }
 .idl-next-id { font-variant-numeric: tabular-nums; }
 .idl-next-state { display: inline-flex; align-items: center; gap: 6px; color: var(--t-low); }
 .idl-next-state.on { color: var(--live); }
@@ -250,7 +250,7 @@ body.admin-mode .idl-team .idl-tname:hover, body.admin-mode .idl-team .idl-tname
 @media (min-width: 640px) { .idl-names { font-size: clamp(var(--fs-18), 1.8vw, 1.5rem); } }
 .idl-names i, .idl-q-team i { padding: 0 4px; color: var(--t-low); font-style: normal; }
 .idl-next-vs { align-self: center; color: var(--t-low); font: 400 2rem/1 var(--font-num); letter-spacing: .08em; }
-.idl-me { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: var(--sp-4); color: var(--gold); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); }
+.idl-me { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: var(--sp-4); color: var(--gold-text); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); }
 
 /* the rest of the queue: names only (faces stay on live and next-up cards) */
 .idl-queue { margin-top: var(--sp-5); }
@@ -262,7 +262,7 @@ body.admin-mode .idl-team .idl-tname:hover, body.admin-mode .idl-team .idl-tname
 }
 .idl-q.me { border-color: var(--gold-line); }
 .idl-q-no { color: var(--t-low); font-weight: 800; font-variant-numeric: tabular-nums; }
-.idl-q-id { color: var(--gold); font: 400 1.25rem/1 var(--font-num); letter-spacing: .04em; }
+.idl-q-id { color: var(--gold-text); font: 400 1.25rem/1 var(--font-num); letter-spacing: .04em; }
 .idl-q-team { min-width: 0; overflow-wrap: anywhere; font-weight: 700; }
 .idl-q-team.red { color: var(--red-text); }
 .idl-q-team.blue { color: var(--blue-text); text-align: right; }
