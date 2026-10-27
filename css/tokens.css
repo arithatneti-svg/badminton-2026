@@ -134,7 +134,7 @@
    PAPER THEME - the Color War poster as a UI: warm cream paper, navy ink, solid red / cobalt inks, a yellow marker.
    On paper the "just scored / pressed" fill goes DEEPER (a richer ink), not lighter: the lighter step failed 4.5:1 for the
    cream text on it.
-   Switch: <html data-theme="paper"> - the DEFAULT since release 2026.10.27.3 (set before first paint by the head script of
+   Switch: <html data-theme="paper"> - the DEFAULT since release 2026.10.27.4 (set before first paint by the head script of
    both pages; ?theme=dark or ?theme=paper picks one and remembers it on the device). Only tokens change here; css/paper.css adds the grain,
    ink-coloured court lines and the "ink on a solid field" remap. Colours sampled from the poster
    (paper #f7f2eb / #f8ebd8, navy #092c55, red #ed2f2e, cobalt #0555b3); every text pair below is >= 4.5:1

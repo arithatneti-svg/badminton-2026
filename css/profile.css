@@ -121,12 +121,10 @@
 .pd-fact dd { color: var(--t-hi); font: 600 var(--fs-16)/var(--lh-th) var(--font-ui); overflow-wrap: anywhere; }
 .pd-styles { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 
-/* notes written by the staff: strengths, weaknesses, anything else */
+/* notes written by the staff */
 .pd-notes { display: grid; gap: var(--sp-2); }
 .pd-note { display: grid; gap: var(--sp-1); padding: var(--sp-3) var(--sp-4); background: var(--s1); border: 1px solid var(--line); border-radius: var(--r-md); }
 .pd-note-title { display: flex; align-items: center; gap: var(--sp-2); color: var(--t-hi); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); }
-.pd-note-good .pd-note-title .ds-ic { color: var(--ok); }
-.pd-note-bad .pd-note-title .ds-ic { color: var(--warn); }
 .pd-note-note .pd-note-title .ds-ic { color: var(--t-low); }
 .pd-note-text { color: var(--t-mid); font: 500 var(--fs-14)/1.7 var(--font-ui); white-space: pre-wrap; overflow-wrap: anywhere; }
 
