@@ -4,21 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#07070d">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f6f0e4">
 <title>กรรมการ — คุมคะแนน</title>
-<!-- theme: dark (default) or paper, the same switch as index.html (?theme=paper / ?theme=dark, remembered on this device) -->
+<!-- theme: paper (the default) or dark, the same switch as index.html (?theme=dark / ?theme=paper, remembered on this device) -->
 <script>
 try {
   var _q = new URLSearchParams(location.search).get('theme');
   if (_q === 'paper' || _q === 'dark') localStorage.setItem('bdm_theme', _q);
-  document.documentElement.setAttribute('data-theme', localStorage.getItem('bdm_theme') === 'paper' ? 'paper' : 'dark');
-} catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
-/* paper theme: a cream page wants a cream browser bar and dark status-bar text (the dark theme keeps its black one) */
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('bdm_theme') === 'dark' ? 'dark' : 'paper');
+} catch (e) { document.documentElement.setAttribute('data-theme', 'paper'); }
+/* the metas above are the paper values (cream browser bar, dark status-bar text); the dark theme swaps in its black bar */
 try {
-  if (document.documentElement.getAttribute('data-theme') === 'paper') {
-    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f6f0e4');
-    document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute('content', 'default');
+  if (document.documentElement.getAttribute('data-theme') === 'dark') {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#07070d');
+    document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute('content', 'black-translucent');
   }
 } catch (e) {}
 </script>
@@ -26,24 +26,24 @@ try {
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <!-- Shared Firebase config + init (deferred, runs before umpire.js) -->
-<script defer src="shared/firebase-config.js?v=2026.10.27.2"></script>
-<link rel="stylesheet" href="css/tokens.css?v=2026.10.27.2">
-<link rel="stylesheet" href="css/ui.css?v=2026.10.27.2">
-<link rel="stylesheet" href="css/umpire.css?v=2026.10.27.2">
-<link rel="stylesheet" href="css/paper.css?v=2026.10.27.2">
+<script defer src="shared/firebase-config.js?v=2026.10.27.3"></script>
+<link rel="stylesheet" href="css/tokens.css?v=2026.10.27.3">
+<link rel="stylesheet" href="css/ui.css?v=2026.10.27.3">
+<link rel="stylesheet" href="css/umpire.css?v=2026.10.27.3">
+<link rel="stylesheet" href="css/paper.css?v=2026.10.27.3">
 <!-- PWA: installable Umpire app + offline-tolerant shell -->
 <link rel="manifest" href="umpire.webmanifest">
 <link rel="apple-touch-icon" href="icons/umpire-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Umpire">
-<script defer src="shared/version.js?v=2026.10.27.2"></script>
-<script defer src="shared/pwa.js?v=2026.10.27.2"></script>
-<script defer src="shared/icons.js?v=2026.10.27.2"></script>
-<script defer src="shared/art.js?v=2026.10.27.2"></script>
-<script defer src="shared/sync-merge.js?v=2026.10.27.2"></script>
-<script defer src="shared/match-time.js?v=2026.10.27.2"></script>
-<script defer src="umpire/tap-gate.js?v=2026.10.27.2"></script>
-<script defer src="umpire/umpire.js?v=2026.10.27.2"></script>
+<script defer src="shared/version.js?v=2026.10.27.3"></script>
+<script defer src="shared/pwa.js?v=2026.10.27.3"></script>
+<script defer src="shared/icons.js?v=2026.10.27.3"></script>
+<script defer src="shared/art.js?v=2026.10.27.3"></script>
+<script defer src="shared/sync-merge.js?v=2026.10.27.3"></script>
+<script defer src="shared/match-time.js?v=2026.10.27.3"></script>
+<script defer src="umpire/tap-gate.js?v=2026.10.27.3"></script>
+<script defer src="umpire/umpire.js?v=2026.10.27.3"></script>
 </head>
 <body class="is-login">
 

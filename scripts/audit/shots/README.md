@@ -87,6 +87,10 @@ In the page: `window.__shots` = `{ cfg, release(), setNow(ms), advance(ms), now(
   that copy, **every write is refused and listed** in `manifest.json` (`blockedWrites` — must be 0), a WebSocket to a Firebase host cannot open, and the network layer
   fails every Firebase request (a plain `GET …/x.json` is answered from the copy; the TV's health probe uses that).
 * No passcode is ever typed: the role is put in `localStorage` (`bdm_scoreboard_role`) before the app boots.
+* **Theme:** the app's default is **paper** since release 2026.10.27.3 (earlier releases: dark). `SHOTS_THEME=dark` (or `paper`) puts that choice in
+  `localStorage` (`bdm_theme`) before the app boots; without it a run photographs the app's own default. Set it explicitly when comparing with an
+  older set (the `final` set is dark). The tool shows small run-to-run differences even for the same code (timers, lazy photos): diff two runs of
+  the same tree first to learn the noise floor before reading a difference as a change.
 * The clock is frozen at **2026-10-24 10:00 (Bangkok)** and `Math.random` is seeded: timers, "x min ago" and random pairing read the same in every run
   (`--real-time` turns that off; `__shots.advance(ms)` moves the frozen clock). Animations and transitions are off, reduced motion is on, there is no service worker,
   no Fullscreen API, a working fake wake lock (the 🔒 chip shows) and `navigator.standalone` is true — what an iPhone home-screen app looks like, and nothing
