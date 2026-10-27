@@ -1,6 +1,6 @@
 // Builds the responsive WebP variants of the Color War key visual (the hero of the login screen and the idle board).
 //
-//   node scripts/hero-build.mjs <source image> [outDir=img]
+//   node scripts/hero-build.mjs <source image> [outDir=media]
 //
 // A canvas in the headless Edge/Chrome that scripts/audit/shots already needs does the crop, the resize and the WebP
 // encoding, so no npm package is added. Re-run it with a new source image to replace the hero.
@@ -10,7 +10,7 @@ import { launchBrowser } from './audit/shots/lib/browser.mjs';
 import { CDP } from './audit/shots/lib/cdp.mjs';
 
 const src = process.argv[2];
-const outDir = process.argv[3] || 'img';
+const outDir = process.argv[3] || 'media';
 if (!src) { console.error('usage: node scripts/hero-build.mjs <source image> [outDir]'); process.exit(2); }
 
 // crop = [x, y, w, h] in source pixels (the poster is 1915 x 821).

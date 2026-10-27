@@ -92,7 +92,7 @@
 .ds-edge-blue { box-shadow: inset 5px 0 0 var(--blue); }
 .ds-edge-gold { box-shadow: inset 5px 0 0 var(--gold); }
 
-/* the Color War key visual as a poster card (<picture class="ds-hero">, files in img/, built by scripts/hero-build.mjs).
+/* the Color War key visual as a poster card (<picture class="ds-hero">, files in media/, built by scripts/hero-build.mjs).
    The artwork is light paper on a dark page: a rounded card with a hairline keeps it a deliberate poster, not a hole. */
 .ds-hero { display: block; overflow: hidden; border-radius: var(--r-lg); border: 1px solid var(--line-strong); background: var(--s2); box-shadow: var(--shadow-pop); }
 .ds-hero > img { display: block; width: 100%; height: auto; aspect-ratio: 800 / 597; object-fit: cover; }
