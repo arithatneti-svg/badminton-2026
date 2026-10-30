@@ -89,9 +89,10 @@
   };
   var SPOT = {
     'shuttle-streak': [216, 130], 'shuttle-swoosh': [180, 136],
-    'brush-red': [143, 63], 'brush-blue': [158, 65], 'brush-red-line': [143, 32], 'brush-blue-line': [158, 32],
-    'arrow-red': [101, 35], 'arrow-blue': [96, 39], 'court-view': [235, 68]
+    'arrow-red': [288, 138], 'arrow-blue': [381, 173], 'court-blue': [900, 499]
   };
+
+
 
 
   function raster(dir, name, table, width, cls, eager) {

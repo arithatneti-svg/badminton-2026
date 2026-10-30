@@ -41,12 +41,9 @@
 .section-title:first-child { margin-top: 0; }
 /* a heading in Thai: Noto Sans Thai, the tracking and capitals taken out (P-32) */
 .section-title.th { font-family: var(--font-th); font-weight: 800; font-size: var(--fs-18); line-height: var(--lh-th); letter-spacing: 0; text-transform: none; color: var(--t-hi); }
-/* a marker stroke (the Riso sheet's brushes, red then blue down the page) at the start of the rule that runs out of each title */
-.section-title::after {
-  content: ''; flex: 1; height: 14px;
-  background: url(../media/riso/brush-red-line.webp) left center / auto 14px no-repeat, linear-gradient(var(--line-strong), var(--line-strong)) left center / 100% 1px no-repeat;
-}
-.section-title:nth-of-type(even)::after { background-image: url(../media/riso/brush-blue-line.webp), linear-gradient(var(--line-strong), var(--line-strong)); }
+/* the rule that runs out of each title is a crayon line from the Riso kit (red, then blue down the page) */
+.section-title::after { content: ''; flex: 1; height: 9px; background: url(../media/riso/line-red.webp) center / 100% 100% no-repeat; }
+.section-title:nth-of-type(even)::after { background-image: url(../media/riso/line-blue.webp); }
 
 .card {
   background: var(--s1);
@@ -234,22 +231,28 @@ body.admin-mode .idl-team .idl-tname:hover, body.admin-mode .idl-team .idl-tname
 .idl-team.leading .idl-lead, .idl-team.dominant .idl-lead { transform: none; }
 @media (min-width: 900px) { .idl-lead { min-height: 124px; } .idl-lead .ds-mascot { width: 132px; } }
 @media (min-width: 1200px) { .idl-lead { min-height: 150px; } .idl-lead .ds-mascot { width: 160px; } }
-/* halftone ink in the corner of each team field (css dots, crisp at any size): behind the digits and the star */
+/* real ink grain (Riso kit E) in the lower outer corner of each team field, multiplied into the colour, behind the digits and the star */
 .idl-team > * { position: relative; z-index: 1; }
 .idl-team::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(circle, rgba(255, 255, 255, .3) 1.3px, transparent 1.8px) 0 0 / 8px 8px;
+  content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; opacity: .5;
+  background: url(../media/riso/grain-ink.webp) 0 0 / 360px 360px;
   -webkit-mask-image: radial-gradient(120% 80% at 100% 100%, #000, transparent 60%); mask-image: radial-gradient(120% 80% at 100% 100%, #000, transparent 60%);
 }
 .idl-team.blue::after { -webkit-mask-image: radial-gradient(120% 80% at 0 100%, #000, transparent 60%); mask-image: radial-gradient(120% 80% at 0 100%, #000, transparent 60%); }
 .idl-arrow { display: grid; place-items: center; min-height: 28px; }
-.idl-arrow .ds-spot { width: 76px; transform: scaleX(-1); }
-@media (min-width: 640px) { .idl-arrow .ds-spot { width: 96px; } }
+.idl-arrow .ds-spot { width: 84px; transform: scaleX(-1); }
+@media (min-width: 640px) { .idl-arrow .ds-spot { width: 104px; } }
+/* the poster at the top of the board tears off into the page: the paper colour is the page's, shaped by the owner's torn-paper strip */
+.idl-hero { position: relative; border-bottom-width: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: none; overflow: visible; }
+.idl-hero > img { border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.idl-hero::before, .idl-hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; aspect-ratio: 1400 / 55; pointer-events: none; }
+.idl-hero::after { background: var(--bg); -webkit-mask: url(../media/riso/tear-red-paper.webp) 0 0 / 100% 100% no-repeat; mask: url(../media/riso/tear-red-paper.webp) 0 0 / 100% 100% no-repeat; transform: scaleY(-1); }
+.idl-hero::before { background: url(../media/riso/tear-red-ink.webp) 0 0 / 100% 100% no-repeat; transform: scaleY(-1); z-index: 1; }
 @media (min-width: 640px) { .idl-lead { min-height: 104px; } .idl-lead .ds-mascot { width: 100px; } }
 .idl-mid { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); }
 @media (min-width: 640px) { .idl-mid { flex-direction: column; min-width: 128px; } }
 .idl-vs { color: var(--t-low); font: 400 1.75rem/1 var(--font-num); letter-spacing: .08em; }
-.idl-gap { padding: 4px var(--sp-3); border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--s2); color: var(--t-hi); font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); }
+.idl-gap { padding: 5px var(--sp-4); border: 0; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; color: #0b2a52; font: 700 var(--fs-14)/var(--lh-th) var(--font-ui); }
 .idl-ptslbl { color: var(--t-low); font: 500 var(--fs-13)/var(--lh-th) var(--font-ui); }
 
 /* next up: a card with a gold edge, faces and names */

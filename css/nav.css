@@ -53,7 +53,7 @@
 .tab-ico { width: 20px; height: 20px; }
 .tab-btn::after {
   content: ''; position: absolute; left: var(--sp-2); right: var(--sp-2); bottom: 0; height: 3px;
-  border-radius: 3px 3px 0 0; background: var(--gold);
+  height: 9px; background: url(../media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat;
   transform: scaleX(0); transition: transform var(--dur-state) var(--ease-out);
 }
 .tab-btn.active { color: var(--t-hi); }

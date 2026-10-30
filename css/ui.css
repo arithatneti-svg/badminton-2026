@@ -206,8 +206,8 @@
 /* a Riso court under the star in every empty state: it stands on the court */
 .ds-empty-art { position: relative; }
 .ds-empty-art::before {
-  content: ''; position: absolute; left: 50%; bottom: -8px; width: 270px; aspect-ratio: 235 / 68; transform: translateX(-50%); z-index: 0;
-  background: url(../media/riso/court-view.webp) center / contain no-repeat; pointer-events: none;
+  content: ''; position: absolute; left: 50%; bottom: -12px; width: 250px; aspect-ratio: 900 / 499; transform: translateX(-50%); z-index: 0;
+  background: url(../media/riso/court-blue.webp) center / contain no-repeat; opacity: .92; pointer-events: none;
 }
 .ds-empty-art > * { position: relative; z-index: 1; }
 .ld-inline { display: grid; place-items: center; padding: var(--sp-3) 0; }
