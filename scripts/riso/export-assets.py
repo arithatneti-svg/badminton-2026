@@ -13,18 +13,13 @@ from PIL import Image
 
 pieces, mascots, media = sys.argv[1:4]
 
-RISO = {  # piece number on the sheet -> file name
-    1: "shuttle-red", 2: "shuttle-blue", 5: "shuttle-swoosh", 6: "shuttle-streak",
-    7: "racket-swoosh", 8: "racket-smash", 11: "racket-wide",
-    19: "brush-red", 21: "brush-blue", 23: "brush-sweep",
-    16: "arrow-red", 25: "arrow-blue", 27: "chevrons",
-    28: "rays-lines", 30: "rays-burst", 33: "halftone-red", 35: "halftone-blue",
-    20: "torn-red", 22: "torn-blue-sm", 24: "torn-blue", 26: "torn-mix", 34: "torn-red-sm",
-    36: "court-blue", 37: "court-red", 44: "court-view", 38: "net",
+RISO = {  # piece number on the sheet -> file name (only what the app uses; the new Riso kit in art-source/riso-kit replaces most of it)
+    5: "shuttle-swoosh", 6: "shuttle-streak", 19: "brush-red", 21: "brush-blue",
+    16: "arrow-red", 25: "arrow-blue", 44: "court-view",
 }
 MASCOT = {  # calm_NN -> role name used by dsMascot()
-    1: "loading", 2: "waiting", 3: "win", 4: "error", 5: "champion", 6: "live", 7: "search",
-    8: "conflict", 9: "rising", 10: "offline", 12: "admin", 13: "streak", 14: "reward", 15: "replay",
+    1: "loading", 5: "champion", 7: "search",
+    9: "rising", 10: "offline", 12: "admin", 13: "streak", 14: "reward", 15: "replay",
 }
 
 

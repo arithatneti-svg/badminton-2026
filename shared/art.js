@@ -7,8 +7,8 @@
 //   dsShuttle(32)       the shuttlecock alone in currentColor (inline, next to text)
 //   dsArt('court')      doubles court seen from above with a rally arc (empty states, hero)
 //   dsArt('shuttle')    big shuttlecock with speed lines (nothing here yet)
-//   dsMascot('waiting') the star mascot (media/mascot/*.webp) for empty / waiting / celebrating states
-//   dsSpot('shuttle-red') one piece of the Riso art sheet (media/riso/*.webp): brushes, shuttlecocks, rackets, torn paper
+//   dsMascot('break')   the star mascot (media/mascot/*.webp) for empty / waiting / celebrating states
+//   dsSpot('shuttle-streak') one piece of the Riso art sheet (media/riso/*.webp): brushes, shuttlecocks, rackets, torn paper
 // Colours come from css/tokens.css (gold, gold-ink, currentColor), so a token change repaints them.
 // ============================================================
 (function () {
@@ -73,8 +73,8 @@
   // ---- raster art (media/, built by scripts/riso/*.py from the owner's Riso sheet and the star mascot) ----
   // Name -> [width, height] of the file, so the <img> reserves its box before it loads (no layout jump).
   var MASCOT = {
-    loading: [333, 310], waiting: [281, 336], win: [332, 344], error: [347, 292], champion: [301, 355],
-    live: [335, 248], search: [296, 258], conflict: [306, 267], rising: [287, 258], offline: [316, 257],
+    loading: [333, 310], champion: [301, 355],
+    search: [296, 258], rising: [287, 258], offline: [316, 257],
     admin: [304, 262], streak: [311, 275], reward: [342, 278], replay: [299, 301],
     // the pastel set (10 poses): serving, jump smash, dive save, defense block, victory, the miss, backhand flick, net drop, tangled, break time
     serve: [380, 470], smash: [380, 502], dive: [380, 257], block: [380, 356], victory: [380, 489], miss: [380, 331],
@@ -82,20 +82,17 @@
   };
   // how each mascot moves (css .ds-mascot--*, all slow and small; off under prefers-reduced-motion)
   var MASCOT_MOVE = {
-    loading: 'bob', win: 'bob', reward: 'bob', streak: 'bob', champion: 'bob',
-    waiting: 'sway', search: 'sway', conflict: 'sway', admin: 'sway', live: 'sway', replay: 'sway',
-    error: 'sink', offline: 'sink', rising: 'float',
+    loading: 'bob', reward: 'bob', streak: 'bob', champion: 'bob',
+    search: 'sway', admin: 'sway', replay: 'sway',
+    offline: 'sink', rising: 'float',
     serve: 'bob', smash: 'bob', victory: 'bob', dive: 'float', block: 'sway', flick: 'sway', drop: 'sway', 'break': 'sway', tangled: 'sway', miss: 'sink'
   };
   var SPOT = {
-    'shuttle-red': [189, 138], 'shuttle-blue': [182, 131], 'shuttle-swoosh': [180, 136], 'shuttle-streak': [216, 130],
-    'racket-swoosh': [190, 131], 'racket-smash': [151, 160], 'racket-wide': [189, 151],
-    'brush-red': [143, 63], 'brush-blue': [158, 65], 'brush-sweep': [191, 73], 'brush-red-line': [143, 32], 'brush-blue-line': [158, 32],
-    'arrow-red': [101, 35], 'arrow-blue': [96, 39], chevrons: [47, 48], 'rays-lines': [122, 73], 'rays-burst': [104, 75],
-    'halftone-red': [79, 63], 'halftone-blue': [90, 66],
-    'torn-red': [206, 45], 'torn-blue-sm': [141, 37], 'torn-blue': [156, 53], 'torn-mix': [159, 52], 'torn-red-sm': [133, 57],
-    'court-blue': [141, 82], 'court-red': [156, 80], 'court-view': [235, 68], net: [285, 83]
+    'shuttle-streak': [216, 130], 'shuttle-swoosh': [180, 136],
+    'brush-red': [143, 63], 'brush-blue': [158, 65], 'brush-red-line': [143, 32], 'brush-blue-line': [158, 32],
+    'arrow-red': [101, 35], 'arrow-blue': [96, 39], 'court-view': [235, 68]
   };
+
 
   function raster(dir, name, table, width, cls, eager) {
     var d = table[name];
@@ -105,7 +102,7 @@
       'decoding="async"' + (eager ? '' : ' loading="lazy"') + ' draggable="false">';
   }
 
-  // dsMascot('waiting', 132): the star mascot as a quiet picture for empty, waiting and celebrating states.
+  // dsMascot('break', 132): the star mascot as a quiet picture for empty, waiting and celebrating states.
   // width in CSS px (css can override it, the height follows). Decorative: the sentence next to it says the same.
   // cls: extra class, e.g. 'ds-mascot--sticker' (white edge) when it sits on a solid team colour
   window.dsMascot = function (name, width, eager, cls) {
