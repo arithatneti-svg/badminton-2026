@@ -83,8 +83,11 @@
 .idl-faces { --f: clamp(40px, 11.5vw, 46px); gap: calc(var(--f) * .42); padding: calc(var(--f) * .24) calc(var(--f) * .2); }
 .idl-faces .pav { --idl-face: var(--f); }
 @media (min-width: 640px) { .idl-faces { --f: clamp(78px, 9vw, 112px); } }
-.lv-faces .pav { --lv-face: clamp(44px, 13vw, 58px); }
-@media (min-width: 640px) { .lv-faces .pav { --lv-face: clamp(62px, 8vw, 108px); } }
+.lv-faces { --f: clamp(40px, 11vw, 48px); gap: calc(var(--f) * .42); padding: calc(var(--f) * .2) calc(var(--f) * .2); }
+.lv-faces .pav { --lv-face: var(--f); }
+@media (min-width: 640px) { .lv-faces { --f: clamp(56px, 7vw, 92px); } }
+/* a live card is a solid red / blue field: the ring would vanish in its own ink, so there it is printed in cream */
+[data-theme="paper"] .lv-faces .pav::after { filter: brightness(0) invert(.95) sepia(.12); }
 [data-theme="paper"] .pdir-row { --pav-box: 44px; }
 [data-theme="paper"] .pdir-pod { --pav-box: 52px; }
 [data-theme="paper"] .pdir-pod.p1 { --pav-box: 66px; }
