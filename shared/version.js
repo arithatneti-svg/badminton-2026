@@ -9,4 +9,4 @@
 // Shown as "เวอร์ชัน 2026.10.27.3" on the login screens and the admin tab,
 // and as "v2026.10.27.3" in the TV footer.
 // ============================================================
-const APP_VERSION = "2026.10.30.66";
+const APP_VERSION = "2026.10.30.67";

@@ -16,6 +16,8 @@
   var STYLES = [['attacker', 'Attacker'], ['defender', 'Defender'], ['allround', 'All-Round'], ['controller', 'Controller'],
     ['speed', 'Speed Runner'], ['deceptive', 'Deceptive'], ['power', 'Power Hitter'], ['netmaster', 'Net Master']];
   var SHOTS = ['ตบ', 'หยอด', 'ดาด', 'เคลียร์', 'เสิร์ฟ'];
+  // "I don't know" / "I'm not telling": a third kind of answer next to the real choices (the chip finishes the question on its own)
+  var NOANS = [['ไม่รู้', 'ไม่รู้', true], ['ไม่บอก', 'ไม่บอก', true]];
   var VIEWS = [['player', 'ผู้เล่น'], ['board', 'จอใหญ่'], ['admin', 'แอดมิน']];
 
   var $root, S, view, runToken = 0, busy = false;
@@ -172,13 +174,13 @@
       var box = document.getElementById('dwAns'); if (!box || !alive()) return;
       var chosen = [];
       function done() { box.innerHTML = ''; bubble('me', esc(chosen.join(', '))); resolve(chosen.slice()); }
-      box.innerHTML = '<div class="dw-chips">' + opts.map(function (o) { return '<button type="button" class="dw-chip" data-o="' + esc(o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>' +
+      box.innerHTML = '<div class="dw-chips">' + opts.map(function (o) { return '<button type="button" class="dw-chip' + (o[2] ? ' is-solo' : '') + '" data-o="' + esc(o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>' +
         (multi ? '<button type="button" class="ds-btn ds-btn-primary dw-ok" disabled>ต่อไป</button>' : '');
       var ok = box.querySelector('.dw-ok');
       box.querySelectorAll('.dw-chip').forEach(function (b) {
         b.onclick = function () {
           var label = b.textContent;
-          if (!multi) { chosen = [label]; return done(); }
+          if (!multi || b.classList.contains('is-solo')) { chosen = [label]; return done(); }
           var i = chosen.indexOf(label);
           if (i >= 0) chosen.splice(i, 1); else if (chosen.length < 3) chosen.push(label);
           b.classList.toggle('is-on', i < 0 && chosen.indexOf(label) >= 0);
@@ -201,6 +203,15 @@
       scrollDown();
     });
   }
+  function noAnswer(v) { return v === 'ไม่รู้' ? 'unknown' : v === 'ไม่บอก' ? 'private' : null; }
+  // the mascot's reply to "don't know" (kind) and "not telling" (teasing; a second time is a different line)
+  async function reactNo(kind, what, nth, alive) {
+    if (kind === 'unknown') {
+      await say(what === 'shot' ? 'ไม่รู้ก็ไม่เป็นไรนะ~ ตีไปตีมาเดี๋ยวก็รู้เองว่าถนัดอะไร 😄' : 'ไม่เป็นไรเลย บางทีเพื่อนในสนามมองออกก่อนเจ้าตัวอีก เดี๋ยวดูกันตอนแข่ง 😄', alive);
+    } else {
+      await say(nth ? 'อีกแล้ว! กั๊กหนักมากนะคุณพรี่ 😆 ได้ๆ งั้นไปลุ้นกันในสนามเลย' : 'หยั่นแน่~ กั๊กฝีมือหรอจ๊ะคุณพรี่ 😏', alive);
+    }
+  }
   async function runChat(p) {
     var tok = ++runToken, alive = function () { return tok === runToken && view === 'player' && S.step === 'chat'; };
     p.profile = p.profile || {};
@@ -209,10 +220,15 @@
     p.female = g[0] === 'หญิง';
     var h = await ask('ตีมือไหนครับ?', [['ขวา', 'ขวา'], ['ซ้าย', 'ซ้าย'], ['สองมือ', 'ถนัดสองมือ']], false, alive); if (!alive()) return;
     p.profile.hand = h[0];
-    var s = await ask('ลูกถนัดคือ?', SHOTS.map(function (x) { return [x, x]; }), false, alive); if (!alive()) return;
-    p.profile.shot = s[0];
-    var st = await ask('สไตล์การเล่นของคุณ? (เลือกได้ถึง 3 อย่าง)', STYLES.map(function (x) { return [x[0], x[1]]; }), true, alive); if (!alive()) return;
-    p.profile.styles = st;
+    var hid = 0;   // how many times this person has kept it to themselves
+    var s = await ask('ลูกถนัดคือ?', SHOTS.map(function (x) { return [x, x]; }).concat(NOANS), false, alive); if (!alive()) return;
+    var sn = noAnswer(s[0]);
+    p.profile.shot = sn ? null : s[0]; p.profile.shotNote = sn;
+    if (sn) { await reactNo(sn, 'shot', sn === 'private' ? hid++ : 0, alive); if (!alive()) return; }
+    var st = await ask('สไตล์การเล่นของคุณ? (เลือกได้ถึง 3 อย่าง)', STYLES.map(function (x) { return [x[0], x[1]]; }).concat(NOANS), true, alive); if (!alive()) return;
+    var tn = noAnswer(st[0]);
+    p.profile.styles = tn ? [] : st; p.profile.stylesNote = tn;
+    if (tn) { await reactNo(tn, 'styles', tn === 'private' ? hid++ : 0, alive); if (!alive()) return; }
     // the weakness joke: ask, take it back, then ask again
     await say('ส่วนจุดอ่อน จุดบอดของคุณ… บอกน้องดาวได้นะ น้องดาวอยากรู้ 👀', alive);
     await say('…', alive, 900); if (!alive()) return;

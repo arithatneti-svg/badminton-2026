@@ -84,6 +84,7 @@
 .dw-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .dw-chip { min-height: 48px; padding: 0 18px; cursor: pointer; font-weight: 700; background: var(--s1); border: 1.5px solid #0b2a52; border-radius: 4px 9px 5px 10px / 10px 5px 9px 4px; box-shadow: 2px 2px 0 rgba(225, 29, 36, .24); }
 .dw-chip.is-on { border-color: transparent; box-shadow: none; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; }
+.dw-chip.is-solo { background: transparent; border-style: dashed; box-shadow: none; color: var(--t-mid); }   /* "ไม่รู้" / "ไม่บอก": not a style, so it looks like a way out */
 .dw-txt { display: flex; gap: 8px; }
 .dw-txt input { flex: 1; min-width: 0; min-height: 52px; padding: 0 14px; border: 1.5px solid #0b2a52; border-radius: 4px 9px 5px 10px / 10px 5px 9px 4px; background: var(--s1); box-shadow: 2px 2px 0 rgba(225, 29, 36, .28); }
 
