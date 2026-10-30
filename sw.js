@@ -91,6 +91,8 @@ const SHELL = [
     "icons/umpire-192.png",
     "icons/umpire-512.png",
     "icons/umpire-maskable-512.png",
+    "media/logo/mark.webp",
+    "media/logo/wordmark.webp",
     "media/mascot/loading.webp",
     "media/mascot/offline.webp",
     "media/mascot/miss.webp",

@@ -3,7 +3,7 @@
 // The marks and line drawings are inline SVG (sharp on the TV, follow the tokens, cost bytes not requests);
 // the mascot and the Riso pieces are small lazy WebP files.
 //
-//   dsMark(48)          gold tile + shuttlecock: login screens, headers, app icon source
+//   dsMark(48)          the red / blue shuttlecock logo (media/logo/mark.webp)
 //   dsShuttle(32)       the shuttlecock alone in currentColor (inline, next to text)
 //   dsArt('court')      doubles court seen from above with a rally arc (empty states, hero)
 //   dsArt('shuttle')    big shuttlecock with speed lines (nothing here yet)
@@ -24,13 +24,7 @@
   }
 
   window.dsMark = function (size) {
-    return '<svg class="ds-mark" viewBox="0 0 64 64"' + box(size) + ' role="img" aria-label="Badminton Sports Day">' +
-      '<rect width="64" height="64" rx="16" style="fill:var(--gold)"/>' +
-      '<g transform="translate(32 32) rotate(-32) scale(.95) translate(-32 -29)">' +
-      '<path d="' + SKIRT + '" style="fill:var(--gold-ink)"/>' +
-      '<path d="' + CORK + '" style="fill:var(--gold-ink)"/>' +
-      '<path d="' + LINES + '" style="fill:none;stroke:var(--gold);stroke-width:1.7;stroke-linecap:round"/>' +
-      '</g></svg>';
+    return '<img class="ds-mark" src="media/logo/mark.webp"' + box(size) + ' alt="Badminton Sports Day" decoding="async" draggable="false">';
   };
 
   window.dsShuttle = function (size) {

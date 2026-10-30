@@ -259,7 +259,9 @@ function wzConfirmNewSeason() {
   appState.seasonName   = name;
   appState.seasonYear   = year;
 
-  document.getElementById('seasonNavTitle').textContent = `SPORTS DAY ${year}`;
+  const navTitle = document.getElementById('seasonNavTitle');
+  navTitle.textContent = `SPORTS DAY ${year}`;
+  navTitle.classList.toggle('is-wordmark', String(year) === '2026');   // the hand-lettered 2026 wordmark (media/logo); other years fall back to the text
   document.getElementById('seasonBadge').innerHTML = `${dsIcon('calendar-blank')} ${escHtml(year)}`;
   invalidateStatsCache();
   saveData(true);
