@@ -307,7 +307,7 @@ function renderIdleBoard() {
       ? `<button type="button" class="ds-btn ds-btn-primary" onclick="switchTab('admin', document.getElementById('tab-admin'))">${dsIcon('gear-six')} ไปที่ Admin</button>`
       : hist.length ? `<button type="button" class="ds-btn" onclick="switchTab('finished', document.getElementById('tab-finished'))">${dsIcon('flag')} ดูแมตช์ที่จบแล้ว</button>` : '';
     box.innerHTML = `<div class="idl-empty ds-empty">
-      <div class="ds-empty-art">${dsArt('court')}</div>
+      <div class="ds-empty-art">${dsMascot('waiting')}</div>
       <div class="ds-empty-title">${hist.length ? 'ไม่มีแมตช์ในคิวตอนนี้' : 'ยังไม่มีแมตช์'}</div>
       <div class="ds-empty-text">${isAdmin ? 'สร้างแมตช์ใหม่ได้ที่แท็บ Admin' : 'รอทีมงานจัดคิวแมตช์ถัดไป'}</div>
       ${action}

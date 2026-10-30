@@ -919,10 +919,10 @@ function _uSetHtml(el, html) {
   el._uHtml = html;
   el.innerHTML = html;
 }
-// an empty / no-connection state: the court (or the shuttle) drawn in line art, one sentence, and - when there is
+// an empty / no-connection state: the star mascot (a media/mascot role name), one sentence, and - when there is
 // something to do - one button (css .ds-empty)
 function _uState(art, title, text, action) {
-  return `<div class="ds-empty"><div class="ds-empty-art">${dsArt(art)}</div><div class="ds-empty-title">${title}</div>`
+  return `<div class="ds-empty"><div class="ds-empty-art">${dsMascot(art)}</div><div class="ds-empty-title">${title}</div>`
     + (text ? `<div class="ds-empty-text">${text}</div>` : '') + (action || '') + '</div>';
 }
 // a card is ONE target: the id, the court, the state (icon + word), the two pairs with their faces
@@ -955,14 +955,14 @@ function renderMatchList() {
 
   if (!appState) {
     _uSetHtml(list, _uLoadSlow
-      ? _uState('shuttle', 'ยังเชื่อมต่อไม่ได้', 'ตรวจสัญญาณ — จะโหลดเองเมื่อเชื่อมต่อได้',
+      ? _uState('offline', 'ยังเชื่อมต่อไม่ได้', 'ตรวจสัญญาณ — จะโหลดเองเมื่อเชื่อมต่อได้',
           `<button type="button" class="ds-btn btn-retry" onclick="retryUmpireLoad()">${dsIcon('arrow-clockwise')}ลองใหม่</button>`)
       : `<div class="list-state" role="status">${'<div class="skel-card"><div class="ds-skel skel-line w30"></div><div class="ds-skel skel-line w80"></div><div class="ds-skel skel-line w60"></div></div>'.repeat(3)}<p class="list-state-text">กำลังโหลดแมตช์…</p></div>`);
     return;
   }
 
   if (appState.ongoingMatches.length === 0) {
-    _uSetHtml(list, _uState('court', 'ยังไม่มีแมตช์ให้คุม', 'รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง'));
+    _uSetHtml(list, _uState('waiting', 'ยังไม่มีแมตช์ให้คุม', 'รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง'));
     return;
   }
 
@@ -980,7 +980,7 @@ function renderMatchList() {
   if (mine.length) { html.push(group('คุมอยู่', mine.length)); mine.forEach(m => html.push(_matchCardHtml(m, true, false))); }
   if (free.length) { html.push(group('ว่างอยู่ — ตามลำดับคิว', free.length)); free.forEach((m, i) => html.push(_matchCardHtml(m, false, i === 0))); }
   else if (_onlyFree && !mine.length) {
-    html.push(_uState('shuttle', 'ไม่มีแมตช์ว่าง', 'ทุกแมตช์มีกรรมการคุมอยู่แล้ว'));
+    html.push(_uState('live', 'ไม่มีแมตช์ว่าง', 'ทุกแมตช์มีกรรมการคุมอยู่แล้ว'));
   }
   if (taken.length && !_onlyFree) { html.push(group('มีกรรมการแล้ว', taken.length)); taken.forEach(m => html.push(_matchTakenHtml(m))); }
   _uSetHtml(list, html.join(''));
@@ -998,7 +998,7 @@ function renderFinishedList() {
   const list = document.getElementById('finishedList');
 
   if (!appState || appState.matchHistory.length === 0) {
-    _uSetHtml(list, _uState('court', 'ยังไม่มีผล', 'ผลการแข่งขันจะแสดงที่นี่เมื่อแมตช์จบแล้ว'));
+    _uSetHtml(list, _uState('replay', 'ยังไม่มีผล', 'ผลการแข่งขันจะแสดงที่นี่เมื่อแมตช์จบแล้ว'));
     return;
   }
 

@@ -595,11 +595,9 @@ body.data-loading:not(.tv-mode) .data-state {
   display: flex; justify-content: center; min-height: 60vh; min-height: 60dvh; padding: var(--sp-7) var(--sp-4);
 }
 .ld-card { width: min(100%, 420px); display: grid; justify-items: center; align-content: center; gap: var(--sp-3); text-align: center; }
-.ld-icon { display: none; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--s2); border: 1px solid var(--line-strong); }
-.ld-icon .ds-ic { display: none; width: 32px; height: 32px; }
-.data-state[data-phase="slow"] .ld-icon, .data-state[data-phase="failed"] .ld-icon { display: grid; }
-.data-state[data-phase="slow"] .ld-ic-slow { display: block; color: var(--warn); }
-.data-state[data-phase="failed"] .ld-ic-fail { display: block; color: var(--err); }
+.ld-mascot { display: grid; place-items: center; min-height: 140px; }
+.ld-mascot .ds-mascot { display: none; width: min(168px, 46vw); }
+.data-state[data-phase="loading"] .ld-m-loading, .data-state[data-phase="slow"] .ld-m-slow, .data-state[data-phase="failed"] .ld-m-fail { display: block; }
 .ld-msg { font: 800 var(--fs-20)/var(--lh-th) var(--font-ui); color: var(--t-hi); }
 .ld-sub { max-width: 34ch; font: 500 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
 .ld-sub:empty { display: none; }

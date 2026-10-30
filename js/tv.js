@@ -472,7 +472,7 @@ function _tvBoardHtml() {
   const title = _tvTitleHtml('trophy', 'LEADERBOARD');
   if (!all.length) {
     return `<div class="tv-panel">${_tvHeadHtml(title)}
-      <div class="tv-board is-empty"><div class="tv-empty"><div class="tv-empty-art">${dsArt('shuttle')}</div><p class="tv-empty-title">ยังไม่มีข้อมูล</p></div></div></div>`;
+      <div class="tv-board is-empty"><div class="tv-empty"><div class="tv-empty-art">${dsMascot('waiting')}</div><p class="tv-empty-title">ยังไม่มีข้อมูล</p></div></div></div>`;
   }
   const per = _tvBoardPerPage();
   const pages = Math.max(1, Math.ceil(all.length / per));
@@ -572,7 +572,7 @@ function _tvEventHtml(ev) {
 // "RED TEAM 0 VS BLUE TEAM 0" for the moment it takes, or for good on a screen that never connects (P-21).
 function _tvLoadingHtml() {
   const stuck = typeof _dataPhase !== 'undefined' && (_dataPhase === 'slow' || _dataPhase === 'failed');
-  return `<div class="tv-panel"><div class="tv-load">${dsMark()}<h1 class="tv-load-title" lang="en">SPORTS DAY 2026</h1>
+  return `<div class="tv-panel"><div class="tv-load">${dsMascot(stuck ? 'offline' : 'loading', 200, true)}<h1 class="tv-load-title" lang="en">SPORTS DAY 2026</h1>
     <p class="tv-load-msg${stuck ? ' is-stuck' : ''}">${stuck ? dsIcon('wifi-slash') + 'ยังเชื่อมต่อไม่ได้ — กำลังลองใหม่…' : 'กำลังเชื่อมต่อ…'}</p></div></div>`;
 }
 
@@ -617,7 +617,7 @@ function renderTvPanel(force) {
       key = 'live|empty';
       if (!force && key === _tvLastKey && el.querySelector('.tv-idle')) return;
       html = `<div class="tv-panel tv-idle">${_tvHeadHtml(_tvLiveChip(false))}
-        <div class="tv-empty"><div class="tv-empty-art">${dsArt('court')}</div><p class="tv-empty-title">ยังไม่มีแมตช์กำลังแข่ง</p></div></div>`;
+        <div class="tv-empty"><div class="tv-empty-art">${dsMascot('live')}</div><p class="tv-empty-title">ยังไม่มีแมตช์กำลังแข่ง</p></div></div>`;
     } else if (live.length === 1) {
       const m = live[0];
       key = `hero|${_tvMKey(m)}|${_tvNamesKey()}`;

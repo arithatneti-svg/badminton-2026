@@ -283,7 +283,7 @@ async function openSeasonArchive() {
   }
   const years = Object.keys(archives).sort((a,b) => b.localeCompare(a));
   if (!years.length) {
-    el.innerHTML = `<div class="ds-empty">${dsArt('court')}<div class="ds-empty-title">ยังไม่มี Season ที่ archive ไว้</div><div class="ds-empty-text">ใช้ เริ่ม Season ใหม่ เพื่อ archive season ปัจจุบัน</div></div>`;
+    el.innerHTML = `<div class="ds-empty">${dsMascot('replay')}<div class="ds-empty-title">ยังไม่มี Season ที่ archive ไว้</div><div class="ds-empty-text">ใช้ เริ่ม Season ใหม่ เพื่อ archive season ปัจจุบัน</div></div>`;
     return;
   }
   el.innerHTML = years.map(year => {
@@ -396,7 +396,7 @@ function renderPlayersTab() {
 
   if (!players.length) {
     grid.innerHTML = `<div class="ds-card"><div class="ds-empty">
-      <div class="ds-empty-art">${dsArt('court')}</div>
+      <div class="ds-empty-art">${dsMascot(total ? 'search' : (isAdmin ? 'admin' : 'waiting'))}</div>
       <div class="ds-empty-title">${total ? 'ไม่พบผู้เล่น' : 'ยังไม่มีผู้เล่น'}</div>
       <div class="ds-empty-text">${total ? 'ลองเปลี่ยนคำค้นหาหรือตัวกรอง' : (isAdmin ? 'เพิ่มผู้เล่นได้ที่แท็บ Admin' : 'รายชื่อผู้เล่นจะแสดงที่นี่')}</div>
       ${total ? '<button type="button" class="ds-btn" onclick="clearPlayersFilters()">ล้างตัวกรอง</button>' : ''}

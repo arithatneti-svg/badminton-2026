@@ -373,10 +373,12 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 
 /* ── nothing live / nothing yet / still connecting ── */
 .tv-empty, .tv-load { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 3); text-align: center; }
-.tv-empty-art { width: min(calc(var(--u) * 80), 50vw); color: var(--t-low); opacity: .6; }
+.tv-empty-art { width: min(calc(var(--u) * 80), 50vw); color: var(--t-low); }
+.tv-empty-art svg { opacity: .6; }
 .tv-empty-art svg { width: 100%; height: auto; display: block; }
+.tv-empty-art .ds-mascot { width: calc(var(--u) * 56); }
+.tv-load .ds-mascot { width: calc(var(--u) * 30); }
 .tv-empty-title { font: 700 calc(var(--u) * 5.6)/1.4 var(--font-ui); color: var(--t-hi); }
-.tv-load .ds-mark { width: calc(var(--u) * 18); height: calc(var(--u) * 18); }
 .tv-load-title { font: 400 calc(var(--u) * 9)/1 var(--font-num); letter-spacing: .06em; color: var(--t-hi); }
 .tv-load-msg { display: inline-flex; align-items: center; gap: calc(var(--u) * 1.4); font: 600 calc(var(--u) * 4.4)/1.4 var(--font-ui); color: var(--t-mid); }
 .tv-load-msg.is-stuck { color: var(--warn); }

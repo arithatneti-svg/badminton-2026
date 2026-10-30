@@ -161,7 +161,7 @@ function paintGallery() {
   const photos = galleryPhotos(_galleryYear);
   if (!photos.length) {
     gridEl.innerHTML = `<div class="ds-card"><div class="ds-empty">
-      <div class="ds-empty-art">${dsArt('shuttle')}</div>
+      <div class="ds-empty-art">${dsMascot('reward')}</div>
       <div class="ds-empty-title">ยังไม่มีรูปของปี ${_galleryYear}</div>
       <div class="ds-empty-text">${canEdit ? 'พิมพ์ชื่องาน แล้วแตะ “เพิ่มรูป” เพื่ออัปโหลด' : 'รูปบรรยากาศงานจะแสดงที่นี่'}</div>
       ${canEdit ? `<button type="button" class="ds-btn ds-btn-primary" onclick="pickGalleryPhotos()">${dsIcon('upload-simple')}เพิ่มรูป</button>` : ''}

@@ -52,3 +52,6 @@
 /* 5 · Riso mis-registration: every line icon is printed in its ink with a thin red ghost a pixel off, like a second drum
    that did not line up. Zero blur, em-based so it scales with the icon; icons on a solid field switch it off (--ic-ghost, section 3). */
 [data-theme="paper"] .ds-ic { filter: drop-shadow(.07em .07em 0 var(--ic-ghost, rgba(225, 29, 36, .5))); }
+
+/* the mascot sits on the paper like a print: the same offset navy shadow the cards have */
+[data-theme="paper"] .ds-mascot { filter: drop-shadow(2px 3px 0 rgba(11, 42, 82, .16)); }

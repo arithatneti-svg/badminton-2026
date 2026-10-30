@@ -112,7 +112,7 @@ function renderBackupList() {
     });
     items.reverse(); // ใหม่สุดขึ้นก่อน
     if (!items.length) {
-      el.innerHTML = `<div class="backup-empty">${dsIcon('floppy-disk', { cls: 'ds-ic-xl' })}<div class="ds-empty-title">ยังไม่มี Backup</div><div class="ds-empty-text">กด Backup ตอนนี้ เพื่อสร้างชุดแรก</div></div>`;
+      el.innerHTML = `<div class="backup-empty">${dsMascot('admin', 112)}<div class="ds-empty-title">ยังไม่มี Backup</div><div class="ds-empty-text">กด Backup ตอนนี้ เพื่อสร้างชุดแรก</div></div>`;
       return;
     }
     el.innerHTML = items.map(b => {
