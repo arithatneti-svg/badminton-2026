@@ -41,7 +41,7 @@ const walkWebp = (dir) => readdirSync(join(root, dir), { withFileTypes: true }).
   d.isDirectory() ? walkWebp(`${dir}/${d.name}`) : d.name.endsWith('.webp') ? [`${dir}/${d.name}`] : []);
 const IMG = walkWebp('media');
 // shown while the app loads or cannot connect: precached so they also appear on a first start without signal
-const LOADER_ART = ['media/mascot/loading.webp', 'media/mascot/offline.webp', 'media/mascot/error.webp'];
+const LOADER_ART = ['media/mascot/loading.webp', 'media/mascot/offline.webp', 'media/mascot/miss.webp'];
 const COPY = ['manifest.webmanifest','umpire.webmanifest', ...ICONS.map(f => `icons/${f}`), ...IMG];
 
 const read = (p) => readFileSync(join(root, p), 'utf8');

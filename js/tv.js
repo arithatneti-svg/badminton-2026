@@ -406,7 +406,7 @@ function _tvRecap(s) { return s.g2on ? `เกม 1 · ${s.g1r}–${s.g1b}` : (s
 function _tvBattleHtml() {
   const r = appState.globalScoreRed || 0, b = appState.globalScoreBlue || 0;
   const side = (s, n, lead) => `<div class="tv-team ${s}${lead ? ' lead' : ''}">
-      <div class="tv-team-top">${_tvTag(s)}<span class="tv-lead">${dsMascot('rising', 200, true, 'ds-mascot--sticker')}<span class="ds-sr-only">นำ</span></span></div>
+      <div class="tv-team-top">${_tvTag(s)}<span class="tv-lead">${dsMascot('rising', 200, true)}<span class="ds-sr-only">นำ</span></span></div>
       <div class="tv-team-score">${n}</div>
     </div>`;
   return `<div class="tv-panel tv-battle">
@@ -472,7 +472,7 @@ function _tvBoardHtml() {
   const title = _tvTitleHtml('trophy', 'LEADERBOARD');
   if (!all.length) {
     return `<div class="tv-panel">${_tvHeadHtml(title)}
-      <div class="tv-board is-empty"><div class="tv-empty"><div class="tv-empty-art">${dsMascot('waiting')}</div><p class="tv-empty-title">ยังไม่มีข้อมูล</p></div></div></div>`;
+      <div class="tv-board is-empty"><div class="tv-empty"><div class="tv-empty-art">${dsMascot('break')}</div><p class="tv-empty-title">ยังไม่มีข้อมูล</p></div></div></div>`;
   }
   const per = _tvBoardPerPage();
   const pages = Math.max(1, Math.ceil(all.length / per));
@@ -617,7 +617,7 @@ function renderTvPanel(force) {
       key = 'live|empty';
       if (!force && key === _tvLastKey && el.querySelector('.tv-idle')) return;
       html = `<div class="tv-panel tv-idle">${_tvHeadHtml(_tvLiveChip(false))}
-        <div class="tv-empty"><div class="tv-empty-art">${dsMascot('live')}</div><p class="tv-empty-title">ยังไม่มีแมตช์กำลังแข่ง</p></div></div>`;
+        <div class="tv-empty"><div class="tv-empty-art">${dsMascot('serve')}</div><p class="tv-empty-title">ยังไม่มีแมตช์กำลังแข่ง</p></div></div>`;
     } else if (live.length === 1) {
       const m = live[0];
       key = `hero|${_tvMKey(m)}|${_tvNamesKey()}`;

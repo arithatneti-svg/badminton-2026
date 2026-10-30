@@ -170,7 +170,7 @@ function updateUI() {
   // racket star at 0.78 size ("still fighting"), so both panels carry a picture and neither looks empty. Words for screen readers.
   rPanel.classList.remove('leading','dominant'); bPanel.classList.remove('leading','dominant');
   const diff = newRed - newBlue;
-  const leadHtml = kind => dsMascot(kind === 'dominant' ? 'streak' : kind === 'lead' ? 'rising' : 'live', 84, true, 'ds-mascot--sticker')
+  const leadHtml = kind => dsMascot(kind === 'dominant' ? 'smash' : kind === 'lead' ? 'rising' : 'block', 84, true, 'ds-mascot--sticker')
     + (kind === 'rest' ? '' : '<span class="ds-sr-only">' + (kind === 'dominant' ? 'นำขาด' : 'นำ') + '</span>');
   const setLead = (id, html) => { const el = document.getElementById(id); if (el && el.dataset.k !== html) { el.dataset.k = html; el.innerHTML = html; } };
   if (diff > 0) { rPanel.classList.add(diff >= 6 ? 'dominant' : 'leading'); setLead('redLeadBadge', leadHtml(diff >= 6 ? 'dominant' : 'lead')); setLead('blueLeadBadge', leadHtml('rest')); _fireWant = { red: diff >= 6, blue: false }; }
@@ -312,7 +312,7 @@ function renderIdleBoard() {
       ? `<button type="button" class="ds-btn ds-btn-primary" onclick="switchTab('admin', document.getElementById('tab-admin'))">${dsIcon('gear-six')} ไปที่ Admin</button>`
       : hist.length ? `<button type="button" class="ds-btn" onclick="switchTab('finished', document.getElementById('tab-finished'))">${dsIcon('flag')} ดูแมตช์ที่จบแล้ว</button>` : '';
     box.innerHTML = `<div class="idl-empty ds-empty">
-      <div class="ds-empty-art">${dsMascot('waiting')}</div>
+      <div class="ds-empty-art">${dsMascot('break')}</div>
       <div class="ds-empty-title">${hist.length ? 'ไม่มีแมตช์ในคิวตอนนี้' : 'ยังไม่มีแมตช์'}</div>
       <div class="ds-empty-text">${isAdmin ? 'สร้างแมตช์ใหม่ได้ที่แท็บ Admin' : 'รอทีมงานจัดคิวแมตช์ถัดไป'}</div>
       ${action}

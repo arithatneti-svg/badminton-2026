@@ -396,7 +396,7 @@ function renderPlayersTab() {
 
   if (!players.length) {
     grid.innerHTML = `<div class="ds-card"><div class="ds-empty">
-      <div class="ds-empty-art">${dsMascot(total ? 'search' : (isAdmin ? 'admin' : 'waiting'))}</div>
+      <div class="ds-empty-art">${dsMascot(total ? 'search' : (isAdmin ? 'drop' : 'break'))}</div>
       <div class="ds-empty-title">${total ? 'ไม่พบผู้เล่น' : 'ยังไม่มีผู้เล่น'}</div>
       <div class="ds-empty-text">${total ? 'ลองเปลี่ยนคำค้นหาหรือตัวกรอง' : (isAdmin ? 'เพิ่มผู้เล่นได้ที่แท็บ Admin' : 'รายชื่อผู้เล่นจะแสดงที่นี่')}</div>
       ${total ? '<button type="button" class="ds-btn" onclick="clearPlayersFilters()">ล้างตัวกรอง</button>' : ''}
@@ -417,8 +417,8 @@ function renderPlayersTab() {
     const st = getPlayerStreak(id);
     if (!st) return '';
     return st.type === 'hot'
-      ? `<span class="pdir-streak is-hot">${dsMascot('streak', 30)}ฟอร์มร้อน</span>`
-      : `<span class="pdir-streak is-cold">${dsMascot('error', 36)}ฟอร์มตก</span>`;
+      ? `<span class="pdir-streak is-hot">${dsMascot('smash', 30)}ฟอร์มร้อน</span>`
+      : `<span class="pdir-streak is-cold">${dsMascot('miss', 36)}ฟอร์มตก</span>`;
   };
 
   // The headline number follows the active sort: switch to อัตราชนะ and the win rate becomes the big number

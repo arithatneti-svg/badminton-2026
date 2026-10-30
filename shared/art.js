@@ -75,13 +75,17 @@
   var MASCOT = {
     loading: [333, 310], waiting: [281, 336], win: [332, 344], error: [347, 292], champion: [301, 355],
     live: [335, 248], search: [296, 258], conflict: [306, 267], rising: [287, 258], offline: [316, 257],
-    admin: [304, 262], streak: [311, 275], reward: [342, 278], replay: [299, 301]
+    admin: [304, 262], streak: [311, 275], reward: [342, 278], replay: [299, 301],
+    // the pastel set (10 poses): serving, jump smash, dive save, defense block, victory, the miss, backhand flick, net drop, tangled, break time
+    serve: [380, 470], smash: [380, 502], dive: [380, 257], block: [380, 356], victory: [380, 489], miss: [380, 331],
+    flick: [380, 330], drop: [380, 313], tangled: [380, 329], 'break': [380, 351]
   };
   // how each mascot moves (css .ds-mascot--*, all slow and small; off under prefers-reduced-motion)
   var MASCOT_MOVE = {
     loading: 'bob', win: 'bob', reward: 'bob', streak: 'bob', champion: 'bob',
     waiting: 'sway', search: 'sway', conflict: 'sway', admin: 'sway', live: 'sway', replay: 'sway',
-    error: 'sink', offline: 'sink', rising: 'float'
+    error: 'sink', offline: 'sink', rising: 'float',
+    serve: 'bob', smash: 'bob', victory: 'bob', dive: 'float', block: 'sway', flick: 'sway', drop: 'sway', 'break': 'sway', tangled: 'sway', miss: 'sink'
   };
   var SPOT = {
     'shuttle-red': [189, 138], 'shuttle-blue': [182, 131], 'shuttle-swoosh': [180, 136], 'shuttle-streak': [216, 130],

@@ -283,7 +283,7 @@ function renderPdMatchHistory(playerId) {
   if (!matches.length) {
     el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">ประวัติการแข่ง</h3>
       <div class="ds-card"><div class="ds-empty">
-        <div class="ds-empty-art">${dsMascot('waiting')}</div>
+        <div class="ds-empty-art">${dsMascot('serve')}</div>
         <div class="ds-empty-title">ยังไม่ลงแข่ง</div>
         <div class="ds-empty-text">ผลแมตช์ของผู้เล่นคนนี้จะแสดงที่นี่</div>
       </div></div></section>`;

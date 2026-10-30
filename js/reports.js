@@ -67,7 +67,7 @@ document.addEventListener('keydown', (e) => {
 // ── shared bits (also used by js/dashboard.js and js/career.js) ──
 // empty state: ds-empty with the mascot (searching when there is a filter to clear), one sentence and, when there is a way out, one button
 function rpEmptyHtml(title, text, btn) {
-  return `<div class="ds-empty rp-empty"><div class="ds-empty-art">${dsMascot(btn ? 'search' : 'waiting')}</div>
+  return `<div class="ds-empty rp-empty"><div class="ds-empty-art">${dsMascot(btn ? 'search' : 'break')}</div>
     <div class="ds-empty-title">${title}</div>${text ? `<div class="ds-empty-text">${text}</div>` : ''}${btn || ''}</div>`;
 }
 // match quality (stored in analysis.status) -> a step from "very close" (q1) to "one-sided" (q4); the colour is

@@ -101,7 +101,7 @@ function renderPublicOngoingMatches() {
   if (liveMatches.length === 0) {
     liveContainer.innerHTML = `
       <div class="court-empty ds-empty">
-        <div class="ds-empty-art">${dsMascot('waiting')}</div>
+        <div class="ds-empty-art">${dsMascot('break')}</div>
         <div class="ds-empty-title">ยังไม่มีแมตช์ที่กำลังแข่ง</div>
         <div class="ds-empty-text">แมตช์ถัดไปจะขึ้นที่นี่</div>
       </div>`;
@@ -315,7 +315,7 @@ function renderAdminOngoingMatches() {
   const c = document.getElementById('adminOngoingMatchesContainer'); if (!c) return;
   document.getElementById('ongoingCount').textContent = appState.ongoingMatches.length;
   if (!appState.ongoingMatches.length) {
-    c.innerHTML = `<div class="ds-empty am-empty">${dsMascot('admin')}
+    c.innerHTML = `<div class="ds-empty am-empty">${dsMascot('drop')}
       <div class="ds-empty-title">ยังไม่มีแมตช์ในคิว</div>
       <div class="ds-empty-text">เลือกผู้เล่น 2 คนต่อทีม แล้วกด สร้างแมตช์</div>
       <button type="button" class="ds-btn am-empty-act" onclick="document.getElementById('matchBoard').scrollIntoView({ block: 'start' })">${dsIcon('arrow-left')}ไปสร้างแมตช์</button>
@@ -394,7 +394,7 @@ function renderFinishedMatches() {
   if (!matches.length) {
     const none = appState.matchHistory.length === 0;
     container.innerHTML = `<div class="fin-empty ds-empty">
-      <div class="ds-empty-art">${dsMascot(none ? 'replay' : 'search')}</div>
+      <div class="ds-empty-art">${dsMascot(none ? 'serve' : 'search')}</div>
       <div class="ds-empty-title">${none ? 'ยังไม่มีแมตช์ที่จบแล้ว' : 'ไม่พบแมตช์ที่ตรงกับที่ค้นหา'}</div>
       <div class="ds-empty-text">${none ? 'ผลจะขึ้นที่นี่เมื่อแมตช์จบ' : 'ลองล้างคำค้นหาหรือตัวกรอง'}</div>
     </div>`;

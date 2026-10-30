@@ -93,7 +93,7 @@ const SHELL = [
     "icons/umpire-maskable-512.png",
     "media/mascot/loading.webp",
     "media/mascot/offline.webp",
-    "media/mascot/error.webp",
+    "media/mascot/miss.webp",
 ];
 
 self.addEventListener('install', (e) => {

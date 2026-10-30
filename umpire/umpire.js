@@ -962,7 +962,7 @@ function renderMatchList() {
   }
 
   if (appState.ongoingMatches.length === 0) {
-    _uSetHtml(list, _uState('waiting', 'ยังไม่มีแมตช์ให้คุม', 'รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง'));
+    _uSetHtml(list, _uState('break', 'ยังไม่มีแมตช์ให้คุม', 'รอทีมงานสร้างแมตช์ — จะขึ้นที่นี่เอง'));
     return;
   }
 
@@ -980,7 +980,7 @@ function renderMatchList() {
   if (mine.length) { html.push(group('คุมอยู่', mine.length)); mine.forEach(m => html.push(_matchCardHtml(m, true, false))); }
   if (free.length) { html.push(group('ว่างอยู่ — ตามลำดับคิว', free.length)); free.forEach((m, i) => html.push(_matchCardHtml(m, false, i === 0))); }
   else if (_onlyFree && !mine.length) {
-    html.push(_uState('live', 'ไม่มีแมตช์ว่าง', 'ทุกแมตช์มีกรรมการคุมอยู่แล้ว'));
+    html.push(_uState('drop', 'ไม่มีแมตช์ว่าง', 'ทุกแมตช์มีกรรมการคุมอยู่แล้ว'));
   }
   if (taken.length && !_onlyFree) { html.push(group('มีกรรมการแล้ว', taken.length)); taken.forEach(m => html.push(_matchTakenHtml(m))); }
   _uSetHtml(list, html.join(''));
@@ -998,7 +998,7 @@ function renderFinishedList() {
   const list = document.getElementById('finishedList');
 
   if (!appState || appState.matchHistory.length === 0) {
-    _uSetHtml(list, _uState('replay', 'ยังไม่มีผล', 'ผลการแข่งขันจะแสดงที่นี่เมื่อแมตช์จบแล้ว'));
+    _uSetHtml(list, _uState('break', 'ยังไม่มีผล', 'ผลการแข่งขันจะแสดงที่นี่เมื่อแมตช์จบแล้ว'));
     return;
   }
 
