@@ -399,3 +399,9 @@
 /* the "umpire name · court" chip on the umpire's match cards */
 [data-theme="paper"] .match-card .ds-chip { min-height: 36px; font-size: var(--fs-15, .9375rem); font-weight: 700; }
 [data-theme="paper"] .match-card .ds-chip .ds-ic { width: 24px; height: 24px; }
+
+/* ceremony faces (js/effects.js): the same hand-inked rings; the ring is ~1.37 x the photo, so the margin makes room for it */
+[data-theme="paper"] .cer-pav { overflow: visible; border: 0; background: none; position: relative; margin: calc(var(--pav-size, 56px) * .19); }
+[data-theme="paper"] .cer-pav img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; }
+[data-theme="paper"] .cer-pav.pav-initials { background: radial-gradient(circle, var(--s1) 62%, transparent 63%); }
+[data-theme="paper"] .cer-pav::after { content: ''; position: absolute; pointer-events: none; background-repeat: no-repeat; background-position: center; background-size: 100% 100%; }

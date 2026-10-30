@@ -62,35 +62,39 @@ function openEndGame() {
   if (r === 0 && b === 0) return showToast('ยังไม่มีคะแนน', 'error');
 
   const isDraw = r === b, redWins = r > b;
-  const winColor = isDraw ? 'var(--gold)' : redWins ? 'var(--red)' : 'var(--blue)';
+  const result = isDraw ? 'draw' : redWins ? 'red' : 'blue';
+  const winTeam = isDraw ? '' : redWins ? 'Red' : 'Blue';
   const winName = isDraw ? "IT'S A DRAW!" : redWins ? 'RED TEAM' : 'BLUE TEAM';
 
   const stats = getPlayerStats(); // FIX-7d: use shared stats builder
+  const everyone = Object.values(stats);
 
   // หาผู้ชนะในแต่ละหมวด
-  const topMVP = (team) => Object.values(stats).filter(p => p.team === team && p.pts > 0).sort((a,b) => b.pts - a.pts || b.pointDiff - a.pointDiff || b.w - a.w).slice(0, 5);
+  const topMVP = (team) => everyone.filter(p => p.team === team && p.pts > 0).sort((a,b) => b.pts - a.pts || b.pointDiff - a.pointDiff || b.w - a.w).slice(0, 5);
   const redTop = topMVP('Red'), blueTop = topMVP('Blue');
 
   // 🛡️ Toughest Player: d desc → |pointDiff| asc (เข้าใกล้ 0)
-  const toughestPlayers = Object.values(stats).filter(p => p.d > 0)
+  const toughestPlayers = everyone.filter(p => p.d > 0)
     .sort((a,b) => b.d - a.d || Math.abs(a.pointDiff) - Math.abs(b.pointDiff))
     .slice(0, 3);
   // 🔥 Epic Comeback Kings: epicTags desc → w desc → pointDiff desc
-  const epicKings = Object.values(stats).filter(p => p.epicTags > 0)
+  const epicKings = everyone.filter(p => p.epicTags > 0)
     .sort((a,b) => b.epicTags - a.epicTags || b.w - a.w || b.pointDiff - a.pointDiff)
     .slice(0, 3);
   // ⚔️ The Gladiators: clutchTags desc → |pointDiff| asc → d desc
-  const gladiators = Object.values(stats).filter(p => p.clutchTags > 0)
+  const gladiators = everyone.filter(p => p.clutchTags > 0)
     .sort((a,b) => b.clutchTags - a.clutchTags || Math.abs(a.pointDiff) - Math.abs(b.pointDiff) || b.d - a.d)
     .slice(0, 3);
   // 🏃‍♂️ Iron Lungs: marathonTags desc → w desc → pointDiff desc
-  const ironLungs = Object.values(stats).filter(p => p.marathonTags > 0)
+  const ironLungs = everyone.filter(p => p.marathonTags > 0)
     .sort((a,b) => b.marathonTags - a.marathonTags || b.w - a.w || b.pointDiff - a.pointDiff)
     .slice(0, 3);
 
-  document.getElementById('trophyOverlay').style.display = 'block';
-  document.getElementById('trophyBg').className = isDraw ? 'is-draw' : redWins ? 'is-red' : 'is-blue';
-  // the star holds the cup (the champion star; the racket star for a draw) with a white sticker edge on the team colour
+  const overlay = document.getElementById('trophyOverlay');
+  overlay.style.display = 'block';
+  overlay.dataset.result = result;                      // the stage colour (css/trophy.css) follows this
+  document.getElementById('trophyBg').className = 'is-' + result;
+  // the star holds the cup (the champion star; the racket star for a draw), on a podium
   document.getElementById('trophySvgWrap').innerHTML = dsMascot(isDraw ? 'victory' : 'champion', 300, true);
 
   // ── Broadcast ไปทุก user ผ่าน Firebase remoteCommand ──
@@ -99,101 +103,137 @@ function openEndGame() {
     saveData(true);
   }
 
-  document.getElementById('trophyWinnerLabel').innerHTML = `${dsShuttle(22)}<span>${escHtml((document.getElementById('seasonNavTitle') || {}).textContent || 'SPORTS DAY')} · CHAMPION</span>`;
-  const teamNameEl = document.getElementById('trophyTeamName');
-  teamNameEl.textContent = winName; teamNameEl.style.color = winColor;
-  document.getElementById('trophyScore').innerHTML = `<span class="cer-r">${r}</span><span class="cer-dash">—</span><span class="cer-b">${b}</span>`;
+  document.getElementById('trophyWinnerLabel').innerHTML = `${dsShuttle(22)}<span>${escHtml((document.getElementById('seasonNavTitle') || {}).textContent || 'SPORTS DAY')} · ${isDraw ? 'FINAL' : 'CHAMPION'}</span>`;
+  document.getElementById('trophyTeamName').textContent = winName;
+  const plate = (cls, n, label) => `<span class="cer-plate ${cls}"><b>${n}</b><small>${label}</small></span>`;
+  document.getElementById('trophyScore').innerHTML = `${plate('is-red' + (redWins ? ' is-win' : ''), r, 'RED')}<span class="cer-dash">—</span>${plate('is-blue' + (!isDraw && !redWins ? ' is-win' : ''), b, 'BLUE')}`;
+
+  // a face is the point of a ceremony: the champion team's whole roster, then the MVPs and the special awards all show photos
+  const face = (p, size) => avatarHtml(p.id, size, { className: 'cer-pav' });
+  const winners = winTeam ? everyone.filter(p => p.team === winTeam).sort((a, c) => c.pts - a.pts || c.pointDiff - a.pointDiff || a.name.localeCompare(c.name)).slice(0, 30) : [];
+  document.getElementById('trophyRoster').innerHTML = winners.length
+    ? `<h2 class="cer-h cer-h-sm"><span>ทีมแชมป์ · ${winName}</span></h2><ul class="cer-faces">${winners.map(p => `<li>${face(p, 76)}<span>${escHtml(p.name)}</span></li>`).join('')}</ul>`
+    : '';
 
   const totalMatches = appState.matchHistory.length;
   const redWinCount = appState.matchHistory.filter(m => m.rStat === 'W').length;
   const blueWinCount = appState.matchHistory.filter(m => m.bStat === 'W').length;
   const drawCount = appState.matchHistory.filter(m => m.rStat === 'D').length;
-
-  const statCard = (label, val, cls) => `<div class="cer-stat ${cls}"><div class="cer-stat-l">${label}</div><div class="cer-stat-n">${val}</div></div>`;
+  const statCard = (label, val, cls) => `<div class="cer-tile ${cls}"><div class="cer-tile-l">${label}</div><div class="cer-tile-n">${val}</div></div>`;
   document.getElementById('trophyStats').innerHTML = statCard('MATCHES', totalMatches, '') + statCard('RED WINS', redWinCount, 'is-red') + statCard('DRAWS', drawCount, 'is-gold') + statCard('BLUE WINS', blueWinCount, 'is-blue');
 
-  // สร้าง Card สรุปรางวัลพิเศษแบบ Grid
-  const medalOf = i => i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
-  const who = p => `<span class="award-card-who ds-team ${p.team === 'Red' ? 'ds-team-red' : 'ds-team-blue'}">${escHtml(p.name)}</span>`;
-  function buildAwardCard(title, icon, arr, countKey, tagText, criteriaDesc) {
-      if (arr.length === 0) return '';
-      return `<div class="award-card">
-        <span class="award-card-icon">${icon}</span>
-        <div class="award-card-title">${title}</div>
-        ${criteriaDesc ? `<div class="award-card-sub">${criteriaDesc}</div>` : ''}
-        <div class="award-card-names">${arr.map((p, i) => `<div class="award-card-name"><span class="award-card-medal">${medalOf(i)}</span>${who(p)}<span class="award-card-tag">${p[countKey]} ${tagText}</span></div>`).join('')}</div>
-      </div>`;
+  // ── special awards: a hand-drawn icon, the criteria, and the winners with their faces ──
+  const rk = i => `<span class="cer-rk">${i + 1}</span>`;
+  const awardRow = (p, i, tag) => `<li>${rk(i)}${face(p, 52)}<span class="cer-aw-n">${escHtml(p.name)}<small>${p.team === 'Red' ? 'RED' : 'BLUE'} · G${escHtml(p.group)}</small></span><span class="award-card-tag">${tag}</span></li>`;
+  function awardCard(title, thai, icon, sub, rows) {
+    return `<div class="award-card cer-aw">
+      <header class="cer-aw-h"><span class="cer-aw-ic">${dsIcon(icon)}</span><div><div class="award-card-title">${title}</div><div class="cer-aw-th">${thai}</div></div></header>
+      <p class="award-card-sub">${sub}</p>
+      <ul class="cer-aw-list">${rows}</ul>
+    </div>`;
   }
-
-  const specialAwardsDiv = document.getElementById('trophySpecialAwards');
   let awHtml = '';
+  if (epicKings.length > 0) awHtml += awardCard('EPIC COMEBACK KINGS', 'ราชาพลิกนรก', 'fire',
+    'ตามหลัง 4+ คะแนนช่วงท้ายแล้วพลิกชนะ · ตัดเชือก: Tags → Wins → Point Diff',
+    epicKings.map((p, i) => awardRow(p, i, `${p.epicTags} Tag`)).join(''));
+  if (gladiators.length > 0) awHtml += awardCard('THE GLADIATORS', 'นักสู้หัวใจเพชร', 'target',
+    'คะแนนรวม 2 เกมห่างกันไม่เกิน 5 คะแนน · ตัดเชือก: Tags → |Point Diff| → Draws',
+    gladiators.map((p, i) => awardRow(p, i, `${p.clutchTags} แมตช์`)).join(''));
+  if (ironLungs.length > 0) awHtml += awardCard('IRON LUNGS', 'ปอดเหล็ก', 'timer',
+    'มีเกมที่ดิวซ์ยาวถึง 22 คะแนนขึ้นไป · ตัดเชือก: Tags → Wins → Point Diff',
+    ironLungs.map((p, i) => awardRow(p, i, `${p.marathonTags} แมตช์`)).join(''));
+  if (toughestPlayers.length > 0) awHtml += awardCard('TOUGHEST PLAYER', 'ผู้เล่นเคี้ยวยาก', 'medal',
+    'พาทีมเสมอมากสุด · ตัดเชือก: Draws → |Point Diff| ใกล้ 0',
+    toughestPlayers.map((p, i) => awardRow(p, i, `เสมอ <b>${p.d}</b> · PD ${p.pointDiff}`)).join(''));
+  document.getElementById('trophySpecialAwards').innerHTML = awHtml
+    ? `<h2 class="cer-h"><span>${dsMascot('reward', 78, false, 'cer-h-m')}รางวัลพิเศษ</span></h2><div class="cer-aw-grid">${awHtml}</div>` : '';
 
-  // 1. Epic Comeback Kings
-  if (epicKings.length > 0) awHtml += buildAwardCard(
-    'EPIC COMEBACK KINGS (ราชาพลิกนรก)', '🔥', epicKings, 'epicTags', 'Tag',
-    'ตามหลัง 4+ คะแนนช่วงท้ายแล้วพลิกชนะ · ตัดเชือก: Tags → Wins → Point Diff'
-  );
-  // 2. The Gladiators
-  if (gladiators.length > 0) awHtml += buildAwardCard(
-    'THE GLADIATORS (นักสู้หัวใจเพชร)', '⚔️', gladiators, 'clutchTags', 'แมตช์',
-    'คะแนนรวม 2 เกมห่างกันไม่เกิน 5 คะแนน · ตัดเชือก: Tags → |Point Diff| → Draws'
-  );
-  // 3. Iron Lungs
-  if (ironLungs.length > 0) awHtml += buildAwardCard(
-    'IRON LUNGS (ปอดเหล็ก)', '🏃‍♂️', ironLungs, 'marathonTags', 'แมตช์',
-    'มีเกมที่ดิวซ์ยาวถึง 22 คะแนนขึ้นไป · ตัดเชือก: Tags → Wins → Point Diff'
-  );
-  // 4. Toughest Player (ใช้โครงสร้างแบบพิเศษ เพราะโชว์เสมอ/PD)
-  if (toughestPlayers.length > 0) {
-      awHtml += `<div class="award-card">
-        <span class="award-card-icon">🛡️</span>
-        <div class="award-card-title">TOUGHEST PLAYER (ผู้เล่นเคี้ยวยาก)</div>
-        <div class="award-card-sub">พาทีมเสมอมากสุด · ตัดเชือก: Draws → |Point Diff| ใกล้ 0</div>
-        <div class="award-card-names">${toughestPlayers.map((p, i) => `<div class="award-card-name"><span class="award-card-medal">${medalOf(i)}</span>${who(p)}<span class="award-card-tag">เสมอ <b>${p.d}</b> · PD: ${p.pointDiff}</span></div>`).join('')}</div>
-      </div>`;
-  }
-  specialAwardsDiv.innerHTML = awHtml;
-
-  // Render Top 5 MVP
-  const top5El = document.getElementById('trophyTop5');
-
+  // ── MVP top 5: the leader of each team is a big card with a face, the rest are rows with faces ──
   function renderTeamTop(players) {
     if (players.length === 0) return `<div class="cer-empty">ยังไม่มีข้อมูลแมตช์</div>`;
-    return players.map((p, i) => {
-      const diffSign = p.pointDiff > 0 ? '+' : '';
-      const pd = p.pointDiff > 0 ? 'is-up' : p.pointDiff < 0 ? 'is-down' : '';
-      const medals = ['🥇','🥈','🥉'];
-      const rankDisp = medals[i] || `<span class="cer-rk">${i+1}.</span>`;
-      return `<div class="cer-row">
-        <div class="cer-rank">${rankDisp}</div>
-        <div class="cer-who">
-          <div class="cer-name">${escHtml(p.name)}</div>
-          <div class="cer-sub">กลุ่ม ${escHtml(p.group)} · PD: <span class="cer-pd ${pd}">${diffSign}${p.pointDiff}</span></div>
-        </div>
-        <div class="cer-pts">${p.pts}<small>PTS</small></div>
-      </div>`;
-    }).join('');
+    const pd = p => { const s = p.pointDiff > 0 ? '+' : ''; return `<span class="cer-pd ${p.pointDiff > 0 ? 'is-up' : p.pointDiff < 0 ? 'is-down' : ''}">${s}${p.pointDiff}</span>`; };
+    const [lead, ...rest] = players;
+    return `<div class="cer-lead">
+        <span class="cer-crown">${dsIcon('crown')}</span>${face(lead, 104)}
+        <div class="cer-lead-n">${escHtml(lead.name)}</div>
+        <div class="cer-lead-s">กลุ่ม ${escHtml(lead.group)} · PD ${pd(lead)}</div>
+        <div class="cer-lead-p">${lead.pts}<small>PTS</small></div>
+      </div>
+      ${rest.map((p, i) => `<div class="cer-row">${rk(i + 1)}${face(p, 56)}
+        <div class="cer-who"><div class="cer-name">${escHtml(p.name)}</div><div class="cer-sub">กลุ่ม ${escHtml(p.group)} · PD ${pd(p)}</div></div>
+        <div class="cer-pts">${p.pts}<small>PTS</small></div></div>`).join('')}`;
   }
-
-  top5El.innerHTML = `<h2 class="cer-h"><span class="cer-h-l"></span>${dsIcon('trophy', { fill: true })}MVP TOP 5<span class="cer-h-r"></span></h2>
+  document.getElementById('trophyTop5').innerHTML = `<h2 class="cer-h"><span>${dsMascot('rising', 78, false, 'cer-h-m')}MVP TOP 5</span></h2>
     <div class="cer-cols">
-      <section class="cer-col is-red"><div class="cer-col-h"><span class="ds-team ds-team-red">RED TEAM · MVP</span></div>${renderTeamTop(redTop)}</section>
-      <section class="cer-col is-blue"><div class="cer-col-h"><span class="ds-team ds-team-blue">BLUE TEAM · MVP</span></div>${renderTeamTop(blueTop)}</section>
+      <section class="cer-col is-red"><div class="cer-col-h">RED TEAM · MVP</div>${renderTeamTop(redTop)}</section>
+      <section class="cer-col is-blue"><div class="cer-col-h">BLUE TEAM · MVP</div>${renderTeamTop(blueTop)}</section>
     </div>`;
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    ['trophyWinnerLabel','trophySvgWrap','trophyTeamName','trophyScore','trophyStats','trophySpecialAwards','trophyTop5','trophyCloseBtn'].forEach(id => { const el = document.getElementById(id); if (el) { el.style.opacity = '1'; el.style.transform = 'scale(1) translateY(0)'; } });
+    CER_PARTS.forEach(id => { const el = document.getElementById(id); if (el) { el.style.opacity = '1'; el.style.transform = 'scale(1) translateY(0)'; } });
   }));
 
-  startConfetti(winColor, isDraw, redWins);
+  startConfetti(null, isDraw, redWins);
   animateTrophy();
 }
 
-function closeTrophy() { stopConfetti(); document.getElementById('trophyOverlay').style.opacity = '0'; document.getElementById('trophyOverlay').style.transition = 'opacity 0.5s'; setTimeout(() => { document.getElementById('trophyOverlay').style.display = 'none'; document.getElementById('trophyOverlay').style.opacity = ''; document.getElementById('trophyOverlay').style.transition = ''; ['trophyWinnerLabel','trophySvgWrap','trophyTeamName','trophyScore','trophyStats','trophySpecialAwards','trophyTop5','trophyCloseBtn'].forEach(id => { const el = document.getElementById(id); if (el) { el.style.opacity = '0'; el.style.transform = ''; el.style.display = ''; } }); document.getElementById('trophySvgWrap').style.transform = 'scale(0.2) translateY(80px)'; document.getElementById('trophyTeamName').style.transform = 'scale(0.6)'; }, 500); }
-let confettiRAF = null; const confettiParticles = []; function startConfetti(mainColor, isDraw, redWins) { const canvas = document.getElementById('confettiCanvas'); canvas.width = window.innerWidth; canvas.height = window.innerHeight; const ctx = canvas.getContext('2d'); confettiParticles.length = 0; const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim(); /* confetti colours come from the tokens, read when the ceremony starts */ const palettes = { red: [tok('--red'), tok('--red-text'), tok('--gold'), tok('--gold-hi'), tok('--red-ink'), tok('--t-hi')], blue: [tok('--blue'), tok('--blue-text'), tok('--gold'), tok('--gold-hi'), tok('--blue-ink'), tok('--t-hi')], draw: [tok('--gold'), tok('--red'), tok('--blue'), tok('--gold-hi'), tok('--live'), tok('--t-hi')] }; const colors = isDraw ? palettes.draw : redWins ? palettes.red : palettes.blue; function spawnBurst(count) { for (let i = 0; i < count; i++) { confettiParticles.push({ x: Math.random() * canvas.width, y: -20, w: 6 + Math.random() * 10, h: 3 + Math.random() * 6, color: colors[Math.floor(Math.random() * colors.length)], vx: (Math.random() - 0.5) * 5, vy: 2 + Math.random() * 5, rot: Math.random() * Math.PI * 2, rotV: (Math.random() - 0.5) * 0.2, gravity: 0.06 + Math.random() * 0.04, shape: Math.random() > 0.5 ? 'rect' : 'circle', life: 0, maxLife: 200 + Math.random() * 150 }); } } let frame = 0; function loop() { ctx.clearRect(0, 0, canvas.width, canvas.height); frame++; if (frame < 180 && frame % 3 === 0) spawnBurst(8); for (let i = confettiParticles.length - 1; i >= 0; i--) { const p = confettiParticles[i]; p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.rot += p.rotV; p.life++; if (p.y > canvas.height + 30 || p.life > p.maxLife) { confettiParticles.splice(i,1); continue; } const alpha = p.life > p.maxLife - 40 ? 1 - (p.life - (p.maxLife-40))/40 : 1; ctx.globalAlpha = alpha; ctx.fillStyle = p.color; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); if (p.shape === 'circle') { ctx.beginPath(); ctx.arc(0, 0, p.w/2, 0, Math.PI*2); ctx.fill(); } else { ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); } ctx.restore(); ctx.globalAlpha = 1; } confettiRAF = requestAnimationFrame(loop); } loop(); } function stopConfetti() { if (confettiRAF) { cancelAnimationFrame(confettiRAF); confettiRAF = null; } const canvas = document.getElementById('confettiCanvas'); canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); confettiParticles.length = 0; }
+// every piece of the ceremony that fades in (openEndGame) and is put back when it closes (closeTrophy)
+const CER_PARTS = ['trophyWinnerLabel', 'trophySvgWrap', 'trophyTeamName', 'trophyScore', 'trophyRoster', 'trophyStats', 'trophyTop5', 'trophySpecialAwards', 'trophyCloseBtn'];
+
+function closeTrophy() { stopConfetti(); document.getElementById('trophyOverlay').style.opacity = '0'; document.getElementById('trophyOverlay').style.transition = 'opacity 0.5s'; setTimeout(() => { document.getElementById('trophyOverlay').style.display = 'none'; document.getElementById('trophyOverlay').style.opacity = ''; document.getElementById('trophyOverlay').style.transition = ''; CER_PARTS.forEach(id => { const el = document.getElementById(id); if (el) { el.style.opacity = '0'; el.style.transform = ''; el.style.display = ''; } }); document.getElementById('trophySvgWrap').style.transform = 'scale(0.2) translateY(80px)'; document.getElementById('trophyTeamName').style.transform = 'scale(0.6)'; }, 500); }
+
+// confetti: paper stars and strips in the poster's four inks (team colour first), drawn on the canvas behind the content
+let confettiRAF = null; const confettiParticles = [];
+function startConfetti(mainColor, isDraw, redWins) {
+  const canvas = document.getElementById('confettiCanvas');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  confettiParticles.length = 0;
+  const palettes = {
+    red:  ['#d81a21', '#d81a21', '#f4c430', '#fff6ea', '#0b2a52'],
+    blue: ['#0956b8', '#0956b8', '#f4c430', '#fff6ea', '#0b2a52'],
+    draw: ['#f4c430', '#f4c430', '#d81a21', '#0956b8', '#fff6ea'],
+  };
+  const colors = isDraw ? palettes.draw : redWins ? palettes.red : palettes.blue;
+  const star = (R) => { ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = Math.PI / 5 * i - Math.PI / 2, rad = i % 2 ? R * 0.45 : R; ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad); } ctx.closePath(); ctx.fill(); };
+  function spawnBurst(count) {
+    for (let i = 0; i < count; i++) {
+      confettiParticles.push({ x: Math.random() * canvas.width, y: -20, w: 8 + Math.random() * 12, h: 3 + Math.random() * 6, color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 5, vy: 2 + Math.random() * 5, rot: Math.random() * Math.PI * 2, rotV: (Math.random() - 0.5) * 0.2, gravity: 0.06 + Math.random() * 0.04,
+        shape: Math.random() < 0.5 ? 'star' : 'rect', life: 0, maxLife: 200 + Math.random() * 150 });
+    }
+  }
+  let frame = 0;
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); frame++;
+    if (frame < 180 && frame % 3 === 0) spawnBurst(8);
+    for (let i = confettiParticles.length - 1; i >= 0; i--) {
+      const p = confettiParticles[i]; p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.rot += p.rotV; p.life++;
+      if (p.y > canvas.height + 30 || p.life > p.maxLife) { confettiParticles.splice(i, 1); continue; }
+      ctx.globalAlpha = p.life > p.maxLife - 40 ? 1 - (p.life - (p.maxLife - 40)) / 40 : 1;
+      ctx.fillStyle = p.color; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      if (p.shape === 'star') { star(p.w * 0.8); } else { ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); }
+      ctx.restore(); ctx.globalAlpha = 1;
+    }
+    confettiRAF = requestAnimationFrame(loop);
+  }
+  loop();
+}
+function stopConfetti() { if (confettiRAF) { cancelAnimationFrame(confettiRAF); confettiRAF = null; } const canvas = document.getElementById('confettiCanvas'); canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); confettiParticles.length = 0; }
 // FIX-14: resize confetti canvas on window resize so it covers full viewport
 window.addEventListener('resize', () => { const c = document.getElementById('confettiCanvas'); if (c && confettiRAF) { c.width = window.innerWidth; c.height = window.innerHeight; } });
 function animateTrophy() { const wrap = document.getElementById('trophySvgWrap'); let t = 0; function tick() { t += 0.02; if (!document.getElementById('trophyOverlay') || document.getElementById('trophyOverlay').style.display === 'none') return; wrap.style.transform = `scale(1) translateY(${Math.sin(t) * 8}px) rotate(${Math.sin(t*0.7)*2}deg)`; requestAnimationFrame(tick); } setTimeout(() => { wrap.style.transition = 'none'; tick(); }, 1400); }  // the float rewrites transform every frame: without this a late reveal transition restarts for ever and the star stays at 0.2
+
+// ?ceremony=1 opens the ceremony on THIS screen only, once the data is in and you are in as a spectator ("เข้าดูคะแนนสด"): nothing is broadcast
+// (the admin button sends SHOW_TROPHY to every screen, the TV included). It exists to look at the design without touching the live screens.
+if (/[?&]ceremony=1(?:&|$)/.test(location.search)) {
+  const _cerPoll = setInterval(() => {
+    if (typeof _dataReady !== 'undefined' && _dataReady && typeof userRole !== 'undefined' && userRole === 'guest' && (appState.players || []).length) {
+      clearInterval(_cerPoll); setTimeout(() => { if (userRole === 'guest') openEndGame(); }, 2500);   // after the first screens have drawn
+    }
+  }, 400);
+  setTimeout(() => clearInterval(_cerPoll), 120000);
+}
 
 // ── MATCH NOTIFICATION SYSTEM ──
 
