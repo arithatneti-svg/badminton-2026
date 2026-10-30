@@ -30,73 +30,74 @@ try {
 <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <!-- Shared Firebase config + init. defer => runs in-order in one batch with app scripts, after parse. -->
-<script defer src="shared/firebase-config.js?v=2026.10.30.31"></script>
+<script defer src="shared/firebase-config.js?v=2026.10.30.34"></script>
 <!-- PWA: installable + offline-tolerant app shell -->
 <meta name="theme-color" content="#f6f0e4">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Scoreboard">
-<script defer src="shared/version.js?v=2026.10.30.31"></script>
-<script defer src="shared/pwa.js?v=2026.10.30.31"></script>
-<script defer src="shared/icons.js?v=2026.10.30.31"></script>
-<script defer src="shared/art.js?v=2026.10.30.31"></script>
+<script defer src="shared/version.js?v=2026.10.30.34"></script>
+<script defer src="shared/pwa.js?v=2026.10.30.34"></script>
+<script defer src="shared/icons.js?v=2026.10.30.34"></script>
+<script defer src="shared/art.js?v=2026.10.30.34"></script>
 <!-- App styles (split from original single <style>). tokens first (colour, type, space), then the global base and the shared ds- primitives. -->
-<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/base.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/ui.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/login.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/nav.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/scoreboard.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/match-cards.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/tables-modals.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/dashboard.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/picker.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/board.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/notifications.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/ongoing-finished.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/climax.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/fullscreen.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/report.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/gallery.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/trophy.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/responsive.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/profile.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/components.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/backup.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/qr.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/tv.css?v=2026.10.30.31">
-<link rel="stylesheet" href="css/paper.css?v=2026.10.30.31">
+<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/base.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/ui.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/login.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/nav.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/scoreboard.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/match-cards.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/tables-modals.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/dashboard.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/picker.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/board.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/notifications.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/ongoing-finished.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/climax.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/fullscreen.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/report.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/gallery.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/trophy.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/responsive.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/profile.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/components.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/backup.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/qr.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/tv.css?v=2026.10.30.34">
+<link rel="stylesheet" href="css/paper.css?v=2026.10.30.34">
 <!-- App scripts. defer keeps original order AND avoids the cross-file load race. -->
-<script defer src="js/utils.js?v=2026.10.30.31"></script>
-<script defer src="js/auth.js?v=2026.10.30.31"></script>
-<script defer src="shared/sync-merge.js?v=2026.10.30.31"></script>
-<script defer src="shared/match-time.js?v=2026.10.30.31"></script>
-<script defer src="js/core.js?v=2026.10.30.31"></script>
-<script defer src="js/ui.js?v=2026.10.30.31"></script>
-<script defer src="js/player-photo.js?v=2026.10.30.31"></script>
-<script defer src="js/player-profile.js?v=2026.10.30.31"></script>
-<script defer src="js/me.js?v=2026.10.30.31"></script>
-<script defer src="js/gallery.js?v=2026.10.30.31"></script>
-<script defer src="js/career.js?v=2026.10.30.31"></script>
-<script defer src="js/season.js?v=2026.10.30.31"></script>
-<script defer src="js/export-import.js?v=2026.10.30.31"></script>
-<script defer src="js/match-picker.js?v=2026.10.30.31"></script>
-<script defer src="js/match-render.js?v=2026.10.30.31"></script>
-<script defer src="js/result-entry.js?v=2026.10.30.31"></script>
-<script defer src="js/stats.js?v=2026.10.30.31"></script>
-<script defer src="js/reports.js?v=2026.10.30.31"></script>
-<script defer src="js/pdf-export.js?v=2026.10.30.31"></script>
-<script defer src="js/dashboard.js?v=2026.10.30.31"></script>
-<script defer src="js/ranking.js?v=2026.10.30.31"></script>
-<script defer src="js/effects.js?v=2026.10.30.31"></script>
-<script defer src="js/notifications.js?v=2026.10.30.31"></script>
-<script defer src="js/backup.js?v=2026.10.30.31"></script>
-<script defer src="js/vendor/qrcode.min.js?v=2026.10.30.31"></script>
-<script defer src="js/qr.js?v=2026.10.30.31"></script>
-<script defer src="js/tv.js?v=2026.10.30.31"></script>
+<script defer src="js/utils.js?v=2026.10.30.34"></script>
+<script defer src="js/auth.js?v=2026.10.30.34"></script>
+<script defer src="shared/sync-merge.js?v=2026.10.30.34"></script>
+<script defer src="shared/match-time.js?v=2026.10.30.34"></script>
+<script defer src="js/core.js?v=2026.10.30.34"></script>
+<script defer src="js/ui.js?v=2026.10.30.34"></script>
+<script defer src="js/player-photo.js?v=2026.10.30.34"></script>
+<script defer src="js/player-profile.js?v=2026.10.30.34"></script>
+<script defer src="js/me.js?v=2026.10.30.34"></script>
+<script defer src="js/gallery.js?v=2026.10.30.34"></script>
+<script defer src="js/career.js?v=2026.10.30.34"></script>
+<script defer src="js/season.js?v=2026.10.30.34"></script>
+<script defer src="js/export-import.js?v=2026.10.30.34"></script>
+<script defer src="js/match-picker.js?v=2026.10.30.34"></script>
+<script defer src="js/match-render.js?v=2026.10.30.34"></script>
+<script defer src="js/result-entry.js?v=2026.10.30.34"></script>
+<script defer src="js/stats.js?v=2026.10.30.34"></script>
+<script defer src="js/reports.js?v=2026.10.30.34"></script>
+<script defer src="js/pdf-export.js?v=2026.10.30.34"></script>
+<script defer src="js/dashboard.js?v=2026.10.30.34"></script>
+<script defer src="js/ranking.js?v=2026.10.30.34"></script>
+<script defer src="js/effects.js?v=2026.10.30.34"></script>
+<script defer src="js/notifications.js?v=2026.10.30.34"></script>
+<script defer src="js/backup.js?v=2026.10.30.34"></script>
+<script defer src="js/vendor/qrcode.min.js?v=2026.10.30.34"></script>
+<script defer src="js/qr.js?v=2026.10.30.34"></script>
+<script defer src="js/tv.js?v=2026.10.30.34"></script>
 <body class="data-loading">
 
 <!-- the brand mark (a gold tile and a shuttlecock), drawn once: the login screen and the top bar both <use> it -->
@@ -134,6 +135,11 @@ try {
           <span class="login-primary-sub">ผลแมตช์ · ตารางคะแนน · สถิติผู้เล่น</span>
         </span>
         <svg class="ds-ic login-go" aria-hidden="true" focusable="false"><use href="#ic-caret-right"/></svg>
+      </button>
+
+      <button type="button" class="login-install" data-app-install hidden onclick="appInstall()">
+        <svg class="ds-ic" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg>
+        <span><span class="login-install-main">ติดตั้งเป็นแอปบนมือถือ</span><small>เปิดจากหน้าจอโฮมได้เลย ไม่ต้องหาลิงก์</small></span>
       </button>
 
       <div class="login-staff">
@@ -242,6 +248,7 @@ try {
       <button type="button" class="nav-ic superadmin-only" onclick="openSeasonWizard()" title="เริ่ม Season ใหม่" aria-label="เริ่ม Season ใหม่"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-calendar-blank"/></svg><span class="nav-ic-label">เริ่ม Season ใหม่</span></span></button>
     </div>
     <div class="nav-grp">
+      <button type="button" class="nav-ic" data-app-install hidden onclick="appInstall()" title="ติดตั้งเป็นแอปบนมือถือ" aria-label="ติดตั้งเป็นแอปบนมือถือ"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-download-simple"/></svg><span class="nav-ic-label">ติดตั้งแอป</span></span></button>
       <button type="button" class="nav-ic admin-only" onclick="openQrModal()" title="QR สำหรับผู้ชม / กรรมการ" aria-label="QR สำหรับผู้ชม / กรรมการ"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-qr-code"/></svg><span class="nav-ic-label">QR ผู้ชม / กรรมการ</span></span></button>
       <button type="button" class="nav-ic" onclick="toggleFullScreen()" title="เต็มจอ (F)" aria-label="เต็มจอ"><span class="nav-ic-in"><svg class="ds-ic nav-ic-ico" aria-hidden="true" focusable="false"><use href="#ic-arrows-out"/></svg><span class="nav-ic-label">เต็มจอ</span></span></button>
     </div>

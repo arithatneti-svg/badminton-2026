@@ -223,3 +223,45 @@
 [data-theme="paper"] :is(.adm-h, .wz-h, .wz-sum-h, .arc-name, .ld-msg, .gal-year-title, .login-primary-main, .noti-reaction-text, .profile-name, .pd-h, .plb-name, .qr-card-title, .cf-result, .ds-sheet-title, .ds-empty-title, .pause-title, .modal-title, .modal-result, .screen-title, .login-title, .mc-team, .section-title.th, .tab-lbl, .idl-pill) { font-family: var(--font-th-head); }
 [data-theme="paper"] :is(.ds-team, .idl-tname, .idl-vs) { font-family: var(--font-num); font-weight: 400; letter-spacing: .08em; }
 [data-theme="paper"] .ds-ic { stroke: currentColor; stroke-width: 6; stroke-linejoin: round; stroke-linecap: round; }
+
+/* ---- live court cards (Ongoing tab) and the on-court summary: the same Riso language as the finished tab and the TV ----
+   inked frame (::before, because .is-mine already draws its star on ::after), score plates with the ragged printed edge and an offset second plate,
+   yellow marker court / game / team labels, a crayon rule over each team. A close finish or a deuce keeps its coloured outline. ---- */
+[data-theme="paper"] :is(.court-card, .ongoing-hero) { position: relative; overflow: visible; border: 0; border-radius: 2px; background: var(--s1); box-shadow: 4px 4px 0 rgba(11, 42, 82, .16); }
+[data-theme="paper"] :is(.court-card, .ongoing-hero)::before {
+  content: ''; position: absolute; inset: -3px; z-index: 1; pointer-events: none; border: 6px solid transparent; border-radius: 2px; border-image: var(--riso-frame) 22 / 6px / 0 stretch;
+}
+[data-theme="paper"] .court-card.climax { box-shadow: 0 0 0 3px var(--gold), 4px 4px 0 rgba(11, 42, 82, .16); }
+[data-theme="paper"] .court-card.deuce { box-shadow: 0 0 0 3px var(--warn), 4px 4px 0 rgba(11, 42, 82, .16); }
+[data-theme="paper"] .court-card-header { padding-top: var(--sp-4); }
+[data-theme="paper"] .court-no { min-height: 30px; padding: 0 20px; border-radius: 0; color: #0b2a52; background: url(../media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat; transform: rotate(-1.6deg); }
+[data-theme="paper"] .court-card-round, [data-theme="paper"] .queue-round { border: 1.5px solid #0b2a52; border-radius: 4px 8px 5px 9px / 9px 5px 8px 4px; background: transparent; color: #0b2a52; box-shadow: 2px 2px 0 rgba(225, 29, 36, .28); }
+[data-theme="paper"] .court-glabel { border-radius: 0; padding: 2px 14px; color: #0b2a52; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; transform: rotate(-1.5deg); }
+[data-theme="paper"] .court-glabel.g2 { background-image: url(../media/riso/marker-yellow-2.webp); transform: rotate(1.5deg); }
+/* the two score plates: a ragged printed edge (mask) with a halftone grain, the offset navy plate rides on the group (a filter follows the mask) */
+[data-theme="paper"] .court-score-nums { filter: drop-shadow(3px 3px 0 rgba(11, 42, 82, .45)); }
+[data-theme="paper"] .court-snum {
+  --fill: #d81a21; color: #fff6ea; border-bottom: 0; border-radius: 0; padding: .08em .14em .03em;
+  background: radial-gradient(circle, rgba(255, 246, 234, .13) 1px, transparent 1.4px) 0 0 / 6px 6px, var(--fill);
+  -webkit-mask: var(--riso-ragged) center / 100% 100% no-repeat; mask: var(--riso-ragged) center / 100% 100% no-repeat;
+}
+[data-theme="paper"] .court-snum.blue { --fill: #0956b8; }
+[data-theme="paper"] .court-snum.dim.red, [data-theme="paper"] .court-snum.dim.blue { color: #fff6ea; opacity: .6; }
+[data-theme="paper"] .court-ssep { color: #0b2a52; }
+[data-theme="paper"] .court-team { border-top: 0; padding-top: calc(var(--sp-3) + 8px); }
+[data-theme="paper"] .court-team::before { content: ''; position: absolute; left: var(--sp-3); right: var(--sp-3); top: 0; height: 9px; background: url(../media/riso/line-red.webp) center / 100% 100% no-repeat; }
+[data-theme="paper"] .court-team.blue::before { background-image: url(../media/riso/line-blue.webp); }
+[data-theme="paper"] .court-team { position: relative; }
+[data-theme="paper"] .court-team-label { color: #0b2a52; padding: .05em .7em .1em; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; transform: rotate(-1.2deg); }
+[data-theme="paper"] .court-team.blue .court-team-label { background-image: url(../media/riso/marker-yellow-2.webp); transform: rotate(1.2deg); }
+[data-theme="paper"] .court-team-label.ds-team-red::before { background: #d81a21; }
+[data-theme="paper"] .court-team-label.ds-team-blue::before { background: #0956b8; }
+/* faces on the card: the hand-inked ring, like everywhere else */
+[data-theme="paper"] .court-pav { width: 34px; height: 34px; margin: 6px; overflow: visible; border: 0; background: none; position: relative; }
+[data-theme="paper"] .court-pav img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; }
+[data-theme="paper"] .court-pav.pav-initials { background: radial-gradient(circle, var(--s1) 62%, transparent 63%); }
+[data-theme="paper"] .court-pav::after { content: ''; position: absolute; pointer-events: none; background: no-repeat center / 100% 100%; }
+/* the on-court summary: a big hand-lettered count, the live chip stays */
+[data-theme="paper"] .ongoing-hero { padding: var(--sp-5) var(--sp-5); }
+[data-theme="paper"] .ongoing-live-count { font-size: 4rem; }
+[data-theme="paper"] .login-install { border: 1.5px solid #0b2a52; border-radius: 4px 8px 5px 9px / 9px 5px 8px 4px; box-shadow: 2px 2px 0 rgba(225, 29, 36, .28); background: var(--s1); }

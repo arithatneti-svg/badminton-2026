@@ -101,3 +101,7 @@ body.admin-mode .superadmin-only { display: none !important; }
 /* superadmin เห็น UI เหมือน admin แต่ container (.container) คุมด้วย .active class เท่านั้น */
 body.superadmin-mode .admin-only:not(.container) { display: revert !important; }
 body.superadmin-mode .superadmin-only { display: revert !important; }
+
+/* install as an app (shared/pwa.js shows it only where it can help) */
+.login-install { display: flex; align-items: center; gap: var(--sp-3); width: 100%; min-height: var(--tap); margin-top: var(--sp-3); padding: var(--sp-3) var(--sp-4); border: 1.5px dashed var(--line-strong); border-radius: var(--r-md); background: transparent; color: var(--t-hi); font: 700 var(--fs-14)/var(--lh-th) var(--font-th); text-align: left; cursor: pointer; touch-action: manipulation; }
+.login-install small { display: block; color: var(--t-mid); font: 500 var(--fs-13)/var(--lh-th) var(--font-th); }
