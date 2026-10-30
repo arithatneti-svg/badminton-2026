@@ -75,7 +75,8 @@ function avatarHtml(player, size = 38, opts = {}) {
   if (!p) return '';
   const photo = playerPhoto(p.id);
   const teamCls = p.team === 'Red' ? 'pav-red' : 'pav-blue';
-  const extra = opts.className ? ' ' + opts.className : '';
+  const rv = [...String(p.id)].reduce((a, c) => a + c.charCodeAt(0), 0) % 3;   // which of the 3 hand-inked rings (css .pav-r0..2)
+  const extra = (opts.className ? ' ' + opts.className : '') + ' pav-r' + rv;
   const style = `--pav-size:${size}px;`;
   const pid = escHtml(p.id);   // lets a late-arriving photo upgrade this avatar in place
   return photo
