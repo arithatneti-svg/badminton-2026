@@ -113,6 +113,15 @@
 .dw-field b { font-family: var(--font-num); font-weight: 400; font-size: 4rem; letter-spacing: .06em; line-height: 1; }
 .dw-lead { font-size: var(--fs-18); }
 .dw-result .dw-row { justify-content: center; }
+.dw-remind { --rc: rgba(11, 42, 82, .3); display: grid; gap: 6px; text-align: left; padding: 14px 16px; border: 1.5px solid #0b2a52; border-radius: 4px 12px 12px 12px; background: var(--s1); box-shadow: 3px 3px 0 var(--rc); }
+.dw-remind.is-red { --rc: rgba(216, 26, 33, .55); --tc: #d81a21; }
+.dw-remind.is-blue { --rc: rgba(9, 86, 184, .5); --tc: #0956b8; }
+.dw-remind b { font-family: var(--font-th-head); font-size: var(--fs-16); }
+.dw-remind p { margin: 0; }
+.dw-remind u { text-decoration: underline wavy var(--tc); text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+.dw-need { font-size: var(--fs-18); font-weight: 700; }
+.dw-tc { color: var(--tc); font-family: var(--font-th-head); font-size: 1.3em; }
+.dw-remind-sub { font-size: var(--fs-13); color: var(--t-mid); }
 
 /* big screen */
 .dw-board { display: grid; gap: 18px; }

@@ -255,6 +255,11 @@
     var t = p.team || 'Red', rank = drawn().length;
     return '<section class="dw-card dw-result"><div class="dw-field is-' + t.toLowerCase() + '"><small>คุณอยู่</small><b>' + teamName(t) + '</b></div>' +
       '<div class="dw-who">' + mascot('victory', 140) + '</div><p class="dw-lead">ยินดีด้วย ' + esc(p.name) + '! คุณเป็นคนที่ <b>' + rank + '</b> จาก ' + TOTAL + ' ที่สุ่มแล้ว</p>' +
+      // the reminder before match day: look after yourself, your colour needs you, the rest comes from the organiser
+      '<div class="dw-remind is-' + t.toLowerCase() + '"><b>ฝากไว้ก่อนวันแข่ง</b>' +
+      '<p>อีกไม่กี่วันก็แข่งแล้วนะ ดูแลตัวเองดีๆ <u>อย่าเจ็บ อย่าป่วย</u>น้า</p>' +
+      '<p class="dw-need"><span class="dw-tc">' + (t === 'Red' ? 'สีแดง' : 'สีน้ำเงิน') + '</span> ต้องการคุณ!</p>' +
+      '<p class="dw-remind-sub">ส่วนที่เหลือ รออัพเดทจากผู้จัดอีกที</p></div>' +
       '<div class="dw-row"><button type="button" class="ds-btn ds-btn-primary ds-btn-lg" data-act="go-board">ดูหน้าจอเปิดตัวทีม</button>' +
       '<button type="button" class="ds-btn" data-act="notme">เสร็จแล้ว</button></div></section>';
   }
