@@ -91,6 +91,8 @@ function updateChampControls() {
 
 // one icon per award (names stay English on purpose; a future award falls back to a medal)
 const AWARD_ICON = { 'Champion': 'trophy', 'MVP': 'crown', 'Marathon Fighter': 'timer' };
+// the star that carries each award (media/mascot); an award without one keeps its icon
+const AWARD_ART = { 'Champion': 'champion', 'MVP': 'rising', 'Marathon Fighter': 'streak' };
 function awardIcon(a) {
   const k = AWARD_ICON[a.title] || 'medal';
   return dsIcon(k, { fill: k === 'trophy' || k === 'crown' });
@@ -218,8 +220,8 @@ function renderPdAwards(p) {
   if (!earned.length) { el.innerHTML = ''; return; }
   el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">รางวัล</h3>
     <ul class="pd-awards" role="list">${earned.map(a => `
-      <li class="pd-award">
-        <span class="pd-award-ic">${awardIcon(a)}</span>
+      <li class="pd-award${AWARD_ART[a.title] ? ' has-art' : ''}">
+        <span class="pd-award-ic">${AWARD_ART[a.title] ? dsMascot(AWARD_ART[a.title], 72) : awardIcon(a)}</span>
         <span class="pd-award-txt">
           <span class="pd-award-title">${escHtml(a.title)}</span>
           <span class="pd-award-sub">${escHtml(a.subtitle)}</span>

@@ -110,6 +110,9 @@
 .pd-awards { list-style: none; display: grid; gap: var(--sp-2); }
 .pd-award { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--gold-dim); border: 1px solid var(--gold-line); border-radius: var(--r-md); }
 .pd-award-ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--gold); color: var(--gold-ink); font-size: 20px; }
+.pd-award.has-art { gap: var(--sp-4); padding-block: var(--sp-2); }
+.pd-award.has-art .pd-award-ic { width: 72px; height: auto; min-height: 72px; border-radius: 0; background: none; }
+.pd-award.has-art .pd-award-ic .ds-mascot { width: 72px; animation-duration: 5s; }
 .pd-award-txt { display: grid; min-width: 0; }
 .pd-award-title { color: var(--t-hi); font: 700 var(--fs-16)/1.3 var(--font-ui); }
 .pd-award-sub { color: var(--t-mid); font: 500 var(--fs-13)/1.4 var(--font-ui); overflow-wrap: anywhere; }
