@@ -370,7 +370,7 @@ function initDeviceSupport(force) {
 {
   const lm = document.getElementById('loginMark');
   if (lm) {
-    lm.innerHTML = dsMark(72);
+    lm.innerHTML = dsMascot('serve', 104, true);   // the serving star (media/mascot), smaller on a short phone (css/paper.css)
     // decorative here: the title and subtitle next to it already say what this page is (the mark's own label is English)
     const s = lm.firstElementChild;
     if (s) { s.removeAttribute('role'); s.removeAttribute('aria-label'); s.setAttribute('aria-hidden', 'true'); }
@@ -551,8 +551,9 @@ function umpireAvatar(id) {
   const photo = umpirePhoto(id);
   const team = p && p.team === 'Blue' ? 'ua-blue' : 'ua-red';
   const pid = p ? ' data-pid="' + p.id + '"' : '';
-  if (photo) return '<span class="uavatar ' + team + '"' + pid + '><img src="' + photo + '" alt="" loading="lazy"></span>';
-  return '<span class="uavatar ' + team + ' ua-initials"' + pid + '>' + (p ? p.id : '?') + '</span>';
+  const rv = ' ua-r' + ([...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % 3);   // which of the 3 hand-inked Riso rings (css/paper.css)
+  if (photo) return '<span class="uavatar ' + team + rv + '"' + pid + '><img src="' + photo + '" alt="" loading="lazy"></span>';
+  return '<span class="uavatar ' + team + rv + ' ua-initials"' + pid + '>' + (p ? p.id : '?') + '</span>';
 }
 // the pair's two faces, then the names (the panel lays them out in a row: faces never take a row of their own)
 function scoringNamesHtml(m, side) {

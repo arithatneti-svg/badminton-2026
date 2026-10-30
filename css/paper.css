@@ -73,12 +73,12 @@
 [data-theme="paper"] :is(.idl-faces, .lv-faces, .pdir-pod, .pdir-row) .pav img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; }
 [data-theme="paper"] :is(.idl-faces, .lv-faces, .pdir-pod, .pdir-row) .pav-initials { background: radial-gradient(circle, var(--s1) 62%, transparent 63%); }
 [data-theme="paper"] :is(.idl-faces, .lv-faces, .pdir-pod, .pdir-row) .pav::after { content: ''; position: absolute; pointer-events: none; background: no-repeat center / 100% 100%; }
-[data-theme="paper"] .pav-red.pav-r0::after { background-image: url(../media/riso/ring-red-1.webp); width: 136.6%; aspect-ratio: 560 / 557; left: -17.3%; top: -17.8%; }
-[data-theme="paper"] .pav-blue.pav-r0::after { background-image: url(../media/riso/ring-blue-1.webp); width: 138.6%; aspect-ratio: 560 / 541; left: -18.5%; top: -15.9%; }
-[data-theme="paper"] .pav-red.pav-r1::after { background-image: url(../media/riso/ring-red-2.webp); width: 136.3%; aspect-ratio: 560 / 551; left: -17.2%; top: -16.2%; }
-[data-theme="paper"] .pav-blue.pav-r1::after { background-image: url(../media/riso/ring-blue-2.webp); width: 136.7%; aspect-ratio: 560 / 552; left: -17.7%; top: -17.7%; }
-[data-theme="paper"] .pav-red.pav-r2::after { background-image: url(../media/riso/ring-red-3.webp); width: 137.1%; aspect-ratio: 560 / 553; left: -18.2%; top: -17.5%; }
-[data-theme="paper"] .pav-blue.pav-r2::after { background-image: url(../media/riso/ring-blue-3.webp); width: 136.3%; aspect-ratio: 560 / 557; left: -17.3%; top: -17.7%; }
+[data-theme="paper"] .pav-red.pav-r0::after, [data-theme="paper"] .uavatar.ua-red.ua-r0::after { background-image: url(../media/riso/ring-red-1.webp); width: 136.6%; aspect-ratio: 560 / 557; left: -17.3%; top: -17.8%; }
+[data-theme="paper"] .pav-blue.pav-r0::after, [data-theme="paper"] .uavatar.ua-blue.ua-r0::after { background-image: url(../media/riso/ring-blue-1.webp); width: 138.6%; aspect-ratio: 560 / 541; left: -18.5%; top: -15.9%; }
+[data-theme="paper"] .pav-red.pav-r1::after, [data-theme="paper"] .uavatar.ua-red.ua-r1::after { background-image: url(../media/riso/ring-red-2.webp); width: 136.3%; aspect-ratio: 560 / 551; left: -17.2%; top: -16.2%; }
+[data-theme="paper"] .pav-blue.pav-r1::after, [data-theme="paper"] .uavatar.ua-blue.ua-r1::after { background-image: url(../media/riso/ring-blue-2.webp); width: 136.7%; aspect-ratio: 560 / 552; left: -17.7%; top: -17.7%; }
+[data-theme="paper"] .pav-red.pav-r2::after, [data-theme="paper"] .uavatar.ua-red.ua-r2::after { background-image: url(../media/riso/ring-red-3.webp); width: 137.1%; aspect-ratio: 560 / 553; left: -18.2%; top: -17.5%; }
+[data-theme="paper"] .pav-blue.pav-r2::after, [data-theme="paper"] .uavatar.ua-blue.ua-r2::after { background-image: url(../media/riso/ring-blue-3.webp); width: 136.3%; aspect-ratio: 560 / 557; left: -17.3%; top: -17.7%; }
 /* sizes: the ring is about 1.37 x the photo, so the photos are a little smaller than the old rim to keep the whole thing as big or bigger */
 .idl-faces { --f: clamp(40px, 11.5vw, 46px); gap: calc(var(--f) * .42); padding: calc(var(--f) * .24) calc(var(--f) * .2); }
 .idl-faces .pav { --idl-face: var(--f); }
@@ -99,3 +99,24 @@
   [data-theme="paper"] .pdir-pod { --pav-box: 68px; }
   [data-theme="paper"] .pdir-pod.p1 { --pav-box: 88px; }
 }
+
+/* ---- umpire app: the same rings on the faces of the match cards and the VS intro (the scoring panels stay plain: nothing between the umpire and the numbers) ---- */
+[data-theme="paper"] :is(.mc-team, .vsi-faces) .uavatar { overflow: visible; border: 0; background: none; position: relative; }
+[data-theme="paper"] :is(.mc-team, .vsi-faces) .uavatar img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; }
+[data-theme="paper"] :is(.mc-team, .vsi-faces) .ua-initials { background: radial-gradient(circle, var(--s1) 62%, transparent 63%); }
+[data-theme="paper"] :is(.mc-team, .vsi-faces) .uavatar::after { content: ''; position: absolute; pointer-events: none; background: no-repeat center / 100% 100%; }
+[data-theme="paper"] .vsi-faces .uavatar::after { filter: brightness(0) invert(.95) sepia(.12); }   /* the VS intro is two solid team fields: cream ink */
+[data-theme="paper"] .mc-team .uavatar { --ua: 30px; margin-inline: 6px; }
+[data-theme="paper"] .mc-team .uface-pair { gap: 10px; }
+[data-theme="paper"] .vsi-faces .uface-pair { gap: calc(var(--ua, 64px) * .5); }
+[data-theme="paper"] .vsi-faces .uavatar { --ua: clamp(52px, 17vw, 80px); }
+@media (orientation: landscape) and (max-height: 520px) { [data-theme="paper"] .vsi-faces .uavatar { --ua: clamp(44px, 13vh, 72px); } }
+
+/* umpire chrome: the serving star on the login, a yellow marker under the active tab, a crayon line under screen titles */
+[data-theme="paper"]:has(#screen-live) .login-mark { width: auto; height: auto; }
+[data-theme="paper"]:has(#screen-live) .login-mark .ds-mascot { width: 104px; }
+@media (max-height: 900px) { [data-theme="paper"]:has(#screen-live) .login-mark .ds-mascot { width: 62px; } }
+[data-theme="paper"]:has(#screen-live) .tab-btn { position: relative; }
+[data-theme="paper"]:has(#screen-live) .tab-btn.active { border-bottom-color: transparent; }
+[data-theme="paper"]:has(#screen-live) .tab-btn.active::after { content: ''; position: absolute; left: 10%; right: 10%; bottom: -2px; height: 9px; background: url(../media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat; pointer-events: none; }
+[data-theme="paper"]:has(#screen-live) .screen-title::after { content: ''; display: block; width: min(240px, 64%); height: 9px; margin-top: 2px; background: url(../media/riso/line-red.webp) left center / 100% 100% no-repeat; }
