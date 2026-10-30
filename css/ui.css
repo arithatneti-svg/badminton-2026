@@ -200,6 +200,8 @@
   50% { transform: translate(4px, -5px) rotate(.8deg) scale(1.015); }
 }
 @media (prefers-reduced-motion: reduce) { .ds-mascot { animation: none; } }
+/* laptops and desktops have the room: the empty-state mascot grows from phone size (132 px) to 172 px */
+@media (min-width: 900px) { .ds-empty .ds-mascot { width: 172px; } }
 /* the mascot has a black outline: on the dark theme it gets the white sticker edge back so it does not sink into the page */
 :root[data-theme="dark"] .ds-mascot {
   filter: drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 -1px 0 #fff);
