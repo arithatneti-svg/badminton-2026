@@ -217,7 +217,7 @@ async function renderPdPastMatches(playerId) {
   if (!past.length) { el.innerHTML = ''; return; }
 
   el.innerHTML = `<section class="pd-sec"><h3 class="pd-h">แมตช์ซีซั่นก่อน</h3>
-    <div class="ds-card pd-load" role="status" aria-label="กำลังโหลด"><div class="ds-skel"></div><div class="ds-skel"></div><div class="ds-skel"></div></div></section>`;
+    <div class="ds-card pd-load" role="status" aria-label="กำลังโหลด"><div class="ld-inline">${dsMascot('loading', 104)}</div><div class="ds-skel"></div><div class="ds-skel"></div><div class="ds-skel"></div></div></section>`;
   const archives = await loadSeasonArchives();
 
   const blocks = past.map(year => {
@@ -276,7 +276,7 @@ function retrySeasonCompare() {
 async function renderSeasonCompare() {
   const el = document.getElementById('cmpContent');
   if (!el) return;
-  el.innerHTML = `<div class="rp-state" role="status"><div class="cmp-skel" aria-hidden="true"><div class="ds-skel"></div><div class="ds-skel"></div></div><span class="ds-muted">กำลังโหลดข้อมูลซีซั่น...</span></div>`;
+  el.innerHTML = `<div class="rp-state" role="status"><div class="ld-inline">${dsMascot('loading', 104)}</div><div class="cmp-skel" aria-hidden="true"><div class="ds-skel"></div><div class="ds-skel"></div></div><span class="ds-muted">กำลังโหลดข้อมูลซีซั่น...</span></div>`;
   if (!_masterLoaded) await loadMasterPlayers();
   if (!_cmpArchives) _cmpArchives = await loadSeasonArchives();
 

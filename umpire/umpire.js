@@ -957,7 +957,7 @@ function renderMatchList() {
     _uSetHtml(list, _uLoadSlow
       ? _uState('offline', 'ยังเชื่อมต่อไม่ได้', 'ตรวจสัญญาณ — จะโหลดเองเมื่อเชื่อมต่อได้',
           `<button type="button" class="ds-btn btn-retry" onclick="retryUmpireLoad()">${dsIcon('arrow-clockwise')}ลองใหม่</button>`)
-      : `<div class="list-state" role="status">${'<div class="skel-card"><div class="ds-skel skel-line w30"></div><div class="ds-skel skel-line w80"></div><div class="ds-skel skel-line w60"></div></div>'.repeat(3)}<p class="list-state-text">กำลังโหลดแมตช์…</p></div>`);
+      : `<div class="list-state" role="status"><div class="ld-inline">${dsMascot('loading', 104)}</div>${'<div class="skel-card"><div class="ds-skel skel-line w30"></div><div class="ds-skel skel-line w80"></div><div class="ds-skel skel-line w60"></div></div>'.repeat(3)}<p class="list-state-text">กำลังโหลดแมตช์…</p></div>`);
     return;
   }
 

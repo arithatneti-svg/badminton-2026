@@ -33,6 +33,14 @@
 @media (max-width: 599px) { #trophyWinnerLabel { letter-spacing: .24em; } }
 #trophySvgWrap { margin-bottom: var(--sp-5); opacity: 0; transform: scale(.2) translateY(80px); transition: opacity 1s .4s, transform 1s .4s cubic-bezier(.34, 1.56, .64, 1); }
 #trophySvgWrap svg { max-width: 90vw; height: auto; }
+#trophySvgWrap { position: relative; }
+#trophySvgWrap::before {   /* crisp sunburst behind the star, in cream ink */
+  content: ''; position: absolute; left: 50%; top: 48%; width: min(760px, 150vw); aspect-ratio: 1; transform: translate(-50%, -50%); z-index: -1; pointer-events: none;
+  background: repeating-conic-gradient(rgba(255, 246, 234, .16) 0 6deg, transparent 6deg 24deg);
+  -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%); mask-image: radial-gradient(circle, #000 18%, transparent 68%);
+}
+.cer-shuttle { position: absolute; top: 18%; width: min(190px, 28vw); height: auto; z-index: -1; opacity: .95; }
+.cer-shuttle-l { right: calc(100% - 40px); } .cer-shuttle-r { left: calc(100% - 40px); }
 #trophySvgWrap .ds-mascot { width: min(clamp(300px, 26vw, 380px), 72vw); animation: none; }   /* animateTrophy() floats the wrapper */
 
 #trophyTeamName {

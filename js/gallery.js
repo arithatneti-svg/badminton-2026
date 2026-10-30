@@ -154,7 +154,7 @@ function paintGallery() {
            <div class="ds-banner ${_galleryPhase === 'failed' ? 'is-err' : 'is-warn'}" role="alert">${dsIcon('wifi-slash')}<span>${_galleryPhase === 'failed' ? 'โหลดรูปไม่ได้' : 'ยังเชื่อมต่อไม่ได้'} — ตรวจสัญญาณแล้วลองใหม่</span></div>
            <button type="button" class="ds-btn" onclick="retryGallery()">${dsIcon('arrow-clockwise')}ลองใหม่</button>
          </div>`
-      : `<div class="gal-skel" role="status" aria-label="กำลังโหลดรูป">${'<div class="ds-skel"></div>'.repeat(8)}</div>`;
+      : `<div class="ld-inline">${dsMascot('loading', 112)}</div><div class="gal-skel" role="status" aria-label="กำลังโหลดรูป">${'<div class="ds-skel"></div>'.repeat(8)}</div>`;
     return;
   }
 
