@@ -1,4 +1,4 @@
-// เลือก reaction (emoji + ข้อความ) ตามผลแมตช์ + แท็ก — สกอร์บอร์ดเป็นกลาง
+// เลือก reaction (ดาวมาสคอต หรือ emoji ถ้าไม่มีภาพ + ข้อความ) ตามผลแมตช์ + แท็ก — สกอร์บอร์ดเป็นกลาง
 // จึงมองจากฝั่งผู้ชนะเสมอ (ไม่มีธีมทีมที่ผู้ชมเชียร์แล้ว)
 function pickReaction({ tags, rStat }) {
   const tagIds = tags ? tags.map(t => t.id) : [];
@@ -196,7 +196,7 @@ function _showMatchNotiNow({ matchId, redNames, blueNames, g1r, g1b, g2r, g2b, g
   const gifWrap = document.getElementById('matchNotiGifWrap');
   if (gifWrap) {
     gifWrap.innerHTML = reaction
-      ? `<div class="noti-reaction"><div class="noti-reaction-emoji">${reaction.emoji}</div>` +
+      ? `<div class="noti-reaction">${reaction.mascot ? `<div class="noti-reaction-art">${dsMascot(reaction.mascot, 132, true)}</div>` : `<div class="noti-reaction-emoji">${reaction.emoji}</div>`}` +
         (reaction.text ? `<div class="noti-reaction-text">${escHtml(reaction.text)}</div>` : '') + `</div>`
       : '';
   }

@@ -166,10 +166,11 @@ function updateUI() {
   const staff = userRole === 'admin' || userRole === 'superadmin';
   ['redTeamName', 'blueTeamName'].forEach(id => { const el = document.getElementById(id); el.readOnly = !staff; el.tabIndex = staff ? 0 : -1; });
 
-  // "นำ" (ahead) and "นำขาด" (6+ ahead) badges: only the leading side's is visible (css/scoreboard.css .idl-lead)
+  // "นำ" (ahead) and "นำขาด" (6+ ahead): the rising star (the fire-eyed star for 6+) pops in under the leading side's score;
+  // the words stay for screen readers. Only the leading side's is visible (css/scoreboard.css .idl-lead)
   rPanel.classList.remove('leading','dominant'); bPanel.classList.remove('leading','dominant');
   const diff = newRed - newBlue;
-  const leadHtml = dominant => dominant ? dsIcon('fire') + '<span>นำขาด</span>' : dsIcon('caret-up') + '<span>นำ</span>';
+  const leadHtml = dominant => dsMascot(dominant ? 'streak' : 'rising', 84, true, 'ds-mascot--sticker') + '<span class="ds-sr-only">' + (dominant ? 'นำขาด' : 'นำ') + '</span>';
   const setLead = (id, html) => { const el = document.getElementById(id); if (el && el.dataset.k !== html) { el.dataset.k = html; el.innerHTML = html; } };
   if (diff > 0) { rPanel.classList.add(diff >= 6 ? 'dominant' : 'leading'); setLead('redLeadBadge', leadHtml(diff >= 6)); setLead('blueLeadBadge', leadHtml(false)); _fireWant = { red: diff >= 6, blue: false }; }
   else if (diff < 0) { bPanel.classList.add(Math.abs(diff) >= 6 ? 'dominant' : 'leading'); setLead('blueLeadBadge', leadHtml(Math.abs(diff) >= 6)); setLead('redLeadBadge', leadHtml(false)); _fireWant = { red: false, blue: Math.abs(diff) >= 6 }; }

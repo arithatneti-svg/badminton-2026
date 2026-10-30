@@ -198,14 +198,14 @@ function animateTrophy() { const wrap = document.getElementById('trophySvgWrap')
 // ── MATCH REACTIONS — self-contained (emoji + line). No external GIF/CDN:
 // works offline, never shows a broken image, and cuts ~50 hardcoded URLs.
 const NOTI_REACTIONS = {
-  win_blowout:        { emoji: '🔥💪', text: 'ถล่มขาดลอย!' },
-  win_comeback:       { emoji: '😤🔥', text: 'พลิกกลับมาชนะ!' },
-  win_hardfought:     { emoji: '💪🏸', text: 'สู้สุดใจ คว้าชัย!' },
-  win_normal:         { emoji: '🎉🏸', text: 'ชนะ!' },
+  win_blowout:        { emoji: '🔥💪', mascot: 'streak', text: 'ถล่มขาดลอย!' },
+  win_comeback:       { emoji: '😤🔥', mascot: 'rising', text: 'พลิกกลับมาชนะ!' },
+  win_hardfought:     { emoji: '💪🏸', mascot: 'live', text: 'สู้สุดใจ คว้าชัย!' },
+  win_normal:         { emoji: '🎉🏸', mascot: 'win', text: 'ชนะ!' },
   lose_comeback:      { emoji: '😱💔', text: 'โดนพลิกกลับ…' },
   lose_blowout:       { emoji: '😭',   text: 'พ่ายยับ ไว้แก้มือ!' },
   lose_normal:        { emoji: '😢',   text: 'สู้ใหม่รอบหน้า!' },
-  draw_rollercoaster: { emoji: '🎢😮‍💨', text: 'สูสีสุด ๆ เสมอ!' },
-  draw_bloody:        { emoji: '⚔️🤝', text: 'ศึกดุเดือด เสมอ!' },
-  draw_normal:        { emoji: '🤝',   text: 'เสมอ!' },
+  draw_rollercoaster: { emoji: '🎢😮‍💨', mascot: 'conflict', text: 'สูสีสุด ๆ เสมอ!' },
+  draw_bloody:        { emoji: '⚔️🤝', mascot: 'live', text: 'ศึกดุเดือด เสมอ!' },
+  draw_normal:        { emoji: '🤝',   mascot: 'waiting', text: 'เสมอ!' },
 };

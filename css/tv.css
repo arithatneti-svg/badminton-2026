@@ -169,11 +169,13 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-team .tv-tag-name { overflow: visible; }
 .tv-team.red .tv-tag::before { background: var(--red); }
 .tv-team.blue .tv-tag::before { background: var(--blue); }
-.tv-lead {
-  display: none; align-items: center; gap: calc(var(--u) * .8); height: calc(var(--u) * 4.6); padding: 0 calc(var(--u) * 2);
-  border-radius: var(--r-pill); background: var(--gold); color: var(--gold-ink); font: 800 calc(var(--u) * 3.2)/1 var(--font-ui);
-}
-.tv-team.lead .tv-lead { display: inline-flex; }
+.tv-lead { display: none; }
+.tv-lead .ds-mascot { width: calc(var(--u) * 16); }
+/* the rising star sits in the corner of the leading field (out of the row, so the team name keeps its room) */
+.tv-team { position: relative; }
+.tv-team.lead .tv-lead { display: block; position: absolute; top: calc(var(--u) * 2.4); z-index: 1; }
+.tv-team.red.lead .tv-lead { right: calc(var(--u) * 2.4); }
+.tv-team.blue.lead .tv-lead { left: calc(var(--u) * 2.4); }
 .tv-team-score {
   flex: 1; display: grid; place-items: center; min-height: 0;
   font: 400 calc(var(--u) * 58)/var(--lh-num) var(--font-num); letter-spacing: 0; font-variant-numeric: tabular-nums; color: var(--ink);

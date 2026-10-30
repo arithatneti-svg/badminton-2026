@@ -220,11 +220,13 @@ body.admin-mode .idl-team .idl-tname:hover, body.admin-mode .idl-team .idl-tname
   font-size: clamp(5rem, 24vw, 6.5rem); line-height: var(--lh-num);
 }
 @media (min-width: 640px) { .idl-score { font-size: clamp(6.5rem, 12vw, 10rem); } }
+/* who is ahead: the rising star pops in under the leading score. The row is always reserved, so the panel never jumps. */
 .idl-lead {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 var(--sp-3); border-radius: var(--r-pill);
-  background: var(--gold); color: var(--gold-ink); font: 800 var(--fs-13)/1 var(--font-ui); visibility: hidden;
+  display: grid; place-items: center; min-height: 84px; visibility: hidden; opacity: 0; transform: translateY(8px) scale(.7); transform-origin: 50% 100%;
+  transition: opacity var(--dur-state) var(--ease-out), transform .45s cubic-bezier(.3, 1.6, .5, 1), visibility 0s linear .45s;
 }
-.idl-team.leading .idl-lead, .idl-team.dominant .idl-lead { visibility: visible; }
+.idl-team.leading .idl-lead, .idl-team.dominant .idl-lead { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+@media (min-width: 640px) { .idl-lead { min-height: 104px; } .idl-lead .ds-mascot { width: 100px; } }
 .idl-mid { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); }
 @media (min-width: 640px) { .idl-mid { flex-direction: column; min-width: 128px; } }
 .idl-vs { color: var(--t-low); font: 400 1.75rem/1 var(--font-num); letter-spacing: .08em; }

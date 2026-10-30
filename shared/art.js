@@ -103,8 +103,9 @@
 
   // dsMascot('waiting', 132): the star mascot as a quiet picture for empty, waiting and celebrating states.
   // width in CSS px (css can override it, the height follows). Decorative: the sentence next to it says the same.
-  window.dsMascot = function (name, width, eager) {
-    return raster('mascot', name, MASCOT, width || 132, 'ds-mascot ds-mascot--' + (MASCOT_MOVE[name] || 'bob'), eager);
+  // cls: extra class, e.g. 'ds-mascot--sticker' (white edge) when it sits on a solid team colour
+  window.dsMascot = function (name, width, eager, cls) {
+    return raster('mascot', name, MASCOT, width || 132, 'ds-mascot ds-mascot--' + (MASCOT_MOVE[name] || 'bob') + (cls ? ' ' + cls : ''), eager);
   };
   // dsSpot('shuttle-red', 96): one piece of the Riso sheet (brush, shuttlecock, racket, torn paper ...)
   window.dsSpot = function (name, width, eager) {

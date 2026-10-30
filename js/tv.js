@@ -406,7 +406,7 @@ function _tvRecap(s) { return s.g2on ? `เกม 1 · ${s.g1r}–${s.g1b}` : (s
 function _tvBattleHtml() {
   const r = appState.globalScoreRed || 0, b = appState.globalScoreBlue || 0;
   const side = (s, n, lead) => `<div class="tv-team ${s}${lead ? ' lead' : ''}">
-      <div class="tv-team-top">${_tvTag(s)}<span class="tv-lead">${dsIcon('crown', { fill: true })}<span>นำ</span></span></div>
+      <div class="tv-team-top">${_tvTag(s)}<span class="tv-lead">${dsMascot('rising', 200, true, 'ds-mascot--sticker')}<span class="ds-sr-only">นำ</span></span></div>
       <div class="tv-team-score">${n}</div>
     </div>`;
   return `<div class="tv-panel tv-battle">
