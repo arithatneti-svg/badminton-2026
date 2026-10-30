@@ -162,7 +162,7 @@ function openPlayerProfile(playerId) {
   renderPdScoutNotes(prof);
   // staff, a player nobody has written anything about yet: say where to start
   if (canEdit && ['pdAwards', 'pdIdentityRow', 'pdScoutNotes'].every(id => !document.getElementById(id)?.innerHTML.trim())) {
-    document.getElementById('pdScoutNotes').innerHTML = `<section class="pd-sec"><div class="ds-banner is-info">${dsIcon('info')}<span>ยังไม่มีข้อมูลผู้เล่น แตะ “แก้ไขโปรไฟล์” เพื่อเพิ่มเพศ มือถนัด จุดแข็ง และโน้ต</span></div></section>`;
+    document.getElementById('pdScoutNotes').innerHTML = `<section class="pd-sec"><div class="ds-banner is-info">${dsIcon('info')}<span>ยังไม่มีข้อมูลผู้เล่น แตะ “แก้ไขโปรไฟล์” เพื่อเพิ่มเพศ มือถนัด และโน้ต</span></div></section>`;
   }
   renderPdMatchHistory(playerId);
   renderPdH2H(playerId);
@@ -247,14 +247,12 @@ function renderPdIdentity(prof) {
   </section>`;
 }
 
-// จุดแข็ง / จุดอ่อน / โน้ต — free text the desk wrote per player.
+// โน้ต — free text the desk wrote per player.
 // Text only: the radar / ability / base-score analytics stay removed.
 function renderPdScoutNotes(prof) {
   const el = document.getElementById('pdScoutNotes');
   if (!el) return;
   const blocks = [
-    { cls:'good', icon:'check-circle',  title:'จุดแข็ง',  text: prof.strengths },
-    { cls:'bad',  icon:'target',        title:'จุดอ่อน',  text: prof.weakness },
     { cls:'note', icon:'pencil-simple', title:'โน้ต',     text: prof.notes },
   ].filter(b => b.text && String(b.text).trim());
   if (!blocks.length) { el.innerHTML = ''; return; }
@@ -439,8 +437,6 @@ function renderPdEditForm(prof) {
       </div>
 
       <div class="pd-form-notes">
-        ${area('pdfStrengths', 'check-circle',  'จุดแข็ง', prof.strengths, 'เช่น ลูกเซฟดี วางลูกแม่น ใจเย็น')}
-        ${area('pdfWeakness',  'target',        'จุดอ่อน', prof.weakness,  'เช่น แบ็คแฮนด์ไม่ถึงหลัง เหนื่อยง่าย')}
         ${area('pdfNotes',     'pencil-simple', 'โน้ต',    prof.notes,     'บันทึกอื่น ๆ ที่อยากจำ')}
       </div>
 
@@ -466,9 +462,10 @@ function savePdProfile() {
     position:     v('pdfPosition'),
     dominantShot: v('pdfShot'),
     styles,
-    strengths:    v('pdfStrengths'),
-    weakness:     v('pdfWeakness'),
     notes:        v('pdfNotes'),
+    // retired fields: saving a profile also wipes what an older version stored
+    strengths:    null,
+    weakness:     null,
   };
   appState.playerProfiles[id] = { ...prev, ...fields };   // keep fields this form does not edit
   // write just this player's edited fields — saveKeys(['playerProfiles'])
