@@ -317,7 +317,9 @@
 [data-theme="paper"] .pd-avatar-wrap .pav-initials { background: radial-gradient(circle, var(--s1) 62%, transparent 63%); }
 [data-theme="paper"] .pd-avatar-wrap .pav::after { content: ""; position: absolute; pointer-events: none; background-repeat: no-repeat; background-position: center; background-size: 100% 100%; }
 [data-theme="paper"] .pd-award.has-art { border: 0; border-radius: 0; box-shadow: none; background: url(../media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat; padding-inline: var(--sp-5); }
-[data-theme="paper"] .pf-star { border-radius: 0; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; color: var(--ink); }
+/* the award star on a face: just the hand-drawn star, no white square round it */
+[data-theme="paper"] .pf-star { right: -10px; top: -10px; width: 44px; height: 44px; border: 0; border-radius: 0; background: none; color: var(--ink); font-size: 36px; }
+[data-theme="paper"] .pf-star .ds-ic { width: 1.2em; height: 1.2em; }
 
 /* ── pass 2 ── */
 [data-theme="paper"] :is(.pd-h, .adm-h, .wz-h) { flex: 1 1 auto; }
@@ -378,3 +380,22 @@
 
 /* the frame is a 6 px border: on a card that has a set width (a grid column, width 100 percent) it must be counted inside that width, or the card pokes out of its column */
 [data-theme="paper"] :is(.card, .profile-header, .modal-box, .ds-sheet, .login-card, #dashboard .db-kpi, #dashboard .db-card, .backup-row, .bk-box, .adm-collapse, .adm-end, .mb-card, .am-card, .stf, .wz-sum, .arc-card, .qr-card, .gal-admin-bar, #report .rp-kpis, #report .rp-fold, #report .rp-tagfold, #report .rp-ucard, #report .cmp-season-card, .award-card, .cer-col, .queue-row, .court-empty, .fin-empty, .idl-empty, .lv-hub, .match-card, .finished-card, .nav-actions, #matchNotiBox, .pdir-pod, .profile-stats-bar) { box-sizing: border-box; }
+
+/* highlight matches (marathon / decided by two points a game): the star mascot sits on the card's top edge, at the right, over the frame */
+.fm.is-hl { margin-top: 18px; }
+.fm-star { position: absolute; top: -34px; right: 14px; z-index: 3; pointer-events: none; line-height: 0; }
+.fm-star .ds-mascot { width: 64px; height: auto; }
+.fm.is-hl .fm-head { padding-right: 76px; }
+
+/* ── pass 8: the icons and the umpire's name were too small to read at a glance ──
+   the umpire line (a person icon + the name) is 16 px bold ink with a 28 px icon wherever it appears; the finished-card tools
+   are 52 px buttons with 32 px icons; the tag chips carry 22 px icons. ── */
+[data-theme="paper"] :is(.fm-ump, .court-card-umpire, .am-ump, .finished-umpire) { gap: 8px; color: var(--ink); font-size: var(--fs-16); font-weight: 700; }
+[data-theme="paper"] :is(.fm-ump, .court-card-umpire, .am-ump, .finished-umpire) .ds-ic { width: 28px; height: 28px; vertical-align: middle; }
+[data-theme="paper"] .fm-act { width: 52px; height: 52px; }
+[data-theme="paper"] .fm-act .ds-ic { width: 32px; height: 32px; }
+[data-theme="paper"] .finished-tag { min-height: 34px; font-size: var(--fs-14); }
+[data-theme="paper"] .finished-tag .ds-ic { width: 22px; height: 22px; }
+/* the "umpire name · court" chip on the umpire's match cards */
+[data-theme="paper"] .match-card .ds-chip { min-height: 36px; font-size: var(--fs-15, .9375rem); font-weight: 700; }
+[data-theme="paper"] .match-card .ds-chip .ds-ic { width: 24px; height: 24px; }

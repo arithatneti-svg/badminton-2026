@@ -375,6 +375,16 @@ function _tagChipHtml(t, cls) {
   return `<span class="${cls || 'finished-tag'} ${t.class || 'tag-normal'}">${ic ? dsIcon(ic) : ''}${escHtml(label)}</span>`;
 }
 
+// A highlight match is rare on purpose (the "Marathon Match" tag already starts at 42 points in a game, too common to single out):
+// a game that ran to 46+ points (a deuce that went past 22-22), or a match where BOTH games ended within two points.
+// It gets the star mascot on its card in the results log. A draw whose games were lopsided does not count, however close the totals.
+function isHighlightMatch(m) {
+  if (!m) return false;
+  const games = [m.game1, m.game2].map(g => (g || '').split(':').map(Number)).filter(p => p.length === 2 && (p[0] > 0 || p[1] > 0));
+  if (games.some(p => p[0] + p[1] >= 46)) return true;
+  return games.length === 2 && games.every(p => Math.abs(p[0] - p[1]) <= 2);
+}
+
 function renderFinishedMatches() {
   const container = document.getElementById('finishedMatchesGrid');
   if (!container) return;
@@ -432,7 +442,9 @@ function renderFinishedMatches() {
       ? `<footer class="fm-foot"><span class="fm-tags">${tags}</span><span class="fm-meta">${umpire}${admin}</span></footer>` : '';
 
     const mineCls = (typeof matchHasMe === 'function' && matchHasMe(m)) ? ' is-mine' : '';
-    return `<article class="fm ${cls}${mineCls}">
+    const hl = isHighlightMatch(m);
+    return `<article class="fm ${cls}${mineCls}${hl ? ' is-hl' : ''}">
+      ${hl ? `<span class="fm-star">${dsMascot('streak', 64)}<span class="ds-sr-only">แมตช์ไฮไลท์</span></span>` : ''}
       <header class="fm-head">
         <span class="fm-id">${escHtml(m.id)}</span>
         <span class="fm-round">รอบ ${escHtml(String(m.round))}</span>
