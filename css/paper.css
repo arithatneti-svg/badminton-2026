@@ -263,3 +263,87 @@
 [data-theme="paper"] .ongoing-hero { padding: var(--sp-5) var(--sp-5); }
 [data-theme="paper"] .ongoing-live-count { font-size: 4rem; }
 [data-theme="paper"] .login-install { border: 1.5px solid #0b2a52; border-radius: 4px 8px 5px 9px / 9px 5px 8px 4px; box-shadow: 2px 2px 0 rgba(225, 29, 36, .28); background: var(--s1); }
+
+/* ══ whole-app pass: every card, sheet, row, button, chip, banner and table gets the same hand-inked treatment ══
+   three levels, so nothing is left as a flat rounded box:
+   frame   the inked double-line border (border-image), for the surfaces a page is built from: cards, sheets, dialogs, KPI / stat blocks
+   sketch  a hand-cut navy outline with an offset red plate, for rows, tiles and inner boxes
+   plate   marker-yellow / team colour plates for buttons, chips and the things that are "on" */
+[data-theme="paper"] { --ink: #0b2a52; --sk-r: 4px 9px 5px 10px / 10px 5px 9px 4px; --sk-sh: 2px 2px 0 rgba(225, 29, 36, .24); --sk-r-s: 3px 7px 4px 8px / 8px 4px 7px 3px; }
+
+/* frame */
+[data-theme="paper"] :is(.card, .profile-header, .modal-box, .ds-sheet, .login-card, #dashboard .db-kpi, #dashboard .db-card, .backup-row, .bk-box, .adm-collapse, .adm-end, .mb-card, .am-card, .stf, .wz-sum, .arc-card, .qr-card, .gal-admin-bar, #report .rp-kpis, #report .rp-fold, #report .rp-tagfold, #report .rp-ucard, #report .cmp-season-card, .award-card, .cer-col, .queue-row, .court-empty, .fin-empty, .idl-empty, .lv-hub, .match-card, .finished-card, .nav-actions, #matchNotiBox, .pdir-pod, .profile-stats-bar) {
+  border: 6px solid transparent; border-image: var(--riso-frame) 22 / 6px / 0 stretch; border-radius: 2px;
+}
+/* sketch */
+[data-theme="paper"] :is(.pdir-row, .mb-pool-col, .pd-fact, .pd-note, .pd-match, .pd-h2h-row, .pd-career-tot > div, .pd-career-row, .awi-item, .wz-stat, .arc-stat, .cf-result, .cf-game, .fr-teams, .fr-stepper, .fr-live, .ed-col, .tag-checkbox-item, .rs-opt, .cer-stat, .dlg-info, .reassign-card, .wz-newblock, #report .rp-prow, #report .rp-ptable-wrap, #report .rp-round, #report .rp-mdetail, #report .cmp-table, .rp-legend, .rp-page .rp-empty, #matchNotiScoreBoard, #matchNotiResultLine, #matchNotiNarrative, #matchNotiOverallScore, .noti-reaction, .gal-item, .gal-selbar, .pause-meta > span, .list-filter, .toast-item, .g1-toast-inner, #dashboard .db-mini > div, .me-opt, .login-role, .idl-q, .ds-seg, .backup-row .bk-reason, .pf-kpis) {
+  border: 1.5px solid var(--ink); border-radius: var(--sk-r); box-shadow: var(--sk-sh);
+}
+[data-theme="paper"] .ds-banner { border-width: 1.5px; border-radius: var(--sk-r); box-shadow: var(--sk-sh); }
+[data-theme="paper"] :is(.me-chip, .role-chip, .nav-season, .nav-more, .nav-live) { border-color: var(--ink); box-shadow: var(--sk-sh); }
+[data-theme="paper"] .nav-more { border-width: 1.5px; }
+/* dialog parts: the heads and feet are not boxes of their own any more, a crayon rule divides them */
+[data-theme="paper"] :is(.dlg-head, .dlg-foot) { background: transparent; border-color: transparent; }
+[data-theme="paper"] .dlg-head { background: url(../media/riso/line-blue.webp) left bottom / 100% 9px no-repeat; padding-bottom: calc(var(--sp-3) + 8px); }
+[data-theme="paper"] .dlg-foot { background: url(../media/riso/line-red.webp) left top / 100% 9px no-repeat; padding-top: calc(var(--sp-3) + 8px); }
+
+/* plates: buttons */
+[data-theme="paper"] .ds-btn { border: 1.5px solid var(--ink); border-radius: var(--sk-r); box-shadow: var(--sk-sh); color: var(--ink); background: var(--s1); }
+[data-theme="paper"] .ds-btn:active { box-shadow: none; transform: translate(1px, 1px); }
+[data-theme="paper"] .ds-btn-primary { border-color: transparent; box-shadow: none; font-weight: 800; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; }
+[data-theme="paper"] .ds-btn-primary:hover { filter: brightness(1.05); }
+[data-theme="paper"] .ds-btn-ghost { border-color: transparent; box-shadow: none; background: transparent; }
+[data-theme="paper"] .ds-btn-danger { border-color: #d81a21; color: #d81a21; box-shadow: 2px 2px 0 rgba(11, 42, 82, .2); }
+[data-theme="paper"] .ds-btn-red { background: #d81a21; color: #fff6ea; }
+[data-theme="paper"] .ds-btn-blue { background: #0956b8; color: #fff6ea; }
+[data-theme="paper"] .ds-btn[disabled], [data-theme="paper"] .ds-btn.is-disabled { box-shadow: none; }
+/* plates: chips (a stamp; the ones that are "on" are a marker swipe) */
+[data-theme="paper"] .ds-chip { border: 1.5px solid rgba(11, 42, 82, .6); border-radius: var(--sk-r-s); background: transparent; color: var(--ink); }
+[data-theme="paper"] :is(.ds-chip.is-on, .ds-chip-gold, .ds-seg > button.is-on, .ds-seg > button[aria-pressed="true"]) { border-color: transparent; color: var(--ink); background: url(../media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat; }
+[data-theme="paper"] .ds-chip-live { color: #05683c; border-color: rgba(5, 104, 60, .6); background: transparent; }
+[data-theme="paper"] .ds-chip-red { color: #b5121a; border-color: #d81a21; background: transparent; }
+[data-theme="paper"] .ds-chip-blue { color: #0956b8; border-color: #0956b8; background: transparent; }
+/* tables: ink head with a rule, dashed rows */
+[data-theme="paper"] .ds-table th { background: transparent; color: var(--ink); border-bottom: 2px solid var(--ink); font-family: var(--font-th-head); }
+[data-theme="paper"] .ds-table td { border-bottom: 1px dashed rgba(11, 42, 82, .25); }
+/* section heads inside pages: a crayon line, like the tab headings */
+[data-theme="paper"] :is(.pd-h, .adm-h, .wz-h) { display: flex; align-items: center; gap: var(--sp-3); }
+[data-theme="paper"] :is(.pd-h, .adm-h, .wz-h)::after { content: ''; flex: 1; height: 9px; min-width: 24px; background: url(../media/riso/line-blue.webp) center / 100% 100% no-repeat; opacity: .8; }
+
+/* player profile */
+[data-theme="paper"] .pd-avatar-wrap { margin: 16px; }
+[data-theme="paper"] .pd-avatar-wrap .pav { overflow: visible; border: 0; background: none; position: relative; }
+[data-theme="paper"] .pd-avatar-wrap .pav img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; }
+[data-theme="paper"] .pd-avatar-wrap .pav-initials { background: radial-gradient(circle, var(--s1) 62%, transparent 63%); }
+[data-theme="paper"] .pd-avatar-wrap .pav::after { content: ""; position: absolute; pointer-events: none; background-repeat: no-repeat; background-position: center; background-size: 100% 100%; }
+[data-theme="paper"] .pd-award.has-art { border: 0; border-radius: 0; box-shadow: none; background: url(../media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat; padding-inline: var(--sp-5); }
+[data-theme="paper"] .pf-star { border-radius: 0; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; color: var(--ink); }
+
+/* ── pass 2 ── */
+[data-theme="paper"] :is(.pd-h, .adm-h, .wz-h) { flex: 1 1 auto; }
+/* "new version - tap to update" (shared/pwa.js): a hand-cut yellow plate */
+[data-theme="paper"] #appUpdate { border: 1.5px solid var(--ink); border-radius: var(--sk-r); background: var(--s1); color: var(--ink); box-shadow: 3px 3px 0 rgba(225, 29, 36, .35); }
+/* report summary: the red / blue / draw tiles are ragged printed plates with the offset navy plate, like the score plates */
+[data-theme="paper"] .rp-hero-scores { filter: drop-shadow(3px 3px 0 rgba(11, 42, 82, .45)); }
+[data-theme="paper"] :is(.rp-hs-red, .rp-hs-blue) {
+  border: 0; border-radius: 0; color: #fff6ea;
+  background: radial-gradient(circle, rgba(255, 246, 234, .13) 1px, transparent 1.4px) 0 0 / 6px 6px, #d81a21;
+  -webkit-mask: var(--riso-ragged) center / 100% 100% no-repeat; mask: var(--riso-ragged) center / 100% 100% no-repeat;
+}
+[data-theme="paper"] .rp-hs-blue { background-color: #0956b8; }
+[data-theme="paper"] .rp-hs-draw { border: 1.5px solid var(--ink); border-radius: var(--sk-r); box-shadow: none; }
+[data-theme="paper"] :is(.rp-hs-red, .rp-hs-blue) :is(.rp-hs-val, .rp-hs-lbl) { color: #fff6ea; }
+
+/* ── pass 3: umpire result stamps ── */
+[data-theme="paper"] .result-badge { border: 0; border-radius: 4px 10px 5px 11px / 11px 5px 10px 4px; box-shadow: 2px 2px 0 rgba(11, 42, 82, .5); transform: rotate(-.8deg); color: #fff6ea; }
+[data-theme="paper"] .result-badge.red { background: #d81a21; }
+[data-theme="paper"] .result-badge.blue { background: #0956b8; }
+[data-theme="paper"] .result-badge.draw { background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; color: var(--ink); box-shadow: none; }
+
+/* ── pass 4: the login's big button and the Color War poster ── */
+[data-theme="paper"] .login-primary { border: 0; border-radius: 0; box-shadow: none; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; color: var(--ink); padding-inline: calc(var(--sp-5) + 6px); }
+[data-theme="paper"] .login-primary:hover { filter: brightness(1.05); }
+[data-theme="paper"] .ds-hero { border: 6px solid transparent; border-image: var(--riso-frame) 22 / 6px / 0 stretch; border-radius: 2px; box-shadow: 4px 4px 0 rgba(11, 42, 82, .16); background: var(--s1); }
+
+/* ── pass 5: award plates stay card-sized on wide screens ── */
+[data-theme="paper"] .pd-awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 420px)); gap: var(--sp-3); }
