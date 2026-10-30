@@ -17,7 +17,6 @@ H, W = a.shape[:2]
 bg = np.median(a[:40, :40].reshape(-1, 3), axis=0)
 dist = np.abs(a - bg).max(axis=2)
 fg = dist > 34
-fg[int(H * 0.575):int(H * 0.6) + 1, :] = False
 # label rows: first row labels sit at 42-51 % of the height, second at 89-97 %
 fg[int(H * .415):int(H * .525)] = False
 fg[int(H * .875):] = False
