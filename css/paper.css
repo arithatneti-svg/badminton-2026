@@ -193,3 +193,24 @@
 [data-theme="paper"] .tv-field.is-blue .tv-tag { background-image: url(../media/riso/marker-yellow-2.webp); transform: rotate(1.2deg); }
 [data-theme="paper"] .tv-field.is-red .tv-tag::before { background: #d81a21; }
 [data-theme="paper"] .tv-field.is-blue .tv-tag::before { background: #0956b8; }
+
+/* ---- finished matches: who won must be readable from across the room ----
+   the result is a solid hand-inked stamp in the winner's ink (a yellow marker for a draw), the winner's names carry a highlighter,
+   the winner's game scores are in the team colour and the loser's fade; the card carries a wash of the winner's colour. ---- */
+[data-theme="paper"] .fm-result {
+  min-height: 36px; padding: 0 16px; border: 0; border-radius: 4px 10px 5px 11px / 11px 5px 10px 4px; font-size: var(--fs-16); font-weight: 800; letter-spacing: .01em;
+  box-shadow: 2px 2px 0 rgba(11, 42, 82, .5); transform: rotate(-1.6deg);
+}
+[data-theme="paper"] .fm-result.red { background: #d81a21; color: #fff6ea; }
+[data-theme="paper"] .fm-result.blue { background: #0956b8; color: #fff6ea; }
+[data-theme="paper"] .fm-result.draw { background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; color: #0b2a52; box-shadow: none; padding-inline: 22px; }
+[data-theme="paper"] .fm-result .tsh { color: currentColor; filter: none; }
+[data-theme="paper"] .fm.red { background-image: linear-gradient(90deg, rgba(216, 26, 33, .10), rgba(216, 26, 33, 0) 45%); border-left-width: 8px; }
+[data-theme="paper"] .fm.blue { background-image: linear-gradient(90deg, rgba(9, 86, 184, .10), rgba(9, 86, 184, 0) 45%); border-left-width: 8px; }
+[data-theme="paper"] .fm.draw { background-image: linear-gradient(90deg, rgba(244, 196, 48, .22), rgba(244, 196, 48, 0) 45%); border-left-width: 8px; }
+[data-theme="paper"] .fm-team.win .fm-name > span { background: linear-gradient(transparent 52%, rgba(244, 196, 48, .8) 52% 94%, transparent 94%); padding: 0 .25em; }
+[data-theme="paper"] .fm-team:not(.win) .fm-name { opacity: .72; }
+[data-theme="paper"] .fm-g { opacity: .55; }
+[data-theme="paper"] .fm-g.w { opacity: 1; font-size: 2.3rem; }
+[data-theme="paper"] .fm-team.red .fm-g.w { color: #d81a21; }
+[data-theme="paper"] .fm-team.blue .fm-g.w { color: #0956b8; }
