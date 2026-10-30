@@ -84,10 +84,10 @@
 /* sizes: the ring is about 1.37 x the photo, so the photos are a little smaller than the old rim to keep the whole thing as big or bigger */
 .idl-faces { --f: clamp(40px, 11.5vw, 46px); gap: calc(var(--f) * .42); padding: calc(var(--f) * .24) calc(var(--f) * .2); }
 .idl-faces .pav { --idl-face: var(--f); }
-@media (min-width: 640px) { .idl-faces { --f: clamp(78px, 9vw, 112px); } }
+@media (min-width: 640px) { .idl-faces { --f: clamp(88px, 11vw, 170px); } }
 .lv-faces { --f: clamp(40px, 11vw, 48px); gap: calc(var(--f) * .42); padding: calc(var(--f) * .2) calc(var(--f) * .2); }
 .lv-faces .pav { --lv-face: var(--f); }
-@media (min-width: 640px) { .lv-faces { --f: clamp(56px, 7vw, 92px); } }
+@media (min-width: 640px) { .lv-faces { --f: clamp(64px, 9vw, 140px); } }
 /* a live card is a solid red / blue field: the ring would vanish in its own ink, so there it is printed in cream */
 [data-theme="paper"] .lv-faces .pav::after { filter: brightness(0) invert(.95) sepia(.12); }
 [data-theme="paper"] .pdir-row { --pav-box: 44px; }
@@ -365,3 +365,16 @@
   [data-theme="paper"] .court-pav { width: 52px; height: 52px; margin: 9px; }
   [data-theme="paper"] .court-player-name { font-size: 1.1875rem; }
 }
+
+/* ── pass 7: faces big enough for a big screen. The court card steps up on a wide window; the live board and the idle board scale with the window
+   (see .lv-faces / .idl-faces above); the TV faces are sized in tv.css (--facen). ── */
+@media (min-width: 1100px) {
+  #ongoing .court-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 720px)); }
+  [data-theme="paper"] .court-snum { font-size: 5.5rem; }
+  [data-theme="paper"] .court-pav { width: 76px; height: 76px; margin: 12px; }
+  [data-theme="paper"] .court-player-name { gap: var(--sp-3); font-size: 1.5rem; }
+  [data-theme="paper"] .court-card-id, [data-theme="paper"] .court-card-timer { font-size: 2rem; }
+}
+
+/* the frame is a 6 px border: on a card that has a set width (a grid column, width 100 percent) it must be counted inside that width, or the card pokes out of its column */
+[data-theme="paper"] :is(.card, .profile-header, .modal-box, .ds-sheet, .login-card, #dashboard .db-kpi, #dashboard .db-card, .backup-row, .bk-box, .adm-collapse, .adm-end, .mb-card, .am-card, .stf, .wz-sum, .arc-card, .qr-card, .gal-admin-bar, #report .rp-kpis, #report .rp-fold, #report .rp-tagfold, #report .rp-ucard, #report .cmp-season-card, .award-card, .cer-col, .queue-row, .court-empty, .fin-empty, .idl-empty, .lv-hub, .match-card, .finished-card, .nav-actions, #matchNotiBox, .pdir-pod, .profile-stats-bar) { box-sizing: border-box; }

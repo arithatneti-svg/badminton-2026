@@ -196,7 +196,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-net::before, .tv-net::after { content: ''; flex: 1; width: calc(var(--u) * .2); background: var(--line-strong); }
 
 /* ── ONE live court, big (also the climax takeover) ── */
-.tv-vs-panel { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 14; --namen: 5.6; --tagn: 3.6; --digit-fs: calc(var(--u) * 44); }
+.tv-vs-panel { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 18; --namen: 5.6; --tagn: 3.6; --digit-fs: calc(var(--u) * 40); }   /* faces are the first thing read from across a room */
 .tv-vs-panel .tv-field { border-radius: var(--tv-r); }
 .tv-vs-panel .tv-court { height: calc(var(--u) * 5.2); font-size: calc(var(--u) * 3.8); }
 .tv-vs-panel .tv-names { -webkit-line-clamp: 2; }
@@ -236,7 +236,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
   --cpad: calc(1.5 * var(--s)); --fpad: calc(1.2 * var(--s)); --edgen: .8;
   --fw: calc((var(--cwn) - 2 * (.25 + var(--cpad)) - 1.2) / 2);                              /* a team field's width ... */
   --fh: calc(var(--chn) - 2 * (.25 + var(--cpad)) - 5.6 * var(--s));                         /* ... and height (header row + gap taken off) */
-  --facen: clamp(4.4, calc(var(--fw) * .21 * var(--s) * var(--s)), 11);
+  --facen: clamp(6, calc(var(--fw) * .3 * var(--s) * var(--s)), 13);                         /* the faces are the first thing read from across a room: about a third of the field width, 6-13 u */
   --namen: clamp(2.6, calc(var(--fw) * .115 * var(--s)), 5.2);
   --tagn: calc(2.6 * var(--s));
   --dw: calc((var(--fw) - 2 * var(--fpad) - var(--edgen)) / .84);                           /* the widest digit pair that fits the field */
@@ -307,7 +307,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .is-compact .tv-status-s { display: inline; }
 
 /* one notch smaller still (a small projector with many courts); nothing that fits ever gets it */
-.tv-live-grid.is-tight { --fpad: .5; --cpad: 1; --namen: 2.6; --dh: calc((var(--fh) - 2 * var(--fpad) - var(--facen) - 2 * var(--namen) * 1.4 - 1.2) / .85); }
+.tv-live-grid.is-tight { --fpad: .5; --cpad: 1; --namen: 2.6; --facen: clamp(4.4, calc(var(--fw) * .21 * var(--s) * var(--s)), 9); --dh: calc((var(--fh) - 2 * var(--fpad) - var(--facen) - 2 * var(--namen) * 1.4 - 1.2) / .85); }
 .is-tight .tv-names { -webkit-line-clamp: 2; }
 .is-tight .tv-live-games { display: none; }
 
@@ -353,7 +353,7 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-ev-tag { display: inline-flex; align-items: center; gap: calc(var(--u) * 1.4); font: 600 calc(var(--u) * 3.4)/1.2 var(--font-ui); letter-spacing: .12em; color: var(--t-mid); }
 .tv-ev-tag .ds-ic { color: var(--gold-text); }
 .tv-ev-big { font: 400 calc(var(--u) * 12)/var(--lh-num) var(--font-num); letter-spacing: .04em; color: var(--gold-text); }
-.tv-ev-g1 { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 11; --namen: 4.8; --tagn: 3.2; --digit-fs: calc(var(--u) * 32); }
+.tv-ev-g1 { --fgap: calc(var(--u) * 3.2); --fpad: 2.4; --edgen: .9; --facen: 14; --namen: 4.8; --tagn: 3.2; --digit-fs: calc(var(--u) * 32); }
 .tv-ev-g1 .tv-field { border-radius: var(--tv-r); }
 .tv-ev-note { font: 600 calc(var(--u) * 4.4)/1.4 var(--font-ui); color: var(--t-hi); }
 .tv-ev-note b { font-weight: 800; }
