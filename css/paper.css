@@ -347,3 +347,21 @@
 
 /* ── pass 5: award plates stay card-sized on wide screens ── */
 [data-theme="paper"] .pd-awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 420px)); gap: var(--sp-3); }
+
+/* ── pass 6: the live court card, laid out straight ──
+   no tilted stickers; the game label sits centred over its score plates so the plates are on the card's centre line; each team's
+   marker label is as wide as its words and sits at its own edge; the faces are big enough to recognise from a step away. ── */
+[data-theme="paper"] :is(.court-no, .court-glabel, .court-glabel.g2, .court-team-label, .court-team.blue .court-team-label) { transform: none; }
+[data-theme="paper"] .court-score-row { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: var(--sp-2); }
+[data-theme="paper"] .court-gside { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; }
+[data-theme="paper"] .court-score-nums { justify-content: center; }
+[data-theme="paper"] .court-g2-placeholder { padding-top: 0; }
+[data-theme="paper"] .court-team-label { align-self: flex-start; }
+[data-theme="paper"] .court-team.blue .court-team-label { align-self: flex-end; }
+[data-theme="paper"] .court-pav { width: 44px; height: 44px; margin: 8px; }
+[data-theme="paper"] .court-player-name { gap: var(--sp-2); font-size: var(--fs-18); }
+[data-theme="paper"] .court-team { gap: var(--sp-1); }
+@media (min-width: 640px) {
+  [data-theme="paper"] .court-pav { width: 52px; height: 52px; margin: 9px; }
+  [data-theme="paper"] .court-player-name { font-size: 1.1875rem; }
+}
