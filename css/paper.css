@@ -214,3 +214,12 @@
 [data-theme="paper"] .fm-g.w { opacity: 1; font-size: 2.3rem; }
 [data-theme="paper"] .fm-team.red .fm-g.w { color: #d81a21; }
 [data-theme="paper"] .fm-team.blue .fm-g.w { color: #0956b8; }
+
+/* ── type + icons ─────────────────────────────────────────────────────────────
+   Digits: 'Riso Num' (the owner's hand-lettered numerals, self-hosted) then Anton for the letters beside them, via --font-num.
+   Thai headings and tab labels: Kanit. Body copy and controls stay Noto Sans Thai (small Thai must stay plain).
+   Icons: the hand-drawn Riso set replaces Phosphor for the 36 icons it covers (shared/icons.js, ink = currentColor, plate = --ic-plate);
+   the remaining Phosphor outlines get a heavier, rounder stroke so they sit next to the hand-drawn ones. */
+[data-theme="paper"] :is(.adm-h, .wz-h, .wz-sum-h, .arc-name, .ld-msg, .gal-year-title, .login-primary-main, .noti-reaction-text, .profile-name, .pd-h, .plb-name, .qr-card-title, .cf-result, .ds-sheet-title, .ds-empty-title, .pause-title, .modal-title, .modal-result, .screen-title, .login-title, .mc-team, .section-title.th, .tab-lbl, .idl-pill) { font-family: var(--font-th-head); }
+[data-theme="paper"] :is(.ds-team, .idl-tname, .idl-vs) { font-family: var(--font-num); font-weight: 400; letter-spacing: .08em; }
+[data-theme="paper"] .ds-ic { stroke: currentColor; stroke-width: 6; stroke-linejoin: round; stroke-linecap: round; }

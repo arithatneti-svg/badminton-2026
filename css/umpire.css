@@ -9,7 +9,7 @@
 
 /* ── 1. BASE ─────────────────────────────────────────────── */
 :root {
-  /* this page loads Noto Sans Thai and Bebas Neue only (no Space Grotesk): Latin text falls back inside Noto */
+  /* this page loads Noto Sans Thai, Kanit and Anton only (no Space Grotesk): Latin text falls back inside Noto */
   --font-ui: 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* the numbers the scoring screen is built from */

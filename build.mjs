@@ -38,10 +38,10 @@ const ICONS = readdirSync(join(root,'icons')).filter(f => f.endsWith('.png'));
 // media/ = the Color War hero (scripts/hero-build.mjs) + media/riso/ + media/mascot/ (scripts/riso/*.py); NOT img/, that is the R2 gallery function route.
 // Walked recursively; cached on first use (sw.js: stale-while-revalidate), the loader mascots are precached below.
 const walkWebp = (dir) => readdirSync(join(root, dir), { withFileTypes: true }).flatMap(d =>
-  d.isDirectory() ? walkWebp(`${dir}/${d.name}`) : d.name.endsWith('.webp') ? [`${dir}/${d.name}`] : []);
+  d.isDirectory() ? walkWebp(`${dir}/${d.name}`) : /\.(webp|woff2)$/.test(d.name) ? [`${dir}/${d.name}`] : []);   // .woff2 = media/fonts (the numeral font)
 const IMG = walkWebp('media');
 // shown while the app loads or cannot connect: precached so they also appear on a first start without signal
-const LOADER_ART = ['media/logo/mark.webp', 'media/logo/wordmark.webp', 'media/mascot/loading.webp', 'media/mascot/offline.webp', 'media/mascot/miss.webp'];
+const LOADER_ART = ['media/logo/mark.webp', 'media/logo/wordmark.webp', 'media/fonts/riso-num.woff2', 'media/mascot/loading.webp', 'media/mascot/offline.webp', 'media/mascot/miss.webp'];
 const COPY = ['manifest.webmanifest','umpire.webmanifest', ...ICONS.map(f => `icons/${f}`), ...IMG];
 
 const read = (p) => readFileSync(join(root, p), 'utf8');

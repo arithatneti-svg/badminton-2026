@@ -5,6 +5,12 @@
    Contract and usage rules: docs/ux/07-design-system-v3.md (docs branch).
    Every contrast ratio quoted below was computed (WCAG 2.x), not guessed.
    ============================================================ */
+/* The hand-lettered Riso numerals (scripts/riso/build-digits-font.py): digits and - : / + # only. It is self-hosted and precached
+   because a score must never wait for a font CDN; everything else in the stack falls through to Anton. */
+@font-face {
+  font-family: 'Riso Num'; src: url(../media/fonts/riso-num.woff2) format('woff2'); font-weight: 400; font-style: normal; font-display: swap;
+  unicode-range: U+0030-0039, U+002D, U+003A, U+002F, U+002B, U+0023, U+2013, U+2212;
+}
 :root {
   color-scheme: dark;
 
@@ -69,8 +75,11 @@
   /* ── type ── */
   --font-ui: 'Space Grotesk', 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-th: 'Noto Sans Thai', 'Space Grotesk', system-ui, sans-serif;
-  /* digits and short English captions only (Bebas has no Thai); the fallbacks keep a cold offline start narrow */
-  --font-num: 'Bebas Neue', 'Oswald', 'Arial Narrow', Impact, 'Noto Sans Thai', sans-serif;
+  /* digits and short English captions only (Anton has no Thai; the digits come from Riso Num); the fallbacks keep a cold offline start narrow.
+     Anton is a single weight: any rule that uses this stack must say font-weight: 400 or the browser fakes a bold. */
+  --font-num: 'Riso Num', 'Anton', 'Bebas Neue', 'Oswald', 'Arial Narrow', Impact, 'Noto Sans Thai', sans-serif;
+  /* Thai headings and tab labels (paper.css); body and controls stay on --font-th */
+  --font-th-head: 'Kanit', 'Noto Sans Thai', system-ui, sans-serif;
 
   --fs-12: .75rem;  --fs-13: .8125rem; --fs-14: .875rem; --fs-16: 1rem;    --fs-18: 1.125rem;
   --fs-20: 1.25rem; --fs-24: 1.5rem;   --fs-32: 2rem;    --fs-40: 2.5rem;  --fs-56: 3.5rem;
