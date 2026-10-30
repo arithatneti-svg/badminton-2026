@@ -19,7 +19,7 @@ dist = np.abs(a - bg).max(axis=2)
 fg = dist > 34
 fg[int(H * 0.575):int(H * 0.6) + 1, :] = False
 # label rows: first row labels sit at 42-51 % of the height, second at 89-97 %
-fg[int(H * .415):int(H * .56)] = False
+fg[int(H * .415):int(H * .525)] = False
 fg[int(H * .875):] = False
 S = 2
 h2, w2 = H // S, W // S
@@ -76,7 +76,7 @@ for role, (l, x0, y0, x1, y1) in zip(ROLES, boxes):
         for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
             if 0 <= ny < h and 0 <= nx < w and near[ny, nx] and not ext[ny, nx]:
                 ext[ny, nx] = True; q.append((ny, nx))
-    # small enclosed cream pockets (between the legs, racket mesh) are background too; the page is cream, so eye whites do not mind
+    # small enclosed cream pockets low in the figure (between the legs) are background too
     rest = near & ~ext
     seen = np.zeros((h, w), bool)
     for y0 in range(h):
@@ -88,7 +88,8 @@ for role, (l, x0, y0, x1, y1) in zip(ROLES, boxes):
                     for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
                         if 0 <= ny < h and 0 <= nx < w and rest[ny, nx] and not seen[ny, nx]:
                             seen[ny, nx] = True; comp.append((ny, nx)); q.append((ny, nx))
-                if len(comp) < 6000:
+                cy_mean = sum(c[0] for c in comp) / len(comp)
+                if len(comp) < 6000 and cy_mean > 0.6 * h:   # between the legs only: eye whites sit higher and must stay opaque
                     for cy, cx in comp:
                         ext[cy, cx] = True
     alpha = np.where(ext, np.clip((d - 5) / 24.0, 0, 1), 1.0)
