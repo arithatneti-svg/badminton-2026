@@ -39,8 +39,6 @@
   background: repeating-conic-gradient(rgba(255, 246, 234, .16) 0 6deg, transparent 6deg 24deg);
   -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%); mask-image: radial-gradient(circle, #000 18%, transparent 68%);
 }
-.cer-shuttle { position: absolute; top: 18%; width: min(190px, 28vw); height: auto; z-index: -1; opacity: .95; }
-.cer-shuttle-l { right: calc(100% - 40px); } .cer-shuttle-r { left: calc(100% - 40px); }
 #trophySvgWrap .ds-mascot { width: min(clamp(300px, 26vw, 380px), 72vw); animation: none; }   /* animateTrophy() floats the wrapper */
 
 #trophyTeamName {

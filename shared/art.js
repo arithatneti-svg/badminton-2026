@@ -8,7 +8,7 @@
 //   dsArt('court')      doubles court seen from above with a rally arc (empty states, hero)
 //   dsArt('shuttle')    big shuttlecock with speed lines (nothing here yet)
 //   dsMascot('break')   the star mascot (media/mascot/*.webp) for empty / waiting / celebrating states
-//   dsSpot('shuttle-streak') one piece of the Riso art sheet (media/riso/*.webp): brushes, shuttlecocks, rackets, torn paper
+//   dsSpot('court-blue')    one piece of the Riso art sheet (media/riso/*.webp): brushes, shuttlecocks, rackets, torn paper
 // Colours come from css/tokens.css (gold, gold-ink, currentColor), so a token change repaints them.
 // ============================================================
 (function () {
@@ -88,7 +88,6 @@
     serve: 'bob', smash: 'bob', victory: 'bob', dive: 'float', block: 'sway', flick: 'sway', drop: 'sway', 'break': 'sway', tangled: 'sway', miss: 'sink'
   };
   var SPOT = {
-    'shuttle-streak': [216, 130], 'shuttle-swoosh': [180, 136],
     'arrow-red': [288, 138], 'arrow-blue': [381, 173], 'court-blue': [900, 499]
   };
 

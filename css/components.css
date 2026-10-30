@@ -597,7 +597,6 @@ body.data-loading:not(.tv-mode) .data-state {
 }
 .ld-card { width: min(100%, 420px); display: grid; justify-items: center; align-content: center; gap: var(--sp-3); text-align: center; }
 .ld-mascot { position: relative; display: grid; place-items: center; min-height: 140px; }
-.ld-mascot::before { content: ''; position: absolute; left: 50%; top: 50%; width: 300px; aspect-ratio: 216 / 130; transform: translate(-50%, -52%); background: url(../media/riso/shuttle-streak.webp) center / contain no-repeat; opacity: .8; pointer-events: none; }
 .ld-mascot .ds-mascot { position: relative; z-index: 1; }
 .ld-mascot .ds-mascot { display: none; width: min(168px, 46vw); }
 .data-state[data-phase="loading"] .ld-m-loading, .data-state[data-phase="slow"] .ld-m-slow, .data-state[data-phase="failed"] .ld-m-fail { display: block; }

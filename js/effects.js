@@ -91,7 +91,7 @@ function openEndGame() {
   document.getElementById('trophyOverlay').style.display = 'block';
   document.getElementById('trophyBg').className = isDraw ? 'is-draw' : redWins ? 'is-red' : 'is-blue';
   // the star holds the cup (the champion star; the racket star for a draw) with a white sticker edge on the team colour
-  document.getElementById('trophySvgWrap').innerHTML = dsSpot('shuttle-streak', 190, true, 'cer-shuttle cer-shuttle-l') + dsSpot('shuttle-swoosh', 190, true, 'cer-shuttle cer-shuttle-r') + dsMascot(isDraw ? 'victory' : 'champion', 300, true);
+  document.getElementById('trophySvgWrap').innerHTML = dsMascot(isDraw ? 'victory' : 'champion', 300, true);
 
   // ── Broadcast ไปทุก user ผ่าน Firebase remoteCommand ──
   if (userRole === 'admin' || userRole === 'superadmin') {

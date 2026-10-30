@@ -13,9 +13,7 @@ from PIL import Image
 
 pieces, mascots, media = sys.argv[1:4]
 
-RISO = {  # the first sheet: only the two shuttle streaks are still used; everything else comes from scripts/riso/slice-kit.py (the owner's Riso kit)
-    5: "shuttle-swoosh", 6: "shuttle-streak",
-}
+RISO = {}  # the first Riso sheet is no longer used: everything comes from scripts/riso/slice-kit.py (the owner's Riso kit)
 MASCOT = {  # calm_NN -> role name used by dsMascot()
     1: "loading", 5: "champion", 7: "search",
     9: "rising", 10: "offline", 12: "admin", 13: "streak", 14: "reward", 15: "replay",
