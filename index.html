@@ -33,7 +33,7 @@ try {
 <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <!-- Shared Firebase config + init. defer => runs in-order in one batch with app scripts, after parse. -->
-<script defer src="shared/firebase-config.js?v=2026.10.30.3"></script>
+<script defer src="shared/firebase-config.js?v=2026.10.30.4"></script>
 <!-- PWA: installable + offline-tolerant app shell -->
 <meta name="theme-color" content="#f6f0e4">
 <link rel="manifest" href="manifest.webmanifest">
@@ -51,64 +51,64 @@ try {
   }
 } catch (e) {}
 </script>
-<script defer src="shared/version.js?v=2026.10.30.3"></script>
-<script defer src="shared/pwa.js?v=2026.10.30.3"></script>
-<script defer src="shared/icons.js?v=2026.10.30.3"></script>
-<script defer src="shared/art.js?v=2026.10.30.3"></script>
+<script defer src="shared/version.js?v=2026.10.30.4"></script>
+<script defer src="shared/pwa.js?v=2026.10.30.4"></script>
+<script defer src="shared/icons.js?v=2026.10.30.4"></script>
+<script defer src="shared/art.js?v=2026.10.30.4"></script>
 <!-- App styles (split from original single <style>). tokens first (colour, type, space), then the global base and the shared ds- primitives. -->
-<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/base.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/ui.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/login.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/nav.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/scoreboard.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/match-cards.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/tables-modals.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/dashboard.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/picker.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/board.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/notifications.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/ongoing-finished.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/climax.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/fullscreen.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/report.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/gallery.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/trophy.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/responsive.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/profile.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/components.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/backup.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/qr.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/tv.css?v=2026.10.30.3">
-<link rel="stylesheet" href="css/paper.css?v=2026.10.30.3">
+<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/base.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/ui.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/login.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/nav.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/scoreboard.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/match-cards.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/tables-modals.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/dashboard.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/picker.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/board.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/notifications.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/ongoing-finished.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/climax.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/fullscreen.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/report.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/gallery.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/trophy.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/responsive.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/profile.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/components.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/backup.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/qr.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/tv.css?v=2026.10.30.4">
+<link rel="stylesheet" href="css/paper.css?v=2026.10.30.4">
 <!-- App scripts. defer keeps original order AND avoids the cross-file load race. -->
-<script defer src="js/utils.js?v=2026.10.30.3"></script>
-<script defer src="js/auth.js?v=2026.10.30.3"></script>
-<script defer src="shared/sync-merge.js?v=2026.10.30.3"></script>
-<script defer src="shared/match-time.js?v=2026.10.30.3"></script>
-<script defer src="js/core.js?v=2026.10.30.3"></script>
-<script defer src="js/ui.js?v=2026.10.30.3"></script>
-<script defer src="js/player-photo.js?v=2026.10.30.3"></script>
-<script defer src="js/player-profile.js?v=2026.10.30.3"></script>
-<script defer src="js/me.js?v=2026.10.30.3"></script>
-<script defer src="js/gallery.js?v=2026.10.30.3"></script>
-<script defer src="js/career.js?v=2026.10.30.3"></script>
-<script defer src="js/season.js?v=2026.10.30.3"></script>
-<script defer src="js/export-import.js?v=2026.10.30.3"></script>
-<script defer src="js/match-picker.js?v=2026.10.30.3"></script>
-<script defer src="js/match-render.js?v=2026.10.30.3"></script>
-<script defer src="js/result-entry.js?v=2026.10.30.3"></script>
-<script defer src="js/stats.js?v=2026.10.30.3"></script>
-<script defer src="js/reports.js?v=2026.10.30.3"></script>
-<script defer src="js/pdf-export.js?v=2026.10.30.3"></script>
-<script defer src="js/dashboard.js?v=2026.10.30.3"></script>
-<script defer src="js/ranking.js?v=2026.10.30.3"></script>
-<script defer src="js/effects.js?v=2026.10.30.3"></script>
-<script defer src="js/notifications.js?v=2026.10.30.3"></script>
-<script defer src="js/backup.js?v=2026.10.30.3"></script>
-<script defer src="js/vendor/qrcode.min.js?v=2026.10.30.3"></script>
-<script defer src="js/qr.js?v=2026.10.30.3"></script>
-<script defer src="js/tv.js?v=2026.10.30.3"></script>
+<script defer src="js/utils.js?v=2026.10.30.4"></script>
+<script defer src="js/auth.js?v=2026.10.30.4"></script>
+<script defer src="shared/sync-merge.js?v=2026.10.30.4"></script>
+<script defer src="shared/match-time.js?v=2026.10.30.4"></script>
+<script defer src="js/core.js?v=2026.10.30.4"></script>
+<script defer src="js/ui.js?v=2026.10.30.4"></script>
+<script defer src="js/player-photo.js?v=2026.10.30.4"></script>
+<script defer src="js/player-profile.js?v=2026.10.30.4"></script>
+<script defer src="js/me.js?v=2026.10.30.4"></script>
+<script defer src="js/gallery.js?v=2026.10.30.4"></script>
+<script defer src="js/career.js?v=2026.10.30.4"></script>
+<script defer src="js/season.js?v=2026.10.30.4"></script>
+<script defer src="js/export-import.js?v=2026.10.30.4"></script>
+<script defer src="js/match-picker.js?v=2026.10.30.4"></script>
+<script defer src="js/match-render.js?v=2026.10.30.4"></script>
+<script defer src="js/result-entry.js?v=2026.10.30.4"></script>
+<script defer src="js/stats.js?v=2026.10.30.4"></script>
+<script defer src="js/reports.js?v=2026.10.30.4"></script>
+<script defer src="js/pdf-export.js?v=2026.10.30.4"></script>
+<script defer src="js/dashboard.js?v=2026.10.30.4"></script>
+<script defer src="js/ranking.js?v=2026.10.30.4"></script>
+<script defer src="js/effects.js?v=2026.10.30.4"></script>
+<script defer src="js/notifications.js?v=2026.10.30.4"></script>
+<script defer src="js/backup.js?v=2026.10.30.4"></script>
+<script defer src="js/vendor/qrcode.min.js?v=2026.10.30.4"></script>
+<script defer src="js/qr.js?v=2026.10.30.4"></script>
+<script defer src="js/tv.js?v=2026.10.30.4"></script>
 <body class="data-loading">
 
 <!-- the brand mark (a gold tile and a shuttlecock), drawn once: the login screen and the top bar both <use> it -->
@@ -356,6 +356,7 @@ try {
       </div>
       <div class="idl-mid">
         <div class="idl-vs">VS</div>
+        <div class="idl-arrow" id="idleArrow" aria-hidden="true"></div>
         <div class="idl-gap" id="idleGap"></div>
         <div class="idl-ptslbl">คะแนนรวมทีม</div>
       </div>
@@ -1472,158 +1473,7 @@ try {
 
   <div class="trophy-content">
     <div id="trophyWinnerLabel"></div>
-    <div id="trophySvgWrap">
-<svg id="trophySvg" width="320" height="380" viewBox="0 0 320 380" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="tgBody" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FFF8DC"/>
-            <stop offset="15%" stop-color="#FFE566"/>
-            <stop offset="40%" stop-color="#F5C800"/>
-            <stop offset="65%" stop-color="#C8960A"/>
-            <stop offset="85%" stop-color="#F5D060"/>
-            <stop offset="100%" stop-color="#8B5E00"/>
-          </linearGradient>
-          <linearGradient id="tgBodySide" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#8B5E00"/>
-            <stop offset="20%" stop-color="#C8960A"/>
-            <stop offset="50%" stop-color="#FFE566"/>
-            <stop offset="80%" stop-color="#C8960A"/>
-            <stop offset="100%" stop-color="#8B5E00"/>
-          </linearGradient>
-          <linearGradient id="tgHandle" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#8B5E00"/>
-            <stop offset="35%" stop-color="#FFE566"/>
-            <stop offset="65%" stop-color="#F5C800"/>
-            <stop offset="100%" stop-color="#8B5E00"/>
-          </linearGradient>
-          <linearGradient id="tgBase" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#FFE566"/>
-            <stop offset="40%" stop-color="#C8960A"/>
-            <stop offset="100%" stop-color="#6B4000"/>
-          </linearGradient>
-          <linearGradient id="tgNeck" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#8B5E00"/>
-            <stop offset="30%" stop-color="#F5D060"/>
-            <stop offset="70%" stop-color="#F5D060"/>
-            <stop offset="100%" stop-color="#8B5E00"/>
-          </linearGradient>
-          <linearGradient id="tgSheen" x1="0%" y1="0%" x2="40%" y2="100%">
-            <stop offset="0%" stop-color="rgba(255,255,255,0.6)"/>
-            <stop offset="60%" stop-color="rgba(255,255,255,0.1)"/>
-            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-          </linearGradient>
-          <radialGradient id="tgGlow" cx="40%" cy="30%">
-            <stop offset="0%" stop-color="rgba(255,248,200,0.5)"/>
-            <stop offset="100%" stop-color="rgba(255,200,0,0)"/>
-          </radialGradient>
-          <filter id="tgSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="4" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="tgStarGlow" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="5" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-
-        <!-- ambient glow ring -->
-        <ellipse cx="160" cy="155" rx="130" ry="125" fill="url(#tgGlow)" opacity="0.5"/>
-
-        <!-- LEFT HANDLE -->
-        <path d="M93,72 C55,68 28,90 26,122 C24,150 46,170 78,174" fill="none" stroke="url(#tgHandle)" stroke-width="22" stroke-linecap="round"/>
-        <path d="M93,72 C55,68 28,90 26,122 C24,150 46,170 78,174" fill="none" stroke="rgba(255,248,180,0.45)" stroke-width="7" stroke-linecap="round"/>
-        <path d="M93,72 C58,68 34,88 32,118" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3" stroke-linecap="round"/>
-        <!-- handle end cap -->
-        <circle cx="26" cy="122" r="11" fill="url(#tgBody)" filter="url(#tgSoftGlow)"/>
-        <circle cx="26" cy="122" r="5" fill="rgba(255,248,200,0.8)"/>
-
-        <!-- RIGHT HANDLE -->
-        <path d="M227,72 C265,68 292,90 294,122 C296,150 274,170 242,174" fill="none" stroke="url(#tgHandle)" stroke-width="22" stroke-linecap="round"/>
-        <path d="M227,72 C265,68 292,90 294,122 C296,150 274,170 242,174" fill="none" stroke="rgba(255,248,180,0.45)" stroke-width="7" stroke-linecap="round"/>
-        <path d="M227,72 C262,68 286,88 288,118" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="294" cy="122" r="11" fill="url(#tgBody)" filter="url(#tgSoftGlow)"/>
-        <circle cx="294" cy="122" r="5" fill="rgba(255,248,200,0.8)"/>
-
-        <!-- CUP BODY — main bowl -->
-        <path d="M90,28 L230,28 Q248,28 252,46 L246,178 Q220,212 160,214 Q100,212 74,178 L68,46 Q72,28 90,28 Z" fill="url(#tgBody)" filter="url(#tgSoftGlow)"/>
-
-        <!-- rim highlight top -->
-        <path d="M90,28 L230,28 Q248,28 252,46 L248,60 Q220,68 160,68 Q100,68 72,60 L68,46 Q72,28 90,28 Z" fill="rgba(255,255,255,0.18)"/>
-        <line x1="70" y1="60" x2="250" y2="60" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-
-        <!-- middle band engraving -->
-        <path d="M74,118 Q118,128 160,128 Q202,128 246,118 L244,140 Q202,150 160,150 Q118,150 76,140 Z" fill="rgba(0,0,0,0.14)"/>
-        <line x1="76" y1="118" x2="244" y2="118" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
-        <line x1="78" y1="140" x2="242" y2="140" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
-
-        <!-- sheen highlight left side -->
-        <path d="M97,34 Q92,90 90,148 Q108,170 130,178" fill="none" stroke="url(#tgSheen)" stroke-width="26" stroke-linecap="round" opacity="0.55"/>
-        <path d="M115,36 Q111,80 108,122" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="7" stroke-linecap="round"/>
-
-        <!-- decorative lines left -->
-        <g fill="none" stroke="rgba(160,110,0,0.6)" stroke-width="1.4">
-          <path d="M97,158 C86,146 80,132 85,118"/>
-          <path d="M107,164 C94,154 86,138 90,122"/>
-          <path d="M118,168 C104,160 95,144 98,128"/>
-        </g>
-        <!-- decorative lines right -->
-        <g fill="none" stroke="rgba(160,110,0,0.6)" stroke-width="1.4">
-          <path d="M223,158 C234,146 240,132 235,118"/>
-          <path d="M213,164 C226,154 234,138 230,122"/>
-          <path d="M202,168 C216,160 225,144 222,128"/>
-        </g>
-
-        <!-- STAR center -->
-        <polygon id="trophyStar" points="160,72 168,96 194,96 174,112 182,136 160,120 138,136 146,112 126,96 152,96" fill="rgba(255,255,255,0.97)" filter="url(#tgStarGlow)"/>
-        <polygon points="160,80 166,96 182,96 170,106 174,122 160,113 146,122 150,106 138,96 154,96" fill="rgba(255,220,60,0.65)"/>
-        <!-- star sparkle center -->
-        <circle cx="160" cy="100" r="5" fill="rgba(255,255,255,0.9)"/>
-
-        <!-- NECK -->
-        <path d="M142,214 L150,252 L170,252 L178,214 Z" fill="url(#tgNeck)"/>
-        <path d="M145,214 L152,252" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
-        <path d="M175,214 L168,252" stroke="rgba(0,0,0,0.1)" stroke-width="2"/>
-
-        <!-- neck top collar -->
-        <rect x="132" y="210" width="56" height="12" rx="5" fill="url(#tgBodySide)" filter="url(#tgSoftGlow)"/>
-        <rect x="135" y="211" width="50" height="5" rx="3" fill="rgba(255,255,255,0.32)"/>
-
-        <!-- BASE tiers -->
-        <!-- tier 1 -->
-        <rect x="108" y="252" width="104" height="24" rx="7" fill="url(#tgBase)" filter="url(#tgSoftGlow)"/>
-        <rect x="112" y="253" width="96" height="9" rx="4" fill="rgba(255,255,255,0.2)"/>
-        <!-- tier 2 (wider) -->
-        <rect x="92" y="272" width="136" height="18" rx="7" fill="url(#tgBase)"/>
-        <rect x="96" y="273" width="128" height="7" rx="3" fill="rgba(255,255,255,0.12)"/>
-        <!-- tier 3 bottom -->
-        <rect x="82" y="286" width="156" height="14" rx="7" fill="url(#tgBase)"/>
-        <rect x="86" y="287" width="148" height="5" rx="3" fill="rgba(255,255,255,0.09)"/>
-
-        <!-- base gem center -->
-        <circle cx="160" cy="263" r="9" fill="#1a80ff" filter="url(#tgSoftGlow)"/>
-        <circle cx="160" cy="263" r="6" fill="#60b0ff"/>
-        <circle cx="157" cy="260" r="3" fill="rgba(255,255,255,0.85)"/>
-
-        <!-- shadow under base -->
-        <ellipse cx="160" cy="303" rx="74" ry="8" fill="rgba(0,0,0,0.32)"/>
-
-        <!-- sparkle accents -->
-        <circle cx="252" cy="46" r="5" fill="#FFF8DC" opacity="0.92" filter="url(#tgSoftGlow)"/>
-        <circle cx="68" cy="46" r="5" fill="#FFF8DC" opacity="0.92" filter="url(#tgSoftGlow)"/>
-        <circle cx="160" cy="22" r="6" fill="#FFF8DC" opacity="0.97" filter="url(#tgStarGlow)"/>
-        <circle cx="248" cy="98" r="3.5" fill="#FFF8DC" opacity="0.75"/>
-        <circle cx="72" cy="98" r="3.5" fill="#FFF8DC" opacity="0.75"/>
-        <!-- sparkle cross top right -->
-        <g stroke="#FFF8DC" stroke-width="2" opacity="0.85" stroke-linecap="round">
-          <line x1="258" y1="62" x2="258" y2="74"/><line x1="252" y1="68" x2="264" y2="68"/>
-          <line x1="58" y1="62" x2="58" y2="74"/><line x1="52" y1="68" x2="64" y2="68"/>
-        </g>
-        <!-- tiny sparkle dots -->
-        <circle cx="238" cy="34" r="2" fill="#FFF8DC" opacity="0.6"/>
-        <circle cx="82" cy="34" r="2" fill="#FFF8DC" opacity="0.6"/>
-        <circle cx="270" cy="150" r="2.5" fill="#FFF8DC" opacity="0.5"/>
-        <circle cx="50" cy="150" r="2.5" fill="#FFF8DC" opacity="0.5"/>
-      </svg>
+    <div id="trophySvgWrap" aria-hidden="true"><!-- the champion star: js/effects.js (dsMascot) --></div>
     </div>
     <div id="trophyTeamName"></div>
     <div id="trophyScore"></div>

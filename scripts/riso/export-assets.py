@@ -38,6 +38,12 @@ total = 0
 for n, name in RISO.items():
     im = Image.open(os.path.join(pieces, f"piece-{n:02d}.png")).convert("RGBA")
     total += save(im, os.path.join(media, "riso", name + ".webp"), 86)
+# thin strokes cut from the middle of the brushes: the marker mark beside section titles (css .section-title::after)
+LINES = {"brush-red-line": "brush-red", "brush-blue-line": "brush-blue"}
+for name, src_name in LINES.items():
+    im = Image.open(os.path.join(media, "riso", src_name + ".webp")).convert("RGBA")
+    h = im.height
+    total += save(im.crop((0, int(h * 0.28), im.width, int(h * 0.78))), os.path.join(media, "riso", name + ".webp"), 86)
 for n, name in MASCOT.items():
     im = Image.open(os.path.join(mascots, f"calm_{n:02d}.png")).convert("RGBA")
     total += save(im, os.path.join(media, "mascot", name + ".webp"), 88)

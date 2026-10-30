@@ -86,7 +86,7 @@
   var SPOT = {
     'shuttle-red': [189, 138], 'shuttle-blue': [182, 131], 'shuttle-swoosh': [180, 136], 'shuttle-streak': [216, 130],
     'racket-swoosh': [190, 131], 'racket-smash': [151, 160], 'racket-wide': [189, 151],
-    'brush-red': [143, 63], 'brush-blue': [158, 65], 'brush-sweep': [191, 73],
+    'brush-red': [143, 63], 'brush-blue': [158, 65], 'brush-sweep': [191, 73], 'brush-red-line': [143, 32], 'brush-blue-line': [158, 32],
     'arrow-red': [101, 35], 'arrow-blue': [96, 39], chevrons: [47, 48], 'rays-lines': [122, 73], 'rays-burst': [104, 75],
     'halftone-red': [79, 63], 'halftone-blue': [90, 66],
     'torn-red': [206, 45], 'torn-blue-sm': [141, 37], 'torn-blue': [156, 53], 'torn-mix': [159, 52], 'torn-red-sm': [133, 57],
@@ -108,7 +108,7 @@
     return raster('mascot', name, MASCOT, width || 132, 'ds-mascot ds-mascot--' + (MASCOT_MOVE[name] || 'bob') + (cls ? ' ' + cls : ''), eager);
   };
   // dsSpot('shuttle-red', 96): one piece of the Riso sheet (brush, shuttlecock, racket, torn paper ...)
-  window.dsSpot = function (name, width, eager) {
-    return raster('riso', name, SPOT, width, 'ds-spot ds-spot--' + name, eager);
+  window.dsSpot = function (name, width, eager, cls) {
+    return raster('riso', name, SPOT, width, 'ds-spot ds-spot--' + name + (cls ? ' ' + cls : ''), eager);
   };
 })();

@@ -311,6 +311,7 @@ body.admin-mode .pdir-list { --col: 480px; }
 .pdir-streak { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
 .pdir-streak.is-hot { color: var(--warn); }
 .pdir-streak.is-cold { color: var(--info); }
+.pdir-streak .ds-mascot { animation: none; margin-inline: 0; }   /* a small badge in a long list: still */
 .pdir-pts { flex: none; display: grid; justify-items: end; gap: 2px; min-width: 52px; text-align: right; }
 .pdir-pts b { color: var(--gold-text); font: 400 var(--fs-32)/var(--lh-num) var(--font-num); font-variant-numeric: tabular-nums; }
 .pdir-pts span { color: var(--t-low); font: 600 var(--fs-12)/1.2 var(--font-ui); }

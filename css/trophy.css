@@ -33,6 +33,7 @@
 @media (max-width: 599px) { #trophyWinnerLabel { letter-spacing: .24em; } }
 #trophySvgWrap { margin-bottom: var(--sp-5); opacity: 0; transform: scale(.2) translateY(80px); transition: opacity 1s .4s, transform 1s .4s cubic-bezier(.34, 1.56, .64, 1); }
 #trophySvgWrap svg { max-width: 90vw; height: auto; }
+#trophySvgWrap .ds-mascot { width: min(clamp(300px, 26vw, 380px), 72vw); animation: none; }   /* animateTrophy() floats the wrapper */
 
 #trophyTeamName {
   font-family: var(--font-num); font-size: clamp(3em, 11vw, 7.5em); line-height: 1; letter-spacing: .06em;

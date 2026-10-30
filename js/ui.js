@@ -296,6 +296,9 @@ function renderIdleBoard() {
   if (sum) sum.textContent = `${hist.length} แมตช์จบแล้ว · ${next.length ? next.length + ' แมตช์รอแข่ง' : 'ไม่มีคิว'}`;
   const gap = document.getElementById('idleGap');
   if (gap) gap.textContent = r === b ? 'เสมอ' : `ห่าง ${Math.abs(r - b)}`;
+  // a brushed arrow in the leader's colour points from the middle at the leading side (flipped by css: red is on the left)
+  const arrow = document.getElementById('idleArrow'), aKey = r === b ? '' : r > b ? 'red' : 'blue';
+  if (arrow && arrow.dataset.k !== aKey) { arrow.dataset.k = aKey; arrow.innerHTML = aKey ? dsSpot(aKey === 'red' ? 'arrow-red' : 'arrow-blue', 76, true) : ''; }
 
   // the cards only rebuild when the line-up (or the role: the empty state has a staff button) changes
   const me = typeof getMe === 'function' ? getMe() : '';

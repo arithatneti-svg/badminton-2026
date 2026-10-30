@@ -417,8 +417,8 @@ function renderPlayersTab() {
     const st = getPlayerStreak(id);
     if (!st) return '';
     return st.type === 'hot'
-      ? `<span class="pdir-streak is-hot">${dsIcon('fire')}ฟอร์มร้อน</span>`
-      : `<span class="pdir-streak is-cold">${dsIcon('caret-down')}ฟอร์มตก</span>`;
+      ? `<span class="pdir-streak is-hot">${dsMascot('streak', 30)}ฟอร์มร้อน</span>`
+      : `<span class="pdir-streak is-cold">${dsMascot('error', 36)}ฟอร์มตก</span>`;
   };
 
   // The headline number follows the active sort: switch to อัตราชนะ and the win rate becomes the big number

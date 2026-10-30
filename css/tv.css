@@ -163,6 +163,14 @@ body.tv-mode .tv-fs-btn:focus-visible { opacity: 1; }
 .tv-team.red  { --fill: var(--red-fill);  --fill-hi: var(--red-fill-hi);  --edge-c: var(--red);  --ink: var(--red-ink);  }
 .tv-team.blue { --fill: var(--blue-fill); --fill-hi: var(--blue-fill-hi); --edge-c: var(--blue); --ink: var(--blue-ink); }
 .tv-team.lead { background: var(--fill-hi); }
+/* halftone ink in the lower corner of each field (css dots), behind the digits */
+.tv-team > * { position: relative; z-index: 1; }
+.tv-team::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, .26) calc(var(--u) * .22), transparent calc(var(--u) * .34)) 0 0 / calc(var(--u) * 1.5) calc(var(--u) * 1.5);
+  -webkit-mask-image: radial-gradient(120% 70% at 100% 100%, #000, transparent 60%); mask-image: radial-gradient(120% 70% at 100% 100%, #000, transparent 60%);
+}
+.tv-team.blue::after { -webkit-mask-image: radial-gradient(120% 70% at 0 100%, #000, transparent 60%); mask-image: radial-gradient(120% 70% at 0 100%, #000, transparent 60%); }
 .tv-team-top { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 2); min-height: calc(var(--u) * 5.2); }
 .tv-team.blue .tv-team-top { flex-direction: row-reverse; }
 .tv-team .tv-tag { font-size: calc(var(--u) * 5); color: var(--ink); white-space: normal; }   /* a long team name wraps here, it is the identity of the whole field */
