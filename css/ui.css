@@ -203,11 +203,7 @@
 /* laptops and desktops have the room: the empty-state mascot grows from phone size (132 px) to 172 px */
 @media (min-width: 900px) { .ds-empty .ds-mascot { width: 172px; } }
 @media (min-width: 1200px) { .ds-empty .ds-mascot { width: 200px; } }
-/* the mascot has a black outline: on the dark theme it gets the white sticker edge back so it does not sink into the page */
-:root[data-theme="dark"] .ds-mascot {
-  filter: drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 -1px 0 #fff);
-}
-.ds-mascot--sticker, :root[data-theme="paper"] .ds-mascot--sticker, :root[data-theme="dark"] .ds-mascot--sticker {
+.ds-mascot--sticker, :root[data-theme="paper"] .ds-mascot--sticker {   /* the white sticker edge: the star on a solid team colour */
   filter: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff) drop-shadow(0 4px 6px rgba(0, 0, 0, .3));
 }
 .ds-spot { display: block; max-width: 100%; height: auto; pointer-events: none; user-select: none; -webkit-user-drag: none; }

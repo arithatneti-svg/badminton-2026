@@ -7,43 +7,33 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f6f0e4">
 <title>กรรมการ — คุมคะแนน</title>
-<!-- theme: paper (the default) or dark, the same switch as index.html (?theme=dark / ?theme=paper, remembered on this device) -->
+<!-- theme: paper only, the same as index.html (no dark theme; ?theme= is ignored and an older choice is cleared) -->
 <script>
-try {
-  var _q = new URLSearchParams(location.search).get('theme');
-  if (_q === 'paper' || _q === 'dark') localStorage.setItem('bdm_theme', _q);
-  document.documentElement.setAttribute('data-theme', localStorage.getItem('bdm_theme') === 'dark' ? 'dark' : 'paper');
-} catch (e) { document.documentElement.setAttribute('data-theme', 'paper'); }
-/* the metas above are the paper values (cream browser bar, dark status-bar text); the dark theme swaps in its black bar */
-try {
-  if (document.documentElement.getAttribute('data-theme') === 'dark') {
-    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#07070d');
-    document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute('content', 'black-translucent');
-  }
-} catch (e) {}
+document.documentElement.setAttribute('data-theme', 'paper');
+try { localStorage.removeItem('bdm_theme'); } catch (e) {}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <!-- Shared Firebase config + init (deferred, runs before umpire.js) -->
-<script defer src="shared/firebase-config.js?v=2026.10.30.4"></script>
-<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.4">
-<link rel="stylesheet" href="css/ui.css?v=2026.10.30.4">
-<link rel="stylesheet" href="css/umpire.css?v=2026.10.30.4">
-<link rel="stylesheet" href="css/paper.css?v=2026.10.30.4">
+<script defer src="shared/firebase-config.js?v=2026.10.30.5"></script>
+<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.5">
+<link rel="stylesheet" href="css/ui.css?v=2026.10.30.5">
+<link rel="stylesheet" href="css/umpire.css?v=2026.10.30.5">
+<link rel="stylesheet" href="css/paper.css?v=2026.10.30.5">
 <!-- PWA: installable Umpire app + offline-tolerant shell -->
 <link rel="manifest" href="umpire.webmanifest">
 <link rel="apple-touch-icon" href="icons/umpire-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Umpire">
-<script defer src="shared/version.js?v=2026.10.30.4"></script>
-<script defer src="shared/pwa.js?v=2026.10.30.4"></script>
-<script defer src="shared/icons.js?v=2026.10.30.4"></script>
-<script defer src="shared/art.js?v=2026.10.30.4"></script>
-<script defer src="shared/sync-merge.js?v=2026.10.30.4"></script>
-<script defer src="shared/match-time.js?v=2026.10.30.4"></script>
-<script defer src="umpire/tap-gate.js?v=2026.10.30.4"></script>
-<script defer src="umpire/umpire.js?v=2026.10.30.4"></script>
+<script defer src="shared/version.js?v=2026.10.30.5"></script>
+<script defer src="shared/pwa.js?v=2026.10.30.5"></script>
+<script defer src="shared/icons.js?v=2026.10.30.5"></script>
+<script defer src="shared/art.js?v=2026.10.30.5"></script>
+<script defer src="shared/sync-merge.js?v=2026.10.30.5"></script>
+<script defer src="shared/match-time.js?v=2026.10.30.5"></script>
+<script defer src="umpire/tap-gate.js?v=2026.10.30.5"></script>
+<script defer src="umpire/umpire.js?v=2026.10.30.5"></script>
 </head>
 <body class="is-login">
 
