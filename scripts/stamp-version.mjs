@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(here, '..');
-export const PAGES = ['index.html', 'umpire.html'];
+export const PAGES = ['index.html', 'umpire.html', 'draw.html'];
 
 export function appVersion(root = ROOT) {
   const m = /APP_VERSION\s*=\s*["']([^"']+)["']/.exec(fs.readFileSync(path.join(root, 'shared/version.js'), 'utf8'));
