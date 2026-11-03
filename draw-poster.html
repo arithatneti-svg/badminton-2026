@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>ป้ายประกาศสุ่มทีม — กีฬาสี 14 พ.ย.</title>
+<!-- A4 poster for the team draw, same paper (Riso) theme as the app. Print it (A4, or scale to A3) or save as PDF; the QR points at the live draw page. -->
+<script>document.documentElement.setAttribute('data-theme', 'paper');</script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Kanit:wght@500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.75">
+<link rel="stylesheet" href="css/paper.css?v=2026.10.30.75">
+<style>
+  :root { --pz-ink: #0b2a52; --pz-red: #d81a21; --pz-blue: #0956b8; --pz-cream: #fff6ea; --pz-yellow: #f4c430; }
+  html, body { margin: 0; background: #d9d2c3; font-family: var(--font-th, 'Noto Sans Thai', sans-serif); color: var(--pz-ink); }
+  .pz-bar { display: flex; gap: 10px; justify-content: center; padding: 12px; }
+  .pz-bar button, .pz-bar a { min-height: 44px; padding: 0 18px; border: 1.5px solid var(--pz-ink); border-radius: 4px 9px 5px 10px / 10px 5px 9px 4px; background: var(--pz-yellow); color: var(--pz-ink); font: 700 16px/1 var(--font-th-head, Kanit, sans-serif); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+  .pz-stage { display: flex; justify-content: center; padding-bottom: 24px; }
+  .pz-sheet { position: relative; width: 210mm; height: 297mm; box-sizing: border-box; padding: 13mm 14mm; overflow: hidden; background: var(--pz-cream); display: grid; grid-template-rows: auto auto auto 1fr auto; gap: 6mm; text-align: center; transform-origin: top center; }
+  .pz-sheet::before { content: ''; position: absolute; inset: 0; background: url(media/riso/grain-paper.webp) center / 520px; mix-blend-mode: multiply; opacity: .55; pointer-events: none; }
+  .pz-sheet > * { position: relative; }
+
+  .pz-kicker { font-family: var(--font-num, Anton, sans-serif); font-size: 7.2mm; letter-spacing: .16em; color: var(--pz-red); line-height: 1; }
+  .pz-title { margin: 0; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 28mm; line-height: 1; letter-spacing: -.01em; }
+  .pz-swipe { display: inline-block; margin-top: 1mm; padding: 2.4mm 11mm 3.4mm; background: url(media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 9.6mm; line-height: 1.1; }
+
+  /* RED | star | BLUE (the colour fields are pseudo-elements so no text sits inside a masked box) */
+  .pz-vs { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; height: 40mm; align-items: center; }
+  .pz-side { position: relative; isolation: isolate; height: 100%; display: grid; align-items: center; color: var(--pz-cream); font-family: var(--font-num, Anton, sans-serif); font-size: 18mm; line-height: 1; letter-spacing: .05em; }
+  .pz-side::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle, rgba(255, 246, 234, .17) .35mm, transparent .5mm) 0 0 / 1.9mm 1.9mm, var(--f);
+    -webkit-mask: var(--riso-ragged) center / 100% 100% no-repeat; mask: var(--riso-ragged) center / 100% 100% no-repeat; }
+  .pz-side.is-red { --f: var(--pz-red); padding-right: 22mm; }
+  .pz-side.is-blue { --f: var(--pz-blue); padding-left: 22mm; }
+  .pz-star { position: absolute; left: 50%; top: 50%; width: 46mm; height: auto; transform: translate(-50%, -50%) rotate(-4deg); filter: drop-shadow(1.2mm 1.4mm 0 rgba(11, 42, 82, .35)); }
+
+  .pz-plate { position: relative; isolation: isolate; justify-self: center; display: grid; justify-items: center; gap: 3mm; padding: 9mm 11mm 8mm; }
+  .pz-plate::before { content: ''; position: absolute; inset: 0; z-index: -1; background: #fff; border: 1.3mm solid var(--pz-ink); border-radius: 3mm 6mm 4mm 7mm / 7mm 4mm 6mm 3mm; box-shadow: 2.4mm 2.6mm 0 var(--pz-red); }
+  .pz-qr { width: 68mm; height: 68mm; display: block; }
+  .pz-qr svg { width: 100%; height: 100%; display: block; }
+  .pz-scan { margin: 0; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 8.4mm; line-height: 1.1; }
+  .pz-url { margin: 0; font: 700 4.4mm/1 var(--font-th-head, Kanit, sans-serif); color: var(--pz-red); letter-spacing: .02em; }
+
+  .pz-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; align-self: end; }
+  .pz-step { display: grid; justify-items: center; gap: 1.4mm; padding: 4mm 2mm; border: .8mm solid var(--pz-ink); border-radius: 2mm 4mm 2.5mm 5mm / 5mm 2.5mm 4mm 2mm; background: rgba(255, 255, 255, .6); }
+  .pz-step b { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 11mm; line-height: 1; color: var(--pz-red); }
+  .pz-step span { font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 700; font-size: 5.6mm; line-height: 1.2; }
+  .pz-note { margin: 0; font-size: 4.6mm; font-weight: 600; }
+  .pz-note u { text-decoration: underline wavy var(--pz-red); text-underline-offset: 1.2mm; text-decoration-thickness: .35mm; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    html, body { background: none; }
+    .pz-bar { display: none; }
+    .pz-stage { display: block; padding: 0; }
+    .pz-sheet { transform: none !important; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="pz-bar">
+  <button type="button" id="pzPrint">พิมพ์ / บันทึกเป็น PDF</button>
+  <a id="pzQrDl" href="#" download="draw-qr.svg">ดาวน์โหลด QR (SVG)</a>
+</div>
+<div class="pz-stage"><main class="pz-sheet" id="pzSheet">
+  <div class="pz-kicker">SPORTS DAY · 14 NOV 2026</div>
+  <div><h1 class="pz-title">สุ่มทีม</h1><div class="pz-swipe">กีฬาสี เสาร์ที่ 14 พ.ย. 2569</div></div>
+  <div class="pz-vs">
+    <div class="pz-side is-red">RED</div>
+    <div class="pz-side is-blue">BLUE</div>
+    <img class="pz-star" src="media/mascot/smash.webp" alt="">
+  </div>
+  <div class="pz-plate">
+    <div class="pz-qr" id="pzQr" role="img" aria-label="QR code ไปหน้าสุ่มทีม"></div>
+    <p class="pz-scan">สแกนเลย แล้วเลือกชื่อของคุณ</p>
+    <p class="pz-url">badminton2026.pages.dev/draw</p>
+  </div>
+  <div class="pz-steps">
+    <div class="pz-step"><b>1</b><span>เลือกชื่อ<br>ของคุณ</span></div>
+    <div class="pz-step"><b>2</b><span>คุยกับ<br>น้องดาว</span></div>
+    <div class="pz-step"><b>3</b><span>กดสุ่มทีม<br>รู้เลยว่าสีไหน</span></div>
+  </div>
+  <p class="pz-note">กดได้ <u>ครั้งเดียว</u> ต่อชื่อ · ผลเปิดเฉพาะของตัวเอง · ที่เหลือเจอกันวันงาน</p>
+</main></div>
+<script src="js/vendor/qrcode.min.js"></script>
+<script>
+(function () {
+  var URL_ = 'https://badminton2026.pages.dev/draw';
+  var holder = document.getElementById('pzQr');
+  try {
+    var qr = qrcode(0, 'M'); qr.addData(URL_); qr.make();
+    var svg = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true }).replace(/fill="black"/g, 'fill="#0b2a52"');
+    holder.innerHTML = svg;
+    document.getElementById('pzQrDl').href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  } catch (e) { holder.textContent = URL_; }
+  document.getElementById('pzPrint').onclick = function () { window.print(); };
+  // on screen the A4 sheet shrinks to fit a narrow window
+  var sheet = document.getElementById('pzSheet'), stage = sheet.parentNode;
+  function fit() {
+    var s = Math.min(1, (window.innerWidth - 16) / sheet.offsetWidth);
+    sheet.style.transform = s < 1 ? 'scale(' + s + ')' : '';
+    stage.style.height = s < 1 ? Math.ceil(sheet.offsetHeight * s + 24) + 'px' : '';
+  }
+  window.addEventListener('resize', fit); fit();
+})();
+</script>
+</body>
+</html>
