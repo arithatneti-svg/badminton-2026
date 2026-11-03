@@ -6,9 +6,11 @@ const R = require('../shared/draw-rules.js');
 let pass = 0, fail = 0;
 function ok(name, cond, extra) { if (cond) pass++; else { fail++; console.log('  ✗ ' + name + (extra ? ' - ' + extra : '')); } }
 
-ok('38 players', R.ROSTER.length === 38, String(R.ROSTER.length));
-ok('1.2 holds ฮิว and ปาย', R.ROSTER.filter(p => p.subgroup === '1.2').map(p => p.name).join() === 'ฮิว,ปาย');
-ok('names are unique', new Set(R.ROSTER.map(p => p.name)).size === 38);
+ok('39 players', R.ROSTER.length === 39, String(R.ROSTER.length));
+ok('1.1 holds หมี เพชร ก๊อป Jokee', R.ROSTER.filter(p => p.subgroup === '1.1').map(p => p.name).join() === 'หมี,เพชร,ก๊อป,Jokee');
+ok('6 new players', R.ROSTER.filter(p => p.isNew).map(p => p.name).sort().join() === ['พล', 'ไทม์', 'อาร์ม', 'นาย', 'แม็กซ์', 'รุจิ'].sort().join());
+ok('captains are หมี and เพชร', R.ROSTER.filter(p => p.captain).map(p => p.name + ':' + p.captain).join() === 'หมี:Red,เพชร:Blue');
+ok('names are unique', new Set(R.ROSTER.map(p => p.name)).size === 39);
 
 const N = 5000, seen = {}, tally = {}, opp = c => (c === 'Red' ? 'Blue' : 'Red');
 let pairs = 0;
@@ -18,14 +20,14 @@ for (let i = 0; i < N; i++) {
   const bad = R.check(a);
   if (bad.length) { broke++; if (broke < 4) console.log('  broke:', bad.join('; ')); }
   const reds = R.ROSTER.filter(p => a[p.name] === 'Red').length; sizes.add(reds);
-  ['ฝ้าย', 'นก', 'เอแคลร์', 'ต้น', 'พี่เอิ้น', 'ฮิว'].forEach(n => { tally[n] = (tally[n] || 0) + (a[n] === 'Red' ? 1 : 0); });
+  ['ฝ้าย', 'นก', 'เอแคลร์', 'ต้น', 'เอิ้น', 'ฮิว', 'นาย'].forEach(n => { tally[n] = (tally[n] || 0) + (a[n] === 'Red' ? 1 : 0); });
   if (a['ยุ้ย'] !== opp(a['ฝ้าย']) || a['ปูม'] !== opp(a['ฝ้าย'])) pairs++;
-  if (a['ฮิว'] === a['ปาย']) pairs++;
+  if (a['ฮิว'] === a['พล']) pairs++;
   seen[JSON.stringify(a)] = 1;
 }
 ok(N + ' draws break no rule', broke === 0, broke + ' broke');
-ok('ยุ้ย and ปูม are always opposite ฝ้าย, ฮิว and ปาย always apart', pairs === 0, String(pairs));
-ok('teams are always 19 / 19', sizes.size === 1 && sizes.has(19), [...sizes].join(','));
+ok('ยุ้ย and ปูม are always opposite ฝ้าย, ฮิว and พล always apart', pairs === 0, String(pairs));
+ok('teams are always 20 / 19 (either way round)', [...sizes].every(s => s === 19 || s === 20) && sizes.size === 2, [...sizes].join(','));
 ok('draws differ from each other', Object.keys(seen).length > N * 0.9, String(Object.keys(seen).length));
 for (const n of Object.keys(tally)) {
   const p = tally[n] / N;
