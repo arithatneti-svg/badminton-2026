@@ -186,3 +186,15 @@
   .dw-bh .ds-mascot { width: 120px; }
 }
 .dw-reveal .ds-mascot { margin: 0; }
+
+/* board names: the NEW / captain tag is a small badge on the card's corner, so a name never has to share its row with it */
+.dw-col li { position: relative; }
+.dw-col li b { flex: 1 1 0; }
+.dw-col li .dw-tag { position: absolute; top: -9px; right: 6px; padding: 0 7px; font-size: var(--fs-12); line-height: 1.5; background-color: var(--s1); }
+.dw-col li .dw-tag.is-new { background-color: transparent; }
+@media (max-width: 640px) {
+  .dw-col ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 6px; padding: 14px 8px 8px; }
+  .dw-col li { gap: 6px; min-height: 46px; padding: 3px 6px 3px 4px; }
+  .dw-col .dw-ini { width: 32px; height: 32px; font-size: var(--fs-13); }
+  .dw-col li b { font-size: var(--fs-16); }
+}
