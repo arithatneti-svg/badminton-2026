@@ -549,7 +549,7 @@ function umpirePlayer(id) {
 function umpireAvatar(id) {
   const p = umpirePlayer(id);
   const photo = umpirePhoto(id);
-  const team = p && p.team === 'Blue' ? 'ua-blue' : 'ua-red';
+  const team = p && p.team === 'Blue' ? 'ua-blue' : p && p.team === 'Red' ? 'ua-red' : 'ua-none';
   const pid = p ? ' data-pid="' + p.id + '"' : '';
   const rv = ' ua-r' + ([...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % 3);   // which of the 3 hand-inked Riso rings (css/paper.css)
   if (photo) return '<span class="uavatar ' + team + rv + '"' + pid + '><img src="' + photo + '" alt="" loading="lazy"></span>';
@@ -890,7 +890,7 @@ function renderUmpireList() {
   );
 
   filtered.forEach(p => {
-    const prefix = p.team === 'Red' ? '●' : '◆';   // the team's shape (circle = red, diamond = blue), as everywhere else
+    const prefix = p.team === 'Red' ? '●' : p.team === 'Blue' ? '◆' : '○';   // the team's shape (circle = red, diamond = blue), as everywhere else
     select.innerHTML += `<option value="${p.name}">${prefix} ${p.name} (G${p.group})</option>`;
   });
 

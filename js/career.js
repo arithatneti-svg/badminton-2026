@@ -392,7 +392,7 @@ async function renderSeasonCompare() {
                 const d = p.per[y];
                 if (!d) return `<td data-label="${y}"><span class="cmp-none">—</span></td>`;
                 const red = d.team === 'Red';
-                return `<td data-label="${y}"><span class="cmp-cell"><i class="rp-mark ${red ? 'is-red' : 'is-blue'}"></i><span class="ds-sr-only">${red ? 'แดง' : 'น้ำเงิน'} </span><b>${d.pts || 0}</b><span class="cmp-sub">${d.matchWin || 0}W ${d.matchLose || 0}L</span></span></td>`;
+                return `<td data-label="${y}"><span class="cmp-cell"><i class="rp-mark ${teamCls(d.team, 'is-')}"></i><span class="ds-sr-only">${red ? 'แดง' : d.team === 'Blue' ? 'น้ำเงิน' : 'ไม่มีทีม'} </span><b>${d.pts || 0}</b><span class="cmp-sub">${d.matchWin || 0}W ${d.matchLose || 0}L</span></span></td>`;
               }).join('')}
               <td data-label="รวม PTS"><b class="cmp-total">${total}</b></td>
             </tr>`;

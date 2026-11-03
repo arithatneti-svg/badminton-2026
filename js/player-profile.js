@@ -49,7 +49,16 @@ function mvpWinnerIds() {
 // is ever declared it defaults to the season already live; clearing stores an
 // empty team so it persists as "no champion" (rather than reverting to default).
 function currentChampion() {
-  return (appState && appState.champion !== undefined) ? appState.champion : { team: 'Blue', label: 'Summer 2026' };
+  return (appState && appState.champion !== undefined) ? appState.champion : { team: '' };
+}
+
+// Trophies from finished seasons are pinned to the people who won them
+// (appState.pastChampions = [{ label, team, pids }]) so a new season's team
+// draw cannot move or erase them.
+function pastChampionMedals(p) {
+  return ((appState && appState.pastChampions) || [])
+    .filter(c => p.pid && (c.pids || []).includes(p.pid))
+    .map(c => ({ title: 'Champion', subtitle: (c.team ? 'Team ' + c.team + ' · ' : '') + c.label }));
 }
 
 function playerHasAward(p, a) {
@@ -67,7 +76,7 @@ function playerAwards(p) {
   if (ch && ch.team && p.team === ch.team) {
     out.unshift({ title: 'Champion', subtitle: 'Team ' + ch.team + (ch.label ? ' · ' + ch.label : '') });
   }
-  return out;
+  return pastChampionMedals(p).concat(out);
 }
 
 // ── Superadmin: declare the season champion (team + optional label) ──
@@ -115,7 +124,7 @@ function openPlayerProfile(playerId) {
   const rank = ranking.findIndex(x => x.id === playerId) + 1;
   const hdr = document.getElementById('profileHeader');
   hdr.classList.toggle('is-red', isRed);
-  hdr.classList.toggle('is-blue', !isRed);
+  hdr.classList.toggle('is-blue', p.team === 'Blue');
   const tool = (cls, onclick, icon, label) => `<button type="button" class="ds-btn pf-tool${cls}" onclick="${onclick}">${dsIcon(icon)}${label}</button>`;
   hdr.innerHTML = `
     <div class="pf-id">
@@ -126,7 +135,7 @@ function openPlayerProfile(playerId) {
       <div class="pf-who">
         <h2 class="profile-name${String(p.name).length > 20 ? ' is-long' : ''}">${escHtml(p.name)}</h2>
         <div class="pf-tags">
-          <span class="ds-team ds-team-${isRed ? 'red' : 'blue'}">${isRed ? 'RED' : 'BLUE'}</span>
+          <span class="ds-team ${teamCls(p.team, 'ds-team-')}">${teamLabel(p.team)}</span>
           <span class="ds-chip">G${p.group}</span>
           <span class="ds-chip">${p.id}</span>
           ${(typeof isMe === 'function' && isMe(p.id)) ? '<span class="ds-chip ds-chip-gold">คุณ</span>' : ''}
@@ -271,7 +280,7 @@ function pdGameHtml(label, raw) {
 }
 // a team as word + shape, coloured (circle = red, diamond = blue)
 function pdTeamTag(team) {
-  return team === 'Red' ? '<span class="ds-team ds-team-red">RED</span>' : '<span class="ds-team ds-team-blue">BLUE</span>';
+  return `<span class="ds-team ${teamCls(team, 'ds-team-')}">${teamLabel(team)}</span>`;
 }
 
 function renderPdMatchHistory(playerId) {

@@ -623,3 +623,8 @@ body.data-loading:not(.tv-mode) .data-state {
 .conn-bar .ds-ic { flex: none; color: var(--err); }
 .conn-bar[hidden] { display: none; }
 body.tv-mode .conn-bar { display: none; }
+
+/* no team yet (before the draw) */
+.pav-none { border-color: var(--line-strong); color: var(--t-low); background: var(--s3); }
+.tsh-none { border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 2px currentColor; }
+.pdir-row.is-none, .pdir-pod.is-none { --edge: var(--line-strong); }

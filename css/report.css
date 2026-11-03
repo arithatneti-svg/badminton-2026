@@ -405,3 +405,5 @@
 #report .cmp-skel .ds-skel { height: 168px; border-radius: var(--r-md); }
 #report .rp-state { display: grid; gap: var(--sp-3); }
 #report .rp-state .ds-btn { justify-self: start; }
+.rp-mark.is-none { background: transparent; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--t-low); }
+#report .rp-chart-bar.is-none { background: var(--line-strong); }

@@ -189,7 +189,7 @@ function renderChart(playerArr) {
   const maxPts = Math.max(...top.map(p => p.pts));
   chart.setAttribute('role', 'list');
   chart.innerHTML = top.map((p, i) => {
-    const red = p.team === 'Red', cls = red ? 'is-red' : 'is-blue';
+    const red = p.team === 'Red', cls = teamCls(p.team, 'is-');
     return `<div class="rp-chart-row" role="listitem">
       <span class="rp-chart-rank">${i + 1}</span>
       <span class="rp-chart-name"><i class="rp-mark ${cls}"></i><span><span class="ds-sr-only">${red ? 'แดง' : 'น้ำเงิน'} </span>${escHtml(p.name)}</span></span>
@@ -299,7 +299,7 @@ function renderTopPlayers() {
   el.innerHTML = `<ol class="db-top">${top.map((p, i) => {
     const red = p.team === 'Red';
     const wr = p.total > 0 ? Math.round(p.w / p.total * 100) : 0;
-    return `<li class="db-top-row ${red ? 'is-red' : 'is-blue'}">
+    return `<li class="db-top-row ${teamCls(p.team, 'is-')}">
       <span class="db-top-rank${i < 3 ? ' is-top' : ''}"><span class="ds-sr-only">อันดับ </span>${i + 1}</span>
       <div class="db-top-main">
         <b class="db-top-name">${escHtml(p.name)}</b>

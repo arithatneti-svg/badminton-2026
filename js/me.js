@@ -58,7 +58,7 @@ function closeMePicker() {
   if (wasOpen && _mePickerOpener && _mePickerOpener.isConnected && _mePickerOpener.focus) _mePickerOpener.focus();
   _mePickerOpener = null;
 }
-const _teamTag = team => `<i class="tsh ${team === 'Red' ? 'tsh-red' : 'tsh-blue'}" aria-hidden="true"></i>`;   // circle = red, diamond = blue
+const _teamTag = team => `<i class="tsh ${teamCls(team, 'tsh-')}" aria-hidden="true"></i>`;   // circle = red, diamond = blue
 function renderMePickerList() {
   const el = document.getElementById('mePickerList');
   if (!el) return;
@@ -74,7 +74,7 @@ function renderMePickerList() {
     <button type="button" class="me-opt${isMe(p.id) ? ' on' : ''}" onclick="setMe('${p.id}')" aria-pressed="${isMe(p.id)}">
       ${avatarHtml(p, 40)}
       <span class="me-opt-name">${escHtml(p.name)}</span>
-      <span class="me-opt-meta ${p.team === 'Red' ? 'is-red' : 'is-blue'}">${_teamTag(p.team)}G${escHtml(p.group)}</span>
+      <span class="me-opt-meta ${teamCls(p.team, 'is-')}">${_teamTag(p.team)}G${escHtml(p.group)}</span>
       ${isMe(p.id) ? `<span class="me-opt-check">${dsIcon('check')}</span>` : ''}
     </button>`).join('');
 }
@@ -100,7 +100,7 @@ function renderMeBar() {
       ${avatarHtml(p, 36)}
       <div class="me-chip-txt">
         <b>${escHtml(p.name)}</b>
-        <span><span class="${p.team === 'Red' ? 'is-red' : 'is-blue'}">${_teamTag(p.team)} G${escHtml(p.group)}</span> · ${s.pts || 0} คะแนน · ชนะ ${s.matchWin || 0} แพ้ ${s.matchLose || 0}</span>
+        <span><span class="${teamCls(p.team, 'is-')}">${_teamTag(p.team)} G${escHtml(p.group)}</span> · ${s.pts || 0} คะแนน · ชนะ ${s.matchWin || 0} แพ้ ${s.matchLose || 0}</span>
       </div>
     </div>
     ${live ? `<span class="me-live"><i class="ds-dot ds-dot-live"></i>กำลังแข่ง${next > 1 ? ' ×' + next : ''}</span>` : ''}
