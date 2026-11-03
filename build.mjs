@@ -34,7 +34,7 @@ const JS = [
 const UMP_CSS = ['css/tokens.css','css/ui.css','css/umpire.css','css/paper.css'];
 // the team-draw page (draw.html, a mock-up for now): no Firebase, only the shared look + icons + mascots
 const DRAW_CSS = ['css/tokens.css','css/ui.css','css/draw.css','css/paper.css'];
-const DRAW_JS  = ['shared/version.js','shared/icons.js','shared/art.js','js/draw-mock.js'];
+const DRAW_JS  = ['shared/firebase-config.js','shared/version.js','shared/icons.js','shared/art.js','shared/draw-rules.js','js/draw-mock.js'];
 const UMP_JS  = ['shared/firebase-config.js','shared/version.js','shared/pwa.js','shared/icons.js','shared/art.js','shared/sync-merge.js','shared/match-time.js','umpire/tap-gate.js','umpire/umpire.js'];
 
 const ICONS = readdirSync(join(root,'icons')).filter(f => f.endsWith('.png'));
@@ -151,7 +151,7 @@ async function build() {
 
   writeFileSync(join(DIST, 'draw.html'), rewriteHtml('draw.html', {
     cssHref: 'assets/draw.css', jsHref: 'assets/draw.js',
-    jsPattern: /^<script defer src="(shared\/icons\.js|shared\/art\.js|shared\/version\.js|js\/draw-mock\.js)(\?v=[^"]*)?"><\/script>$/,
+    jsPattern: /^<script defer src="(shared\/firebase-config\.js|shared\/icons\.js|shared\/art\.js|shared\/draw-rules\.js|shared\/version\.js|js\/draw-mock\.js)(\?v=[^"]*)?"><\/script>$/,
   }));
 
   // static copies + generated sw

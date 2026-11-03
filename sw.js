@@ -55,6 +55,7 @@ const SHELL = [
     "css/paper.css",
     "js/auth.js",
     "js/draw-mock.js",
+    "shared/draw-rules.js",
     "js/backup.js",
     "js/career.js",
     "js/me.js",
