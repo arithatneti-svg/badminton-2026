@@ -81,7 +81,8 @@
   // a change that somebody else made: repaint, but never in the middle of the chat or the reveal animation
   function onShared() {
     if (busy || !$root) return;
-    var p = me();
+    var p = me(), bs = document.getElementById('dwBq');
+    if (view === 'board' && bs && bs.value) return;   // somebody is searching the board
     if (view === 'player') {
       if (S.step === 'chat' || S.step === 'hello') return;
       if (p && p.team && S.step !== 'result') { S.step = 'result'; save(); }
@@ -134,7 +135,7 @@
   }
 
   function pickHtml(q) {
-    var list = S.players.filter(function (p) { return !q || p.name.indexOf(q) >= 0 || p.pid.toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+    var list = S.players.filter(function (p) { return !p.team && (!q || p.name.indexOf(q) >= 0 || p.pid.toLowerCase().indexOf(q.toLowerCase()) >= 0); });   // people who have drawn are hidden here; their result is on the board
     var left = TOTAL - drawn().length;
     return '<section class="dw-card dw-pick"><div class="dw-hero">' + mascot('search', 96) + '<div><h1>คุณคือใคร?</h1>' +
       '<p>เลือกชื่อของคุณ น้องดาวจะได้รู้จัก · ยังไม่ได้สุ่ม <b>' + left + '</b> / ' + TOTAL + ' คน</p></div></div>' +
@@ -144,7 +145,8 @@
           '<span class="dw-ini">' + esc(initials(p.name)) + '</span><span class="dw-nm"><b>' + esc(p.name) + '</b><small>' + p.pid + '</small></span>' +
           (p.team ? '<span class="dw-tag is-' + p.team.toLowerCase() + '">' + (p.team === 'Red' ? 'RED' : 'BLUE') + '</span>'
             : (p.isNew ? '<span class="dw-tag is-new">NEW</span>' : '')) + '</button></li>';
-      }).join('') : '<li class="dw-empty">ไม่พบชื่อนี้ ลองพิมพ์ใหม่ หรือแจ้งแอดมินเพิ่มชื่อให้</li>') + '</ul></section>';
+      }).join('') : '<li class="dw-empty">ไม่พบชื่อนี้ในรายชื่อที่ยังไม่สุ่ม ถ้าคุณสุ่มไปแล้ว ดูสีของคุณที่ปุ่มด้านล่าง</li>') + '</ul>' +
+      '<div class="dw-row"><button type="button" class="ds-btn ds-btn-primary" data-act="go-board">ดูผลทีมที่สุ่มแล้ว (' + drawn().length + ' คน)</button></div></section>';
   }
 
   function greeting(p) {
@@ -343,6 +345,7 @@
     for (var i = 0; i < left; i++) pool += '<span class="dw-q">?</span>';
     return '<div class="dw-board"><div class="dw-bh"><div>' + mascot('victory', 84) + '</div><div><h1>เปิดตัวทีม</h1><p>สุ่มแล้ว <b>' + drawn().length + '</b> / ' + TOTAL + ' คน</p></div>' +
       '<div class="dw-bh-act"><button type="button" class="ds-btn" data-act="fs">เต็มจอ</button></div></div>' +
+      '<label class="dw-search dw-bsearch">' + ico('magnifying-glass') + '<input id="dwBq" type="search" placeholder="พิมพ์ชื่อ เพื่อดูว่าอยู่ทีมไหน" autocomplete="off"></label>' +
       '<div class="dw-cols">' + col('Red') + col('Blue') + '</div>' + (left ? '<div class="dw-pool"><small>ยังไม่สุ่ม ' + left + ' คน</small><div>' + pool + '</div></div>' : '<div class="dw-pool"><b>ครบทุกคนแล้ว!</b></div>') + '</div>';
   }
 
@@ -410,6 +413,11 @@
     if (act === 'undo') { if (isAdmin() && dbOk()) ref('reveal/' + el.getAttribute('data-pid')).remove(); }
   }
   function onInput(e) {
+    if (e.target.id === 'dwBq') {   // board search: hide the names that do not match, no repaint
+      var bq = e.target.value.trim();
+      document.querySelectorAll('.dw-col li').forEach(function (li) { if (!li.classList.contains('dw-wait')) li.style.display = !bq || li.textContent.indexOf(bq) >= 0 ? '' : 'none'; });
+      return;
+    }
     if (e.target.id !== 'dwQ') return;
     var q = e.target.value.trim(), main = document.getElementById('dwMain');
     var pos = e.target.selectionStart;
