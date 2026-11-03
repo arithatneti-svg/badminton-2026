@@ -199,8 +199,9 @@
     // 1 last winter's champion, always answered with the real result
     await say('ก่อนสุ่มทีม ขอถามนิดนึงนะ ตอบได้เลย ไม่ต้องเขินนะ', alive);
     var c = await ask('รู้ไหม ต้นปี (Summer 2026) ใครได้แชมป์?', [['Red', 'Team Red'], ['Blue', 'Team Blue']], false, alive); if (!alive()) return;
-    p.profile.guessWinner = c[0];
-    await say((c[0] === SUMMER.winner ? 'ถูกต้อง! ' : 'ไม่ใช่นะ~ ') + 'ผู้ชนะคือ Team Blue เฉือนชนะไปได้ ' + SUMMER.blue + ' – ' + SUMMER.red, alive);
+    var guess = /Blue/.test(c[0]) ? 'Blue' : 'Red';   // the chip label is 'Team Blue' / 'Team Red'
+    p.profile.guessWinner = guess;
+    await say((guess === SUMMER.winner ? 'ถูกต้อง! ' : 'ไม่ใช่นะ~ ') + 'ผู้ชนะคือ Team Blue เฉือนชนะไปได้ ' + SUMMER.blue + ' – ' + SUMMER.red, alive);
     // 2 "you decide your colour" + which colour they like
     await say('แต่ปลายปีนี้ คุณคือหนึ่งในผู้กำหนดชะตาสีของตัวเอง', alive, 300);
     var f = await ask('ชอบสีไหนมากกว่ากัน? (แต่ไม่เกี่ยวกับสีที่จะได้นะ สุ่มล้วนๆ)', [['น้ำเงิน', 'น้ำเงิน'], ['แดง', 'แดง']], false, alive); if (!alive()) return;
