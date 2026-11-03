@@ -112,6 +112,7 @@
 .dw-field small { font-size: var(--fs-16); opacity: .9; }
 .dw-field b { font-family: var(--font-num); font-weight: 400; font-size: 4rem; letter-spacing: .06em; line-height: 1; }
 .dw-lead { font-size: var(--fs-18); }
+.dw-fav { margin: 0; font-weight: 700; font-size: var(--fs-18); }
 .dw-result .dw-row { justify-content: center; }
 .dw-remind { --rc: rgba(11, 42, 82, .3); display: grid; gap: 6px; text-align: left; padding: 14px 16px; border: 1.5px solid #0b2a52; border-radius: 4px 12px 12px 12px; background: var(--s1); box-shadow: 3px 3px 0 var(--rc); }
 .dw-remind.is-red { --rc: rgba(216, 26, 33, .55); --tc: #d81a21; }

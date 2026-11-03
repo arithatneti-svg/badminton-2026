@@ -14,11 +14,11 @@
     'พี่ชัย', 'พี่ต้น', 'ป๋า', 'ดุ๊ก', 'โจ๊ก', 'นก', 'ยุ้ย', 'ปูม', 'นาย', 'หญิง', 'ต้น', 'อ๊อป', 'แชป', 'โบลิ่ง', 'ปอนด์', 'เอแคลร์', 'ปอ', 'โจ',
     'ไนซ์', 'แมค', 'รุจิ', 'พี่เอิ้น', 'โอ๊ต'];
   var TOTAL = ROSTER.length;
-  var STYLES = [['attacker', 'Attacker'], ['defender', 'Defender'], ['allround', 'All-Round'], ['controller', 'Controller'],
-    ['speed', 'Speed Runner'], ['deceptive', 'Deceptive'], ['power', 'Power Hitter'], ['netmaster', 'Net Master']];
-  var SHOTS = ['ตบ', 'หยอด', 'ดาด', 'เคลียร์', 'เสิร์ฟ'];
-  // "I don't know" / "I'm not telling": a third kind of answer next to the real choices (the chip finishes the question on its own)
-  var NOANS = [['ไม่รู้', 'ไม่รู้', true], ['ไม่บอก', 'ไม่บอก', true]];
+  // Summer 2026 (archived 2026-08-27 in seasons_archive/2026, read from the database): Blue beat Red 53 - 50
+  var SUMMER = { winner: 'Blue', blue: 53, red: 50 };
+  var EVENT_DATE = 'เสาร์ที่ 14 พ.ย.', WRONG_DATE = 'เสาร์ที่ 21 พ.ย.';
+  // women in the roster: the owner will give the names; until then nobody is flagged
+  var FEMALE = [];
   var VIEWS = [['player', 'ผู้เล่น'], ['board', 'จอใหญ่'], ['admin', 'แอดมิน']];
 
   var $root, S, view, runToken = 0, busy = false;
@@ -39,10 +39,10 @@
   function mascot(n, w, cls) { return window.dsMascot ? window.dsMascot(n, w, true, cls) : ''; }
 
   // ── the roster ───────────────────────────────────────────
-  // gender and skill are not known yet: a player gives the gender in the chat, skill stays equal for everyone until there is real data
+  // gender comes from the FEMALE list above (not asked in the chat); skill stays equal for everyone until there is real data
   function freshState() {
     var players = ROSTER.map(function (name, i) {
-      return { pid: pid(i + 1), name: name, female: false, level: 3, checked: false, team: null, profile: null };
+      return { pid: pid(i + 1), name: name, female: FEMALE.indexOf(name) >= 0, level: 3, checked: false, team: null, profile: null };
     });
     S = { players: players, meId: null, step: 'pick', last: null };
     return S;
@@ -185,40 +185,48 @@
       scrollDown();
     });
   }
-  function noAnswer(v) { return v === 'ไม่รู้' ? 'unknown' : v === 'ไม่บอก' ? 'private' : null; }
-  // the mascot's reply to "don't know" (kind) and "not telling" (teasing; a second time is a different line)
-  async function reactNo(kind, what, nth, alive) {
-    if (kind === 'unknown') {
-      await say(what === 'shot' ? 'ไม่รู้ก็ไม่เป็นไรนะ~ ตีไปตีมาเดี๋ยวก็รู้เองว่าถนัดอะไร 😄' : 'ไม่เป็นไรเลย บางทีเพื่อนในสนามมองออกก่อนเจ้าตัวอีก เดี๋ยวดูกันตอนแข่ง 😄', alive);
-    } else {
-      await say(nth ? 'อีกแล้ว! กั๊กหนักมากนะคุณพรี่ 😆 ได้ๆ งั้นไปลุ้นกันในสนามเลย' : 'หยั่นแน่~ กั๊กฝีมือหรอจ๊ะคุณพรี่ 😏', alive);
-    }
-  }
+  function shuffled(a) { return a.slice().sort(function () { return Math.random() - 0.5; }); }
+  var WEAK = {
+    'หัวใจ': 'ใจอ่อนล่ะสิ ระวังโดนเล่นกับใจนะ 💘',
+    'เธอ': 'เธอ?! ใครกัน… คู่แข่งรู้แล้วนะ 😏',
+    'ไม่รู้': 'ไม่รู้ตัวนี่แหละอันตราย 😆',
+    'ไม่มี': 'มั่นใจจัง ไม่มีจุดอ่อนเลย เดี๋ยวสนามพิสูจน์ให้',
+    'ไม่บอก': 'หยั่นแน่~ กั๊กอีกแล้ว 😏'
+  };
   async function runChat(p) {
     var tok = ++runToken, alive = function () { return tok === runToken && view === 'player' && S.step === 'chat'; };
     p.profile = p.profile || {};
-    await say('ก่อนสุ่มทีม น้องดาวขอรู้จักคุณนิดนึงนะ ตอบได้เลย ไม่ต้องเขินนะ', alive);
-    var g = await ask('เพศอะไรดี? (ไว้ช่วยแบ่งทีมให้สมดุล)', [['ชาย', 'ชาย'], ['หญิง', 'หญิง']], false, alive); if (!alive()) return;
-    p.female = g[0] === 'หญิง';
-    var h = await ask('ตีมือไหนครับ?', [['ขวา', 'ขวา'], ['ซ้าย', 'ซ้าย'], ['สองมือ', 'ถนัดสองมือ']], false, alive); if (!alive()) return;
+    // 1 last winter's champion, always answered with the real result
+    await say('ก่อนสุ่มทีม ขอถามนิดนึงนะ ตอบได้เลย ไม่ต้องเขินนะ', alive);
+    var c = await ask('รู้ไหม ต้นปี (Summer 2026) ใครได้แชมป์?', [['Red', 'Team Red'], ['Blue', 'Team Blue']], false, alive); if (!alive()) return;
+    p.profile.guessWinner = c[0];
+    await say((c[0] === SUMMER.winner ? 'ถูกต้อง! ' : 'ไม่ใช่นะ~ ') + 'ผู้ชนะคือ Team Blue เฉือนชนะไปได้ ' + SUMMER.blue + ' – ' + SUMMER.red, alive);
+    // 2 "you decide your colour" + which colour they like
+    await say('แต่ปลายปีนี้ คุณคือหนึ่งในผู้กำหนดชะตาสีของตัวเอง', alive, 300);
+    var f = await ask('ชอบสีไหนมากกว่ากัน? (แต่ไม่เกี่ยวกับสีที่จะได้นะ สุ่มล้วนๆ)', [['น้ำเงิน', 'น้ำเงิน'], ['แดง', 'แดง']], false, alive); if (!alive()) return;
+    p.profile.fav = f[0];
+    await say('รับทราบ! สี' + f[0] + 'ก็ดี แต่ไม่การันตีนะ 😏', alive);
+    // 3 which day is the event: two choices, in random order; a wrong answer gets it hammered in
+    var d = await ask('รู้ไหมเราจะจัดกีฬาสีวันไหน?', shuffled([[EVENT_DATE, EVENT_DATE], [WRONG_DATE, WRONG_DATE]]), false, alive); if (!alive()) return;
+    p.profile.guessDate = d[0];
+    if (d[0] === EVENT_DATE) await say('เก่งมาก! ' + EVENT_DATE + ' เจอกันที่สนาม', alive);
+    else {
+      await say('ผิด! ห้ามมาผิดวันนะ!!', alive);
+      await say('วัน เสาร์ ที่ 14 พ.ย. — เสาร์ที่ 14 พฤศจิกายน จำให้ขึ้นใจ ไม่ใช่เสาร์ที่ 21 นะ!', alive, 300);
+    }
+    // 4 which hand: a joke answer, then asked again with the two real ones only
+    var h = await ask('ตีมือไหน?', [['ซ้าย', 'ซ้าย'], ['ขวา', 'ขวา'], ['ตีมือเธอ', 'ตีมือเธอ']], false, alive); if (!alive()) return;
+    if (h[0] === 'ตีมือเธอ') {
+      await say('น้องดาวถามว่ามือไหน ไม่ได้ถามว่าตีมือใคร 😆', alive);
+      h = await ask('ถามใหม่นะ ตีมือไหน?', [['ซ้าย', 'ซ้าย'], ['ขวา', 'ขวา']], false, alive); if (!alive()) return;
+    }
     p.profile.hand = h[0];
-    var hid = 0;   // how many times this person has kept it to themselves
-    var s = await ask('ลูกถนัดคือ?', SHOTS.map(function (x) { return [x, x]; }).concat(NOANS), false, alive); if (!alive()) return;
-    var sn = noAnswer(s[0]);
-    p.profile.shot = sn ? null : s[0]; p.profile.shotNote = sn;
-    if (sn) { await reactNo(sn, 'shot', sn === 'private' ? hid++ : 0, alive); if (!alive()) return; }
-    var st = await ask('สไตล์การเล่นของคุณ? (เลือกได้ถึง 3 อย่าง)', STYLES.map(function (x) { return [x[0], x[1]]; }).concat(NOANS), true, alive); if (!alive()) return;
-    var tn = noAnswer(st[0]);
-    p.profile.styles = tn ? [] : st; p.profile.stylesNote = tn;
-    if (tn) { await reactNo(tn, 'styles', tn === 'private' ? hid++ : 0, alive); if (!alive()) return; }
-    // the weakness joke: ask, take it back, then ask again
-    await say('ส่วนจุดอ่อน จุดบอดของคุณ… บอกน้องดาวได้นะ น้องดาวอยากรู้ 👀', alive);
-    await say('…', alive, 900); if (!alive()) return;
-    await say('ล้อเล่นๆ 😆 ไม่ต้องบอกก็ได้ เดี๋ยวคู่แข่งก็รู้เองตอนแข่งอยู่แล้ว', alive, 700);
-    await say('แต่ถ้าอยากพิมพ์จุดอ่อนมาจริงๆ ก็พิมพ์ได้เลยนะ น้องดาวไม่บอกใคร (มั้ง) 🤫', alive, 900);
-    var weak = await askText('จุดอ่อนของฉันคือ…', alive); if (!alive()) return;
-    if (weak) await say('บันทึกแล้ว! แล้วก็ส่งให้ทีมตรงข้ามทุกคนเรียบร้อย 😈 ล้อเล่นอีกแล้ว น้องดาวไม่ได้เก็บไว้จริงๆ หรอก', alive, 400);
-    else await say('ใจดีจังเลย~ งั้นเราไปสุ่มทีมกัน!', alive);
+    // 5 the weakness, picked from a list and teased per item, then "just kidding"
+    var w = await ask('จุดอ่อนของคุณคืออะไร?', ['หัวใจ', 'เธอ', 'ไม่รู้', 'ไม่มี', 'ไม่บอก'].map(function (x) { return [x, x]; }), false, alive); if (!alive()) return;
+    p.profile.weak = w[0];
+    await say(WEAK[w[0]], alive);
+    await say('ขำๆ น้า ไม่ได้เอาไปบอกใครหรอก 🤫', alive, 300);
+    await say('เอาล่ะ ไปสุ่มทีมกัน!', alive);
     if (!alive()) return;
     p.checked = true; S.step = 'draw'; save();
     var box = document.getElementById('dwAns');
@@ -234,10 +242,11 @@
       '<p class="dw-note">ตอนนี้สุ่มแล้ว ' + drawn().length + ' / ' + TOTAL + ' คน</p></section>';
   }
   function resultHtml(p) {
-    var t = p.team || 'Red', rank = drawn().length;
+    var t = p.team || 'Red', rank = drawn().length, sideTh = t === 'Red' ? 'แดง' : 'น้ำเงิน', fav = p.profile && p.profile.fav;
     return '<section class="dw-card dw-result"><div class="dw-field is-' + t.toLowerCase() + '"><small>คุณอยู่</small><b>' + teamName(t) + '</b></div>' +
       '<div class="dw-who">' + mascot('victory', 140) + '</div><p class="dw-lead">ยินดีด้วย ' + esc(p.name) + '! คุณเป็นคนที่ <b>' + rank + '</b> จาก ' + TOTAL + ' ที่สุ่มแล้ว</p>' +
       // the reminder before match day: look after yourself, your colour needs you, the rest comes from the organiser
+      (fav ? '<p class="dw-fav">' + (fav === sideTh ? 'ได้สีที่ชอบ โชคดีไป!' : 'ไม่ได้สีที่ชอบ แต่สี' + sideTh + 'ต้องการคุณ') + '</p>' : '') +
       '<div class="dw-remind is-' + t.toLowerCase() + '"><b>ฝากไว้ก่อนวันแข่ง</b>' +
       '<p>อีกไม่กี่วันก็แข่งแล้วนะ ดูแลตัวเองดีๆ <u>อย่าเจ็บ อย่าป่วย</u>น้า</p>' +
       '<p class="dw-need"><span class="dw-tc">' + (t === 'Red' ? 'สีแดง' : 'สีน้ำเงิน') + '</span> ต้องการคุณ!</p>' +
@@ -294,7 +303,7 @@
     var rest = S.players.filter(function (p) { return !p.team; });
     if (!rest.length) return;
     var p = rest[Math.floor(Math.random() * rest.length)];
-    p.checked = true; p.profile = p.profile || { hand: 'ขวา', shot: SHOTS[Math.floor(Math.random() * 5)], styles: ['allround'] };
+    p.checked = true; p.profile = p.profile || { hand: 'ขวา' };
     p.team = pickTeam(p); S.last = p.pid; save(); paint();
   }
 
@@ -304,7 +313,7 @@
     var R = teamStats('Red'), B = teamStats('Blue'), checked = S.players.filter(function (p) { return p.checked; }).length;
     var rows = S.players.map(function (p) {
       var st = p.team ? '<span class="dw-tag is-' + p.team.toLowerCase() + '">' + (p.team === 'Red' ? 'RED' : 'BLUE') + '</span>' : p.checked ? '<span class="dw-tag">เช็กอินแล้ว</span>' : '<span class="dw-tag is-none">ยังไม่เข้า</span>';
-      return '<tr><td>' + p.pid + '</td><td><b>' + esc(p.name) + '</b></td><td>' + (p.checked ? (p.female ? 'หญิง' : 'ชาย') : '–') + '</td><td>' + st + '</td>' +
+      return '<tr><td>' + p.pid + '</td><td><b>' + esc(p.name) + '</b></td><td>' + (FEMALE.length ? (p.female ? 'หญิง' : 'ชาย') : '–') + '</td><td>' + st + '</td>' +
         '<td>' + (p.team ? '<button type="button" class="ds-btn ds-btn-sm" data-act="undo" data-pid="' + p.pid + '">รีเซ็ต</button>' : '') + '</td></tr>';
     }).join('');
     return '<div class="dw-admin"><section class="dw-card"><h2>ความคืบหน้า</h2><div class="dw-prog"><div><b>' + checked + '</b><span>เช็กอินแล้ว / ' + TOTAL + '</span></div><div><b>' + drawn().length + '</b><span>สุ่มแล้ว / ' + TOTAL + '</span></div></div>' +
