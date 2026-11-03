@@ -14,9 +14,9 @@
 // fallback, so old and new data both display.
 // ══════════════════════════════════════════
 
-const PHOTO_MAX_DIM = 480;   // px, long side (aspect kept so framing can be adjusted)
-const PHOTO_QUALITY = 0.8;
-const PHOTO_MAX_KB  = 130;   // re-compress harder above this
+const PHOTO_MAX_DIM = 720;   // px, long side (aspect kept so framing can be adjusted)
+const PHOTO_QUALITY = 0.88;
+const PHOTO_MAX_KB  = 220;   // re-compress harder above this
 
 const photosRef = firebase.database().ref('sportsday_2026_photos');
 const _photos   = {};          // id → dataURL, or null = no photo at the new path
