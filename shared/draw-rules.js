@@ -5,19 +5,21 @@
 
    Rules (names are the ones in the roster below):
    1. ฝ้าย and หญิง always share a colour.
-   2. Of นก / ยุ้ย / ปูม, exactly two are on the OTHER colour than ฝ้าย-หญิง; the third is 50/50.
+   2. ยุ้ย and ปูม are both on the OTHER colour than ฝ้าย-หญิง; นก is the free one (50/50).
    3. พี่เอิ้น and โอ๊ต are on different colours. หมี is Red, เพชร is Blue.
    4. ไนซ์ / โจ / แมค / เอแคลร์ split 2 and 2; whoever gets เอแคลร์ also gets พี่เอิ้น (so the other side gets โอ๊ต).
-   5. Every subgroup (a line of the pasted list) splits evenly between the colours; an odd subgroup differs by one,
+   5. Every subgroup (a line of the pasted list; line 1 is split in two: 1.1 and 1.2 = ฮิว + ปาย) splits evenly between the colours; an odd subgroup differs by one,
       and the extras are spread so that the two teams end with the same number of players.
    6. โบลิ่ง and ปอนด์ are on different colours; ปอ and รุจิ are on different colours.
    ============================================================ */
 (function (root) {
   'use strict';
 
-  // subgroup n = line n of the list the owner pasted
+  // a subgroup is a line of the list the owner pasted; line 1 is split: ฮิว and ปาย are subgroup 1.2 (2026-11-04)
+  var LABELS = ['1.1', '1.2', '2', '3', '4', '5', '6', '7'];
   var SUBGROUPS = [
-    ['เพชร', 'หมี', 'พี่ก๊อป', 'Jokee', 'ฮิว', 'ปาย'],
+    ['เพชร', 'หมี', 'พี่ก๊อป', 'Jokee'],
+    ['ฮิว', 'ปาย'],
     ['ฝ้าย', 'แจ็ค', 'ไทม์', 'อาร์ม'],
     ['บอส', 'เก้', 'เก่ง', 'พี่ต่อ', 'อรรถ'],
     ['พี่ชัย', 'พี่ต้น', 'ป๋า', 'ดุ๊ก', 'โจ๊ก', 'นก', 'ยุ้ย', 'ปูม'],
@@ -26,10 +28,10 @@
     ['พี่เอิ้น', 'โอ๊ต']
   ];
   var ROSTER = [];
-  SUBGROUPS.forEach(function (g, i) { g.forEach(function (n) { ROSTER.push({ name: n, subgroup: i + 1 }); }); });
+  SUBGROUPS.forEach(function (g, i) { g.forEach(function (n) { ROSTER.push({ name: n, subgroup: LABELS[i] }); }); });
 
   var PAIR_SAME = [['ฝ้าย', 'หญิง']];
-  var TRIO = ['นก', 'ยุ้ย', 'ปูม'];
+  var OPPOSITE_TO_PAIR = ['ยุ้ย', 'ปูม'];   // นก is the free one
   var FIXED = { 'หมี': 'Red', 'เพชร': 'Blue' };
   var PAIR_OPPOSITE = [['พี่เอิ้น', 'โอ๊ต'], ['โบลิ่ง', 'ปอนด์'], ['ปอ', 'รุจิ']];
   var FOUR = ['ไนซ์', 'โจ', 'แมค', 'เอแคลร์'];
@@ -51,7 +53,7 @@
     if (bad.length) return bad;
     PAIR_SAME.forEach(function (p) { if (a[p[0]] !== a[p[1]]) bad.push('same colour: ' + p.join(' + ')); });
     var X = a['ฝ้าย'];
-    if (count(a, TRIO, opp(X)) !== 2) bad.push('trio: exactly two must be opposite to ฝ้าย');
+    if (count(a, OPPOSITE_TO_PAIR, opp(X)) !== 2) bad.push('ยุ้ย and ปูม must be opposite to ฝ้าย + หญิง');
     Object.keys(FIXED).forEach(function (k) { if (a[k] !== FIXED[k]) bad.push(k + ' must be ' + FIXED[k]); });
     PAIR_OPPOSITE.forEach(function (p) { if (a[p[0]] === a[p[1]]) bad.push('different colours: ' + p.join(' vs ')); });
     if (count(a, FOUR, 'Red') !== 2) bad.push('four-group must split 2 / 2');
@@ -59,7 +61,7 @@
     var extra = 0;
     SUBGROUPS.forEach(function (g, i) {
       var r = count(a, g, 'Red'), b = g.length - r;
-      if (Math.abs(r - b) > (g.length % 2)) bad.push('subgroup ' + (i + 1) + ' split ' + r + ' / ' + b);
+      if (Math.abs(r - b) > (g.length % 2)) bad.push('subgroup ' + LABELS[i] + ' split ' + r + ' / ' + b);
       extra += r - b;
     });
     if (Math.abs(extra) > (n % 2)) bad.push('teams differ by ' + Math.abs(extra) + ' (subgroup extras not balanced)');
@@ -76,8 +78,8 @@
     for (var attempt = 0; attempt < 50000; attempt++) {
       var a = {}, X = coin(rng), Y = opp(X);
       PAIR_SAME[0].forEach(function (n) { a[n] = X; });
-      var freeOne = pick(rng, TRIO);
-      TRIO.forEach(function (n) { a[n] = n === freeOne ? coin(rng) : Y; });
+      OPPOSITE_TO_PAIR.forEach(function (n) { a[n] = Y; });
+      a['นก'] = coin(rng);
       Object.keys(FIXED).forEach(function (k) { a[k] = FIXED[k]; });
       var S = coin(rng);                       // the side that gets เอแคลร์ and พี่เอิ้น
       a['เอแคลร์'] = S; a['พี่เอิ้น'] = S; a['โอ๊ต'] = opp(S);
@@ -101,6 +103,6 @@
     throw new Error('no assignment found');
   }
 
-  root.DrawRules = { SUBGROUPS: SUBGROUPS, ROSTER: ROSTER, generate: generate, check: check };
+  root.DrawRules = { LABELS: LABELS, SUBGROUPS: SUBGROUPS, ROSTER: ROSTER, generate: generate, check: check };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.DrawRules;
 })(typeof window !== 'undefined' ? window : globalThis);
