@@ -106,7 +106,7 @@
       return '<a class="dw-tab' + (v[0] === view ? ' is-on' : '') + '" href="?view=' + v[0] + '" data-act="view" data-v="' + v[0] + '">' + v[1] + '</a>';
     }).join('');
     return '<div class="dw-mockbar"><b>' + (TEST ? 'TEST' : 'DRAW') + '</b><span>' + (TEST ? 'โหมดทดสอบ · ใช้ฐานข้อมูลสำรอง ไม่กระทบผลจริง' : 'สุ่มได้ครั้งเดียวต่อชื่อ · ทุกเครื่องเห็นผลตรงกัน') + '</span>' +
-      '<button type="button" class="dw-reset" data-act="reset">ล้างข้อมูลในเครื่องนี้</button></div>' +
+      (isAdmin() ? '<button type="button" class="dw-reset" data-act="reset">ล้างข้อมูลในเครื่องนี้</button>' : '') + '</div>' +
       '<header class="dw-top"><div class="dw-brand">' + mascot('serve', 44, 'dw-brand-star') + '<div><div class="dw-brand-t">สุ่มทีม</div><div class="dw-brand-s">SPORTS DAY · 14 NOV 2026</div></div></div>' +
       '<nav class="dw-tabs" aria-label="มุมมอง">' + tabs + '</nav></header>' +
       '<main id="dwMain" class="dw-main dw-v-' + view + '"></main><div id="dwLayer"></div>';
@@ -365,7 +365,7 @@
       S.players.forEach(function (p) { if (PLAN[p.pid] === 'Red') r++; });
       head = '<p>' + (bad.length ? '<b>ผลที่ล็อกไว้ขัดเงื่อนไข: ' + esc(bad.join('; ')) + '</b>' : 'ล็อกผลสุ่มแล้ว · ตรวจผ่านทุกเงื่อนไข ✓') + '</p>' +
         '<h3>สมดุลสองทีม (จากผลที่ล็อกไว้)</h3><dl class="dw-bal"><dt>จำนวนคน</dt><dd>' + r + ' : ' + (TOTAL - r) + bar(r, TOTAL - r) + '</dd></dl>' +
-        '<div class="dw-row"><button type="button" class="ds-btn" data-act="wipe">ล้างทั้งหมดแล้วสร้างใหม่</button></div>';
+        (drawn().length ? '<p class="dw-note">ผลถูกล็อกไว้ ล้างทั้งหมดไม่ได้ขณะที่มีคนสุ่มไปแล้ว</p>' : '<div class="dw-row"><button type="button" class="ds-btn" data-act="wipe">ล้างทั้งหมดแล้วสร้างใหม่</button></div>');
       rows = S.players.map(function (p) {
         var rv = p.team ? tag(p.team) : '<span class="dw-tag is-none">ยังไม่สุ่ม</span>';
         return '<tr><td>' + p.pid + '</td><td><b>' + esc(p.name) + '</b>' + (p.captain ? ' <span class="dw-tag is-new">หัวหน้า</span>' : '') + (p.isNew ? ' <span class="dw-tag">NEW</span>' : '') + '</td><td>' + p.sub + '</td><td>' + p.skill + '</td><td>' + tag(PLAN[p.pid]) + '</td><td>' + rv + '</td>' +
@@ -386,7 +386,7 @@
     await ref('').update({ plan: plan, planMeta: { at: firebase.database.ServerValue.TIMESTAMP } });
   }
   async function wipeAll() {
-    if (!dbOk() || !isAdmin()) return;
+    if (!dbOk() || !isAdmin() || drawn().length) return;   // once anybody has drawn, the plan cannot be wiped from the page
     if ((window.prompt('จะลบผลที่ล็อกไว้และผลที่ทุกคนสุ่มไปแล้ว พิมพ์คำว่า ล้าง เพื่อยืนยัน') || '').trim() !== 'ล้าง') return;
     PLAN = null;
     await ref('').remove();
@@ -397,7 +397,7 @@
     var el = e.target.closest('[data-act]'); if (!el) return;
     var act = el.getAttribute('data-act');
     if (act === 'view') { e.preventDefault(); view = el.getAttribute('data-v'); try { history.replaceState(null, '', '?view=' + view + (TEST ? '&test=1' : '')); } catch (x) {} paint(); return; }
-    if (act === 'reset') { if (window.confirm('ล้างข้อมูลของเครื่องนี้ (ชื่อที่เลือกและคำตอบ) แล้วเริ่มใหม่? ผลสุ่มที่ทุกคนได้ไปแล้วไม่หาย')) { freshState(); applyReveal(REVEAL); save(); paint(); } return; }
+    if (act === 'reset') { if (!isAdmin()) return; if (window.confirm('ล้างข้อมูลของเครื่องนี้ (ชื่อที่เลือกและคำตอบ) แล้วเริ่มใหม่? ผลสุ่มที่ทุกคนได้ไปแล้วไม่หาย')) { freshState(); applyReveal(REVEAL); save(); paint(); } return; }
     if (act === 'pickme') { var q = byPid(el.getAttribute('data-pid')); S.meId = q.pid; S.step = q.team ? 'result' : 'hello'; save(); paint(); return; }
     if (act === 'notme') { S.meId = null; S.step = 'pick'; save(); paint(); return; }
     if (act === 'tochat') { S.step = 'chat'; save(); paint(); return; }
