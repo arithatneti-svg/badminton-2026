@@ -1,27 +1,27 @@
 /* ============================================================
-   Team draw - TRIAL page (Sports Day, Saturday 14 Nov 2026).
-   A clickable prototype of the pre-event page: a player picks who they are, gets a greeting from น้องดาว (the star mascot), answers a few
-   questions, presses "สุ่มทีม" and sees their colour; a big-screen board shows who is on which team; an admin view shows progress.
-   The names are the real list for the day, but every result is kept in THIS browser only (localStorage): phones do not share anything, and nothing is read from or written to Firebase. The real balancing
-   logic (women / skill spread across the two teams) is only sketched in pickTeam(); the real page will replace this file's data layer.
+   Team draw - Sports Day, Saturday 14 Nov 2026.
+   A player picks who they are, gets a greeting from น้องดาว (the star mascot), answers a few jokes, presses "สุ่มทีม" and sees their colour.
+   The teams are NOT drawn on the press: the organiser creates ONE full assignment in the admin view (shared/draw-rules.js holds every rule and
+   is tested by scripts/test-draw-rules.mjs), it is stored in Firebase under draw_2026/plan and locked; a press only reveals that person's own
+   entry (draw_2026/reveal/<pid>, written once by a transaction). The big screen and the admin view follow draw_2026/reveal live.
+   Nothing here touches the match-day data (sportsday_2026_data). ?test=1 uses a throw-away node (draw_2026_test).
    ============================================================ */
 (function () {
   'use strict';
 
-  var KEY = 'bdm_draw_trial_v2';
-  // the list the owner pasted on 2026-11-02 (Saturday 14 Nov 2026); the line breaks of the paste are ignored
-  var ROSTER = ['เพชร', 'หมี', 'พี่ก๊อป', 'Jokee', 'ฮิว', 'ปาย', 'ฝ้าย', 'แจ็ค', 'ไทม์', 'อาร์ม', 'บอส', 'เก้', 'เก่ง', 'พี่ต่อ', 'อรรถ',
-    'พี่ชัย', 'พี่ต้น', 'ป๋า', 'ดุ๊ก', 'โจ๊ก', 'นก', 'ยุ้ย', 'ปูม', 'นาย', 'หญิง', 'ต้น', 'อ๊อป', 'แชป', 'โบลิ่ง', 'ปอนด์', 'เอแคลร์', 'ปอ', 'โจ',
-    'ไนซ์', 'แมค', 'รุจิ', 'พี่เอิ้น', 'โอ๊ต'];
+  var KEY = 'bdm_draw_local_v3';   // only this phone's own state: who I am, where I am in the chat, my answers
+  var TEST = /[?&]test=1(?:&|$)/.test(location.search);
+  var BASE = TEST ? 'draw_2026_test' : 'draw_2026';
+  var RULES = window.DrawRules;
+  var ROSTER = RULES.ROSTER.map(function (r) { return r.name; });
   var TOTAL = ROSTER.length;
   // Summer 2026 (archived 2026-08-27 in seasons_archive/2026, read from the database): Blue beat Red 53 - 50
   var SUMMER = { winner: 'Blue', blue: 53, red: 50 };
   var EVENT_DATE = 'เสาร์ที่ 14 พ.ย.', WRONG_DATE = 'เสาร์ที่ 21 พ.ย.';
-  // women in the roster: the owner will give the names; until then nobody is flagged
-  var FEMALE = [];
   var VIEWS = [['player', 'ผู้เล่น'], ['board', 'จอใหญ่'], ['admin', 'แอดมิน']];
 
   var $root, S, view, runToken = 0, busy = false;
+  var REVEAL = {}, PLAN = null, PLAN_READY = false, PLAN_LOADING = false, dbErr = null;
 
   // ── helpers ──────────────────────────────────────────────
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -38,43 +38,75 @@
   function ico(n) { return window.dsIcon ? window.dsIcon(n) : ''; }
   function mascot(n, w, cls) { return window.dsMascot ? window.dsMascot(n, w, true, cls) : ''; }
 
-  // ── the roster ───────────────────────────────────────────
-  // gender comes from the FEMALE list above (not asked in the chat); skill stays equal for everyone until there is real data
+  // ── the roster and this phone's own state ────────────────
   function freshState() {
-    var players = ROSTER.map(function (name, i) {
-      return { pid: pid(i + 1), name: name, female: FEMALE.indexOf(name) >= 0, level: 3, checked: false, team: null, profile: null };
-    });
-    S = { players: players, meId: null, step: 'pick', last: null };
+    S = { players: RULES.ROSTER.map(function (r, i) { return { pid: pid(i + 1), name: r.name, sub: r.subgroup, checked: false, team: null, profile: null }; }), meId: null, step: 'pick', last: null };
     return S;
   }
-  function load() {
-    try { var raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  function save() {
+    var pr = {}; S.players.forEach(function (p) { if (p.profile) pr[p.pid] = p.profile; });
+    try { localStorage.setItem(KEY, JSON.stringify({ meId: S.meId, step: S.step, profiles: pr })); } catch (e) {}
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function restore() {
+    freshState();
+    var raw = null; try { raw = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (!raw) return;
+    S.meId = raw.meId || null; S.step = raw.step || 'pick';
+    S.players.forEach(function (p) { if (raw.profiles && raw.profiles[p.pid]) p.profile = raw.profiles[p.pid]; });
+  }
+  function teamStats(t) { return { n: S.players.filter(function (p) { return p.team === t; }).length }; }
+  function isAdmin() { try { return localStorage.getItem('bdm_scoreboard_role') === 'superadmin'; } catch (e) { return false; } }   // same login as the main page
+  function rankOf(p) {
+    var at = REVEAL[p.pid] && REVEAL[p.pid].at; if (!at) return drawn().length;
+    return Object.keys(REVEAL).filter(function (k) { return REVEAL[k] && REVEAL[k].at <= at; }).length;
+  }
+  function latestPid() {
+    var best = null; Object.keys(REVEAL).forEach(function (k) { if (REVEAL[k] && (!best || REVEAL[k].at > REVEAL[best].at)) best = k; });
+    return best;
+  }
 
-  // ── the draw: a SKETCH of the balancing, not the real rule ──
-  function teamStats(t) {
-    var list = S.players.filter(function (p) { return p.team === t; });
-    return { n: list.length, women: list.filter(function (p) { return p.female; }).length, lvl: list.reduce(function (a, p) { return a + p.level; }, 0) };
+  // ── shared state (Firebase) ──────────────────────────────
+  function dbOk() { return !!(window.firebase && firebase.database); }
+  function ref(path) { return firebase.database().ref(BASE + (path ? '/' + path : '')); }
+  function applyReveal(map) {
+    REVEAL = map || {};
+    S.players.forEach(function (p) { p.team = REVEAL[p.pid] && REVEAL[p.pid].team || null; if (p.team) p.checked = true; });
   }
-  function pickTeam(p) {
-    var cost = {};
-    ['Red', 'Blue'].forEach(function (t) {
-      var o = t === 'Red' ? 'Blue' : 'Red', a = teamStats(t), b = teamStats(o);
-      var n = a.n + 1, w = a.women + (p.female ? 1 : 0), l = a.lvl + p.level;
-      cost[t] = Math.abs(n - b.n) * 10 + Math.abs(w - b.women) * 4 + Math.abs(l - b.lvl);
-    });
-    if (cost.Red === cost.Blue) return Math.random() < 0.5 ? 'Red' : 'Blue';
-    return cost.Red < cost.Blue ? 'Red' : 'Blue';
+  function listen() {
+    if (!dbOk()) { dbErr = 'ต่อฐานข้อมูลไม่ได้ ลองเปิดหน้านี้ใหม่'; return; }
+    function fail() { dbErr = 'อ่านข้อมูลไม่ได้ ลองเปิดหน้านี้ใหม่'; onShared(); }
+    ref('planMeta').on('value', function (s) { PLAN_READY = !!s.val(); if (!PLAN_READY) PLAN = null; onShared(); }, fail);
+    ref('reveal').on('value', function (s) { applyReveal(s.val()); onShared(); }, fail);
+  }
+  // a change that somebody else made: repaint, but never in the middle of the chat or the reveal animation
+  function onShared() {
+    if (busy || !$root) return;
+    var p = me();
+    if (view === 'player') {
+      if (S.step === 'chat' || S.step === 'hello') return;
+      if (p && p.team && S.step !== 'result') { S.step = 'result'; save(); }
+      else if (S.step === 'pick') { var q = document.getElementById('dwQ'); if (q && q.value) return; }
+    }
+    paint();
+  }
+  // this person's colour: the one already revealed, otherwise their locked entry of the plan, written once (race-safe)
+  async function claim(p) {
+    if (!dbOk()) throw new Error('db');
+    var mine = (await ref('reveal/' + p.pid).once('value')).val();
+    if (mine && mine.team) return mine.team;
+    var plan = (await ref('plan/' + p.pid).once('value')).val();
+    if (plan !== 'Red' && plan !== 'Blue') throw new Error('noplan');
+    var res = await ref('reveal/' + p.pid).transaction(function (cur) { return cur || { team: plan, at: firebase.database.ServerValue.TIMESTAMP }; });
+    return res.snapshot.val().team;
   }
 
   // ── shell ────────────────────────────────────────────────
   function shell() {
-    var tabs = VIEWS.map(function (v) {
+    var tabs = VIEWS.filter(function (v) { return v[0] !== 'admin' || isAdmin() || view === 'admin'; }).map(function (v) {
       return '<a class="dw-tab' + (v[0] === view ? ' is-on' : '') + '" href="?view=' + v[0] + '" data-act="view" data-v="' + v[0] + '">' + v[1] + '</a>';
     }).join('');
-    return '<div class="dw-mockbar"><b>TEST</b><span>ทดลองใช้ · ผลสุ่มเก็บในเครื่องนี้เท่านั้น ไม่ตรงกับเครื่องอื่น · ยังไม่ใช่ผลจริงของวันงาน</span>' +
-      '<button type="button" class="dw-reset" data-act="reset">ล้างผลสุ่ม</button></div>' +
+    return '<div class="dw-mockbar"><b>' + (TEST ? 'TEST' : 'DRAW') + '</b><span>' + (TEST ? 'โหมดทดสอบ · ใช้ฐานข้อมูลสำรอง ไม่กระทบผลจริง' : 'สุ่มได้ครั้งเดียวต่อชื่อ · ทุกเครื่องเห็นผลตรงกัน') + '</span>' +
+      '<button type="button" class="dw-reset" data-act="reset">ล้างข้อมูลในเครื่องนี้</button></div>' +
       '<header class="dw-top"><div class="dw-brand">' + mascot('serve', 44, 'dw-brand-star') + '<div><div class="dw-brand-t">สุ่มทีม</div><div class="dw-brand-s">SPORTS DAY · 14 NOV 2026</div></div></div>' +
       '<nav class="dw-tabs" aria-label="มุมมอง">' + tabs + '</nav></header>' +
       '<main id="dwMain" class="dw-main dw-v-' + view + '"></main><div id="dwLayer"></div>';
@@ -86,7 +118,7 @@
     main.className = 'dw-main dw-v-' + view;
     document.querySelectorAll('.dw-tab').forEach(function (a) { a.classList.toggle('is-on', a.getAttribute('data-v') === view); });
     if (view === 'board') main.innerHTML = boardHtml();
-    else if (view === 'admin') main.innerHTML = adminHtml();
+    else if (view === 'admin') { main.innerHTML = adminHtml(); ensurePlan(); }
     else playerPaint(main);
   }
 
@@ -108,7 +140,7 @@
       '<p>เลือกชื่อของคุณ น้องดาวจะได้รู้จัก · ยังไม่ได้สุ่ม <b>' + left + '</b> / ' + TOTAL + ' คน</p></div></div>' +
       '<label class="dw-search">' + ico('magnifying-glass') + '<input id="dwQ" type="search" placeholder="พิมพ์ชื่อหรือเลข P…" value="' + esc(q) + '" autocomplete="off"></label>' +
       '<ul class="dw-names">' + (list.length ? list.map(function (p) {
-        return '<li><button type="button" class="dw-name' + (p.team ? ' is-done' : '') + '" data-act="pickme" data-pid="' + p.pid + '"' + (p.team ? ' disabled' : '') + '>' +
+        return '<li><button type="button" class="dw-name' + (p.team ? ' is-done' : '') + '" data-act="pickme" data-pid="' + p.pid + '">' +
           '<span class="dw-ini">' + esc(initials(p.name)) + '</span><span class="dw-nm"><b>' + esc(p.name) + '</b><small>' + p.pid + '</small></span>' +
           (p.team ? '<span class="dw-tag is-' + p.team.toLowerCase() + '">' + (p.team === 'Red' ? 'RED' : 'BLUE') + '</span>'
             : '') + '</button></li>';
@@ -238,12 +270,14 @@
   // ── draw + result ────────────────────────────────────────
   function drawHtml(p) {
     return '<section class="dw-card dw-draw"><div class="dw-who">' + mascot('smash', 150) + '</div><h1>พร้อมแล้ว ' + esc(p.name) + '!</h1>' +
-      '<p>กดแล้วน้องดาวจะสุ่มทีมให้ทันที กดได้ครั้งเดียวนะ</p>' +
-      '<div class="dw-bigwrap"><button type="button" class="dw-big" data-act="draw"><span>สุ่มทีม</span></button></div>' +
+      (PLAN_READY ? '<p>กดแล้วน้องดาวจะเปิดทีมของคุณทันที กดได้ครั้งเดียวนะ</p>' +
+        '<div class="dw-bigwrap"><button type="button" class="dw-big" data-act="draw"><span>สุ่มทีม</span></button></div>'
+        : '<p>ผู้จัดยังไม่เปิดให้สุ่ม รอสักครู่นะ หน้านี้จะเปิดเองเมื่อพร้อม</p>') +
+      '<p class="dw-note" id="dwDrawErr">' + esc(dbErr || '') + '</p>' +
       '<p class="dw-note">ตอนนี้สุ่มแล้ว ' + drawn().length + ' / ' + TOTAL + ' คน</p></section>';
   }
   function resultHtml(p) {
-    var t = p.team || 'Red', rank = drawn().length, sideTh = t === 'Red' ? 'แดง' : 'น้ำเงิน', fav = p.profile && p.profile.fav;
+    var t = p.team || 'Red', rank = rankOf(p), sideTh = t === 'Red' ? 'แดง' : 'น้ำเงิน', fav = p.profile && p.profile.fav;
     return '<section class="dw-card dw-result"><div class="dw-field is-' + t.toLowerCase() + '"><small>คุณอยู่</small><b>' + teamName(t) + '</b></div>' +
       '<div class="dw-who">' + mascot('victory', 140) + '</div><p class="dw-lead">ยินดีด้วย ' + esc(p.name) + '! คุณเป็นคนที่ <b>' + rank + '</b> จาก ' + TOTAL + ' ที่สุ่มแล้ว</p>' +
       // the reminder before match day: look after yourself, your colour needs you, the rest comes from the organiser
@@ -265,9 +299,17 @@
     setTimeout(function () { d.remove(); }, 3600);
   }
   async function doDraw() {
-    var p = me(); if (!p || p.team || busy) return;
+    var p = me(); if (!p || busy) return;
+    if (p.team) { S.step = 'result'; save(); paint(); return; }
     busy = true;
-    var team = pickTeam(p), layer = document.getElementById('dwLayer');
+    var team, err = document.getElementById('dwDrawErr');
+    try { team = await claim(p); }
+    catch (e) {
+      busy = false;
+      if (err) err.textContent = e && e.message === 'noplan' ? 'ผู้จัดยังไม่เปิดให้สุ่ม รอสักครู่นะ' : 'ต่อฐานข้อมูลไม่ได้ ลองกดอีกครั้ง';
+      return;
+    }
+    var layer = document.getElementById('dwLayer');
     layer.innerHTML = '<div class="dw-reveal" id="dwRv">' + mascot('flick', 96) + '<div class="dw-rv-card is-red" id="dwRc"><b>RED</b></div><p>น้องดาวกำลังสุ่ม…</p></div>';
     var card = document.getElementById('dwRc'), cur = 'Red', ms = 70, i;
     for (i = 0; i < 16; i++) {
@@ -276,7 +318,7 @@
       await wait(ms); ms += 18;
     }
     if (cur !== team) { card.className = 'dw-rv-card is-' + team.toLowerCase(); card.firstChild.textContent = team === 'Red' ? 'RED' : 'BLUE'; await wait(260); }
-    p.team = team; S.last = p.pid; S.step = 'result'; save();
+    p.team = team; S.step = 'result'; save();
     card.classList.add('is-final');
     await wait(700);
     confetti();
@@ -287,58 +329,83 @@
 
   // ── big screen ───────────────────────────────────────────
   function boardHtml() {
+    var lastPid = latestPid();
     function col(t) {
       var list = S.players.filter(function (p) { return p.team === t; }), st = teamStats(t);
       return '<section class="dw-col is-' + t.toLowerCase() + '"><header><b>' + teamName(t) + '</b><span>' + st.n + ' คน</span></header><ul>' +
         list.map(function (p) {
-          return '<li class="' + (S.last === p.pid ? 'is-just' : '') + '"><span class="dw-ini">' + esc(initials(p.name)) + '</span><b>' + esc(p.name) + '</b></li>';
+          return '<li class="' + (lastPid === p.pid ? 'is-just' : '') + '"><span class="dw-ini">' + esc(initials(p.name)) + '</span><b>' + esc(p.name) + '</b></li>';
         }).join('') + (list.length ? '' : '<li class="dw-wait">รอการสุ่ม…</li>') + '</ul></section>';
     }
     var left = TOTAL - drawn().length, pool = '';
     for (var i = 0; i < left; i++) pool += '<span class="dw-q">?</span>';
     return '<div class="dw-board"><div class="dw-bh"><div>' + mascot('victory', 84) + '</div><div><h1>เปิดตัวทีม</h1><p>สุ่มแล้ว <b>' + drawn().length + '</b> / ' + TOTAL + ' คน</p></div>' +
-      '<div class="dw-bh-act"><button type="button" class="ds-btn" data-act="demo">ทดลอง: สุ่มให้คนที่ยังไม่สุ่ม 1 คน</button><button type="button" class="ds-btn" data-act="fs">เต็มจอ</button></div></div>' +
+      '<div class="dw-bh-act"><button type="button" class="ds-btn" data-act="fs">เต็มจอ</button></div></div>' +
       '<div class="dw-cols">' + col('Red') + col('Blue') + '</div>' + (left ? '<div class="dw-pool"><small>ยังไม่สุ่ม ' + left + ' คน</small><div>' + pool + '</div></div>' : '<div class="dw-pool"><b>ครบทุกคนแล้ว!</b></div>') + '</div>';
-  }
-  async function demoDraw() {
-    var rest = S.players.filter(function (p) { return !p.team; });
-    if (!rest.length) return;
-    var p = rest[Math.floor(Math.random() * rest.length)];
-    p.checked = true; p.profile = p.profile || { hand: 'ขวา' };
-    p.team = pickTeam(p); S.last = p.pid; save(); paint();
   }
 
   // ── admin ────────────────────────────────────────────────
   function bar(a, b) { var t = a + b || 1; return '<span class="dw-bar"><i class="is-red" style="width:' + Math.round(a * 100 / t) + '%"></i><i class="is-blue" style="width:' + Math.round(b * 100 / t) + '%"></i></span>'; }
+  function planByName() { var a = {}; S.players.forEach(function (p) { a[p.name] = PLAN && PLAN[p.pid]; }); return a; }
+  function ensurePlan() {
+    if (!isAdmin() || !PLAN_READY || PLAN || PLAN_LOADING || !dbOk()) return;
+    PLAN_LOADING = true;
+    ref('plan').once('value').then(function (s) { PLAN = s.val() || null; PLAN_LOADING = false; if (view === 'admin' && !busy) paint(); }, function () { PLAN_LOADING = false; });
+  }
+  function tag(t) { return '<span class="dw-tag is-' + t.toLowerCase() + '">' + (t === 'Red' ? 'RED' : 'BLUE') + '</span>'; }
   function adminHtml() {
-    var R = teamStats('Red'), B = teamStats('Blue'), checked = S.players.filter(function (p) { return p.checked; }).length;
-    var rows = S.players.map(function (p) {
-      var st = p.team ? '<span class="dw-tag is-' + p.team.toLowerCase() + '">' + (p.team === 'Red' ? 'RED' : 'BLUE') + '</span>' : p.checked ? '<span class="dw-tag">เช็กอินแล้ว</span>' : '<span class="dw-tag is-none">ยังไม่เข้า</span>';
-      return '<tr><td>' + p.pid + '</td><td><b>' + esc(p.name) + '</b></td><td>' + (FEMALE.length ? (p.female ? 'หญิง' : 'ชาย') : '–') + '</td><td>' + st + '</td>' +
-        '<td>' + (p.team ? '<button type="button" class="ds-btn ds-btn-sm" data-act="undo" data-pid="' + p.pid + '">รีเซ็ต</button>' : '') + '</td></tr>';
-    }).join('');
-    return '<div class="dw-admin"><section class="dw-card"><h2>ความคืบหน้า</h2><div class="dw-prog"><div><b>' + checked + '</b><span>เช็กอินแล้ว / ' + TOTAL + '</span></div><div><b>' + drawn().length + '</b><span>สุ่มแล้ว / ' + TOTAL + '</span></div></div>' +
-      '<h3>สมดุลสองทีม (ตัวอย่างการแสดงผล)</h3><dl class="dw-bal"><dt>จำนวนคน</dt><dd>' + R.n + ' : ' + B.n + bar(R.n, B.n) + '</dd><dt>ผู้หญิง</dt><dd>' + R.women + ' : ' + B.women + bar(R.women, B.women) + '</dd><dt>ฝีมือรวม</dt><dd>' + R.lvl + ' : ' + B.lvl + bar(R.lvl, B.lvl) + '</dd></dl>' +
-      '<p class="dw-note">ตรรกะถ่วงสมดุลจริง (เพศ + ระดับฝีมือ) จะลงรายละเอียดกันทีหลัง ตอนนี้ใช้แบบง่ายๆ ให้เห็นภาพเท่านั้น</p>' +
-      '<div class="dw-row"><button type="button" class="ds-btn ds-btn-primary" disabled>ส่งเข้าระบบหลัก (ยังไม่เปิด)</button></div></section>' +
-      '<section class="dw-card"><h2>รายชื่อผู้เล่น (' + TOTAL + ' คน)</h2><div class="dw-tablewrap"><table class="ds-table"><thead><tr><th>เลข</th><th>ชื่อ</th><th>เพศ</th><th>สถานะ</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></section></div>';
+    if (!isAdmin()) return '<section class="dw-card"><h2>หน้านี้สำหรับผู้จัด</h2><p>เข้าสู่ระบบ Super Admin ในหน้าหลักก่อน แล้วกลับมาเปิดหน้านี้อีกครั้ง</p><div class="dw-row"><a class="ds-btn ds-btn-primary" href="./">ไปหน้าหลัก</a></div></section>';
+    var head, rows = '', plan = PLAN_READY && PLAN;
+    if (!PLAN_READY) head = '<p>ยังไม่ได้สร้างผลสุ่ม ผู้เล่นจะกดสุ่มไม่ได้จนกว่าจะสร้างและล็อก</p><div class="dw-row"><button type="button" class="ds-btn ds-btn-primary" data-act="create">สร้างผลสุ่มและล็อก</button></div>';
+    else if (!plan) head = '<p>กำลังอ่านผลที่ล็อกไว้…</p>';
+    else {
+      var a = planByName(), bad = RULES.check(a), r = 0;
+      S.players.forEach(function (p) { if (PLAN[p.pid] === 'Red') r++; });
+      head = '<p>' + (bad.length ? '<b>ผลที่ล็อกไว้ขัดเงื่อนไข: ' + esc(bad.join('; ')) + '</b>' : 'ล็อกผลสุ่มแล้ว · ตรวจผ่านทุกเงื่อนไข ✓') + '</p>' +
+        '<h3>สมดุลสองทีม (จากผลที่ล็อกไว้)</h3><dl class="dw-bal"><dt>จำนวนคน</dt><dd>' + r + ' : ' + (TOTAL - r) + bar(r, TOTAL - r) + '</dd></dl>' +
+        '<div class="dw-row"><button type="button" class="ds-btn" data-act="wipe">ล้างทั้งหมดแล้วสร้างใหม่</button></div>';
+      rows = S.players.map(function (p) {
+        var rv = p.team ? tag(p.team) : '<span class="dw-tag is-none">ยังไม่สุ่ม</span>';
+        return '<tr><td>' + p.pid + '</td><td><b>' + esc(p.name) + '</b></td><td>' + p.sub + '</td><td>' + tag(PLAN[p.pid]) + '</td><td>' + rv + '</td>' +
+          '<td>' + (p.team ? '<button type="button" class="ds-btn ds-btn-sm" data-act="undo" data-pid="' + p.pid + '">ให้สุ่มใหม่</button>' : '') + '</td></tr>';
+      }).join('');
+    }
+    return '<div class="dw-admin"><section class="dw-card"><h2>ความคืบหน้า</h2><div class="dw-prog"><div><b>' + drawn().length + '</b><span>สุ่มแล้ว / ' + TOTAL + '</span></div></div>' + head +
+      '<p class="dw-note">ผลที่ล็อกไว้อยู่ในฐานข้อมูล draw_2026 ผู้เล่นเห็นเฉพาะของตัวเองตอนกดสุ่ม</p></section>' +
+      (plan ? '<section class="dw-card"><h2>รายชื่อผู้เล่น (' + TOTAL + ' คน)</h2><div class="dw-tablewrap"><table class="ds-table"><thead><tr><th>เลข</th><th>ชื่อ</th><th>กลุ่มย่อย</th><th>ผลที่ล็อก</th><th>สถานะ</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></section>' : '') + '</div>';
+  }
+  async function createPlan() {
+    if (!dbOk() || !isAdmin()) return;
+    var meta = (await ref('planMeta').once('value')).val();
+    if (meta) { window.alert('มีผลที่ล็อกไว้แล้ว'); return; }
+    var a = RULES.generate(), bad = RULES.check(a);
+    if (bad.length) { window.alert('สร้างไม่สำเร็จ: ' + bad.join('; ')); return; }
+    var plan = {}; S.players.forEach(function (p) { plan[p.pid] = a[p.name]; });
+    await ref('').update({ plan: plan, planMeta: { at: firebase.database.ServerValue.TIMESTAMP } });
+  }
+  async function wipeAll() {
+    if (!dbOk() || !isAdmin()) return;
+    if ((window.prompt('จะลบผลที่ล็อกไว้และผลที่ทุกคนสุ่มไปแล้ว พิมพ์คำว่า ล้าง เพื่อยืนยัน') || '').trim() !== 'ล้าง') return;
+    PLAN = null;
+    await ref('').remove();
   }
 
   // ── events ───────────────────────────────────────────────
   function onClick(e) {
     var el = e.target.closest('[data-act]'); if (!el) return;
     var act = el.getAttribute('data-act');
-    if (act === 'view') { e.preventDefault(); view = el.getAttribute('data-v'); try { history.replaceState(null, '', '?view=' + view); } catch (x) {} paint(); return; }
-    if (act === 'reset') { if (window.confirm('ล้างผลสุ่มทั้งหมดในเครื่องนี้ แล้วเริ่มใหม่?')) { freshState(); save(); paint(); } return; }
-    if (act === 'pickme') { S.meId = el.getAttribute('data-pid'); S.step = 'hello'; save(); paint(); return; }
+    if (act === 'view') { e.preventDefault(); view = el.getAttribute('data-v'); try { history.replaceState(null, '', '?view=' + view + (TEST ? '&test=1' : '')); } catch (x) {} paint(); return; }
+    if (act === 'reset') { if (window.confirm('ล้างข้อมูลของเครื่องนี้ (ชื่อที่เลือกและคำตอบ) แล้วเริ่มใหม่? ผลสุ่มที่ทุกคนได้ไปแล้วไม่หาย')) { freshState(); applyReveal(REVEAL); save(); paint(); } return; }
+    if (act === 'pickme') { var q = byPid(el.getAttribute('data-pid')); S.meId = q.pid; S.step = q.team ? 'result' : 'hello'; save(); paint(); return; }
     if (act === 'notme') { S.meId = null; S.step = 'pick'; save(); paint(); return; }
     if (act === 'tochat') { S.step = 'chat'; save(); paint(); return; }
     if (act === 'todraw') { S.step = 'draw'; save(); paint(); return; }
     if (act === 'draw') { doDraw(); return; }
-    if (act === 'go-board') { view = 'board'; try { history.replaceState(null, '', '?view=board'); } catch (x) {} paint(); return; }
-    if (act === 'demo') { demoDraw(); return; }
+    if (act === 'go-board') { view = 'board'; try { history.replaceState(null, '', '?view=board' + (TEST ? '&test=1' : '')); } catch (x) {} paint(); return; }
     if (act === 'fs') { var d = document.documentElement; if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); return; }
-    if (act === 'undo') { var p = byPid(el.getAttribute('data-pid')); if (p) { p.team = null; if (S.last === p.pid) S.last = null; if (S.meId === p.pid) S.step = 'draw'; save(); paint(); } }
+    if (act === 'create') { createPlan(); return; }
+    if (act === 'wipe') { wipeAll(); return; }
+    if (act === 'undo') { if (isAdmin() && dbOk()) ref('reveal/' + el.getAttribute('data-pid')).remove(); }
   }
   function onInput(e) {
     if (e.target.id !== 'dwQ') return;
@@ -350,16 +417,14 @@
 
   function start() {
     $root = document.getElementById('dw');
-    S = load();
-    if (!S || !S.players || S.players.length !== TOTAL) { freshState(); save(); }
+    restore();
     var v = (new URLSearchParams(location.search)).get('view');
     view = v === 'board' || v === 'admin' ? v : 'player';
     $root.innerHTML = shell();
     $root.addEventListener('click', onClick);
     $root.addEventListener('input', onInput);
-    // a second tab (the big screen) follows the first one live
-    window.addEventListener('storage', function (e) { if (e.key === KEY && !busy) { S = load() || S; if (view !== 'player') paint(); } });
     paint();
+    listen();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
