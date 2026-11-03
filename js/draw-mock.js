@@ -40,7 +40,7 @@
 
   // ── the roster and this phone's own state ────────────────
   function freshState() {
-    S = { players: RULES.ROSTER.map(function (r, i) { return { pid: pid(i + 1), name: r.name, sub: r.subgroup, checked: false, team: null, profile: null }; }), meId: null, step: 'pick', last: null };
+    S = { players: RULES.ROSTER.map(function (r, i) { return { pid: pid(i + 1), name: r.name, sub: r.subgroup, skill: r.skill, isNew: r.isNew, captain: r.captain, checked: false, team: null, profile: null }; }), meId: null, step: 'pick', last: null };
     return S;
   }
   function save() {
@@ -143,11 +143,12 @@
         return '<li><button type="button" class="dw-name' + (p.team ? ' is-done' : '') + '" data-act="pickme" data-pid="' + p.pid + '">' +
           '<span class="dw-ini">' + esc(initials(p.name)) + '</span><span class="dw-nm"><b>' + esc(p.name) + '</b><small>' + p.pid + '</small></span>' +
           (p.team ? '<span class="dw-tag is-' + p.team.toLowerCase() + '">' + (p.team === 'Red' ? 'RED' : 'BLUE') + '</span>'
-            : '') + '</button></li>';
+            : (p.isNew ? '<span class="dw-tag is-new">NEW</span>' : '')) + '</button></li>';
       }).join('') : '<li class="dw-empty">ไม่พบชื่อนี้ ลองพิมพ์ใหม่ หรือแจ้งแอดมินเพิ่มชื่อให้</li>') + '</ul></section>';
   }
 
   function greeting(p) {
+    if (p.isNew) return { m: 'serve', h: 'ยินดีต้อนรับสมาชิกใหม่!', t: 'สวัสดี ' + p.name + '! ปีนี้เป็นปีแรกของคุณ น้องดาวดีใจที่ได้เจอ เตรียมตัวให้พร้อม เดี๋ยวเราไปสุ่มทีมกัน' };
     return { m: 'serve', h: 'ยินดีต้อนรับสู่กีฬาสี!', t: 'สวัสดี ' + p.name + '! น้องดาวรออยู่ เตรียมตัวให้พร้อม เดี๋ยวเราไปสุ่มทีมกัน' };
   }
   function helloHtml(p) {
@@ -281,6 +282,7 @@
     return '<section class="dw-card dw-result"><div class="dw-field is-' + t.toLowerCase() + '"><small>คุณอยู่</small><b>' + teamName(t) + '</b></div>' +
       '<div class="dw-who">' + mascot('victory', 140) + '</div><p class="dw-lead">ยินดีด้วย ' + esc(p.name) + '! คุณเป็นคนที่ <b>' + rank + '</b> จาก ' + TOTAL + ' ที่สุ่มแล้ว</p>' +
       // the reminder before match day: look after yourself, your colour needs you, the rest comes from the organiser
+      (p.captain ? '<p class="dw-fav">คุณคือหัวหน้าทีม' + sideTh + '!</p>' : '') +
       (fav ? '<p class="dw-fav">' + (fav === sideTh ? 'ได้สีที่ชอบ โชคดีไป!' : 'ไม่ได้สีที่ชอบ แต่สี' + sideTh + 'ต้องการคุณ') + '</p>' : '') +
       '<div class="dw-remind is-' + t.toLowerCase() + '"><b>ฝากไว้ก่อนวันแข่ง</b>' +
       '<p>อีกไม่กี่วันก็แข่งแล้วนะ ดูแลตัวเองดีๆ <u>อย่าเจ็บ อย่าป่วย</u>น้า</p>' +
@@ -334,7 +336,7 @@
       var list = S.players.filter(function (p) { return p.team === t; }), st = teamStats(t);
       return '<section class="dw-col is-' + t.toLowerCase() + '"><header><b>' + teamName(t) + '</b><span>' + st.n + ' คน</span></header><ul>' +
         list.map(function (p) {
-          return '<li class="' + (lastPid === p.pid ? 'is-just' : '') + '"><span class="dw-ini">' + esc(initials(p.name)) + '</span><b>' + esc(p.name) + '</b></li>';
+          return '<li class="' + (lastPid === p.pid ? 'is-just' : '') + '"><span class="dw-ini">' + esc(initials(p.name)) + '</span><b>' + esc(p.name) + '</b>' + (p.captain ? '<span class="dw-tag is-new">หัวหน้า</span>' : '') + (p.isNew ? '<span class="dw-tag">NEW</span>' : '') + '</li>';
         }).join('') + (list.length ? '' : '<li class="dw-wait">รอการสุ่ม…</li>') + '</ul></section>';
     }
     var left = TOTAL - drawn().length, pool = '';
@@ -366,13 +368,13 @@
         '<div class="dw-row"><button type="button" class="ds-btn" data-act="wipe">ล้างทั้งหมดแล้วสร้างใหม่</button></div>';
       rows = S.players.map(function (p) {
         var rv = p.team ? tag(p.team) : '<span class="dw-tag is-none">ยังไม่สุ่ม</span>';
-        return '<tr><td>' + p.pid + '</td><td><b>' + esc(p.name) + '</b></td><td>' + p.sub + '</td><td>' + tag(PLAN[p.pid]) + '</td><td>' + rv + '</td>' +
+        return '<tr><td>' + p.pid + '</td><td><b>' + esc(p.name) + '</b>' + (p.captain ? ' <span class="dw-tag is-new">หัวหน้า</span>' : '') + (p.isNew ? ' <span class="dw-tag">NEW</span>' : '') + '</td><td>' + p.sub + '</td><td>' + p.skill + '</td><td>' + tag(PLAN[p.pid]) + '</td><td>' + rv + '</td>' +
           '<td>' + (p.team ? '<button type="button" class="ds-btn ds-btn-sm" data-act="undo" data-pid="' + p.pid + '">ให้สุ่มใหม่</button>' : '') + '</td></tr>';
       }).join('');
     }
     return '<div class="dw-admin"><section class="dw-card"><h2>ความคืบหน้า</h2><div class="dw-prog"><div><b>' + drawn().length + '</b><span>สุ่มแล้ว / ' + TOTAL + '</span></div></div>' + head +
       '<p class="dw-note">ผลที่ล็อกไว้อยู่ในฐานข้อมูล draw_2026 ผู้เล่นเห็นเฉพาะของตัวเองตอนกดสุ่ม</p></section>' +
-      (plan ? '<section class="dw-card"><h2>รายชื่อผู้เล่น (' + TOTAL + ' คน)</h2><div class="dw-tablewrap"><table class="ds-table"><thead><tr><th>เลข</th><th>ชื่อ</th><th>กลุ่มย่อย</th><th>ผลที่ล็อก</th><th>สถานะ</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></section>' : '') + '</div>';
+      (plan ? '<section class="dw-card"><h2>รายชื่อผู้เล่น (' + TOTAL + ' คน)</h2><div class="dw-tablewrap"><table class="ds-table"><thead><tr><th>เลข</th><th>ชื่อ</th><th>กลุ่มย่อย</th><th>Skill</th><th>ผลที่ล็อก</th><th>สถานะ</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></section>' : '') + '</div>';
   }
   async function createPlan() {
     if (!dbOk() || !isAdmin()) return;
