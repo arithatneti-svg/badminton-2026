@@ -178,8 +178,8 @@ function wzPaintNewPlayers() {
   if (!el) return;
   el.innerHTML = _wzNewPlayers.length
     ? _wzNewPlayers.map((p, i) => `
-        <span class="wz-newchip ${p.team === 'Red' ? 'is-red' : 'is-blue'}">
-          <span class="ds-team ${p.team === 'Red' ? 'ds-team-red' : 'ds-team-blue'}">${p.team === 'Red' ? 'RED' : 'BLUE'}</span>
+        <span class="wz-newchip ${teamCls(p.team, 'is-')}">
+          <span class="ds-team ${teamCls(p.team, 'ds-team-')}">${teamLabel(p.team)}</span>
           <span class="wz-newchip-n">${escHtml(p.name)} <b>G${escHtml(p.group)}</b></span>
           <button type="button" onclick="wzRemoveNewPlayer(${i})" title="เอาออก" aria-label="เอา ${escHtml(p.name)} ออก">${dsIcon('x')}</button>
         </span>`).join('')
@@ -408,7 +408,7 @@ function renderPlayersTab() {
 
   const mine    = p => (typeof isMe === 'function' && isMe(p.id));
   const youTag  = p => mine(p) ? `<span class="ds-chip ds-chip-gold pdir-you">คุณ</span>` : '';
-  const teamTag = p => p.team === 'Red' ? `<span class="ds-team ds-team-red">RED</span>` : `<span class="ds-team ds-team-blue">BLUE</span>`;
+  const teamTag = p => `<span class="ds-team ${teamCls(p.team, 'ds-team-')}">${teamLabel(p.team)}</span>`;
   const actionsHtml = p => isAdmin
     ? `<div class="pdir-actions">
          <button type="button" class="ds-btn ds-btn-icon ds-btn-ghost" aria-label="แก้ไข ${escHtml(p.name)}" title="แก้ไขผู้เล่น" onclick="openPlayerEdit('${p.id}')">${dsIcon('pencil-simple')}</button>
@@ -443,7 +443,7 @@ function renderPlayersTab() {
     const s = stats[p.id] || {};
     const hero = metric[heroKey](s);
     const label = `อันดับ ${rank + 1} ${p.name} · ${hero.v} ${hero.name} · ดูโปรไฟล์`;
-    return `<li class="pdir-pod p${rank + 1} ${p.team === 'Red' ? 'is-red' : 'is-blue'}${mine(p) ? ' is-me' : ''}">
+    return `<li class="pdir-pod p${rank + 1} ${teamCls(p.team, 'is-')}${mine(p) ? ' is-me' : ''}">
       <button type="button" class="pdir-open" onclick="openPlayerProfile('${p.id}')" aria-label="${escHtml(label)}">
         <span class="pdir-medal">${rank === 0 ? dsIcon('crown', { fill: true }) : rank + 1}</span>
         ${avatarHtml(p, rank === 0 ? 80 : 64)}
@@ -463,7 +463,7 @@ function renderPlayersTab() {
     const s = stats[p.id] || {};
     const hero = metric[heroKey](s);
     const label = `${ranked ? 'อันดับ ' + (rank + 1) + ' ' : ''}${p.name} · ${hero.v} ${hero.name} · ดูโปรไฟล์`;
-    return `<li class="pdir-row ${p.team === 'Red' ? 'is-red' : 'is-blue'}${mine(p) ? ' is-me' : ''}">
+    return `<li class="pdir-row ${teamCls(p.team, 'is-')}${mine(p) ? ' is-me' : ''}">
       <button type="button" class="pdir-open" onclick="openPlayerProfile('${p.id}')" aria-label="${escHtml(label)}">
         ${ranked ? `<span class="pdir-rank${rank < 3 ? ' is-top' : ''}">${rank + 1}</span>` : ''}
         ${avatarHtml(p, 56)}

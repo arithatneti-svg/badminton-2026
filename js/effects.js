@@ -114,7 +114,7 @@ function openEndGame() {
 
   // สร้าง Card สรุปรางวัลพิเศษแบบ Grid
   const medalOf = i => i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
-  const who = p => `<span class="award-card-who ds-team ${p.team === 'Red' ? 'ds-team-red' : 'ds-team-blue'}">${escHtml(p.name)}</span>`;
+  const who = p => `<span class="award-card-who ds-team ${teamCls(p.team, 'ds-team-')}">${escHtml(p.name)}</span>`;
   function buildAwardCard(title, icon, arr, countKey, tagText, criteriaDesc) {
       if (arr.length === 0) return '';
       return `<div class="award-card">

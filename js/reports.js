@@ -90,7 +90,7 @@ function rpTagText(label) {
 }
 function rpTagChip(t) { return `<span class="rp-tag">${dsIcon(rpTagIcon(t.id), { size: 14 })}${escHtml(rpTagText(t.label || t.id))}</span>`; }
 function rpSigned(n) { return (n > 0 ? '+' : '') + n; }
-function rpTeamTag(team) { const red = team === 'Red'; return `<span class="ds-team ds-team-${red ? 'red' : 'blue'}">${red ? 'RED' : 'BLUE'}</span>`; }
+function rpTeamTag(team) { return `<span class="ds-team ${teamCls(team, 'ds-team-')}">${teamLabel(team)}</span>`; }
 
 // ── Hero stats row ──
 function renderReportHero() {
@@ -168,7 +168,7 @@ function renderPlayerMetrics(playerArr, byPts) {
   const lead = byPts[0] && byPts[0].pts > 0 ? byPts[0] : null;   // nobody has points yet = no leader
   const cell = (cls, val, lbl) => `<div class="rp-kpi ${cls}"><div class="rp-kpi-v">${val}</div><div class="rp-kpi-l">${lbl}</div></div>`;
   const leader = lead
-    ? `<span class="ds-team ds-team-${lead.team === 'Red' ? 'red' : 'blue'}">${escHtml(lead.name)} · ${lead.team === 'Red' ? 'RED' : 'BLUE'}</span>`
+    ? `<span class="ds-team ds-team-${teamCls(lead.team, '')}">${escHtml(lead.name)} · ${teamLabel(lead.team)}</span>`
     : '—';
   el.innerHTML =
     cell('', playerArr.length, 'ผู้เล่น') +
@@ -214,7 +214,7 @@ function renderPlayerCards(playerArr, rankMap) {
   el.innerHTML = playerArr.map(s => {
     const red = s.team === 'Red', rank = rankMap[s.id];
     const tags = specTagsOf(s);
-    return `<article class="rp-prow ${red ? 'ds-edge-red' : 'ds-edge-blue'}">
+    return `<article class="rp-prow ${teamCls(s.team, 'ds-edge-')}">
       <span class="rp-prow-pos${rank && rank <= 3 && s.pts > 0 ? ' is-top' : ''}">${rank ? `<span class="ds-sr-only">อันดับ </span>${rank}` : '–'}</span>
       <button type="button" class="rp-prow-main" onclick="openPlayerProfile('${s.id}')" aria-label="ดูโปรไฟล์ ${escHtml(s.name)}">
         <span class="rp-prow-name">${escHtml(s.name)}</span>

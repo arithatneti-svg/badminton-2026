@@ -237,3 +237,8 @@
 /* a value that just changed: scale up and settle (digits, counters) */
 .ds-pop { animation: ds-pop var(--dur-pop) var(--ease-pop); }
 @keyframes ds-pop { 0% { transform: scale(1); } 45% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* no team yet (before the draw): neutral grey, a hollow ring as the shape */
+.ds-team-none { color: var(--t-low); }
+.ds-team-none::before { border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 2px currentColor; }
+.ds-edge-none { box-shadow: inset 5px 0 0 var(--line-strong); }

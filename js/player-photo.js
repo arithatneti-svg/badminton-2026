@@ -74,14 +74,14 @@ function avatarHtml(player, size = 38, opts = {}) {
     : player;
   if (!p) return '';
   const photo = playerPhoto(p.id);
-  const teamCls = p.team === 'Red' ? 'pav-red' : 'pav-blue';
+  const teamClass = teamCls(p.team, 'pav-');
   const rv = [...String(p.id)].reduce((a, c) => a + c.charCodeAt(0), 0) % 3;   // which of the 3 hand-inked rings (css .pav-r0..2)
   const extra = (opts.className ? ' ' + opts.className : '') + ' pav-r' + rv;
   const style = `--pav-size:${size}px;`;
   const pid = escHtml(p.id);   // lets a late-arriving photo upgrade this avatar in place
   return photo
-    ? `<span class="pav ${teamCls} has-photo${extra}" data-pid="${pid}" style="${style}"><img src="${photo}" alt="${escHtml(p.name)}" loading="lazy" style="object-position:${playerPhotoPos(p.id)}"></span>`
-    : `<span class="pav ${teamCls} pav-initials${extra}" data-pid="${pid}" style="${style}">${pid}</span>`;
+    ? `<span class="pav ${teamClass} has-photo${extra}" data-pid="${pid}" style="${style}"><img src="${photo}" alt="${escHtml(p.name)}" loading="lazy" style="object-position:${playerPhotoPos(p.id)}"></span>`
+    : `<span class="pav ${teamClass} pav-initials${extra}" data-pid="${pid}" style="${style}">${pid}</span>`;
 }
 
 // ── Lightbox: click a real photo to see it full-size ──
@@ -94,7 +94,7 @@ function openPhotoLightbox(id) {
   const img = ov.querySelector('.plb-img');
   img.src = photo; img.alt = p.name;
   ov.querySelector('.plb-name').textContent = p.name;
-  ov.querySelector('.plb-meta').innerHTML = `${p.team === 'Red' ? '<span class="ds-team ds-team-red">RED</span>' : '<span class="ds-team ds-team-blue">BLUE</span>'}<span>G${escHtml(p.group)}</span><span>${escHtml(p.id)}</span>`;
+  ov.querySelector('.plb-meta').innerHTML = `<span class="ds-team ${teamCls(p.team, 'ds-team-')}">${teamLabel(p.team)}</span><span>G${escHtml(p.group)}</span><span>${escHtml(p.id)}</span>`;
   if (!ov.classList.contains('open')) _plbOpener = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
   ov.classList.add('open');
   ov.querySelector('.plb-close')?.focus({ preventScroll: true });   // keyboard users land inside the dialog

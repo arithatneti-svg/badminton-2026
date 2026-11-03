@@ -16,7 +16,7 @@ function exportSummaryPDF() {
     const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉': `${i+1}.`;
     const streak = getPlayerStreak(p.id);
     const streakBadge = streak ? `<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:${streak.bg};color:${streak.color};border:1px solid ${streak.border};">${streak.label}</span>` : '';
-    const teamColor = p.team === 'Red' ? '#ff3b5c' : '#3b8eff';
+    const teamColor = p.team === 'Red' ? '#ff3b5c' : p.team === 'Blue' ? '#3b8eff' : '#888';
     return `<tr>
       <td style="text-align:center;font-weight:800;">${medal}</td>
       <td><span style="color:${teamColor};font-weight:700;">${p.name}</span> ${streakBadge}</td>
@@ -316,9 +316,9 @@ function exportPlayerPDF() {
   const playerSections = sorted.map((p, idx) => {
     const s = stats[p.id] || {};
     const prof = (appState.playerProfiles||{})[p.id] || {};
-    const teamColor = p.team==='Red'?'#e53935':'#1e88e5';
-    const teamBg    = p.team==='Red'?'#fff5f6':'#f0f6ff';
-    const teamBorder= p.team==='Red'?'#e53935':'#1e88e5';
+    const teamColor = p.team==='Red'?'#e53935':p.team==='Blue'?'#1e88e5':'#777';
+    const teamBg    = p.team==='Red'?'#fff5f6':p.team==='Blue'?'#f0f6ff':'#f4f4f4';
+    const teamBorder= p.team==='Red'?'#e53935':p.team==='Blue'?'#1e88e5':'#777';
     const wr = s.total>0 ? Math.round(s.w/s.total*100) : 0;
     const mwr= (s.matchesPlayed||0)>0 ? Math.round((s.matchWin||0)/(s.matchesPlayed||1)*100) : 0;
     const streak = getPlayerStreak(p.id);
@@ -347,7 +347,7 @@ function exportPlayerPDF() {
         <div class="player-info">
           <div class="player-name">${p.name}</div>
           <div class="player-meta">
-            <span class="p-chip" style="background:${teamBg};border-color:${teamBorder};color:${teamColor};">${p.team}</span>
+            <span class="p-chip" style="background:${teamBg};border-color:${teamBorder};color:${teamColor};">${p.team || 'ยังไม่มีทีม'}</span>
             <span class="p-chip">Group ${p.group}</span>
             <span class="p-chip">${p.id}</span>
             ${streakHtml}
@@ -480,7 +480,7 @@ function renderPlayerPdfControls() {
       + players
           .slice()
           .sort((a,b) => a.name.localeCompare(b.name,'th'))
-          .map(p => `<option value="${p.id}">${p.name} (${p.team === 'Red' ? '🔴' : '🔵'} G${p.group})</option>`)
+          .map(p => `<option value="${p.id}">${p.name} (${p.team === 'Red' ? '🔴' : p.team === 'Blue' ? '🔵' : '⚪'} G${p.group})</option>`)
           .join('');
   } else if (mode === 'group') {
     // กลุ่ม = เลือก 1/2/3 ไม่สนทีม (ต้องเลือก)

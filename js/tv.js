@@ -480,12 +480,12 @@ function _tvBoardHtml() {
   const start = _tvBoardPage * per;
   const slice = all.slice(start, start + per);
   const rows = slice.map((p, j) => {
-    const rank = start + j, side = p.team === 'Red' ? 'red' : 'blue';
+    const rank = start + j, side = teamCls(p.team, '');
     const wr = p.total ? Math.round(p.w / p.total * 100) : 0;
     return `<div class="tv-board-row is-${side}">
       <div class="tv-rank${rank < 3 ? ' r' + (rank + 1) : ''}" lang="en">${rank + 1}</div>
       <div class="tv-board-face">${avatarHtml(p.id, 64)}</div>
-      <div class="tv-pinfo"><div class="tv-pname">${escHtml(p.name)}</div><div class="tv-pmeta"><span class="ds-team ds-team-${side}">${escHtml(p.team)}</span><span lang="en">WR ${wr}%</span></div></div>
+      <div class="tv-pinfo"><div class="tv-pname">${escHtml(p.name)}</div><div class="tv-pmeta"><span class="ds-team ds-team-${side}">${escHtml(teamLabel(p.team))}</span><span lang="en">WR ${wr}%</span></div></div>
       <div class="tv-ppts"><b>${p.pts}</b><span lang="en">pt</span></div>
     </div>`;
   }).join('');
