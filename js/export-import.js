@@ -143,8 +143,9 @@ function addPlayer() {
   // nextJersey scans every player, not just this team: after a season
   // rollover an R-numbered player can sit on Blue, and scanning one side
   // could mint an id that already exists on the other.
-  const newId = nextJersey(team);
-  appState.players.push({ id: newId, pid: nextPid(), name, team, group });
+  const pid = nextPid();
+  const newId = team ? nextJersey(team) : pid;   // no team yet: the id is the pid, not a R/B jersey
+  appState.players.push({ id: newId, pid, name, team, group });
   invalidateStatsCache();
   nameEl.value = ''; nameEl.focus(); // เคลียร์ + โฟกัสต่อ เพิ่มรัว ๆ ได้
   saveKeys(['players']);
@@ -178,6 +179,8 @@ function openPlayerEdit(id) {
   document.getElementById('editPlayerName').value = p.name;
   document.getElementById('editPlayerTeam').value = p.team;
   document.getElementById('editPlayerGroup').value = p.group;
+  document.getElementById('editPlayerSub').value = p.sub || '';
+  document.getElementById('editPlayerNew').value = p.isNew ? '1' : '';
   document.getElementById('playerEditModal').classList.add('open');
   setTimeout(() => document.getElementById('editPlayerName').focus(), 80);
 }
@@ -191,6 +194,10 @@ function savePlayerEdit() {
   p.name  = name;
   p.team  = document.getElementById('editPlayerTeam').value;
   p.group = document.getElementById('editPlayerGroup').value;
+  p.sub   = document.getElementById('editPlayerSub').value.trim();
+  if (!p.sub) delete p.sub;
+  p.isNew = document.getElementById('editPlayerNew').value === '1';
+  if (!p.isNew) delete p.isNew;
   invalidateStatsCache();
   saveKeys(['players'], true);
   closePlayerEdit();

@@ -640,7 +640,7 @@ try {
         </div>
         <div class="ds-field">
           <label class="ds-label" for="newPlayerTeam">ทีม</label>
-          <select id="newPlayerTeam" class="ds-select"><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
+          <select id="newPlayerTeam" class="ds-select"><option value="">ยังไม่มีทีม</option><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
         </div>
         <div class="ds-field">
           <label class="ds-label" for="newPlayerGroup">กลุ่ม</label>
@@ -1565,11 +1565,21 @@ try {
       <div class="pe-row">
         <div class="ds-field">
           <label class="ds-label" for="editPlayerTeam">ทีม</label>
-          <select id="editPlayerTeam" class="ds-select"><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
+          <select id="editPlayerTeam" class="ds-select"><option value="">ยังไม่มีทีม</option><option value="Red">ทีม Red</option><option value="Blue">ทีม Blue</option></select>
         </div>
         <div class="ds-field">
           <label class="ds-label" for="editPlayerGroup">กลุ่ม</label>
           <select id="editPlayerGroup" class="ds-select"><option value="1">กลุ่ม G1</option><option value="2">กลุ่ม G2</option><option value="3">กลุ่ม G3</option></select>
+        </div>
+      </div>
+      <div class="pe-row">
+        <div class="ds-field">
+          <label class="ds-label" for="editPlayerSub">กลุ่มย่อย</label>
+          <input type="text" id="editPlayerSub" class="ds-input" inputmode="decimal" placeholder="เช่น 1.2" autocomplete="off" maxlength="6">
+        </div>
+        <div class="ds-field">
+          <label class="ds-label" for="editPlayerNew">ผู้เล่นใหม่</label>
+          <select id="editPlayerNew" class="ds-select"><option value="">ไม่ใช่</option><option value="1">NEW</option></select>
         </div>
       </div>
     </div>

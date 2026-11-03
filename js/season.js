@@ -448,8 +448,8 @@ function renderPlayersTab() {
         <span class="pdir-medal">${rank === 0 ? dsIcon('crown', { fill: true }) : rank + 1}</span>
         ${avatarHtml(p, rank === 0 ? 80 : 64)}
         <span class="pdir-body">
-          <span class="pdir-name">${escHtml(p.name)}${youTag(p)}</span>
-          <span class="pdir-sub">${teamTag(p)}<span>G${p.group}</span></span>
+          <span class="pdir-name">${escHtml(p.name)}${newTag(p)}${youTag(p)}</span>
+          <span class="pdir-sub">${teamTag(p)}<span>${groupLabel(p)}</span></span>
         </span>
         <span class="pdir-pts${hero.dim ? ' is-zero' : ''}"><b class="ds-num">${hero.v}</b><span>${hero.name}</span></span>
         <span class="pdir-stats">${statsHtml(s)}</span>
@@ -468,8 +468,8 @@ function renderPlayersTab() {
         ${ranked ? `<span class="pdir-rank${rank < 3 ? ' is-top' : ''}">${rank + 1}</span>` : ''}
         ${avatarHtml(p, 56)}
         <span class="pdir-body">
-          <span class="pdir-name">${escHtml(p.name)}${youTag(p)}</span>
-          <span class="pdir-sub">${teamTag(p)}<span>G${p.group}</span><span>${p.id}</span></span>
+          <span class="pdir-name">${escHtml(p.name)}${newTag(p)}${youTag(p)}</span>
+          <span class="pdir-sub">${teamTag(p)}<span>${groupLabel(p)}</span><span>${p.id}</span></span>
           <span class="pdir-stats">${statsHtml(s)}${streakHtml(p.id)}</span>
         </span>
         <span class="pdir-pts${hero.dim ? ' is-zero' : ''}"><b class="ds-num">${hero.v}</b><span>${hero.name}</span></span>

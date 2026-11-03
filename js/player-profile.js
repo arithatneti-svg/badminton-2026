@@ -136,7 +136,7 @@ function openPlayerProfile(playerId) {
         <h2 class="profile-name${String(p.name).length > 20 ? ' is-long' : ''}">${escHtml(p.name)}</h2>
         <div class="pf-tags">
           <span class="ds-team ${teamCls(p.team, 'ds-team-')}">${teamLabel(p.team)}</span>
-          <span class="ds-chip">G${p.group}</span>
+          <span class="ds-chip">${groupLabel(p)}</span>${newTag(p)}
           <span class="ds-chip">${p.id}</span>
           ${(typeof isMe === 'function' && isMe(p.id)) ? '<span class="ds-chip ds-chip-gold">คุณ</span>' : ''}
         </div>

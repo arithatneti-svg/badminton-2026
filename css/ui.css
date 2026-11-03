@@ -242,3 +242,6 @@
 .ds-team-none { color: var(--t-low); }
 .ds-team-none::before { border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 2px currentColor; }
 .ds-edge-none { box-shadow: inset 5px 0 0 var(--line-strong); }
+
+/* NEW = first season in the club */
+.ds-chip-new { background: var(--gold, #f5c542); border-color: transparent; color: #1a1400; min-height: 20px; padding: 0 var(--sp-2); font-size: var(--fs-12, 11px); font-weight: 800; letter-spacing: .06em; margin-left: var(--sp-2); }
