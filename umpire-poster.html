@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>คู่มือ Umpire & วิธีใช้แอปนับแต้มเรียลไทม์ — 2026 Winter Sports Day</title>
+<!-- A4 poster: the umpire role + how the umpire app and the live scoreboard work. Same paper (Riso) theme as the app; the phone / TV
+     pictures are real screenshots of umpire.html and index.html (guest board, ?view=tv) with made-up players (posters/img/). -->
+<script>document.documentElement.setAttribute('data-theme', 'paper');</script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Kanit:wght@500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="icons/umpire-192.png">
+<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.75">
+<link rel="stylesheet" href="css/paper.css?v=2026.10.30.75">
+<style>
+  :root { --pz-ink: #0b2a52; --pz-red: #d81a21; --pz-blue: #0956b8; --pz-cream: #fff6ea; --pz-yellow: #f4c430; }
+  html, body { margin: 0; background: #d9d2c3; font-family: var(--font-th, 'Noto Sans Thai', sans-serif); color: var(--pz-ink); }
+  .pz-bar { display: flex; gap: 10px; justify-content: center; padding: 12px; }
+  .pz-bar button { min-height: 44px; padding: 0 18px; border: 1.5px solid var(--pz-ink); border-radius: 4px 9px 5px 10px / 10px 5px 9px 4px; background: var(--pz-yellow); color: var(--pz-ink); font: 700 16px/1 var(--font-th-head, Kanit, sans-serif); cursor: pointer; }
+  .pz-stage { display: flex; justify-content: center; padding-bottom: 24px; }
+  .pz-sheet { position: relative; width: 210mm; height: 297mm; box-sizing: border-box; padding: 7mm 12mm 6mm; overflow: hidden; background: var(--pz-cream); display: grid; grid-auto-rows: auto; align-content: space-between; gap: 2mm; transform-origin: top center; }
+  .pz-sheet::before { content: ''; position: absolute; inset: 0; background: url(media/riso/grain-paper.webp) center / 520px; mix-blend-mode: multiply; opacity: .55; pointer-events: none; }
+  .pz-sheet > * { position: relative; }
+  .pz-deco { position: absolute !important; pointer-events: none; }
+  .nw { white-space: nowrap; }
+  .pz-mark { padding: 0 1.4mm; background: url(media/riso/marker-yellow-2.webp) center / 100% 88% no-repeat; font-weight: 800; }
+  .pz-label { display: flex; align-items: center; gap: 3mm; margin: 0 0 1.8mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 5.8mm; line-height: 1.1; }
+  .pz-label small { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 4.2mm; letter-spacing: .16em; color: var(--pz-red); }
+  .pz-label::after { content: ''; flex: 1; height: 1.4mm; background: url(media/riso/line-red.webp) center / 100% 100% no-repeat; }
+
+  /* ---------- header ---------- */
+  .uz-head { text-align: center; padding-top: 1mm; min-height: 38mm; }
+  .uz-kicker { font-family: var(--font-num, Anton, sans-serif); font-size: 5mm; letter-spacing: .2em; color: var(--pz-red); line-height: 1; }
+  .uz-title { margin: 1.2mm 0 0; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 17mm; line-height: 1.04; letter-spacing: -.01em; }
+  .uz-title em { font-style: normal; color: var(--pz-red); font-family: var(--font-num, Anton, sans-serif); font-weight: 400; letter-spacing: .01em; font-size: 19mm; }
+  .uz-sub { display: inline-block; margin-top: 1mm; padding: 1.6mm 8mm 2.6mm; background: url(media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 6.6mm; line-height: 1.1; }
+  .uz-star { right: 3mm; top: 1mm; width: 27mm; transform: rotate(5deg); filter: drop-shadow(1.2mm 1.4mm 0 rgba(11, 42, 82, .3)); }
+  .uz-star.l { right: auto; left: 4mm; top: 6mm; width: 22mm; transform: rotate(-7deg); }
+
+  /* ---------- role cards ---------- */
+  .uz-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .uz-role { position: relative; isolation: isolate; padding: 3mm 3.6mm 3.2mm; display: grid; grid-template-rows: auto 1fr; gap: 1.6mm; }
+  .uz-role::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(255, 255, 255, .8); border: .8mm solid var(--pz-ink); border-radius: 3mm 6mm 4mm 7mm / 7mm 4mm 6mm 3mm; box-shadow: 1.8mm 2mm 0 var(--sh); }
+  .uz-role:nth-child(1) { --sh: var(--pz-red); } .uz-role:nth-child(2) { --sh: var(--pz-blue); } .uz-role:nth-child(3) { --sh: var(--pz-yellow); }
+  .uz-role .top { display: flex; align-items: center; gap: 2.6mm; }
+  .uz-role .ic { position: relative; flex: none; width: 12mm; height: 12mm; display: grid; place-items: center; }
+  .uz-role .ic img.ring { position: absolute; inset: -1mm; width: calc(100% + 2mm); height: calc(100% + 2mm); }
+  .uz-role .ic img.st { position: relative; width: 8mm; max-height: 8.4mm; object-fit: contain; }
+  .uz-role .ic b { position: relative; font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 6.6mm; line-height: 1; padding-top: .5mm; }
+  .uz-role h3 { margin: 0; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 4.8mm; line-height: 1.15; }
+  .uz-role p { margin: 0; font-size: 3.9mm; line-height: 1.38; font-weight: 500; }
+  .uz-role p b { font-weight: 800; }
+
+  /* ---------- the screens ---------- */
+  .uz-main { display: grid; grid-template-columns: 92mm 1fr; gap: 3mm; align-items: stretch; }
+  .uz-left { position: relative; display: grid; grid-template-columns: 53mm 1fr; gap: 1.6mm; align-items: center; }
+  .uz-phone { position: relative; width: 53mm; padding: 2mm; box-sizing: border-box; background: var(--pz-ink); border-radius: 7mm; box-shadow: 1.6mm 1.8mm 0 var(--pz-red); }
+  .uz-phone img { display: block; width: 100%; border-radius: 5mm; }
+  .uz-phone.sm { width: 31mm; height: 37mm; overflow: hidden; padding: 1.4mm 1.4mm 0; border-radius: 4.6mm 4.6mm 0 0; box-shadow: 1.2mm 1.3mm 0 var(--pz-blue); }
+  .uz-phone.sm img { border-radius: 3.4mm 3.4mm 0 0; }
+  .uz-pin { position: absolute; z-index: 2; width: 8.4mm; height: 8.4mm; display: grid; place-items: center; background: var(--pz-cream); border-radius: 50%; }
+  .uz-pin img { position: absolute; inset: -.6mm; width: calc(100% + 1.2mm); height: calc(100% + 1.2mm); }
+  .uz-pin b { position: relative; font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 5.6mm; line-height: 1; color: var(--pz-red); padding-top: .4mm; text-shadow: 0 0 1.2mm #fff, 0 0 1.2mm #fff; }
+  .uz-legend { display: grid; gap: 3.2mm; align-content: center; }
+  .uz-legend div { display: grid; grid-template-columns: 5mm 1fr; gap: .8mm; align-items: start; font-size: 3.55mm; line-height: 1.32; font-weight: 600; }
+  .uz-legend b.n { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 5.6mm; line-height: 1; color: var(--pz-red); text-align: center; padding-top: .4mm; }
+  .uz-legend strong { font-weight: 800; }
+
+  .uz-right { position: relative; display: grid; grid-template-rows: auto auto 1fr; gap: 2.4mm; align-content: start; }
+  .uz-live { display: flex; align-items: center; gap: 2mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 4.6mm; line-height: 1.1; }
+  .uz-live .dot { width: 3.2mm; height: 3.2mm; border-radius: 50%; background: #1a8f55; box-shadow: 0 0 0 1mm rgba(26, 143, 85, .25); flex: none; }
+  .uz-live img { width: 11mm; height: auto; margin-left: auto; margin-right: 1mm; }
+  .uz-tv { position: relative; padding: 2mm 2mm 2.4mm; background: var(--pz-ink); border-radius: 2.6mm; box-shadow: 1.8mm 2mm 0 var(--pz-blue); }
+  .uz-tv img { display: block; width: 100%; border-radius: 1mm; }
+  .uz-tv::after { content: ''; position: absolute; left: 50%; bottom: -3mm; width: 22mm; height: 2.4mm; transform: translateX(-50%); background: var(--pz-ink); border-radius: 0 0 1.4mm 1.4mm; z-index: -1; }
+  .uz-cap { margin: 1.2mm 0 0; font-size: 3.4mm; line-height: 1.3; font-weight: 600; text-align: center; }
+  .uz-sub2 { display: grid; grid-template-columns: 31mm 1fr; gap: 3mm; align-items: end; margin-top: 3mm; }
+  .uz-sub2 .tvs { display: grid; gap: 1.2mm; align-content: end; }
+  .uz-tv.s { padding: 1.4mm 1.4mm 1.7mm; box-shadow: 1.4mm 1.5mm 0 var(--pz-yellow); border-radius: 2mm; }
+  .uz-tv.s::after { display: none; }
+  .uz-sub2 .ph { display: grid; justify-items: center; gap: 1.2mm; }
+
+  /* ---------- steps ---------- */
+  .uz-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .uz-step { display: grid; grid-template-columns: 9mm 1fr; gap: 2.4mm; align-items: center; padding: 2mm 3mm; border: .7mm solid var(--pz-ink); border-radius: 2mm 4mm 2.5mm 5mm / 5mm 2.5mm 4mm 2mm; background: rgba(255, 255, 255, .7); }
+  .uz-step b { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 10mm; line-height: 1; color: var(--pz-red); text-align: center; }
+  .uz-step:nth-child(2) b { color: var(--pz-blue); } .uz-step:nth-child(3) b { color: var(--pz-ink); }
+  .uz-step span { font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 700; font-size: 4mm; line-height: 1.26; }
+  .uz-ease { position: relative; isolation: isolate; display: grid; grid-template-columns: 22mm 1fr; gap: 3mm; align-items: center; padding: 2.6mm 6mm 2.8mm 3mm; }
+  .uz-ease::before { content: ''; position: absolute; inset: 0; z-index: -1; background: #fff; border: 1.1mm solid var(--pz-ink); border-radius: 3mm 6mm 4mm 7mm / 7mm 4mm 6mm 3mm; box-shadow: 2.2mm 2.4mm 0 var(--pz-red); }
+  .uz-ease img { width: 19mm; justify-self: center; margin: -4mm 0 -2.5mm; filter: drop-shadow(.9mm 1.1mm 0 rgba(11, 42, 82, .28)); }
+  .uz-ease h3 { margin: 0 0 .8mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 6mm; line-height: 1.1; }
+  .uz-ease p { margin: 0; font-size: 4mm; line-height: 1.42; font-weight: 500; }
+  .uz-ease p b { font-weight: 800; }
+
+  .pz-foot { display: grid; justify-items: center; gap: 1.2mm; }
+  .pz-foot img.rule { width: 100%; height: 1.5mm; object-fit: fill; }
+  .pz-foot .row { display: flex; align-items: center; justify-content: center; gap: 3mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 700; font-size: 4.2mm; }
+  .pz-foot .rd { color: var(--pz-red); } .pz-foot .bl { color: var(--pz-blue); }
+  .pz-foot .vs { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; letter-spacing: .1em; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    html, body { background: none; }
+    .pz-bar { display: none; }
+    .pz-stage { display: block; padding: 0; }
+    .pz-sheet { transform: none !important; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="pz-bar"><button type="button" id="pzPrint">พิมพ์ / บันทึกเป็น PDF</button></div>
+<div class="pz-stage"><main class="pz-sheet" id="pzSheet">
+
+  <img class="pz-deco" src="media/riso/ring-blue-2.webp" alt="" style="left:-28mm;top:-26mm;width:68mm;opacity:.14">
+  <img class="pz-deco" src="media/riso/ring-red-2.webp" alt="" style="right:-30mm;top:40mm;width:62mm;opacity:.13">
+
+  <header class="uz-head">
+    <img class="pz-deco uz-star l" src="media/mascot/flick.webp" alt="">
+    <img class="pz-deco uz-star" src="media/mascot/admin.webp" alt="">
+    <div class="uz-kicker">2026 WINTER SPORTS DAY · UMPIRE GUIDE</div>
+    <h1 class="uz-title">คู่มือ <em>Umpire</em></h1>
+    <div class="uz-sub">วิธีใช้แอปนับแต้มเรียลไทม์</div>
+  </header>
+
+  <!-- the role -->
+  <section>
+    <h2 class="pz-label">ภารกิจ Umpire ประจำสนาม <small>YOUR MISSION</small></h2>
+    <div class="uz-roles">
+      <div class="uz-role">
+        <div class="top"><div class="ic"><img class="ring" src="media/riso/ring-red-1.webp" alt=""><b style="color:var(--pz-red)">1:1</b></div><h3>1 สนาม ต่อ<br>1 Umpire</h3></div>
+        <p>ทุกสนามจะมี <b>กรรมการ 1 คน</b> คอยนับแต้มและดูแลเกมตลอดแมตช์</p>
+      </div>
+      <div class="uz-role">
+        <div class="top"><div class="ic"><img class="ring" src="media/riso/ring-blue-1.webp" alt=""><img class="st" src="media/mascot/replay.webp" alt=""></div><h3>เพื่อนในสี<br>สลับกันมาคุม</h3></div>
+        <p>ทีมงาน <b>Assign</b> ไว้ให้ว่าใครคุมสนามไหน เพื่อนๆ ในสีเดียวกันผลัดกันเข้ามาทำหน้าที่</p>
+      </div>
+      <div class="uz-role">
+        <div class="top"><div class="ic"><img class="ring" src="media/riso/ring-red-2.webp" alt=""><img class="st" src="media/mascot/block.webp" alt=""></div><h3>นับแต้ม + ดูแล<br>ความเรียบร้อย</h3></div>
+        <p>หน้าที่หลักคือ <b>นับแต้มให้ถูก</b> และดูให้เกมจบอย่างเรียบร้อย ไม่ต้องตัดสินอะไรซับซ้อน</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- the screens -->
+  <section>
+    <h2 class="pz-label">แตะที่มือถือ → ขึ้นจอทีวีทันที <small>REAL-TIME</small></h2>
+    <div class="uz-main">
+      <div class="uz-left">
+        <div class="uz-phone">
+          <img src="posters/img/umpire-scoring.webp" alt="หน้าจอแอป Umpire ขณะนับแต้ม">
+          <div class="uz-pin" style="left:39mm;top:36mm"><img src="media/riso/ring-red-3.webp" alt=""><b>1</b></div>
+          <div class="uz-pin" style="left:9.5mm;top:87mm"><img src="media/riso/ring-red-3.webp" alt=""><b>2</b></div>
+          <div class="uz-pin" style="left:38mm;top:88mm"><img src="media/riso/ring-red-3.webp" alt=""><b>3</b></div>
+        </div>
+        <div class="uz-legend">
+          <div><b class="n">1</b><span><strong>แตะครึ่งจอ</strong> ของทีมที่ได้แต้ม = +1</span></div>
+          <div><b class="n">2</b><span>กดผิด? แตะ <strong>วงกลม</strong> เพื่อลบแต้ม</span></div>
+          <div><b class="n">3</b><span>จบเกมแล้วกด <strong>ส่งผล</strong></span></div>
+        </div>
+      </div>
+      <div class="uz-right">
+        <div class="uz-live"><span class="dot"></span>Scoreboard บนทีวี · ลุ้นพร้อมกัน<img src="media/mascot/rising.webp" alt=""></div>
+        <div class="uz-tv"><img src="posters/img/tv-live.webp" alt="หน้าจอทีวีแสดงคะแนนสดของทุกสนาม"></div>
+        <div class="uz-sub2">
+          <div class="ph">
+            <div class="uz-phone sm"><img src="posters/img/board-live.webp" alt="หน้าดูคะแนนสดบนมือถือ"></div>
+            <p class="uz-cap">ดูสดบนมือถือ</p>
+          </div>
+          <div class="tvs">
+            <div class="uz-tv s"><img src="posters/img/tv-leaderboard.webp" alt="ตารางอันดับบนจอทีวี"></div>
+            <p class="uz-cap">คะแนน ผลแข่ง และ <b>อันดับ</b><br>อัปเดตเองทุกครั้งที่กดแต้ม</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- steps + reassurance -->
+  <section style="display:grid;gap:3mm">
+    <div class="uz-steps">
+      <div class="uz-step"><b>1</b><span>เลือกทีมและ<br>ชื่อของคุณ</span></div>
+      <div class="uz-step"><b>2</b><span>เลือกแมตช์<br>แล้วเลือกคอร์ต</span></div>
+      <div class="uz-step"><b>3</b><span>แตะแต้มตามเกม<br>จบแล้วกดส่งผล</span></div>
+    </div>
+    <div class="uz-ease">
+      <img src="media/mascot/search.webp" alt="">
+      <div>
+        <h3>ใช้ง่าย ไม่ซับซ้อน — กดตามหน้าจอก็จบ!</h3>
+        <p>แอปบอกขั้นตอนทีละหน้า ไม่ต้องจำกติกายากๆ <b>มือใหม่ก็คุมได้</b> ไม่แน่ใจตรงไหน ถามทีมงานได้เลย</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pz-foot">
+    <img class="rule" src="media/riso/line-red.webp" alt="">
+    <div class="row"><span class="rd">RED</span><span class="vs">VS</span><span class="bl">BLUE</span><span>กีฬาสี เสาร์ที่ 14 พ.ย. 2569</span></div>
+  </footer>
+</main></div>
+<script>
+(function () {
+  document.getElementById('pzPrint').onclick = function () { window.print(); };
+  var sheet = document.getElementById('pzSheet'), stage = sheet.parentNode;
+  function fit() {
+    var s = Math.min(1, (window.innerWidth - 16) / sheet.offsetWidth);
+    sheet.style.transform = s < 1 ? 'scale(' + s + ')' : '';
+    stage.style.height = s < 1 ? Math.ceil(sheet.offsetHeight * s + 24) + 'px' : '';
+  }
+  window.addEventListener('resize', fit); fit();
+})();
+</script>
+</body>
+</html>
