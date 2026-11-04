@@ -36,7 +36,7 @@
   .tp-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; align-items: start; justify-items: center; gap: 0 2mm; padding-top: 2mm; }
   .tp-p { display: grid; justify-items: center; gap: 0; width: 100%; position: relative; }
   .tp-av { --s: 22mm; position: relative; width: var(--s); height: var(--s); margin: calc(var(--s) * .2); }
-  .tp-av img, .tp-av .tp-ini { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .tp-av img, .tp-av .tp-ini { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 12%; }   /* keep the top of the picture: heads, not feet */
   .tp-av .tp-ini { display: grid; place-items: center; background: var(--tp-yellow); color: var(--tp-ink); font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 9mm; }
   .tp-av::after { content: ''; position: absolute; inset: -19%; background: var(--ring) center / 100% 100% no-repeat; pointer-events: none; }
   .tp-nm { font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 5.4mm; line-height: 1.1; text-align: center; max-width: 100%; margin-top: -1mm; overflow-wrap: anywhere; }
