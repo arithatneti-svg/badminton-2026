@@ -379,3 +379,8 @@
 
 /* the frame is a 6 px border: on a card that has a set width (a grid column, width 100 percent) it must be counted inside that width, or the card pokes out of its column */
 [data-theme="paper"] :is(.card, .profile-header, .modal-box, .ds-sheet, .login-card, #dashboard .db-kpi, #dashboard .db-card, .backup-row, .bk-box, .adm-collapse, .adm-end, .mb-card, .am-card, .stf, .wz-sum, .arc-card, .qr-card, .gal-admin-bar, #report .rp-kpis, #report .rp-fold, #report .rp-tagfold, #report .rp-ucard, #report .cmp-season-card, .award-card, .cer-col, .queue-row, .court-empty, .fin-empty, .idl-empty, .lv-hub, .match-card, .finished-card, .nav-actions, #matchNotiBox, .pdir-pod, .profile-stats-bar) { box-sizing: border-box; }
+
+/* podium medals on paper: ink outline + hard shadow like the other stickers; the crown sits on a riso-yellow disc */
+[data-theme="paper"] .pdir-medal { border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+[data-theme="paper"] .pdir-pod.p1 .pdir-medal { border-width: 3px; box-shadow: 3px 3px 0 var(--ink), 0 0 0 7px rgba(240, 192, 64, .28); background: #ffd23f; color: var(--ink); }
+[data-theme="paper"] .pdir-pod.p1 { box-shadow: 0 0 0 2px rgba(240, 192, 64, .55); }
