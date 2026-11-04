@@ -317,7 +317,8 @@
 [data-theme="paper"] .pd-avatar-wrap .pav-initials { background: radial-gradient(circle, var(--s1) 62%, transparent 63%); }
 [data-theme="paper"] .pd-avatar-wrap .pav::after { content: ""; position: absolute; pointer-events: none; background-repeat: no-repeat; background-position: center; background-size: 100% 100%; }
 [data-theme="paper"] .pd-award.has-art { border: 0; border-radius: 0; box-shadow: none; background: url(../media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat; padding-inline: var(--sp-5); }
-[data-theme="paper"] .pf-star { border-radius: 0; background: url(../media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; color: var(--ink); }
+/* a flat riso-yellow dot with an ink outline: the old stretched marker strip + the paper-coloured 3px border read as a white square frame */
+[data-theme="paper"] .pf-star { width: 30px; height: 30px; border-radius: 50%; background: var(--gold); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); color: var(--ink); right: -4px; top: -4px; }
 
 /* ── pass 2 ── */
 [data-theme="paper"] :is(.pd-h, .adm-h, .wz-h) { flex: 1 1 auto; }
