@@ -200,7 +200,7 @@ function renderPublicOngoingMatches() {
         isReady
           ? `<span class="court-ready">พร้อมแข่ง</span>`
           : `<span class="ds-chip ds-chip-live"><i class="ds-dot ds-dot-live"></i>LIVE</span>`,
-        `<span class="court-card-round">รอบ ${escHtml(String(m.round))}</span>`,
+        (m.round ? `<span class="court-card-round">รอบ ${escHtml(String(m.round))}</span>` : ''),
         m.umpire ? `<span class="court-card-umpire">${dsIcon('user')}<span>${escHtml(m.umpire)}</span></span>` : '',
         matchStatusHtml(m),
         climaxBadge
@@ -248,7 +248,7 @@ function renderPublicOngoingMatches() {
           <div class="queue-head">
             <span class="queue-num">#${i+1}</span>
             <span class="queue-mid">${escHtml(safeId)}</span>
-            <span class="queue-round">รอบ ${escHtml(String(m.round||'?'))}</span>
+            ${m.round ? `<span class="queue-round">รอบ ${escHtml(String(m.round))}</span>` : ''}
             ${corruptBadge}
             <span class="queue-status">${dsIcon('hourglass-medium')}รอ</span>
           </div>
@@ -333,7 +333,7 @@ function renderAdminOngoingMatches() {
     return `<article class="am-card${isLive ? ' is-live' : ''}" aria-label="แมตช์ ${escHtml(m.id || '—')}">
       <div class="am-head">
         <span class="am-id">${escHtml(m.id && m.id !== 'undefined' ? m.id : '—')}</span>
-        <span class="ds-chip">รอบ ${escHtml(String(m.round || '?'))}</span>
+        ${m.round ? `<span class="ds-chip">รอบ ${escHtml(String(m.round))}</span>` : ''}
         ${isLive ? courtSelectHtml(m) : courtPillHtml(m)}${bad}
         <span class="am-state">${state}${isLive ? matchStatusHtml(m) : ''}${ump}</span>
       </div>
@@ -435,7 +435,7 @@ function renderFinishedMatches() {
     return `<article class="fm ${cls}${mineCls}">
       <header class="fm-head">
         <span class="fm-id">${escHtml(m.id)}</span>
-        <span class="fm-round">รอบ ${escHtml(String(m.round))}</span>
+        ${m.round ? `<span class="fm-round">รอบ ${escHtml(String(m.round))}</span>` : ''}
         <span class="fm-result ${cls}">${result}</span>
       </header>
       <div class="fm-body${g2played ? ' g2' : ''}">

@@ -1,10 +1,11 @@
 // ── MATCH BOARD (tap-first, single screen) ──
-const picker = { round: '1', red: [], blue: [], redGroup: '', blueGroup: '' };
+const picker = { red: [], blue: [], redGroup: '', blueGroup: '' };   // no rounds: a match is just a pairing
 
-function getPlayerMatchCountInRound(playerId, round) {
-  const inHistory = appState.matchHistory.filter(h => h.round === String(round) && [h.r1,h.r2,h.b1,h.b2].includes(playerId)).length;
-  const inOngoing = appState.ongoingMatches.filter(m => m.round === String(round) && [m.r1,m.r2,m.b1,m.b2].includes(playerId)).length;
-  return inHistory + inOngoing;
+// how many matches a player has so far (played, live, queued or waiting) — all rounds, there is no round limit any more
+function getPlayerMatchCount(playerId) {
+  const has = m => [m.r1,m.r2,m.b1,m.b2].includes(playerId);
+  return appState.matchHistory.filter(has).length + appState.ongoingMatches.filter(has).length
+    + smToArr(appState.stagedMatches).filter(has).length;
 }
 
 function renderMatchBoard() {
@@ -34,7 +35,6 @@ function renderMatchBoard() {
 
   // ── pools ──
   const activeIds = appState.ongoingMatches.flatMap(m => [m.r1,m.r2,m.b1,m.b2]);
-  const round = picker.round || '1';
   const renderPool = (team) => {
     const isRed = team === 'red';
     const el = document.getElementById(isRed ? 'mbPoolRed' : 'mbPoolBlue');
@@ -50,7 +50,7 @@ function renderMatchBoard() {
     el.innerHTML = players.map(p => {
       const picked  = sel.includes(p.id);
       const inMatch = activeIds.includes(p.id);
-      const cnt = getPlayerMatchCountInRound(p.id, round);
+      const cnt = getPlayerMatchCount(p.id);
       const meta = inMatch ? 'กำลังแข่ง' : (cnt > 0 ? `เล่นแล้ว ${cnt}` : '');
       const cls = 'mb-chip ' + team + (picked ? ' picked' : '') + (inMatch ? ' live' : '');
       return `<button type="button" class="${cls}" aria-pressed="${picked}" onclick="boardToggle('${p.id}','${team}')">${avatarHtml(p, 28, {className:'mb-chip-pav'})}${escHtml(p.name)}${meta ? `<span class="mb-chip-meta">${meta}</span>` : ''}${picked ? dsIcon('check') : ''}</button>`;
@@ -85,10 +85,9 @@ function boardRemove(team, i) {
 // สุ่มลงกระดาน (ให้แอดมินตรวจก่อนกดสร้าง)
 function boardFillRandom() {
   const activeIds = appState.ongoingMatches.flatMap(m => [m.r1,m.r2,m.b1,m.b2]);
-  const round = picker.round || '1';
   const free = teamName => appState.players.filter(p => p.team === teamName && !activeIds.includes(p.id));
   const pick2 = list => {
-    const fresh = list.filter(p => getPlayerMatchCountInRound(p.id, round) < 1);
+    const fresh = list.filter(p => getPlayerMatchCount(p.id) < 1);
     const pool = (fresh.length >= 2 ? fresh : list).slice();
     // Fisher-Yates. sort(() => Math.random() - 0.5) is NOT a shuffle: the
     // comparator is inconsistent, so the engine leaves most elements near
@@ -103,12 +102,6 @@ function boardFillRandom() {
   if (reds.length < 2 || blues.length < 2) return showToast('ผู้เล่นที่ว่าง (ไม่ติดแมตช์สด) มีไม่พอ 2 คนต่อทีม', 'error');
   picker.red = pick2(reds);
   picker.blue = pick2(blues);
-  renderMatchBoard();
-}
-
-function selectRound(r) {
-  picker.round = String(r);
-  [1,2,3].forEach(n => { const b = document.getElementById('rpill'+n); if (!b) return; const on = String(n) === String(r); b.classList.toggle('round-active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
   renderMatchBoard();
 }
 
@@ -129,7 +122,6 @@ async function createMatch() {
   const getP = id => (appState.players || []).find(p => p.id === id);
   const p_r1 = getP(r1), p_r2 = getP(r2), p_b1 = getP(b1), p_b2 = getP(b2);
   if (!p_r1 || !p_r2 || !p_b1 || !p_b2) return showToast('ไม่พบข้อมูลผู้เล่น กรุณาลองใหม่', 'error');
-  const round = picker.round || '1';
 
   // Reserve the match number atomically: two admins creating at the same
   // moment used to read the same counter and both make e.g. "M07".
@@ -144,15 +136,18 @@ async function createMatch() {
   if (n === null) return showToast('สร้างแมตช์ไม่สำเร็จ — ตรวจสอบการเชื่อมต่อแล้วลองใหม่', 'error');
 
   const mId = 'M' + (n < 10 ? '0'+n : n);
-  appState.ongoingMatches.push({
-    id: mId, round, r1, r2, b1, b2,
+  // every new match goes to the waiting box (Match Staging) first — it is NOT on the board
+  // until the admin sends it to the next-match queue (see match-staging.js)
+  if (!Array.isArray(appState.stagedMatches)) appState.stagedMatches = smToArr(appState.stagedMatches);
+  appState.stagedMatches.push({
+    id: mId, r1, r2, b1, b2,
     redNames:  `${p_r1.name} (G${p_r1.group}) & ${p_r2.name} (G${p_r2.group})`,
     blueNames: `${p_b1.name} (G${p_b1.group}) & ${p_b2.name} (G${p_b2.group})`
   });
   appState.matchCounter = Math.max(Number(appState.matchCounter) || 0, n + 1);
   resetPicker();
   saveData(true);
-  showToast(`สร้าง ${mId} (รอบ ${round}) เข้าคิวแล้ว: ${p_r1.name} & ${p_r2.name}  vs  ${p_b1.name} & ${p_b2.name}`, 'success');
+  showToast(`สร้าง ${mId} ลงกล่องรอแล้ว: ${p_r1.name} & ${p_r2.name}  vs  ${p_b1.name} & ${p_b2.name} — กด “ต่อคิว” เมื่อพร้อม`, 'success');
   playSound('match');
 }
 

@@ -561,7 +561,7 @@ function _tvEventHtml(ev) {
   const w = g1r > g1b ? 'red' : g1b > g1r ? 'blue' : '';
   const leader = w === 'red' ? _tvStrip(m.redNames) : w === 'blue' ? _tvStrip(m.blueNames) : '';
   return `<div class="tv-panel tv-event tv-ev-g1${w ? ' is-' + w : ''}">
-    <div class="tv-ev-tag" lang="en">${escHtml(m.id || '')} · ROUND ${escHtml(String(m.round || ''))}</div>
+    <div class="tv-ev-tag" lang="en">${escHtml(m.id || '')}${m.round ? ' · ROUND ' + escHtml(String(m.round)) : ''}</div>
     <div class="tv-ev-big" lang="en">END OF GAME 1</div>
     ${_tvFieldsHtml('tv-ev-score', m, { notStarted: false, cr: g1r, cb: g1b })}
     <div class="tv-ev-note">${w ? `<b class="is-${w}">${escHtml(leader)}</b> นำ · ลุยเกม 2` : 'เสมอ · ลุยเกม 2'}</div>

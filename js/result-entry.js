@@ -77,7 +77,7 @@ function openResultModal(mId) {
     const m = appState.ongoingMatches.find(x => x.id === mId);
     if(!m) return;
     document.getElementById('currentMatchId').value = mId;
-    document.getElementById('forceMatchSub').textContent = `แมตช์ ${m.id} · รอบ ${m.round}`;
+    document.getElementById('forceMatchSub').textContent = `แมตช์ ${m.id}${m.round ? ' · รอบ ' + m.round : ''}`;
     document.getElementById('forceTeams').innerHTML = _forceTeamsHtml(m);
     ['g1Red','g1Blue','g2Red','g2Blue'].forEach(id => document.getElementById(id).value = '');
     updateForceLiveResult();
@@ -226,7 +226,7 @@ function openEditResult(historyId) {
   const won = h.rStat === 'W' ? 'RED ชนะ' : h.rStat === 'L' ? 'BLUE ชนะ' : 'เสมอ';
   document.getElementById('editMatchHistoryId').value = historyId;
   document.getElementById('editModalMatchInfo').innerHTML =
-    `<div class="row"><b>แมตช์ ${escHtml(h.id)}</b><span class="ds-chip">รอบ ${escHtml(String(h.round))}</span></div>
+    `<div class="row"><b>แมตช์ ${escHtml(h.id)}</b>${h.round ? `<span class="ds-chip">รอบ ${escHtml(String(h.round))}</span>` : ''}</div>
      <div class="row"><span class="ds-team ds-team-red">RED</span><span>${escHtml(h.redNames)}</span></div>
      <div class="row"><span class="ds-team ds-team-blue">BLUE</span><span>${escHtml(h.blueNames)}</span></div>
      <div class="row ds-muted">ผลปัจจุบัน: ${escHtml(h.game1)} / ${escHtml(h.game2)} · ${won}</div>`;

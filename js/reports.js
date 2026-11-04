@@ -316,16 +316,16 @@ function renderMatchesPanel() {
     return;
   }
 
-  const rounds = [...new Set(matches.map(m => m.round))].sort((a,b) => parseInt(a) - parseInt(b));
+  const rounds = [...new Set(matches.map(m => m.round || ''))].sort((a,b) => (parseInt(a)||0) - (parseInt(b)||0));
   el.innerHTML = rounds.map(r => {
-    const ms    = matches.filter(m => m.round === r);
+    const ms    = matches.filter(m => (m.round || '') === r);
     const redW  = ms.filter(m => m.rStat === 'W').length;
     const blueW = ms.filter(m => m.bStat === 'W').length;
     const draws = ms.filter(m => m.rStat === 'D').length;
     const lead  = redW > blueW ? 'red' : blueW > redW ? 'blue' : 'draw';
     return `<section class="rp-round">
       <header class="rp-round-head">
-        <h3 class="rp-round-no"><span>รอบ</span><b>${escHtml(r)}</b></h3>
+        <h3 class="rp-round-no">${r ? `<span>รอบ</span><b>${escHtml(r)}</b>` : '<span>ทุกแมตช์</span>'}</h3>
         <div class="rp-round-count">${ms.length} แมตช์</div>
         <div class="rp-round-tally">
           <span class="ds-chip ds-chip-red"><i class="rp-mark is-red"></i>RED <b>${redW}W</b></span>

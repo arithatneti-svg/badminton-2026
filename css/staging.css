@@ -51,3 +51,8 @@ body:has(#stagingBoard.is-dragging) { user-select: none; -webkit-user-select: no
 .stg-qnames .red { color: var(--red-text); } .stg-qnames .blue { color: var(--blue-text); }
 #stagingBoard { font-family: var(--font-th); }
 .stg-grip { min-width: var(--tap); min-height: 32px; display: inline-flex; align-items: center; justify-content: center; }
+
+.stg-go { width: 100%; margin-top: 8px; min-height: var(--tap); border: 0; border-radius: 10px; background: var(--gold); color: var(--gold-ink); font: 800 var(--fs-14) var(--font-th); cursor: pointer; }
+.stg-go:hover { background: var(--gold-hi); }
+[data-theme="paper"] .stg-go { border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.stg-lanes { grid-auto-columns: minmax(280px, 1fr); }

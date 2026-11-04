@@ -125,10 +125,10 @@ function exportRoundsPDF() {
   const date   = new Date().toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
   const redTeam  = appState.redTeamName  || 'RED TEAM';
   const blueTeam = appState.blueTeamName || 'BLUE TEAM';
-  const rounds   = [...new Set(hist.map(m => m.round))].sort((a,b)=>parseInt(a)-parseInt(b));
+  const rounds   = [...new Set(hist.map(m => m.round || ''))].sort((a,b)=>(parseInt(a)||0)-(parseInt(b)||0));
   let totalRedW=0,totalBlueW=0,totalDraws=0;
   const roundSections = rounds.map(r => {
-    const ms = hist.filter(m=>m.round===r);
+    const ms = hist.filter(m=>(m.round||'')===r);
     const redW  = ms.filter(m=>m.rStat==='W').length;
     const blueW = ms.filter(m=>m.bStat==='W').length;
     const draws = ms.filter(m=>m.rStat==='D').length;
@@ -150,7 +150,7 @@ function exportRoundsPDF() {
     const rPct=total?Math.round(redW/total*100):0, bPct=total?Math.round(blueW/total*100):0, dPct=total?Math.round(draws/total*100):0;
     return `<div class="round-card">
       <div class="round-header">
-        <div class="round-title">ROUND ${r}</div>
+        <div class="round-title">${r ? 'ROUND ' + r : 'ALL MATCHES'}</div>
         <div class="round-badges">
           <span class="badge red-badge">🔴 ${redW}W</span>
           <span class="badge draw-badge">🤝 ${draws}D</span>
@@ -333,7 +333,7 @@ function exportPlayerPDF() {
       const oppColor=isRed?'#1e88e5':'#e53935';
       return `<tr style="background:${bg};">
         <td class="mc" style="font-weight:800;color:#777;">${m.id}</td>
-        <td class="mc" style="color:#999;">R${m.round}</td>
+        <td class="mc" style="color:#999;">${m.round ? 'R' + m.round : ''}</td>
         <td style="color:${oppColor};font-size:11px;">vs ${oppNames}</td>
         <td class="mc" style="font-family:monospace;font-weight:700;">${m.game1}${m.game2?' / '+m.game2:''}</td>
         <td class="mc"><span style="color:${rc};font-weight:900;font-size:12px;">${resLabel}</span></td>

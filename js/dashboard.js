@@ -353,7 +353,7 @@ function renderRecentMatches() {
     const tags = m.analysis && m.analysis.tags ? m.analysis.tags : [];
     return `<div class="db-r-item">
       <div class="db-r-head">
-        <span class="db-r-id">${m.id}</span><span class="db-r-round">รอบ ${escHtml(m.round)}</span>
+        <span class="db-r-id">${m.id}</span>${m.round ? `<span class="db-r-round">รอบ ${escHtml(m.round)}</span>` : ''}
         <span class="rp-mres ${resCls}">${escHtml(res)}</span>
       </div>
       <div class="rp-mteams">${team('is-red', 'แดง', m.redNames, 0)}${team('is-blue', 'น้ำเงิน', m.blueNames, 1)}</div>

@@ -331,7 +331,7 @@ function renderIdleBoard() {
     <div class="idl-next-head">
       <span class="idl-next-tag">${dsIcon('play', { fill: true })} แมตช์ถัดไป</span>
       ${m.court ? `<span class="court-no">${escHtml(courtLabel(m))}</span>` : ''}
-      <span class="idl-next-id">${escHtml(m.id)} · รอบ ${escHtml(String(m.round || '?'))}</span>
+      <span class="idl-next-id">${escHtml(m.id)}${m.round ? ' · รอบ ' + escHtml(String(m.round)) : ''}</span>
       ${state}
     </div>
     <div class="idl-next-row">
@@ -465,7 +465,7 @@ function _liveArenaHtml(m, live, mode) {
       <div class="lv-top">
         <span class="lv-live ds-chip ds-chip-live"><i class="ds-dot ds-dot-live"></i>LIVE</span>
         ${m.court ? `<span class="lv-courtno">${escHtml(courtLabel(m))}</span>` : ''}
-        <span class="lv-match">${escHtml(m.id)} · รอบ ${escHtml(String(m.round))}</span>
+        <span class="lv-match">${escHtml(m.id)}${m.round ? ' · รอบ ' + escHtml(String(m.round)) : ''}</span>
         ${m.umpire ? `<span class="lv-ump">${dsIcon('user')}<span>${escHtml(m.umpire)}</span></span>` : ''}
         ${mode === 'me' ? `<span class="lv-me">${dsIcon('star', { fill: true })}<span>แมตช์ของคุณ</span></span>` : ''}
         ${matchStatusHtml(m)}

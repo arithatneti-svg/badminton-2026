@@ -935,7 +935,7 @@ function _matchCardHtml(m, mine, next) {
   return `
     <button type="button" class="match-card${mine ? ' claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
       <span class="mc-head">
-        <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
+        <span class="mc-id">${m.id}${m.round ? `<small>รอบ ${m.round}</small>` : ''}</span>
         <span class="mc-badges">${court}${status}</span>
       </span>
       <span class="mc-team ds-team ds-team-red">${umpirePairFaces(m.r1, m.r2)}<span class="mc-names">${formatNames(m.redNames)}</span></span>
@@ -946,7 +946,7 @@ function _matchTakenHtml(m) {
   return `
     <div class="match-card locked-other">
       <span class="mc-head">
-        <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
+        <span class="mc-id">${m.id}${m.round ? `<small>รอบ ${m.round}</small>` : ''}</span>
         <span class="ds-chip">${dsIcon('lock-simple')}${_uEsc(m.umpire)}${m.court ? ' · ' + courtLabel(m) : ''}</span>
       </span>
     </div>`;
@@ -1026,7 +1026,7 @@ function renderFinishedList() {
     return `
       <div class="finished-card">
         <div class="finished-header">
-          <span class="mc-id">${m.id}<small>รอบ ${m.round}</small></span>
+          <span class="mc-id">${m.id}${m.round ? `<small>รอบ ${m.round}</small>` : ''}</span>
         </div>
         <div class="result-badge ${side}">${resultLabel}</div>
         <table class="score-grid">
