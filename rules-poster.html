@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>กติกาฉบับมือใหม่ — 2026 Winter Sports Day</title>
+<!-- A4 poster: the rules for first-timers. Same paper (Riso) theme as the app: cream paper, navy ink, solid red / cobalt, yellow marker,
+     the star mascot, Kanit + Noto Sans Thai + Anton. Print it (A4, or scale to A3) or save as PDF. Sibling of draw-poster.html. -->
+<script>document.documentElement.setAttribute('data-theme', 'paper');</script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Kanit:wght@500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/tokens.css?v=2026.10.30.75">
+<link rel="stylesheet" href="css/paper.css?v=2026.10.30.75">
+<style>
+  /* the app's paper palette (css/tokens.css) */
+  :root { --pz-ink: #0b2a52; --pz-red: #d81a21; --pz-blue: #0956b8; --pz-cream: #fff6ea; --pz-yellow: #f4c430; }
+  html, body { margin: 0; background: #d9d2c3; font-family: var(--font-th, 'Noto Sans Thai', sans-serif); color: var(--pz-ink); }
+  .pz-bar { display: flex; gap: 10px; justify-content: center; padding: 12px; }
+  .pz-bar button { min-height: 44px; padding: 0 18px; border: 1.5px solid var(--pz-ink); border-radius: 4px 9px 5px 10px / 10px 5px 9px 4px; background: var(--pz-yellow); color: var(--pz-ink); font: 700 16px/1 var(--font-th-head, Kanit, sans-serif); cursor: pointer; }
+  .pz-stage { display: flex; justify-content: center; padding-bottom: 24px; }
+  .pz-sheet { position: relative; width: 210mm; height: 297mm; box-sizing: border-box; padding: 9mm 13mm 8mm; overflow: hidden; background: var(--pz-cream); display: grid; grid-auto-rows: auto; align-content: space-between; gap: 3mm; transform-origin: top center; }
+  .pz-sheet::before { content: ''; position: absolute; inset: 0; background: url(media/riso/grain-paper.webp) center / 520px; mix-blend-mode: multiply; opacity: .55; pointer-events: none; }
+  .pz-sheet > * { position: relative; }
+  .pz-deco { position: absolute !important; pointer-events: none; }
+
+  /* ---------- header ---------- */
+  .pz-head { text-align: center; padding-top: 1mm; }
+  .pz-kicker { font-family: var(--font-num, Anton, sans-serif); font-size: 5.6mm; letter-spacing: .2em; color: var(--pz-red); line-height: 1; }
+  .pz-welcome { margin: 2.2mm 0 0; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 8.6mm; line-height: 1; }
+  .pz-title { margin: 1mm 0 0; font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 19.5mm; line-height: .98; letter-spacing: .015em; text-transform: uppercase; }
+  .pz-title em { font-style: normal; color: var(--pz-red); }
+  .pz-title i { font-style: normal; color: var(--pz-blue); }
+  .pz-swipe { display: inline-block; margin-top: 2mm; padding: 1.8mm 9mm 2.8mm; background: url(media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 7.6mm; line-height: 1.1; }
+  .pz-hero-star { right: 0; top: 4mm; width: 32mm; filter: drop-shadow(1.2mm 1.4mm 0 rgba(11, 42, 82, .3)); transform: rotate(6deg); }
+  .pz-hero-star.l { right: auto; left: 1mm; top: 8mm; width: 27mm; transform: rotate(-8deg); }
+
+  /* ---------- rule cards ---------- */
+  .pz-rule { position: relative; isolation: isolate; display: grid; grid-template-columns: 19mm 1fr; gap: 4mm; align-items: start; padding: 4mm 6mm 4mm 4mm; }
+  .pz-rule::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(255, 255, 255, .78); border: .9mm solid var(--pz-ink); border-radius: 3mm 6mm 4mm 7mm / 7mm 4mm 6mm 3mm; box-shadow: 2mm 2.2mm 0 var(--sh); }
+  .pz-rule.r1 { --sh: var(--pz-red); } .pz-rule.r2 { --sh: var(--pz-blue); } .pz-rule.r3 { --sh: var(--pz-yellow); }
+  .pz-no { position: relative; width: 19mm; height: 19mm; display: grid; place-items: center; margin-top: 1mm; }
+  .pz-no img { position: absolute; inset: -2mm; width: calc(100% + 4mm); height: calc(100% + 4mm); }
+  .pz-no b { position: relative; font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 12mm; line-height: 1; padding-top: .6mm; }
+  .r1 .pz-no b { color: var(--pz-red); } .r2 .pz-no b { color: var(--pz-blue); } .r3 .pz-no b { color: var(--pz-ink); }
+  .pz-rule h2 { margin: 0 0 1.6mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 7.6mm; line-height: 1.12; }
+  .pz-rule p { margin: 0; font-size: 4.8mm; line-height: 1.45; font-weight: 500; }
+  .pz-rule p b { font-weight: 800; }
+  .nw { white-space: nowrap; }
+  .pz-mark { padding: 0 1.6mm; background: url(media/riso/marker-yellow-2.webp) center / 100% 88% no-repeat; font-weight: 800; }
+
+  /* rule 1: three chips + the back-and-forth arrows */
+  .pz-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; margin-top: 2.4mm; }
+  .pz-chip { display: grid; justify-items: center; align-content: center; padding: 2mm 3mm 2.2mm; border: .7mm solid var(--pz-ink); border-radius: 2mm 4mm 2.5mm 4.5mm / 4.5mm 2.5mm 4mm 2mm; background: var(--pz-cream); }
+  .pz-chip b { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 10mm; line-height: 1; color: var(--pz-red); }
+  .pz-chip:nth-child(2) b { color: var(--pz-blue); } .pz-chip:nth-child(3) b { color: var(--pz-ink); }
+  .pz-chip span { font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 700; font-size: 4.2mm; line-height: 1.2; text-align: center; }
+  .pz-chip .pz-arrows { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 14mm; margin-bottom: .6mm; }
+  .pz-chip .pz-arrows img { height: 6mm; width: auto; }
+  .pz-chip .pz-arrows img + img { margin-top: .6mm; }
+
+  /* rule 2: two stars under a red and a blue ring */
+  .r2 .pz-body { display: grid; grid-template-columns: 1fr auto; gap: 3mm; align-items: center; }
+  .pz-pair { position: relative; display: flex; align-items: center; gap: 1mm; padding-right: 1mm; }
+  .pz-pair .pz-pw { position: relative; width: 29mm; height: 29mm; display: grid; place-items: center; }
+  .pz-pair .pz-pw .ring { position: absolute; inset: -1mm; width: calc(100% + 2mm); height: calc(100% + 2mm); }
+  .pz-pair .pz-pw .st { position: relative; width: 21mm; max-height: 22mm; object-fit: contain; filter: drop-shadow(.7mm .9mm 0 rgba(11, 42, 82, .25)); }
+  .pz-pair .pz-eq { font-family: var(--font-num, Anton, sans-serif); font-size: 10mm; line-height: 1; color: var(--pz-ink); }
+
+  /* rule 3: the score tiles */
+  .pz-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; margin: 2.4mm 0 2.4mm; }
+  .pz-tile { position: relative; isolation: isolate; text-align: center; padding: 2.2mm 1mm 2mm; color: var(--pz-cream); }
+  .pz-tile::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle, rgba(255, 246, 234, .17) .35mm, transparent .5mm) 0 0 / 1.9mm 1.9mm, var(--f); -webkit-mask: var(--riso-ragged) center / 100% 100% no-repeat; mask: var(--riso-ragged) center / 100% 100% no-repeat; }
+  .pz-tile.w { --f: var(--pz-red); } .pz-tile.d { --f: var(--pz-blue); } .pz-tile.l { --f: var(--pz-ink); }
+  .pz-tile .t { display: block; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 700; font-size: 4.5mm; line-height: 1.15; }
+  .pz-tile .n { display: block; font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 12.5mm; line-height: 1.02; }
+  .pz-tile .u { display: block; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 700; font-size: 4.4mm; line-height: 1; }
+  .pz-champ { display: grid; grid-template-columns: 1fr auto; gap: 3mm; align-items: center; }
+  .pz-champ img { width: 21mm; margin: -7mm 0 -3mm; filter: drop-shadow(.8mm 1mm 0 rgba(11, 42, 82, .25)); }
+
+  /* ---------- heal tip ---------- */
+  .pz-tip { position: relative; isolation: isolate; display: grid; grid-template-columns: 28mm 1fr; gap: 5mm; align-items: center; padding: 5mm 8mm 5mm 5mm; }
+  .pz-tip::before { content: ''; position: absolute; inset: 0; z-index: -1; background: #fff; border: 1.2mm solid var(--pz-ink); border-radius: 3mm 6mm 4mm 7mm / 7mm 4mm 6mm 3mm; box-shadow: 2.4mm 2.6mm 0 var(--pz-red); }
+  .pz-tip .st { width: 28mm; justify-self: center; margin: -7mm 0 -3mm; filter: drop-shadow(1mm 1.2mm 0 rgba(11, 42, 82, .28)); }
+  .pz-tip .k { font-family: var(--font-num, Anton, sans-serif); font-size: 5mm; letter-spacing: .16em; color: var(--pz-red); line-height: 1; }
+  .pz-tip h3 { margin: 1.4mm 0 2mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 8mm; line-height: 1.1; }
+  .pz-tip p { margin: 0; font-size: 4.9mm; line-height: 1.5; font-weight: 500; }
+  .pz-tip p b { font-weight: 800; }
+
+  /* ---------- footer ---------- */
+  .pz-foot { display: grid; justify-items: center; gap: 1.6mm; }
+  .pz-foot img.rule { width: 100%; height: 1.6mm; object-fit: fill; }
+  .pz-foot .row { display: flex; align-items: center; justify-content: center; gap: 3.2mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 700; font-size: 4.6mm; }
+  .pz-foot .row .rd { color: var(--pz-red); } .pz-foot .row .bl { color: var(--pz-blue); }
+  .pz-foot .row .vs { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; letter-spacing: .1em; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    html, body { background: none; }
+    .pz-bar { display: none; }
+    .pz-stage { display: block; padding: 0; }
+    .pz-sheet { transform: none !important; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="pz-bar"><button type="button" id="pzPrint">พิมพ์ / บันทึกเป็น PDF</button></div>
+<div class="pz-stage"><main class="pz-sheet" id="pzSheet">
+
+  <img class="pz-deco" src="media/riso/ring-red-2.webp" alt="" style="left:-26mm;top:-24mm;width:70mm;opacity:.16">
+  <img class="pz-deco" src="media/riso/ring-blue-2.webp" alt="" style="right:-30mm;top:46mm;width:64mm;opacity:.14">
+
+  <header class="pz-head">
+    <img class="pz-deco pz-hero-star l" src="media/mascot/serve.webp" alt="">
+    <img class="pz-deco pz-hero-star" src="media/mascot/victory.webp" alt="">
+    <div class="pz-kicker">BEGINNER'S GUIDE · 14 NOV 2026</div>
+    <p class="pz-welcome">ต้อนรับสู่</p>
+    <h1 class="pz-title"><em>2026</em> Winter<br>Sports <i>Day</i></h1>
+    <div class="pz-swipe">ฉบับมือใหม่ เข้าใจง่าย!</div>
+  </header>
+
+  <!-- 1 · format -->
+  <section class="pz-rule r1">
+    <div class="pz-no"><img src="media/riso/ring-red-1.webp" alt=""><b>1</b></div>
+    <div>
+      <h2>แข่งกี่รอบ? พักตอนไหน?</h2>
+      <div class="pz-chips">
+        <div class="pz-chip"><span>แข่ง</span><b>3</b><span>รอบ</span></div>
+        <div class="pz-chip">
+          <div class="pz-arrows"><img src="media/riso/arrow-red.webp" alt=""><img src="media/riso/arrow-blue.webp" alt=""></div>
+          <span>รอบละ 2 เกม<br>(ไป-กลับ)</span>
+        </div>
+        <div class="pz-chip"><span>พักทุก</span><b>11</b><span>นาที</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · matching -->
+  <section class="pz-rule r2">
+    <div class="pz-no"><img src="media/riso/ring-blue-1.webp" alt=""><b>2</b></div>
+    <div class="pz-body">
+      <div>
+        <h2>จับคู่สุดสมดุล</h2>
+        <p><span class="pz-mark">มือใกล้เคียงกัน</span> สู้สนุก ไม่โหดเกินไป<br>และ <b>ได้เจอเพื่อนใหม่แน่นอน</b></p>
+      </div>
+      <div class="pz-pair">
+        <div class="pz-pw"><img class="ring" src="media/riso/ring-red-3.webp" alt=""><img class="st" src="media/mascot/flick.webp" alt=""></div>
+        <div class="pz-eq">=</div>
+        <div class="pz-pw"><img class="ring" src="media/riso/ring-blue-3.webp" alt=""><img class="st" src="media/mascot/drop.webp" alt=""></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · scoring -->
+  <section class="pz-rule r3">
+    <div class="pz-no"><img src="media/riso/ring-red-2.webp" alt=""><b>3</b></div>
+    <div>
+      <h2>ให้คะแนนยังไง?</h2>
+      <div class="pz-tiles">
+        <div class="pz-tile w"><span class="t">ชนะ 2 เกมรวด</span><span class="n">3</span><span class="u">แต้ม</span></div>
+        <div class="pz-tile d"><span class="t">เสมอ</span><span class="n">1</span><span class="u">แต้ม</span></div>
+        <div class="pz-tile l"><span class="t">แพ้</span><span class="n">0</span><span class="u">แต้ม</span></div>
+      </div>
+      <div class="pz-champ">
+        <p>สะสมให้ครบ <b>3 รอบ</b> ทีมไหนคะแนนรวมสูงสุด<br><span class="pz-mark">คว้าแชมป์!</span></p>
+        <img src="media/mascot/champion.webp" alt="">
+      </div>
+    </div>
+  </section>
+
+  <!-- mindset tip -->
+  <section class="pz-tip">
+    <img class="st" src="media/mascot/break.webp" alt="">
+    <div>
+      <div class="k">HEAL TIP</div>
+      <h3>มุมฮีลใจมือใหม่</h3>
+      <p>ไม่ต้องเครียด ไม่ต้องกดดันเรื่องทำแต้มเสีย ที่นี่เน้น <span class="pz-mark nw">สนุก</span> <span class="pz-mark nw">มิตรภาพ</span> <span class="pz-mark nw">บรรยากาศดีๆ</span> เล่นให้เต็มที่ แล้วสนุกไปด้วยกันนะ!</p>
+    </div>
+  </section>
+
+  <footer class="pz-foot">
+    <img class="rule" src="media/riso/line-red.webp" alt="">
+    <div class="row"><span class="rd">RED</span><span class="vs">VS</span><span class="bl">BLUE</span><span>กีฬาสี เสาร์ที่ 14 พ.ย. 2569</span></div>
+  </footer>
+</main></div>
+<script>
+(function () {
+  document.getElementById('pzPrint').onclick = function () { window.print(); };
+  // on screen the A4 sheet shrinks to fit a narrow window
+  var sheet = document.getElementById('pzSheet'), stage = sheet.parentNode;
+  function fit() {
+    var s = Math.min(1, (window.innerWidth - 16) / sheet.offsetWidth);
+    sheet.style.transform = s < 1 ? 'scale(' + s + ')' : '';
+    stage.style.height = s < 1 ? Math.ceil(sheet.offsetHeight * s + 24) + 'px' : '';
+  }
+  window.addEventListener('resize', fit); fit();
+})();
+</script>
+</body>
+</html>
