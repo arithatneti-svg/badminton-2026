@@ -363,8 +363,17 @@ function renderPlayersTab() {
   const fGroup = document.getElementById('playersTabFilterGroup')?.value || '';
   const stats  = getPlayerStats();
 
+  // Default: hide people who have no team colour yet, unless they are on a match right now
+  // (live, queued or staged). Searching by name, "ทุกคน" or "ยังไม่มีสี" shows them.
+  const hasColor = p => p.team === 'Red' || p.team === 'Blue';
+  const busyIds = new Set([...(appState.ongoingMatches || []), ...smToArr(appState.stagedMatches)].flatMap(m => [m.r1, m.r2, m.b1, m.b2]));
+  const showUncolored = fTeam === 'all' || fTeam === 'none' || !!searchRaw;
+  const visibleByColor = p => hasColor(p) || busyIds.has(p.id) || showUncolored;
+  const hiddenUncolored = fTeam ? 0 : appState.players.filter(p => !visibleByColor(p)).length;
   const players = appState.players.filter(p => {
-    if (fTeam && p.team !== fTeam) return false;
+    if (!visibleByColor(p)) return false;
+    if (fTeam === 'none') { if (hasColor(p)) return false; }
+    else if (fTeam && fTeam !== 'all' && p.team !== fTeam) return false;
     if (fGroup && p.group !== fGroup) return false;
     if (search && !(p.name.toLowerCase().includes(search) || p.id.toLowerCase().includes(search))) return false;
     return true;
@@ -372,6 +381,7 @@ function renderPlayersTab() {
 
   const sortBy = document.getElementById('playersTabSortBy')?.value || 'pts';
   players.sort((a, b) => {
+    if (hasColor(a) !== hasColor(b)) return hasColor(a) ? -1 : 1;   // uncoloured people go last, whatever the sort
     if (sortBy === 'name')      return a.name.localeCompare(b.name);
     if (sortBy === 'winRate')   return (stats[b.id]?.winRate || 0) - (stats[a.id]?.winRate || 0);
     if (sortBy === 'pointDiff') return (stats[b.id]?.pointDiff || 0) - (stats[a.id]?.pointDiff || 0);
@@ -387,8 +397,9 @@ function renderPlayersTab() {
   const meta = document.getElementById('playersTabMeta');
   if (meta) {
     meta.innerHTML = !total ? '' :
-      (filtered ? `<span><b>${players.length}</b> จาก ${total} คน</span>` : `<span><b>${total}</b> คน</span>`)
+      (filtered || hiddenUncolored ? `<span><b>${players.length}</b> จาก ${total} คน</span>` : `<span><b>${total}</b> คน</span>`)
       + (fTeam ? `<span>${escHtml(optText('playersTabFilterTeam'))}</span>` : '')
+      + (hiddenUncolored ? `<button type="button" class="ds-btn ds-btn-ghost pdir-clear" onclick="document.getElementById('playersTabFilterTeam').value='all';renderPlayersTab()">ซ่อน ${hiddenUncolored} คนที่ยังไม่มีสี · แสดง</button>` : '')
       + (fGroup ? `<span>${escHtml(optText('playersTabFilterGroup'))}</span>` : '')
       + `<span>${escHtml(optText('playersTabSortBy'))}</span>`
       + (filtered && players.length ? `<button type="button" class="ds-btn ds-btn-ghost pdir-clear" onclick="clearPlayersFilters()">ล้างตัวกรอง</button>` : '');
