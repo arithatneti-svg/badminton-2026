@@ -20,7 +20,7 @@
   .tp-bar { display: flex; gap: 10px; justify-content: center; padding: 12px; }
   .tp-bar button, .tp-bar a { min-height: 44px; padding: 0 18px; border: 1.5px solid var(--tp-ink); border-radius: 4px 9px 5px 10px / 10px 5px 9px 4px; background: var(--tp-yellow); color: var(--tp-ink); font: 700 16px/1 var(--font-th-head, Kanit, sans-serif); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
   .tp-stage { display: flex; justify-content: center; padding-bottom: 24px; }
-  .tp-sheet { position: relative; width: 210mm; height: 297mm; box-sizing: border-box; padding: 11mm 12mm 9mm; overflow: hidden; background: var(--tp-cream); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 3mm; transform-origin: top center; }
+  .tp-sheet { position: relative; width: 210mm; height: 297mm; box-sizing: border-box; padding: 11mm 12mm 9mm; overflow: hidden; background: var(--tp-cream); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 3mm; transform-origin: top center; }
   .tp-sheet::before { content: ''; position: absolute; inset: 0; background: url(media/riso/grain-paper.webp) center / 520px; mix-blend-mode: multiply; opacity: .55; pointer-events: none; }
   .tp-sheet > * { position: relative; }
 
@@ -41,16 +41,8 @@
   .tp-av::after { content: ''; position: absolute; inset: -19%; background: var(--ring) center / 100% 100% no-repeat; pointer-events: none; }
   .tp-nm { font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 5.4mm; line-height: 1.1; text-align: center; max-width: 100%; margin-top: -1mm; overflow-wrap: anywhere; }
   .tp-badge { position: absolute; top: 0; right: 2mm; padding: .6mm 2.6mm 1mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 3.4mm; line-height: 1.2; background: url(media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat; }
-  .tp-badge.is-new { background: var(--tp-cream); border: .5mm solid var(--tp-ink); border-radius: 1mm 2mm 1.2mm 2.4mm / 2.4mm 1.2mm 2mm 1mm; font-size: 3mm; }
+  .tp-badge.is-new { top: -.5mm; right: .5mm; padding: 1mm 4mm 1.6mm; font-size: 5mm; letter-spacing: .08em; background: url(media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; transform: rotate(5deg); filter: drop-shadow(.5mm .6mm 0 rgba(11, 42, 82, .35)); }
   .tp-cap .tp-av { --s: calc(var(--sz, 22mm) * 1.07); }
-  /* the new players: their own highlighted band at the bottom of the sheet */
-  .tp-new { position: relative; isolation: isolate; padding: 2.5mm 7mm 1mm; }
-  .tp-new::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle, rgba(11, 42, 82, .13) .3mm, transparent .45mm) 0 0 / 1.8mm 1.8mm, var(--tp-yellow);
-    -webkit-mask: var(--riso-ragged) center / 100% 100% no-repeat; mask: var(--riso-ragged) center / 100% 100% no-repeat; }
-  .tp-newh { display: flex; align-items: baseline; justify-content: center; gap: 3mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 5.6mm; line-height: 1.2; }
-  .tp-newh b { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; letter-spacing: .12em; color: var(--tc); font-size: 6.4mm; }
-  .tp-new .tp-grid { display: flex; justify-content: center; flex-wrap: wrap; gap: 0 4mm; padding-top: 0; }
-  .tp-new .tp-p { width: 33mm; }
   .tp-foot { display: flex; justify-content: space-between; align-items: center; font-size: 4mm; font-weight: 700; }
   .tp-foot b { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; letter-spacing: .12em; color: var(--tc); font-size: 5mm; }
   .tp-err { align-self: center; text-align: center; font-size: 6mm; }
@@ -80,7 +72,6 @@
     <img class="tp-star" src="media/mascot/champion.webp" alt="">
   </header>
   <section class="tp-grid" id="tpGrid"></section>
-  <section class="tp-new" id="tpNew" hidden><div class="tp-newh"><b>NEW</b>ผู้เล่นใหม่ ยินดีต้อนรับ!</div><div class="tp-grid" id="tpNewGrid"></div></section>
   <footer class="tp-foot"><span>กีฬาสี เสาร์ที่ 14 พ.ย. 2569</span><b id="tpFoot">RED</b><span>เจอกันที่สนาม!</span></footer>
 </main></div>
 <script>
@@ -112,11 +103,9 @@
         (ph ? '<img src="' + esc(ph) + '" alt="">' : '<span class="tp-ini">' + esc(ini(p.name)) + '</span>') + '</div><div class="tp-nm">' + esc(p.name) + '</div>' +
         (cap ? '<span class="tp-badge">หัวหน้าทีม</span>' : isNew ? '<span class="tp-badge is-new">NEW</span>' : '') + '</div>';
     }
-    document.getElementById('tpGrid').innerHTML = vets.map(cell).join('');
-    var nw = document.getElementById('tpNew'), ng = document.getElementById('tpNewGrid');
-    nw.hidden = !news.length; ng.innerHTML = news.map(cell).join('');
+    document.getElementById('tpGrid').innerHTML = vets.concat(news).map(cell).join('');   // new players last
     // photo size from the number of rows, so the whole sheet always fits
-    var rows = Math.ceil(vets.length / 4) + (news.length ? Math.ceil(news.length / 5) : 0), room = news.length ? 192 : 204;
+    var rows = Math.ceil(list.length / 4), room = 204;
     var s = Math.min(22, (room / Math.max(rows, 1) - 6.3) / 1.4);
     sheet.style.setProperty('--sz', s.toFixed(1) + 'mm');
     document.body.setAttribute('data-ready', '1'); document.body.setAttribute('data-missing', String(missing));
