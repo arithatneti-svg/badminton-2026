@@ -430,6 +430,7 @@ function doResetMatchOnly() {
       globalScoreBlue: 0,
       players:         currentPlayers,
       playerProfiles:  currentProfiles,
+      stagedMatches:   appState.stagedMatches,   // drafts are plans, not results — keep them
       ongoingMatches:  [],
       matchHistory:    [],
       matchCounter:    1,

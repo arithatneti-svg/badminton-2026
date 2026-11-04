@@ -65,6 +65,7 @@ function renderMatchBoard() {
   // tap, but a lit button that cannot succeed reads as broken
   const cb = document.getElementById('mbCreateBtn');
   if (cb) { cb.classList.toggle('mb-create-ready', n === 4); cb.setAttribute('aria-disabled', n === 4 ? 'false' : 'true'); }
+  if (typeof renderStaging === 'function') renderStaging();
 }
 
 function boardToggle(id, team) {
