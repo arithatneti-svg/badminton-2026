@@ -43,6 +43,24 @@
   .tp-badge { position: absolute; top: 0; right: 2mm; padding: .6mm 2.6mm 1mm; font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 800; font-size: 3.4mm; line-height: 1.2; background: url(media/riso/marker-yellow-2.webp) center / 100% 100% no-repeat; }
   .tp-badge.is-new { top: -.5mm; right: .5mm; padding: 1mm 4mm 1.6mm; font-size: 5mm; letter-spacing: .08em; background: url(media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; transform: rotate(5deg); filter: drop-shadow(.5mm .6mm 0 rgba(11, 42, 82, .35)); }
   .tp-cap .tp-av { --s: calc(var(--sz, 22mm) * 1.07); }
+  /* ?by=sub: the team's players in sections, one per subgroup */
+  .tp-subs { display: grid; align-content: start; gap: 1.5mm; }
+  .tp-sec { display: grid; grid-template-columns: 27mm 1fr; gap: 3mm; align-items: center; padding: .6mm 0; border-bottom: .4mm dashed rgba(11, 42, 82, .35); }
+  .tp-sec:last-child { border-bottom: 0; }
+  .tp-sl { position: relative; isolation: isolate; display: grid; justify-items: center; gap: .5mm; padding: 3.2mm 1mm; color: var(--tp-cream); }
+  .tp-sl::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle, rgba(255, 246, 234, .17) .3mm, transparent .45mm) 0 0 / 1.7mm 1.7mm, var(--tc);
+    -webkit-mask: var(--riso-ragged) center / 100% 100% no-repeat; mask: var(--riso-ragged) center / 100% 100% no-repeat; }
+  .tp-sl b { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; font-size: 13mm; letter-spacing: .04em; line-height: 1; }
+  .tp-sl span { font-family: var(--font-th-head, Kanit, sans-serif); font-weight: 700; font-size: 3.8mm; line-height: 1.1; }
+  .tp-row { display: flex; align-items: flex-start; gap: 0 1mm; }
+  .is-sub .tp-row .tp-p { width: calc(var(--sz, 17mm) * 1.4 + 2mm); flex: none; }
+  .is-sub .tp-nm { font-size: 4.5mm; }
+  .is-sub .tp-badge { right: 0; font-size: 3mm; }
+  .is-sub .tp-badge.is-new { font-size: 3.8mm; padding: .7mm 3mm 1.2mm; }
+  .is-sub .tp-name { font-size: 15mm; }
+  .is-sub .tp-head { padding: 3.2mm 10mm 3.2mm 12mm; }
+  .is-sub .tp-star { width: 26mm; }
+  .is-sub .tp-count { font-size: 5.6mm; margin-top: .6mm; }
   .tp-foot { display: flex; justify-content: space-between; align-items: center; font-size: 4mm; font-weight: 700; }
   .tp-foot b { font-family: var(--font-num, Anton, sans-serif); font-weight: 400; letter-spacing: .12em; color: var(--tc); font-size: 5mm; }
   .tp-err { align-self: center; text-align: center; font-size: 6mm; }
@@ -63,12 +81,14 @@
 <body class="is-red">
 <div class="tp-bar">
   <button type="button" id="tpPrint">พิมพ์ / บันทึกเป็น PDF</button>
-  <a href="?team=red" id="tpR">แผ่นทีมแดง</a>
-  <a href="?team=blue" id="tpB">แผ่นทีมน้ำเงิน</a>
+  <a href="?team=red" id="tpR">ทีมแดง</a>
+  <a href="?team=blue" id="tpB">ทีมน้ำเงิน</a>
+  <a href="?team=red&by=sub" id="tpRs">แดง ตามกลุ่มย่อย</a>
+  <a href="?team=blue&by=sub" id="tpBs">น้ำเงิน ตามกลุ่มย่อย</a>
 </div>
 <div class="tp-stage"><main class="tp-sheet" id="tpSheet">
   <header class="tp-head">
-    <div><div class="tp-kick">SPORTS DAY · 14 NOV 2026</div><h1 class="tp-name" id="tpName">RED TEAM</h1><p class="tp-count" id="tpCount">กำลังโหลด…</p></div>
+    <div><div class="tp-kick" id="tpKick">SPORTS DAY · 14 NOV 2026</div><h1 class="tp-name" id="tpName">RED TEAM</h1><p class="tp-count" id="tpCount">กำลังโหลด…</p></div>
     <img class="tp-star" src="media/mascot/champion.webp" alt="">
   </header>
   <section class="tp-grid" id="tpGrid"></section>
@@ -78,7 +98,7 @@
 (function () {
   var sheet = document.getElementById('tpSheet'), stage = sheet.parentNode;
   var q = new URLSearchParams(location.search);
-  var TEAM = q.get('team') === 'blue' ? 'Blue' : 'Red', lc = TEAM.toLowerCase();
+  var TEAM = q.get('team') === 'blue' ? 'Blue' : 'Red', lc = TEAM.toLowerCase(), BY_SUB = q.get('by') === 'sub';
   var CAPTAIN = { Red: 'หมี', Blue: 'เพชร' };
   var NEW = ['พล', 'ไทม์', 'อาร์ม', 'นาย', 'แม็กซ์', 'รุจิ'];
   var U = 'https://badminton-2026-687e7-default-rtdb.asia-southeast1.firebasedatabase.app';
@@ -102,6 +122,23 @@
       return '<div class="tp-p' + (cap ? ' tp-cap' : '') + '"><div class="tp-av" style="--ring:url(media/riso/ring-' + lc + '-' + (i % 3 + 1) + '.webp)">' +
         (ph ? '<img src="' + esc(ph) + '" alt="">' : '<span class="tp-ini">' + esc(ini(p.name)) + '</span>') + '</div><div class="tp-nm">' + esc(p.name) + '</div>' +
         (cap ? '<span class="tp-badge">หัวหน้าทีม</span>' : isNew ? '<span class="tp-badge is-new">NEW</span>' : '') + '</div>';
+    }
+    if (BY_SUB) {
+      var subs = {}, order = [];
+      list.forEach(function (p) { var k = p.sub || '-'; if (!subs[k]) { subs[k] = []; order.push(k); } subs[k].push(p); });
+      order.sort();
+      var score = function (p) { return (p.name === CAPTAIN[TEAM] ? -1 : 0) + (NEW.indexOf(p.name) >= 0 ? 1 : 0); };   // captain first, new players last
+      var grid = document.getElementById('tpGrid'); grid.className = 'tp-subs';
+      grid.innerHTML = order.map(function (k) {
+        var ps = subs[k].slice().sort(function (a, b) { return score(a) - score(b); });
+        return '<div class="tp-sec"><div class="tp-sl"><b>' + esc(k) + '</b><span>' + ps.length + ' คน</span></div><div class="tp-row">' + ps.map(cell).join('') + '</div></div>';
+      }).join('');
+      sheet.classList.add('is-sub');
+      document.getElementById('tpCount').textContent = list.length + ' คน · ' + order.length + ' กลุ่มย่อย';
+      document.getElementById('tpKick').textContent = 'SPORTS DAY · 14 NOV 2026 · แยกตามกลุ่มย่อย';
+      sheet.style.setProperty('--sz', Math.min(20, (232 / order.length - 9) / 1.4).toFixed(1) + 'mm');
+      document.body.setAttribute('data-ready', '1'); document.body.setAttribute('data-missing', String(missing));
+      return;
     }
     document.getElementById('tpGrid').innerHTML = vets.concat(news).map(cell).join('');   // new players last
     // photo size from the number of rows, so the whole sheet always fits
