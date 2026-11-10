@@ -39,11 +39,14 @@ const buildJs = quoted(/const JS = \[([\s\S]*?)\];/.exec(build)[1]);
 const buildUmpCss = quoted(/const UMP_CSS = \[([\s\S]*?)\];/.exec(build)[1]);
 const buildUmpJs = quoted(/const UMP_JS\s*= \[([\s\S]*?)\];/.exec(build)[1]);
 const buildDrawCss = quoted(/const DRAW_CSS = \[([\s\S]*?)\];/.exec(build)[1]);
+const buildR2Css = quoted(/const R2_CSS = \[([\s\S]*?)\];/.exec(build)[1]);
+const buildR2Js = quoted(/const R2_JS\s*= \[([\s\S]*?)\];/.exec(build)[1]);
 const buildDrawJs = quoted(/const DRAW_JS\s*= \[([\s\S]*?)\];/.exec(build)[1]);
 const split = (set) => ({ css: new Set([...set].filter((f) => f.endsWith('.css'))), js: new Set([...set].filter((f) => f.endsWith('.js'))) });
 const idx = split(pageFiles['index.html']);
 const ump = split(pageFiles['umpire.html']);
 const draw = split(pageFiles['draw.html']);
+const r2 = split(pageFiles['round2.html']);
 const cmp = (label, a, b) => {
   const m = diff(a, new Set(b)), x = diff(new Set(b), a);
   ok(m.length === 0 && x.length === 0, label + (m.length ? '  (html only: ' + m.join(', ') + ')' : '') + (x.length ? '  (build only: ' + x.join(', ') + ')' : ''));
@@ -54,6 +57,8 @@ cmp('build.mjs UMP_CSS = umpire.html css', ump.css, buildUmpCss);
 cmp('build.mjs UMP_JS = umpire.html js', ump.js, buildUmpJs);
 cmp('build.mjs DRAW_CSS = draw.html css', draw.css, buildDrawCss);
 cmp('build.mjs DRAW_JS = draw.html js', draw.js, buildDrawJs);
+cmp('build.mjs R2_CSS = round2.html css', r2.css, buildR2Css);
+cmp('build.mjs R2_JS = round2.html js', r2.js, buildR2Js);
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
