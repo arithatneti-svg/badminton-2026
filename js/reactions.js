@@ -39,10 +39,19 @@ function reactionBarHtml(mId) {
       return `<button type="button" class="rx-btn" data-rx-e="${k}" aria-label="ส่ง ${label}"><span class="rx-ch" aria-hidden="true">${ch}</span><b class="rx-n">${n > 0 ? _rxFmt(n) : ''}</b></button>`;
     }).join('') + `<span class="rx-floats" aria-hidden="true"></span></div>`;
 }
+// the running totals as a small line (🔥12 👏5): shown on the TV cards and in the finished-match list. Only emojis somebody used are listed.
+function _rxTotText(mId) {
+  return RX_EMOJI.map(([k, ch]) => { const n = Number((_rx[mId] || {})[k]) || 0; return n > 0 ? ch + ' ' + _rxFmt(n) : ''; }).filter(Boolean).join('  ');
+}
+function reactionTotalsHtml(mId) {
+  const t = _rxTotText(mId);
+  return `<span class="rx-tot" data-rx-m="${escHtml(mId)}" aria-label="กำลังใจจากผู้ชม">${t}</span>`;
+}
 function _rxFmt(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n); }
 
 function _rxPaint() {
   _rxPaintTimer = null;
+  document.querySelectorAll('.rx-tot').forEach(el => { const t = _rxTotText(el.dataset.rxM); if (el.textContent !== t) el.textContent = t; });
   document.querySelectorAll('.rx-bar').forEach(bar => {
     const m = bar.dataset.rxM;
     bar.querySelectorAll('.rx-btn').forEach(btn => {
@@ -53,10 +62,27 @@ function _rxPaint() {
 }
 function _rxSchedulePaint() { if (!_rxPaintTimer) _rxPaintTimer = setTimeout(_rxPaint, 250); }   // at most 4 repaints a second, however many taps arrive
 
+// TV mode has no buttons: the emojis of every live court rise from the bottom of the screen, each with its court's name
+function _rxFloatTv(mId, ch, count) {
+  let layer = document.getElementById('tvRxLayer');
+  if (!layer) { layer = document.createElement('div'); layer.id = 'tvRxLayer'; layer.setAttribute('aria-hidden', 'true'); document.body.appendChild(layer); }
+  const m = ((typeof appState !== 'undefined' && appState.ongoingMatches) || []).find(x => x.id === mId);
+  const tag = m && m.court ? 'คอร์ต ' + m.court : mId;
+  for (let i = 0; i < count && layer.childElementCount < 14; i++) {
+    const s = document.createElement('span');
+    s.className = 'rx-tvf';
+    s.innerHTML = '<i>' + ch + '</i><small>' + escHtml(tag) + '</small>';
+    s.style.left = (4 + Math.random() * 90) + '%';
+    s.style.animationDelay = (i * 160) + 'ms';
+    s.addEventListener('animationend', () => s.remove());
+    layer.appendChild(s);
+  }
+}
 function _rxFloat(mId, e, count) {
   const bar = document.querySelector(`.rx-bar[data-rx-m="${CSS.escape(mId)}"] .rx-floats`);
   const ch = (RX_EMOJI.find(x => x[0] === e) || [])[1];
-  if (!bar || !ch || document.hidden) return;
+  if (!ch || document.hidden) return;
+  if (!bar) { if (document.body.classList.contains('tv-mode') && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) _rxFloatTv(mId, ch, count); return; }
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   for (let i = 0; i < count && bar.childElementCount < RX_MAX_FLOATS; i++) {
     const s = document.createElement('span');

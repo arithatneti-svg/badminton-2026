@@ -431,8 +431,9 @@ function renderFinishedMatches() {
       const delBtn  = userRole === 'superadmin' ? `<button type="button" class="fm-act del" onclick="deleteFinishedMatch('${m.id}')" title="ลบ" aria-label="ลบ ${escHtml(m.id)}">${dsIcon('trash')}</button>` : '';
       admin = `<span class="fm-admin">${tagsBtn}${editBtn}${delBtn}</span>`;
     }
-    const foot = (tags || umpire || admin)
-      ? `<footer class="fm-foot"><span class="fm-tags">${tags}</span><span class="fm-meta">${umpire}${admin}</span></footer>` : '';
+    const rx = typeof reactionTotalsHtml === 'function' ? reactionTotalsHtml(m.id) : '';   // what the crowd sent while it was on court
+    const foot = (tags || umpire || admin || rx)
+      ? `<footer class="fm-foot"><span class="fm-tags">${tags}</span><span class="fm-meta">${rx}${umpire}${admin}</span></footer>` : '';
 
     const mineCls = (typeof matchHasMe === 'function' && matchHasMe(m)) ? ' is-mine' : '';
     return `<article class="fm ${cls}${mineCls}">

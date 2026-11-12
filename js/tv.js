@@ -427,7 +427,7 @@ function _tvVsHeroHtml(m, countHtml) {
     ${_tvHeadHtml(_tvLiveChip(true) + pill, meta)}
     <div class="tv-vs-body">
       ${_tvFieldsHtml('tv-vs-score', m, s)}
-      <div class="tv-vs-sub">${s.notStarted ? `<span class="tv-vs-now" lang="en">NOW PLAYING</span>` : ''}<span class="tv-vs-g1">${_tvRecap(s)}</span>${_tvStatusHtml(m)}</div>
+      <div class="tv-vs-sub">${s.notStarted ? `<span class="tv-vs-now" lang="en">NOW PLAYING</span>` : ''}<span class="tv-vs-g1">${_tvRecap(s)}</span>${_tvStatusHtml(m)}${typeof reactionTotalsHtml === 'function' ? reactionTotalsHtml(m.id) : ''}</div>
     </div>
   </div>`;
 }
@@ -455,6 +455,7 @@ function _tvGridHtml(live) {
       ${_tvStatusHtml(m)}
       <div class="tv-live-id">${pill}<span class="ds-chip tv-chip tv-live-game">${s.g2on ? 'เกม 2' : 'เกม 1'}</span>${_tvHotHtml(cx)}${m.court ? `<span class="tv-live-mid">${escHtml(m.id)}</span>` : ''}</div>
       <div class="tv-live-games">${_tvRecap(s)}</div>
+      ${typeof reactionTotalsHtml === 'function' ? reactionTotalsHtml(m.id) : ''}
       ${_tvFieldsHtml('tv-live-score', m, s)}
     </div>`;
   };

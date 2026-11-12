@@ -14,3 +14,19 @@
 @keyframes rx-up { 0% { transform: translateY(0) scale(.6); opacity: 0; } 15% { opacity: 1; transform: translateY(-10px) scale(1.1); } 100% { transform: translateY(-90px) scale(1); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .rx-float { display: none; } .rx-btn:active, .rx-btn.is-pop { transform: none; } }
 @media (max-width: 380px) { .rx-ch { font-size: 1.2rem; } .rx-btn { gap: 2px; } }
+
+/* the totals as a small line: 🔥 12  👏 5 (finished-match list, TV cards) */
+.rx-tot { font-size: var(--fs-13, .8125rem); color: var(--t-mid); white-space: nowrap; letter-spacing: .02em; }
+.rx-tot:empty { display: none; }
+.fm-meta .rx-tot { margin-right: 8px; }
+
+/* TV: the totals sit on the card's bottom edge (absolute: they never move the tuned layout), the emojis of every court rise from the bottom of the screen */
+.tv-live-card .rx-tot { position: absolute; bottom: 0; right: calc(var(--u, 8px) * 1.8); transform: translateY(50%); padding: 0 calc(var(--u, 8px) * 1.2); font-size: calc(var(--u, 8px) * 2.6); line-height: 1.5;
+  background: var(--s1); border: calc(var(--u, 8px) * .2) solid var(--line-strong); border-radius: 999px; }
+.tv-vs-sub .rx-tot { font-size: calc(var(--u, 8px) * 3.4); }
+#tvRxLayer { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
+.rx-tvf { position: absolute; bottom: -8vh; display: grid; justify-items: center; gap: .2vw; opacity: 0; animation: rx-tv-up 4.2s ease-out forwards; }
+.rx-tvf i { font-style: normal; font-size: clamp(2.4rem, 5.2vw, 6rem); line-height: 1; filter: drop-shadow(0 .3vw .5vw rgba(0, 0, 0, .35)); }
+.rx-tvf small { padding: 0 .8vw; border-radius: 999px; background: rgba(11, 42, 82, .78); color: #fff6ea; font-size: clamp(.8rem, 1.3vw, 1.6rem); font-weight: 700; }
+@keyframes rx-tv-up { 0% { transform: translateY(0) scale(.6); opacity: 0; } 12% { opacity: 1; transform: translateY(-8vh) scale(1.1); } 100% { transform: translateY(-75vh) scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #tvRxLayer { display: none; } }
