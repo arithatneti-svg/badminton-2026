@@ -517,14 +517,29 @@ function formatNames(names) {
 const umpPhotosRef = firebase.database().ref('sportsday_2026_photos');
 const _uPhotos = {};
 const _uPhotoReq = new Set();
+// Faces here are 50-100 px, so they read the small copy (sportsday_2026_thumbs/{id}, ~7 KB, a plain string) and only fall back to the
+// full photo (50-80 KB) for a player who has no thumb yet (see js/player-photo.js)
+const umpThumbsRef = firebase.database().ref('sportsday_2026_thumbs');
+const _uThumbs = {};          // id -> dataURL, null = no thumb (use the full photo), undefined = not heard yet
+const _uThumbReq = new Set();
+function _uWatchFull(id) {
+  if (_uPhotoReq.has(id)) return;
+  _uPhotoReq.add(id);
+  umpPhotosRef.child(id).on('value',
+    snap => { const v = snap.val(); _uPhotos[id] = (v && v.photo) || null; _uPaintFaces(id); },
+    ()   => { _uPhotos[id] = null; });
+}
 function umpirePhoto(id) {
   if (!id) return null;
-  if (!_uPhotoReq.has(id)) {
-    _uPhotoReq.add(id);
-    umpPhotosRef.child(id).on('value',
-      snap => { const v = snap.val(); _uPhotos[id] = (v && v.photo) || null; _uPaintFaces(id); },
-      ()   => { _uPhotos[id] = null; });
+  if (!_uThumbReq.has(id)) {
+    _uThumbReq.add(id);
+    const miss = () => { _uThumbs[id] = null; _uWatchFull(id); _uPaintFaces(id); };
+    umpThumbsRef.child(id).on('value',
+      snap => { const v = snap.val(); if (typeof v === 'string' && v) { _uThumbs[id] = v; _uPaintFaces(id); } else miss(); },
+      miss);
   }
+  if (_uThumbs[id]) return _uThumbs[id];
+  if (_uThumbs[id] === undefined) return null;                    // still waiting for the thumb: initials until it arrives
   const legacy = appState && appState.playerProfiles && appState.playerProfiles[id] && appState.playerProfiles[id].photo;
   return _uPhotos[id] || legacy || null;
 }

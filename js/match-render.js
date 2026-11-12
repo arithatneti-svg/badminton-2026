@@ -106,6 +106,7 @@ function renderPublicOngoingMatches() {
         <div class="ds-empty-text">แมตช์ถัดไปจะขึ้นที่นี่</div>
       </div>`;
   } else {
+    let liveHtml = '';   // built in one string and set once: `innerHTML +=` re-parses everything already drawn, once per card
     liveMatches.forEach(m => {
       const elapsed    = getCourtElapsed(m.id);
       const timerLabel = elapsed > 0 ? formatTimer(elapsed) : '0:00';
@@ -205,7 +206,7 @@ function renderPublicOngoingMatches() {
         matchStatusHtml(m),
         climaxBadge
       ].join('');
-      liveContainer.innerHTML += `
+      liveHtml += `
         <article class="court-card ${climaxClass}${mineCls}">
           <header class="court-card-header">
             ${courtPillHtml(m)}
@@ -224,12 +225,14 @@ function renderPublicOngoingMatches() {
               ${bluePlayersHtml}
             </div>
           </div>
+          ${typeof reactionBarHtml === 'function' ? reactionBarHtml(m.id) : ''}
           ${(userRole==='superadmin') ? `<div class="court-admin">
             <button type="button" class="ds-btn" onclick="openResultModal('${m.id}')" title="ใส่ผลแมตช์เอง">${dsIcon('lightning')}Force Result</button>
             <button type="button" class="ds-btn ds-btn-danger" onclick="removeOngoingMatch('${m.id}')" title="ลบแมตช์นี้">${dsIcon('trash')}ลบ</button>
           </div>` : ''}
         </article>`;
     });
+    liveContainer.innerHTML = liveHtml;
   }
 
   // ── Queue list — compact horizontal rows ──

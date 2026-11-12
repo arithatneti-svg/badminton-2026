@@ -252,6 +252,7 @@ function wzConfirmNewSeason() {
   appState.matchHistory   = [];
   appState.ongoingMatches = [];
   appState.matchCounter   = 1;
+  if (typeof clearReactions === 'function') clearReactions();   // match numbers start again at M01: last season's cheers must not carry over
   appState.globalScoreRed  = 0;
   appState.globalScoreBlue = 0;
   appState.redTeamName  = 'RED TEAM';

@@ -22,6 +22,49 @@ const photosRef = firebase.database().ref('sportsday_2026_photos');
 const _photos   = {};          // id → dataURL, or null = no photo at the new path
 const _photoReq = new Set();   // ids we already listen to
 
+// ── Thumbnails ───────────────────────────────────────────
+// A 24-72 px face used to pull the FULL photo (50-80 KB, up to 220 KB): 20 faces on the live courts = ~1.2 MB per phone, and ~3 MB for
+// someone who opens the players tab. Now every photo also has a small copy (long side 160 px, ~6-9 KB) at
+//   sportsday_2026_thumbs/{playerId} = dataURL (a plain string)
+// and every avatar up to AVATAR_THUMB_MAX px reads that. The full photo is only fetched for big faces (profile, TV, lightbox).
+// A player with no thumb yet falls back to the full photo, exactly as before, so old and new data both display.
+const THUMB_DIM = 160, THUMB_QUALITY = 0.8, AVATAR_THUMB_MAX = 72;
+const thumbsRef = firebase.database().ref('sportsday_2026_thumbs');
+const _thumbs   = {};          // id → dataURL, null = this player has no thumb (use the full photo), undefined = not heard yet
+const _thumbReq = new Set();
+
+function _watchThumb(id) {
+  _thumbReq.add(id);
+  const miss = () => { _thumbs[id] = null; if (!_photoReq.has(id)) _watchPhoto(id); _paintAvatars(id); };
+  thumbsRef.child(id).on('value',
+    snap => { const v = snap.val(); if (typeof v === 'string' && v) { _thumbs[id] = v; _paintAvatars(id); } else miss(); },
+    miss);
+}
+// the picture an avatar of this size should show (null = nothing yet: initials until it arrives)
+function avatarSrc(id, size) {
+  if (!id) return null;
+  if (!(size <= AVATAR_THUMB_MAX)) return playerPhoto(id);          // big face: the full photo
+  if (!_thumbReq.has(id)) _watchThumb(id);
+  if (_thumbs[id]) return _thumbs[id];
+  return _thumbs[id] === null ? playerPhoto(id) : null;             // no thumb for this player: full photo; still waiting: initials
+}
+
+// Downscale an existing photo data URL to a thumbnail data URL.
+function makeThumb(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, THUMB_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.max(1, Math.round(img.naturalWidth * s)), h = Math.max(1, Math.round(img.naturalHeight * s));
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const ctx = c.getContext('2d'); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', THUMB_QUALITY));
+    };
+    img.onerror = () => reject(new Error('thumb: bad image'));
+    img.src = dataUrl;
+  });
+}
+
 function _legacyPhoto(id) {
   return (appState.playerProfiles || {})[id]?.photo || null;
 }
@@ -41,9 +84,9 @@ function _watchPhoto(id) {
 
 // Upgrade (or downgrade) every avatar of this player already on screen.
 function _paintAvatars(id) {
-  const photo = playerPhoto(id);
   const name  = (appState.players || []).find(x => x.id === id)?.name || id;
   document.querySelectorAll(`.pav[data-pid="${CSS.escape(id)}"]`).forEach(el => {
+    const photo = avatarSrc(id, parseFloat(el.style.getPropertyValue('--pav-size')) || 38);   // a small face shows the thumb, a big one the photo
     const img = el.querySelector('img');
     if (photo) {
       if (img) { if (img.getAttribute('src') !== photo) img.src = photo; return; }
@@ -73,7 +116,7 @@ function avatarHtml(player, size = 38, opts = {}) {
     ? (appState.players || []).find(x => x.id === player)
     : player;
   if (!p) return '';
-  const photo = playerPhoto(p.id);
+  const photo = avatarSrc(p.id, size);
   const teamClass = teamCls(p.team, 'pav-');
   const rv = [...String(p.id)].reduce((a, c) => a + c.charCodeAt(0), 0) % 3;   // which of the 3 hand-inked rings (css .pav-r0..2)
   const extra = (opts.className ? ' ' + opts.className : '') + ' pav-r' + rv;
@@ -230,6 +273,7 @@ async function savePlayerPhoto(playerId, dataUrl) {
     await photosRef.child(playerId).set({ photo: dataUrl, t: Date.now() });
     _photos[playerId] = dataUrl;
     if (!_photoReq.has(playerId)) _watchPhoto(playerId);
+    try { await thumbsRef.child(playerId).set(await makeThumb(dataUrl)); } catch (e) { console.warn('thumb not saved (the full photo is used until backfillThumbs runs):', e); }
     // drop any legacy copy so the live blob stays small (tiny targeted write)
     if (_legacyPhoto(playerId)) await dbRef.child(`playerProfiles/${playerId}/photo`).set(null);
   } catch (e) {
@@ -251,6 +295,7 @@ function removePlayerPhoto(playerId) {
   if (!playerPhoto(playerId)) return;
   showConfirmDialog('ลบรูปผู้เล่นคนนี้?', async () => {
     try { await photosRef.child(playerId).remove(); } catch (e) { /* not there / refused */ }
+    try { await thumbsRef.child(playerId).remove(); } catch (e) { /* not there / refused */ }
     _photos[playerId] = null;
     if (_legacyPhoto(playerId)) {
       appState.playerProfiles[playerId].photo = null;   // null (not delete) so RTDB clears it
@@ -318,18 +363,46 @@ function migratePlayerPhotos() {
   });
 }
 
+// ── Thumbnails for the photos that already exist ──
+// Idempotent: a player who already has a thumb is skipped, nothing is ever overwritten or deleted; the full photos are not touched.
+// Reads the photos one by one (not all at once) so a phone is never holding 3 MB of them.
+async function backfillThumbs(silent) {
+  if (userRole !== 'admin' && userRole !== 'superadmin') return silent ? 0 : showToast('ต้องใช้สิทธิ์ Admin', 'error');
+  try {
+    const ids = (appState.players || []).map(p => p.id);
+    const have = (await thumbsRef.once('value')).val() || {};
+    let made = 0;
+    for (const id of ids) {
+      if (typeof have[id] === 'string' && have[id]) continue;
+      const v = (await photosRef.child(id).once('value')).val();
+      if (!v || !v.photo) continue;
+      await thumbsRef.child(id).set(await makeThumb(v.photo));
+      made++;
+      if (!silent && made % 10 === 0) showToast(`สร้างรูปย่อแล้ว ${made}…`, 'info');
+    }
+    if (!silent) showToast(made ? `สร้างรูปย่อให้ผู้เล่น ${made} คนแล้ว` : 'ทุกคนมีรูปย่อครบแล้ว', 'success');
+    return made;
+  } catch (e) {
+    console.error('thumb backfill failed:', e);
+    if (!silent) showToast('สร้างรูปย่อไม่สำเร็จ: ' + (e.message || e), 'error');
+    return 0;
+  }
+}
+
 // Status line + button in the Backup modal (superadmin only).
 function renderPhotoMigrationStatus() {
   const el = document.getElementById('photoMigrateBox');
   if (!el) return;
   const legacy = Object.values(appState.playerProfiles || {}).filter(p => p && p.photo);
+  // small faces read a 160 px copy of each photo; this makes the copies for the photos that exist (safe to press again)
+  const thumbBtn = `<button type="button" class="ds-btn" onclick="backfillThumbs()">${dsIcon('images')}สร้างรูปย่อให้ทุกคน (ให้หน้าจอโหลดเร็วขึ้น)</button>`;
   if (!legacy.length) {
-    el.innerHTML = `<div class="ds-banner is-ok">${dsIcon('check-circle')}<span>รูปผู้เล่นแยกออกจากข้อมูลหลักแล้ว</span></div>`;
+    el.innerHTML = `<div class="ds-banner is-ok">${dsIcon('check-circle')}<span>รูปผู้เล่นแยกออกจากข้อมูลหลักแล้ว</span></div>${thumbBtn}`;
     return;
   }
   const kb = Math.round(legacy.reduce((s, p) => s + p.photo.length, 0) / 1024);
   el.innerHTML = `<div class="ds-banner is-warn">${dsIcon('images')}<span>ยังมีรูป <b>${legacy.length}</b> รูป (${kb} KB) ฝังอยู่ในข้อมูลหลัก — ทุกจอต้องโหลดก้อนนี้ก่อนเห็นคะแนน</span></div>
-    <button type="button" class="ds-btn ds-btn-primary" onclick="migratePlayerPhotos()">${dsIcon('upload-simple')}ย้ายรูปออกจากข้อมูลหลัก</button>`;
+    <button type="button" class="ds-btn ds-btn-primary" onclick="migratePlayerPhotos()">${dsIcon('upload-simple')}ย้ายรูปออกจากข้อมูลหลัก</button>${thumbBtn}`;
 }
 
 // Repaint every surface a face can appear on, without a full reload.
