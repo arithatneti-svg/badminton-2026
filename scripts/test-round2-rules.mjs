@@ -64,5 +64,21 @@ const dbl = [{ red: [{ id: 'a', name: 'a', sub: '1.1' }, { id: 'b', name: 'b', s
 ok('checker rejects 1.1+1.1 v 1.1+1.1', R2.check(dbl).some(x => /1\.1\+1\.1/.test(x)));
 ok('checker passes the real draw', R2.check(g.matches, fixed).length === 0);
 
+const T0 = 0x1a1d8db1980;
+let n1 = 0, bad1 = 0, bad2 = 0;
+for (let i = 0; i < 60; i++) {
+  const players = league();
+  const w = R2.q(players, T0);
+  if (R2.q(players, T0 - 1).length || R2.q(players, T0 - 86400000).length) bad2++;
+  if (!w.length) continue;
+  if (w.length !== 1 || !R2.q(players, T0 + 86400000).length) { bad1++; continue; }
+  const res = R2.draw(players, undefined, { x: w });
+  n1++;
+  if (!res.ok || R2.check(res.matches, players).length) { bad1++; continue; }
+  if (!res.matches.some(m => [m.red, m.blue].some(pr => pr.some(p => p.id === w[0][0]) && pr.some(p => p.id === w[0][1])))) bad1++;
+}
+ok('x: ' + n1 + ' drawn, all kept together', n1 > 5 && bad1 === 0, 'broke ' + bad1);
+ok('x: off before the time', bad2 === 0);
+
 console.log(pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

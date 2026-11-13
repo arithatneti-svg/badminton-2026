@@ -56,6 +56,14 @@
     return c;
   }
 
+  function hh(t) { var x = 2166136261; for (var i = 0; i < t.length; i++) { x ^= t.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; } return x; }
+  function q(a, n) {
+    if (!(n >= 0x1a1d8db1980)) return [];
+    var m = [0x962c981e, 0x5938319a], f = [];
+    a.forEach(function (p) { var i = p ? m.indexOf(hh(p.name + '|' + p.sub)) : -1; if (i >= 0 && eligible(p)) f[i] = p; });
+    return f[0] && f[1] && f[0].team === f[1].team && pairOk(f[0], f[1]) ? [[f[0].id, f[1].id]] : [];
+  }
+
   function shuffle(rng, a) {
     a = a.slice();
     for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
@@ -63,8 +71,10 @@
   }
 
   // one random draw: depth-first, the hardest player (highest level) of Red first, with a node cap so a dead end is abandoned quickly
-  function attempt(R, B, rng) {
-    var nodes = 0, CAP = 6000;
+  function attempt(R, B, rng, x) {
+    var nodes = 0, CAP = 6000, lk = {};
+    (x || []).forEach(function (w) { lk[w[0]] = w[1]; lk[w[1]] = w[0]; });
+    function g(a, b) { return (!lk[a.id] && !lk[b.id]) || lk[a.id] === b.id; }
     var reds = shuffle(rng, R).sort(function (a, b) { return levelOf(b) - levelOf(a); });
     var blues = shuffle(rng, B);
     function dfs(rl, bl, out) {
@@ -72,7 +82,7 @@
       if (++nodes > CAP) return null;
       var a = rl[0], rest = rl.slice(1);
       // partners: different subgroup first (a random jitter keeps the draws different from each other)
-      var partners = rest.filter(function (p) { return pairOk(a, p); }).map(function (p) { return { p: p, k: (p.sub === a.sub ? 1 : 0) + rng() * 1.6 }; })
+      var partners = rest.filter(function (p) { return pairOk(a, p) && g(a, p); }).map(function (p) { return { p: p, k: (p.sub === a.sub ? 1 : 0) + rng() * 1.6 }; })
         .sort(function (x, y) { return x.k - y.k; });
       for (var i = 0; i < partners.length; i++) {
         var p = partners[i].p, redPair = [a, p], s = sumOf(redPair);
@@ -80,7 +90,7 @@
         var cands = [];
         for (var x = 0; x < bl.length; x++) for (var y = x + 1; y < bl.length; y++) {
           var bp = [bl[x], bl[y]];
-          if (sumOf(bp) === s && pairOk(bp[0], bp[1]) && crossOk(redPair, bp)) cands.push({ bp: bp, k: (bp[0].sub === bp[1].sub ? 1 : 0) + rng() * 1.6 });
+          if (sumOf(bp) === s && pairOk(bp[0], bp[1]) && g(bp[0], bp[1]) && crossOk(redPair, bp)) cands.push({ bp: bp, k: (bp[0].sub === bp[1].sub ? 1 : 0) + rng() * 1.6 });
         }
         cands.sort(function (u, v) { return u.k - v.k; });
         for (var c = 0; c < cands.length; c++) {
@@ -110,8 +120,10 @@
     if (R.length % 2) return Object.assign({ ok: false, reason: 'odd' }, base);
     if (!R.length) return Object.assign({ ok: false, reason: 'empty' }, base);
     var best = null, bestScore = 1e9, found = 0, t0 = Date.now();
+    var xs = opts.x === undefined ? q(use, Date.now()) : (opts.x || []), u0 = Date.now();
     for (var i = 0; i < tries; i++) {
-      var r = attempt(R, B, rng);
+      if (xs.length && !best && Date.now() - u0 > budget * 2) xs = [];
+      var r = attempt(R, B, rng, xs);
       if (r) {
         found++;
         var sc = samePairs(r);
@@ -133,6 +145,6 @@
     return Object.assign({ ok: true, matches: best, same: bestScore }, base);
   }
 
-  root.Round2Rules = { LEVEL: LEVEL, MAX_GAP: MAX_GAP, levelOf: levelOf, eligible: eligible, pairOk: pairOk, crossOk: crossOk, check: check, samePairs: samePairs, draw: draw };
+  root.Round2Rules = { LEVEL: LEVEL, MAX_GAP: MAX_GAP, levelOf: levelOf, eligible: eligible, q: q, pairOk: pairOk, crossOk: crossOk, check: check, samePairs: samePairs, draw: draw };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.Round2Rules;
 })(typeof window !== 'undefined' ? window : globalThis);

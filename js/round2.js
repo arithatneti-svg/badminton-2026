@@ -2,7 +2,7 @@
    Round-2 draw (organiser page). Sports Day, Saturday 14 Nov 2026.
    1. Asks for the admin or superadmin passcode (the same two codes as the main page) before it shows anything.
    2. Reads the players of the main app (sportsday_2026_data/players): colour (team) + subgroup (sub). People without both do not play round 2.
-   3. "สุ่มรอบ 2" runs shared/round2-rules.js (the owner's poster rules); "สุ่มใหม่" runs it again, as often as wanted. Nothing is saved yet.
+   3. "สุ่มรอบ 2" runs shared/round2-rules.js (the owner's poster rules); with ?send=1 a draw can be made ONCE (the result is kept in this browser so a reload cannot re-roll it; only "ยกเลิกที่ส่งไป" frees it); the plain preview can reshuffle. Nothing is saved yet.
    4. "ยืนยัน" puts the pairs in the main app's WAITING BOX (sportsday_2026_data/stagedMatches, in the poster's order, strongest match first) with
       fresh match numbers (the same atomic matchCounter the match creator uses) and records what it sent in draw_2026/round2.
       The admin then sends them on to the real queue from the main app, exactly like any other staged match.
@@ -57,12 +57,32 @@
   }
 
   // ── data ─────────────────────────────────────────────────
+  // the one real draw is remembered in this browser (ids only), so a reload cannot re-roll it
+  var DRAW_KEY = 'bdm_round2_draw' + (TEST ? '_test' : '');
+  function saveDraw(res) {
+    if (!SEND || !res || !res.ok) return;
+    try { localStorage.setItem(DRAW_KEY, JSON.stringify({ same: res.same, matches: res.matches.map(function (m) { return { r: [m.red[0].id, m.red[1].id], b: [m.blue[0].id, m.blue[1].id], sum: m.sum }; }) })); } catch (e) { /* no storage: the lock then only lasts until reload */ }
+  }
+  function forgetDraw() { try { localStorage.removeItem(DRAW_KEY); } catch (e) { /* ignore */ } }
+  function restoreDraw() {
+    if (!SEND || result) return;
+    try {
+      var raw = localStorage.getItem(DRAW_KEY); if (!raw) return;
+      var d = JSON.parse(raw), map = {}; players.forEach(function (p) { map[p.id] = p; });
+      var ms = d.matches.map(function (m) { return { red: m.r.map(function (i) { return map[i]; }), blue: m.b.map(function (i) { return map[i]; }), sum: m.sum }; });
+      var ok = ms.length && ms.every(function (m) { return m.red.concat(m.blue).every(function (p) { return !!p; }); }) && !RULES.check(ms, null).length;
+      if (!ok) { forgetDraw(); return; }       // players changed since that draw: it is void, draw again
+      result = { ok: true, matches: ms, same: d.same || 0, skipped: [], red: ms.length * 2, blue: ms.length * 2 };
+      drawCount = 1; step = null;
+    } catch (e) { forgetDraw(); }
+  }
+
   function loadPlayers() {
     loaded = false; loadErr = '';
     if (!dbOk()) { loadErr = 'ต่อฐานข้อมูลไม่ได้ ลองเปิดหน้านี้ใหม่'; paint(); return Promise.resolve(); }
     return db().ref(ROOT + '/players').once('value').then(function (s) {
       players = smToArr(s.val()).filter(function (p) { return p && p.id; });
-      loaded = true; paint();
+      loaded = true; restoreDraw(); paint();
     }, function () { loadErr = 'อ่านรายชื่อผู้เล่นไม่ได้ ลองกด “โหลดรายชื่อใหม่”'; paint(); });
   }
   function listenRecord() {
@@ -73,8 +93,10 @@
   // ── draw ─────────────────────────────────────────────────
   function doDraw() {
     if (record) return;
+    if (SEND && result && result.ok) return;   // the real draw is made once
     var res = RULES.draw(players);
     drawCount++;
+    saveDraw(res);
     notice = null;
     result = res;
     step = res.ok ? 0 : null;                // a good draw starts the announcement at match 1
@@ -110,7 +132,7 @@
       var stale = result.matches.some(function (m) {
         return m.red.concat(m.blue).some(function (p) { var q = map[p.id]; return !q || q.team !== p.team || q.sub !== p.sub || q.name !== p.name; });
       });
-      if (stale) { players = fresh; result = null; notice = { t: 'warn', m: 'ข้อมูลผู้เล่นเปลี่ยนไประหว่างนี้ (สี / ซับกรุ๊ป / ชื่อ) ยังไม่ได้ส่งอะไรเข้ากล่องรอ กรุณากดสุ่มใหม่' }; busy = false; paint(); return; }
+      if (stale) { players = fresh; result = null; forgetDraw(); notice = { t: 'warn', m: 'ข้อมูลผู้เล่นเปลี่ยนไประหว่างนี้ (สี / ซับกรุ๊ป / ชื่อ) ยังไม่ได้ส่งอะไรเข้ากล่องรอ กรุณากดสุ่มใหม่' }; busy = false; paint(); return; }
       var bad = RULES.check(result.matches, null);
       if (bad.length) { notice = { t: 'warn', m: 'ผลสุ่มขัดกติกา ยังไม่ได้ส่ง: ' + bad.join('; ') }; busy = false; paint(); return; }
       var existing = (await db().ref(RECORD).once('value')).val();
@@ -127,7 +149,7 @@
       var rec = { at: firebase.database.ServerValue.TIMESTAMP, matches: items.map(function (it, i) { return { id: it.id, r: [it.r1, it.r2], b: [it.b1, it.b2], sum: result.matches[i].sum }; }) };
       await db().ref(RECORD).set(rec);
       notice = { t: 'ok', m: 'ส่ง ' + n + ' แมตช์ (' + items[0].id + ' – ' + items[n - 1].id + ') เข้ากล่องรอแล้ว' };
-      result = null;
+      result = null; forgetDraw();
     } catch (e) {
       console.error('round 2 send failed:', e);
       notice = { t: 'warn', m: 'ส่งเข้ากล่องรอไม่สำเร็จ ตรวจสัญญาณแล้วลองอีกครั้ง (ถ้าเห็นแมตช์ซ้ำในกล่องรอ ให้ลบในหน้าหลัก)' };
@@ -150,7 +172,7 @@
       if (!tx.committed) throw new Error('staged');
       kept = Object.keys(ids).length - removed;
       await db().ref(RECORD).remove();
-      result = null;
+      result = null; forgetDraw();
       notice = { t: 'ok', m: 'เอาออกจากกล่องรอ ' + removed + ' แมตช์' + (kept ? ' · อีก ' + kept + ' แมตช์ถูกต่อคิวไปแล้ว (ยังอยู่)' : '') + ' · สุ่มใหม่ได้เลย' };
     } catch (e) {
       console.error('round 2 cancel failed:', e);
@@ -249,14 +271,14 @@
           '<div class="r2-actions r2-replay"><button type="button" class="ds-btn" data-act="replay">▶ ประกาศทีละคู่อีกครั้ง</button></div>') +
         '<ul class="r2-list">' + shown.map(function (m, i) { return rowHtml(m, i, record ? m.id : ''); }).join('') + '</ul></section>';
     } else if (loaded && !result && !record) {
-      main += '<section class="dw-card"><div class="dw-who">' + mascot('smash', 120) + '</div><h2>พร้อมสุ่มรอบ 2</h2><p>กด “สุ่มรอบ 2” แล้วระบบจะประกาศทีละคู่ กด “ถัดไป” ไปเรื่อยๆ จนถึงหน้าสรุป ถ้ายังไม่ถูกใจกด “สุ่มใหม่” ได้เรื่อยๆ ' + (SEND ? 'ผลจะยังไม่เข้าระบบจนกว่าจะกดยืนยัน' : 'ผลไม่ถูกบันทึกและไม่เข้าระบบหลัก') + '</p></section>';
+      main += '<section class="dw-card"><div class="dw-who">' + mascot('smash', 120) + '</div><h2>พร้อมสุ่มรอบ 2</h2><p>กด “สุ่มรอบ 2” แล้วระบบจะประกาศทีละคู่ กด “ถัดไป” ไปเรื่อยๆ จนถึงหน้าสรุป ' + (SEND ? 'สุ่มได้ครั้งเดียว แล้วกดยืนยันส่งเข้ากล่องรอ ' : 'ถ้ายังไม่ถูกใจกด “สุ่มใหม่” ได้เรื่อยๆ ') + (SEND ? 'ผลจะยังไม่เข้าระบบจนกว่าจะกดยืนยัน' : 'ผลไม่ถูกบันทึกและไม่เข้าระบบหลัก') + '</p></section>';
     }
 
     var canDraw = loaded && !record && !busy;
     if (!record && loaded) {
       var hasRes = result && result.ok;
       bar = '<div class="r2-bar"><span>' + (hasRes ? (SEND ? 'ยังไม่ได้บันทึก · ยืนยันเพื่อส่งเข้ากล่องรอทันที' : 'ดูผลเท่านั้น · ไม่ได้ส่งเข้าระบบหลัก') : 'ยังไม่ได้สุ่ม') + '</span><div class="r2-actions">' +
-        '<button type="button" class="ds-btn' + (hasRes ? '' : ' ds-btn-primary ds-btn-lg') + '" data-act="draw"' + (canDraw ? '' : ' disabled') + '>' + (hasRes ? 'สุ่มใหม่ (Reshuffle)' : 'สุ่มรอบ 2') + '</button>' +
+        (hasRes && SEND ? '' : '<button type="button" class="ds-btn' + (hasRes ? '' : ' ds-btn-primary ds-btn-lg') + '" data-act="draw"' + (canDraw ? '' : ' disabled') + '>' + (hasRes ? 'สุ่มใหม่ (Reshuffle)' : 'สุ่มรอบ 2') + '</button>') +
         (hasRes && SEND ? '<button type="button" class="ds-btn ds-btn-primary ds-btn-lg" data-act="confirm"' + (busy ? ' disabled' : '') + '>' + (busy ? 'กำลังส่ง…' : 'ยืนยัน ส่งเข้ากล่องรอ') + '</button>' : '') + '</div></div>';
     }
 

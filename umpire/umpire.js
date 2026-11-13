@@ -964,11 +964,13 @@ function _matchCardHtml(m, mine, next) {
     : next ? `<span class="ds-chip ds-chip-next">${dsIcon('caret-right')}ถัดไป</span>`
     : `<span class="ds-chip">${dsIcon('lock-simple-open')}ว่างอยู่</span>`;
   const court = mine && m.court ? `<span class="ds-chip ds-chip-gold">${courtLabel(m)}</span>` : '';
+  // an admin reservation (admin tab: กรรมการ — แนะนำ & มอบหมาย). Display only: anybody may still take the match.
+  const resv = !mine && !m.umpire && m.assigned ? `<span class="ds-chip ${m.assigned === currentUmpire ? 'ds-chip-gold' : ''}">${dsIcon('user')}${m.assigned === currentUmpire ? 'จองให้คุณ' : 'จองให้ ' + _uEsc(m.assigned)}</span>` : '';
   return `
     <button type="button" class="match-card${mine ? ' claimed' : ''}" onclick="handleMatchCardTap(event, '${m.id}')">
       <span class="mc-head">
         <span class="mc-id">${m.id}${m.round ? `<small>รอบ ${m.round}</small>` : ''}</span>
-        <span class="mc-badges">${court}${status}</span>
+        <span class="mc-badges">${court}${resv}${status}</span>
       </span>
       <span class="mc-team ds-team ds-team-red">${umpirePairFaces(m.r1, m.r2)}<span class="mc-names">${formatNames(m.redNames)}</span></span>
       <span class="mc-team ds-team ds-team-blue">${umpirePairFaces(m.b1, m.b2)}<span class="mc-names">${formatNames(m.blueNames)}</span></span>
@@ -1010,6 +1012,8 @@ function renderMatchList() {
     html.push(`<button type="button" class="list-filter${_onlyFree ? ' on' : ''}" aria-pressed="${_onlyFree}" onclick="toggleOnlyFree()">${dsIcon('funnel')}${
       _onlyFree ? `ซ่อนอยู่ ${taken.length} แมตช์ — แตะเพื่อแสดงทั้งหมด` : 'เฉพาะแมตช์ที่ว่าง'}</button>`);
   }
+  const forMe = free.filter(m => m.assigned && m.assigned === currentUmpire);
+  if (forMe.length) html.push(`<div class="resv-banner" role="status">${dsIcon('flag')}<span>ทีมงานมอบหมายให้คุณ: <b>${forMe.map(m => m.id).join(', ')}</b> — แตะการ์ดเพื่อรับแมตช์</span></div>`);
   if (mine.length) { html.push(group('คุมอยู่', mine.length)); mine.forEach(m => html.push(_matchCardHtml(m, true, false))); }
   if (free.length) { html.push(group('ว่างอยู่ — ตามลำดับคิว', free.length)); free.forEach((m, i) => html.push(_matchCardHtml(m, false, i === 0))); }
   else if (_onlyFree && !mine.length) {
