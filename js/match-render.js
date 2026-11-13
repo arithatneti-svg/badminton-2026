@@ -325,7 +325,48 @@ function renderAdminOngoingMatches() {
     </div>`;
     return;
   }
-  c.innerHTML = appState.ongoingMatches.map(m => {
+  const all = appState.ongoingMatches;
+  const live = all.filter(m => m && m.umpire), wait = all.filter(m => m && !m.umpire);
+  const f = _amFilter === 'live' || _amFilter === 'queue' ? _amFilter : 'all';
+  const showLive = f !== 'queue', showWait = f !== 'live';
+  const pill = (v, label, n) => `<button type="button" class="am-pill${f === v ? ' is-on' : ''}" aria-pressed="${f === v}" onclick="amSetFilter('${v}')">${label}<b>${n}</b></button>`;
+  const bar = `<div class="am-bar" role="group" aria-label="กรองแมตช์">${pill('all', 'ทั้งหมด', all.length)}${pill('live', 'กำลังแข่ง', live.length)}${pill('queue', 'รอคิว', wait.length)}</div>`;
+  const cut = _amQueueAll ? wait.length : AM_QUEUE_PREVIEW;
+  const rows = wait.slice(0, cut).map(_amQueueRow).join('');
+  const more = wait.length > AM_QUEUE_PREVIEW
+    ? `<button type="button" class="ds-btn am-more" onclick="amShowAllQueue()">${_amQueueAll ? 'ย่อรายการ' : `ดูที่เหลืออีก ${wait.length - AM_QUEUE_PREVIEW} แมตช์`}</button>` : '';
+  c.innerHTML = bar
+    + (showLive && live.length ? `<h3 class="am-sec">กำลังแข่ง / พร้อมแข่ง <span>${live.length}</span></h3><div class="am-list">${live.map(_amCard).join('')}</div>` : '')
+    + (showWait && wait.length ? `<h3 class="am-sec">รอคิว <span>${wait.length}</span></h3><div class="am-q" role="list">${rows}</div>${more}` : '')
+    + ((showLive && live.length) || (showWait && wait.length) ? '' : `<div class="queue-empty">ไม่มีแมตช์ในหมวดนี้</div>`);
+}
+
+// a waiting match as ONE compact row (number, id, the two sides, two actions) — ten of them fit on a screen
+function _amQueueRow(m, i) {
+  const corrupt = !m.id || m.id === 'undefined' || !m.r1 || !m.r2 || !m.b1 || !m.b2 || !m.redNames || m.redNames.includes('undefined') || !m.blueNames || m.blueNames.includes('undefined');
+  const id = escHtml(m.id && m.id !== 'undefined' ? m.id : '—');
+  const nm = str => escHtml((str || '—').split(' & ').map(n => stripGroup(n.trim())).join(' · '));
+  return `<div class="am-qrow${corrupt ? ' is-corrupt' : ''}" role="listitem" aria-label="คิวที่ ${i + 1} แมตช์ ${id}">
+    <div class="am-qhd"><span class="am-qn">#${i + 1}${m.round ? " · R" + escHtml(String(m.round)) : ""}</span><span class="am-qid">${id}</span></div>
+    <div class="am-qteams">
+      <span class="am-qside is-red"><i aria-hidden="true">●</i><span class="ds-sr-only">RED </span>${nm(m.redNames)}</span>
+      <span class="am-qside is-blue"><i aria-hidden="true">◆</i><span class="ds-sr-only">BLUE </span>${nm(m.blueNames)}</span>
+      ${corrupt ? '<span class="am-qtags"><span class="ds-chip ds-chip-err">ข้อมูลเสีย</span></span>' : ''}
+    </div>
+    <div class="am-qact">
+      ${corrupt ? '' : `<button type="button" class="ds-btn ds-btn-sm am-force am-ico" onclick="openResultModal('${m.id}')" title="ใส่ผลเอง" aria-label="ใส่ผลเอง ${id}">${dsIcon('pencil-simple')}</button>`}
+      <button type="button" class="ds-btn ds-btn-sm ds-btn-danger am-ico" onclick="removeOngoingMatch('${corrupt ? '' : m.id}')" title="ลบ" aria-label="ลบ ${id}">${dsIcon('trash')}</button>
+    </div>
+  </div>`;
+}
+
+let _amFilter = 'all', _amQueueAll = false;
+const AM_QUEUE_PREVIEW = 8;
+function amSetFilter(v) { _amFilter = v; _amQueueAll = false; renderAdminOngoingMatches(); }
+function amShowAllQueue() { _amQueueAll = !_amQueueAll; renderAdminOngoingMatches(); }
+
+// a match an umpire has taken: the full card (court picker, status, release)
+function _amCard(m) {
     const isLive = !!m.umpire;
     const corrupt = !m.id || m.id === 'undefined' || !m.r1 || !m.r2 || !m.b1 || !m.b2 || !m.redNames || m.redNames.includes('undefined') || !m.blueNames || m.blueNames.includes('undefined');
     const state = !isLive ? '<span class="ds-chip">รอคิว</span>'
@@ -350,7 +391,6 @@ function renderAdminOngoingMatches() {
         <button type="button" class="ds-btn ds-btn-sm ds-btn-danger am-del" onclick="removeOngoingMatch('${m.id}')">${dsIcon('trash')}ลบ</button>
       </div>
     </article>`;
-  }).join('');
 }
 
 // ── FINISHED RESULT FILTER ──

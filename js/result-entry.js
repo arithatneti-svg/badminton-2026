@@ -10,10 +10,13 @@ function scoreValidationMsg(a, b, label) {
 
 // ── MANUAL RESULT ENTRY (ADMIN FORCE RESULT) ──
 // Shared result calculator so the live preview shows EXACTLY what will be saved.
-function _calcResult(g1R, g1B, g2R, g2B) {
+// ret1 / ret2 ('red' | 'blue' | ''): the side that was hurt / withdrew LOSES that game whatever the points were
+function _calcResult(g1R, g1B, g2R, g2B, ret1, ret2) {
   let rWin = 0, bWin = 0;
-  if (g1R > g1B) rWin++; else if (g1B > g1R) bWin++; else { rWin += 0.5; bWin += 0.5; }
-  if (g2R > g2B) rWin++; else if (g2B > g2R) bWin++; else { rWin += 0.5; bWin += 0.5; }
+  const one = (r, b, ret) => ret === 'red' ? 'b' : ret === 'blue' ? 'r' : r > b ? 'r' : b > r ? 'b' : '';
+  const w1 = one(g1R, g1B, ret1), w2 = one(g2R, g2B, ret2);
+  if (w1 === 'r') rWin++; else if (w1 === 'b') bWin++; else { rWin += 0.5; bWin += 0.5; }
+  if (w2 === 'r') rWin++; else if (w2 === 'b') bWin++; else { rWin += 0.5; bWin += 0.5; }
   let pRed = 0, pBlue = 0, rStat = '', bStat = '', resText = '';
   if (rWin > bWin)      { pRed = 3;  rStat = 'W'; bStat = 'L'; resText = '🔴 Red Win 2–0 (+3pts)'; }
   else if (bWin > rWin) { pBlue = 3; rStat = 'L'; bStat = 'W'; resText = '🔵 Blue Win 2–0 (+3pts)'; }
@@ -53,6 +56,8 @@ function _forceTeamsHtml(m) {
     <div class="fr-team blue"><span class="ds-team ds-team-blue">BLUE</span>${blue.map((n, i) => row(blueIds[i], n)).join('')}</div>`;
 }
 
+function _forceRet(id) { const v = (document.getElementById(id) || {}).value; return v === 'red' || v === 'blue' ? v : ''; }
+
 // Live result preview — recomputed on every keystroke so there is no surprise
 // "Preview" step: the admin sees the outcome, then saves in one click.
 function updateForceLiveResult() {
@@ -67,7 +72,7 @@ function updateForceLiveResult() {
   }
   const g1R = parseInt(g1Re) || 0, g1B = parseInt(g1Bl) || 0;
   const g2R = parseInt(document.getElementById('g2Red').value) || 0, g2B = parseInt(document.getElementById('g2Blue').value) || 0;
-  const r = _calcResult(g1R, g1B, g2R, g2B);
+  const r = _calcResult(g1R, g1B, g2R, g2B, _forceRet('ret1'), _forceRet('ret2'));
   const o = _outcomeView(r.rStat);
   box.className = 'fr-live is-' + o.cls;
   box.innerHTML = `<span class="lbl">ผลลัพธ์การแข่ง</span><span class="val">${o.team}${o.word}</span><span class="pts">${o.pts}</span>`;
@@ -79,7 +84,7 @@ function openResultModal(mId) {
     document.getElementById('currentMatchId').value = mId;
     document.getElementById('forceMatchSub').textContent = `แมตช์ ${m.id}${m.round ? ' · รอบ ' + m.round : ''}`;
     document.getElementById('forceTeams').innerHTML = _forceTeamsHtml(m);
-    ['g1Red','g1Blue','g2Red','g2Blue'].forEach(id => document.getElementById(id).value = '');
+    ['g1Red','g1Blue','g2Red','g2Blue','ret1','ret2'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
     updateForceLiveResult();
     document.getElementById('resultModal').classList.add('open');
 }
@@ -110,9 +115,10 @@ function previewResult() {
     scoreValidationMsg(g1R, g1B, 'เกม 1'),
     hasG2 ? scoreValidationMsg(g2R, g2B, 'เกม 2') : null,
   ].filter(Boolean);
-  const { pRed, pBlue, rStat, bStat, resText } = _calcResult(g1R, g1B, g2R, g2B);
+  const ret1 = _forceRet('ret1'), ret2 = _forceRet('ret2');
+  const { pRed, pBlue, rStat, bStat, resText } = _calcResult(g1R, g1B, g2R, g2B, ret1, ret2);
   if (!m) return showToast('ไม่พบแมตช์นี้', 'error');
-  _pendingResult = { mId, m, g1R, g1B, g2R, g2B, pRed, pBlue, rStat, bStat, resText };
+  _pendingResult = { mId, m, g1R, g1B, g2R, g2B, pRed, pBlue, rStat, bStat, resText, ret1, ret2 };
   const _warnHtml = _scoreWarns.length
     ? `<div class="ds-banner is-warn">${dsIcon('warning')}<div>คะแนนไม่เข้ากติกา 21 คะแนนมาตรฐาน:<br>${_scoreWarns.join('<br>')}<br><b>กดยืนยันเพื่อบันทึกตามนี้ได้เลย</b></div></div>`
     : '';
@@ -128,12 +134,12 @@ function closeConfirm() { document.getElementById('confirmModal').classList.remo
 
 function finalizeResult() {
   if (!_pendingResult) return;
-  const { mId, m, g1R, g1B, g2R, g2B, pRed, pBlue, rStat, bStat, resText } = _pendingResult; 
+  const { mId, m, g1R, g1B, g2R, g2B, pRed, pBlue, rStat, bStat, resText, ret1, ret2 } = _pendingResult; 
   const matchDuration = matchPlayMs(m);   // played time (first point to now, minus pauses), same as the umpire app stores
   appState.globalScoreRed += pRed; appState.globalScoreBlue += pBlue;
 
   const analysis = analyzeSkillGap(g1R, g1B, g2R, g2B, rStat, mId, m ? m.potFlags : null);
-  appState.matchHistory.push({ id: m.id, round: m.round, r1: m.r1, r2: m.r2, b1: m.b1, b2: m.b2, redNames: m.redNames, blueNames: m.blueNames, game1: `${g1R}:${g1B}`, game2: `${g2R}:${g2B}`, result: resText, pRed, pBlue, rStat, bStat, duration: matchDuration, ...(m.court ? { court: m.court } : {}), analysis: analysis, umpire: m.umpire || 'Admin (Force)' });
+  appState.matchHistory.push({ id: m.id, round: m.round, r1: m.r1, r2: m.r2, b1: m.b1, b2: m.b2, redNames: m.redNames, blueNames: m.blueNames, game1: `${g1R}:${g1B}`, game2: `${g2R}:${g2B}`, result: resText, pRed, pBlue, rStat, bStat, duration: matchDuration, ...(m.court ? { court: m.court } : {}), analysis: analysis, ...(ret1 ? { ret1 } : {}), ...(ret2 ? { ret2 } : {}), umpire: m.umpire || 'Admin (Force)' });
   
   appState.ongoingMatches = appState.ongoingMatches.filter(x => x.id !== mId);
   _pendingResult = null;

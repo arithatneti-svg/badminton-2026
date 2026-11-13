@@ -113,8 +113,10 @@ function buildPlayerStats() {
     const [g2r, g2b] = (h.game2||'0:0').split(':').map(Number);
     const hasG2 = !isNaN(g2r) && (g2r > 0 || g2b > 0);
     let rGames=0, bGames=0, rScored=0, bScored=0;
-    if (!isNaN(g1r)&&!isNaN(g1b)) { rScored+=g1r; bScored+=g1b; if(g1r>g1b)rGames++; else if(g1b>g1r)bGames++; }
-    if (hasG2 && !isNaN(g2r)&&!isNaN(g2b)) { rScored+=g2r; bScored+=g2b; if(g2r>g2b)rGames++; else if(g2b>g2r)bGames++; }
+    // h.ret1 / h.ret2: the side that was hurt / withdrew LOSES that game whatever the points (the points still count in the point difference)
+    const gw = (r, b, ret) => ret === 'red' ? 'b' : ret === 'blue' ? 'r' : r > b ? 'r' : b > r ? 'b' : '';
+    if (!isNaN(g1r)&&!isNaN(g1b)) { rScored+=g1r; bScored+=g1b; const w = gw(g1r, g1b, h.ret1); if(w==='r')rGames++; else if(w==='b')bGames++; }
+    if (hasG2 && !isNaN(g2r)&&!isNaN(g2b)) { rScored+=g2r; bScored+=g2b; const w = gw(g2r, g2b, h.ret2); if(w==='r')rGames++; else if(w==='b')bGames++; }
     const gamesPlayed = (!isNaN(g1r)?1:0) + (hasG2&&!isNaN(g2r)?1:0);
     const rDiff = rScored - bScored, bDiff = -rDiff;
     let redEpic=0, blueEpic=0, allClutch=0, allMarathon=0, allRoller=0;

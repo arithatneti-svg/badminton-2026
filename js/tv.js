@@ -388,7 +388,8 @@ function _tvHotHtml(cx) {
   if (!cx) return '';
   return `<span class="ds-chip ds-chip-gold tv-chip tv-hot">${dsIcon(cx === 2 ? 'lightning' : 'fire')}<span class="tv-hot-t" lang="en">${cx === 2 ? 'DEUCE' : 'CLIMAX'}</span></span>`;
 }
-function _tvFacesHtml(ids) { return `<span class="tv-faces">${ids.map(id => avatarHtml(id, 64)).join('')}</span>`; }
+// TV faces are drawn at 64 here but CSS scales them up to the screen: ask for a size above AVATAR_THUMB_MAX so they get the FULL photo, never the 160 px thumb
+function _tvFacesHtml(ids) { return `<span class="tv-faces">${ids.map(id => avatarHtml(id, 120)).join('')}</span>`; }
 // A team's field (the same flat team colour, edge band and shape + word tag as the phone screens): tag and faces on top,
 // the digit (the biggest thing on the screen), the names under it. css/tv.css sizes it for the panel that holds it.
 function _tvFieldHtml(side, ids, names, digitHtml) {
@@ -485,7 +486,7 @@ function _tvBoardHtml() {
     const wr = p.total ? Math.round(p.w / p.total * 100) : 0;
     return `<div class="tv-board-row is-${side}">
       <div class="tv-rank${rank < 3 ? ' r' + (rank + 1) : ''}" lang="en">${rank + 1}</div>
-      <div class="tv-board-face">${avatarHtml(p.id, 64)}</div>
+      <div class="tv-board-face">${avatarHtml(p.id, 120)}</div>
       <div class="tv-pinfo"><div class="tv-pname">${escHtml(p.name)}</div><div class="tv-pmeta"><span class="ds-team ds-team-${side}">${escHtml(teamLabel(p.team))}</span><span lang="en">WR ${wr}%</span></div></div>
       <div class="tv-ppts"><b>${p.pts}</b><span lang="en">pt</span></div>
     </div>`;

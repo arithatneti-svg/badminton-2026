@@ -877,6 +877,23 @@ function showConfirm(icon, title, body, opts = {}) {
   });
 }
 
+// showChoice(icon, title, body, [{value, label, safe}], {scoreHtml}) → Promise<value>   (Esc / backdrop = 'cancel')
+// A box with more than two answers (the confirm box has exactly two). The `safe` button is first and has the focus.
+function showChoice(icon, title, body, choices, opts = {}) {
+  return new Promise(resolve => {
+    _modalResolve = resolve;
+    _modalIcon(icon);
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').textContent = body;
+    _modalPreview(opts.scoreHtml);
+    _modalWarn('');
+    const btns = document.getElementById('modalBtns');
+    btns.className = 'modal-btns stack';
+    btns.innerHTML = choices.map(c => `<button class="ds-btn ds-btn-lg modal-btn${c.safe ? '' : ' ds-btn-primary'}"${c.safe ? ' data-safe' : ''} onclick="_modalDone('${c.value}')">${_uEsc(c.label)}</button>`).join('');
+    _modalOpen('cancel');
+  });
+}
+
 function _modalDone(result) {
   document.getElementById('customModal').classList.remove('open', 'is-open');
   document.getElementById('modalBox').classList.remove('is-courts', 'has-score');
@@ -1408,10 +1425,14 @@ function scoreValidationMsg(a, b, label) {
 // code produced; resText stays English because the scoreboard, reports and PDF read it) — plus `label`,
 // the same thing in Thai for the umpire. A "Point Diff" branch that used to follow could never run:
 // the two sides' half-wins always add up to 2, so a tie there is always 1 – 1.
-function _uOutcome(g1r, g1b, g2r, g2b) {
+function _uOutcome(g1r, g1b, g2r, g2b, ret1, ret2) {
   let rWin = 0, bWin = 0, rGames = 0, bGames = 0;
-  if (g1r > g1b) { rWin++; rGames++; } else if (g1b > g1r) { bWin++; bGames++; } else { rWin += 0.5; bWin += 0.5; }
-  if (g2r > g2b) { rWin++; rGames++; } else if (g2b > g2r) { bWin++; bGames++; } else { rWin += 0.5; bWin += 0.5; }
+  // ret1 / ret2 ('red' | 'blue'): that side was hurt / withdrew in the game and LOSES it whatever the points were
+  // (the points stay as they were at the stop). No ret = the higher score wins, as always.
+  const one = (r, b, ret) => ret === 'red' ? 'b' : ret === 'blue' ? 'r' : r > b ? 'r' : b > r ? 'b' : '';
+  const w1 = one(g1r, g1b, ret1), w2 = one(g2r, g2b, ret2);
+  if (w1 === 'r') { rWin++; rGames++; } else if (w1 === 'b') { bWin++; bGames++; } else { rWin += 0.5; bWin += 0.5; }
+  if (w2 === 'r') { rWin++; rGames++; } else if (w2 === 'b') { bWin++; bGames++; } else { rWin += 0.5; bWin += 0.5; }
   const side = (name, games) => games === 2 ? `ทีม${name}ชนะ 2–0` : `ทีม${name}ชนะ 1–0 · อีกเกมเสมอ`;   // a tied game only exists in a walk-over
   if (rWin > bWin) return { pRed: 3, pBlue: 0, rStat: 'W', bStat: 'L', resText: '🔴 Red Win 2–0 (+3pts)',  label: `${side('แดง', rGames)} (+3 คะแนน)` };
   if (bWin > rWin) return { pRed: 0, pBlue: 3, rStat: 'L', bStat: 'W', resText: '🔵 Blue Win 2–0 (+3pts)', label: `${side('น้ำเงิน', bGames)} (+3 คะแนน)` };
@@ -1425,7 +1446,7 @@ function _uResultLabel(h) {
   const g = s => String(s || '').split(':').map(Number);
   const [a, b] = g(h.game1), [c, d] = g(h.game2);
   if ([a, b, c, d].every(Number.isFinite)) {
-    const o = _uOutcome(a, b, c, d);
+    const o = _uOutcome(a, b, c, d, h.ret1, h.ret2);
     if (o.rStat === h.rStat && o.pRed === Number(h.pRed) && o.pBlue === Number(h.pBlue)) return o.label;
   }
   return String(h.result || '').replace(/[🔴🔵🤝]/g, '').trim();
@@ -1484,6 +1505,52 @@ async function lockGame1() {
     _umpMutate(activeMatchId, cur => { if (cur.umpire !== currentUmpire) return false; cur.live = cur.live || {}; cur.live.g1Locked = true; cur.live.lastAt = at; })
       .then(r => { if (!r.ok) _uWriteFailed(r.reason, 'ผลเกม 1'); });
   }
+}
+
+// ── เจ็บ / ถอนตัว (a button on the break screen) ──
+// House rule (agreed by both colours): the side that cannot go on LOSES the game it was playing, even if it was ahead, and that
+// game closes so the next one can start (a substitute may come in for game 2). The points stay exactly as they were at the stop
+// (they count in the point difference); only the winner of the game is decided by hand. ret1 / ret2 ('red' | 'blue') remember
+// who retired; _uOutcome (and the stats) give that game to the other side.
+async function retireGame() {
+  if (_isConfirming) return;
+  let match = appState.ongoingMatches.find(m => m.id === activeMatchId);
+  if (!match || !match.live) return;
+  const g2 = !!isGame2, kR = g2 ? 'g2R' : 'g1R', kB = g2 ? 'g2B' : 'g1B', label = g2 ? 'เกม 2' : 'เกม 1';
+  const r0 = Number(match.live[kR] || 0), b0 = Number(match.live[kB] || 0);
+
+  const side = await showChoice('warning', `ใครเจ็บ / ถอนตัวใน${label}?`,
+    `ฝั่งที่เล่นต่อไม่ได้จะแพ้${label} แม้จะนำอยู่
+แต้มตอนนี้ แดง ${r0} – ${b0} น้ำเงิน (เก็บแต้มไว้ตามนี้)`,
+    [{ value: 'cancel', label: 'ยกเลิก', safe: true }, { value: 'red', label: 'ทีมแดงถอน' }, { value: 'blue', label: 'ทีมน้ำเงินถอน' }]);
+  if (side !== 'red' && side !== 'blue') return;
+
+  const loserTh = side === 'red' ? 'แดง' : 'น้ำเงิน', winnerTh = side === 'red' ? 'น้ำเงิน' : 'แดง';
+  const ok = await showConfirm('flag', g2 ? 'ปิดเกม 2 แล้วส่งผล?' : 'ปิดเกม 1 แล้วเริ่มเกม 2?',
+    `ทีม${loserTh}ถอนตัว → ทีม${winnerTh}ชนะ${label}
+แต้มที่บันทึก แดง ${r0} – ${b0} น้ำเงิน
+ส่งแล้วแก้เองไม่ได้ (ทีมงานแก้ได้)`, {
+    confirmLabel: g2 ? 'ปิดเกม' : 'ปิดเกม 1',
+    confirmClass: 'modal-btn-confirm',
+    cancelLabel: 'กลับไปแก้'
+  });
+  if (!ok) return;
+
+  match = appState.ongoingMatches.find(m => m.id === activeMatchId);
+  if (!match || !match.live) return;
+  const at = Date.now(), retKey = g2 ? 'ret2' : 'ret1';
+  match.live.lastAt = at; match.live[retKey] = side;
+  if (!g2) { match.live.g1Locked = true; isGame2 = true; _lastScored = null; }
+  vibrateDevice([40, 30, 60]);
+  renderGameUI();
+  const res = await _umpMutate(activeMatchId, cur => {
+    if (cur.umpire !== currentUmpire) return false;
+    cur.live = cur.live || {};
+    cur.live.lastAt = at; cur.live[retKey] = side;
+    if (!g2) cur.live.g1Locked = true;
+  });
+  if (!res.ok) { _uWriteFailed(res.reason, 'ผลการถอนตัว'); return; }
+  if (g2) confirmMatch();      // game 2 closed: the usual last box sends the match
 }
 
 function togglePause() {
@@ -1622,7 +1689,7 @@ async function confirmMatch() {
   if (_warns.length) vibrateDevice([60,30,60]);
 
   // what sending will record, worked out once: shown in the box, then written
-  const { pRed, pBlue, rStat, bStat, resText, label: resLabel } = _uOutcome(g1r, g1b, g2r, g2b);
+  const { pRed, pBlue, rStat, bStat, resText, label: resLabel } = _uOutcome(g1r, g1b, g2r, g2b, m.live.ret1, m.live.ret2);
 
   const ok = await showConfirm('flag', 'ส่งผลแมตช์?',
     'ส่งแล้วแก้เองไม่ได้\nต้องให้ทีมงานแก้', {
@@ -1661,6 +1728,7 @@ async function confirmMatch() {
       result:resText, pRed, pBlue, rStat, bStat, duration:matchDuration,
       court:m.court,                  // undefined (no court chosen) is dropped by the JSON round trip
       analysis:{...analysis, potFlags:m.potFlags||{}},
+      ret1:m.live.ret1, ret2:m.live.ret2,   // who retired (injury / withdrawal) in game 1 / game 2; undefined is dropped
       umpire:currentUmpire
     }));
 
