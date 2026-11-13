@@ -6,6 +6,8 @@
    4. "ยืนยัน" puts the pairs in the main app's WAITING BOX (sportsday_2026_data/stagedMatches, in the poster's order, strongest match first) with
       fresh match numbers (the same atomic matchCounter the match creator uses) and records what it sent in draw_2026/round2.
       The admin then sends them on to the real queue from the main app, exactly like any other staged match.
+   (Sending is OFF unless the address has ?send=1: without it this page is a look-only preview, safe to give to other teams to check the draw.
+   After a draw the matches are announced ONE BY ONE ("ถัดไป"), then a summary page lists them all.)
    5. "ยกเลิกที่ส่งไป" takes the pairs that are STILL in the waiting box back out (pairs already sent on to the queue stay), so it can be drawn again.
    ============================================================ */
 (function () {
@@ -16,12 +18,14 @@
   // ?test=1: the players are still READ from the real data, but everything the page WRITES (match numbers, the waiting box, the record)
   // goes to a throw-away node, so the whole flow can be tried without touching the match-day data
   var TEST = /[?&]test=1(?:&|$)/.test(location.search);
+  // sending to the waiting box only works with ?send=1; the plain /round2 address is a preview: draw, reveal, check, never saved
+  var SEND = /[?&]send=1(?:&|$)/.test(location.search);
   var ROOT = 'sportsday_2026_data';
   var WROOT = TEST ? 'round2_test' : ROOT;
   var RECORD = TEST ? 'round2_test/record' : 'draw_2026/round2';
   var RULES = window.Round2Rules;
 
-  var $root, players = [], loaded = false, loadErr = '', result = null, record = null, busy = false, notice = null, drawCount = 0;
+  var $root, players = [], loaded = false, loadErr = '', result = null, record = null, busy = false, notice = null, drawCount = 0, step = null;   // step: which match is being announced (0-based); null or n = the summary
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function ico(n) { return window.dsIcon ? window.dsIcon(n) : ''; }
@@ -62,7 +66,7 @@
     }, function () { loadErr = 'อ่านรายชื่อผู้เล่นไม่ได้ ลองกด “โหลดรายชื่อใหม่”'; paint(); });
   }
   function listenRecord() {
-    if (!dbOk()) return;
+    if (!SEND || !dbOk()) return;          // the preview never looks at (or shows) what was really sent
     db().ref(RECORD).on('value', function (s) { record = s.val() || null; if (!busy) paint(); }, function () {});
   }
 
@@ -73,8 +77,17 @@
     drawCount++;
     notice = null;
     result = res;
+    step = res.ok ? 0 : null;                // a good draw starts the announcement at match 1
     paint();
-    if (res.ok) { var m = document.getElementById('r2List'); if (m && m.scrollIntoView) m.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+    window.scrollTo(0, 0);
+  }
+
+  function matchCount() { return result && result.ok ? result.matches.length : 0; }
+  function go(to) {
+    var n = matchCount(); if (!n) return;
+    step = Math.max(0, Math.min(n, to));
+    paint();
+    window.scrollTo(0, 0);
   }
 
   // one transaction on the match counter reserves k numbers at once: M(n) ... M(n+k-1) are ours alone, like the match creator does for one
@@ -86,7 +99,7 @@
   }
 
   async function confirmSend() {
-    if (busy || !result || !result.ok || record) return;
+    if (!SEND || busy || !result || !result.ok || record) return;
     var n = result.matches.length;
     if (!window.confirm('ยืนยันส่ง ' + n + ' แมตช์เข้ากล่องรอ?\nแมตช์จะยังไม่ขึ้นบอร์ด จนกว่าแอดมินจะกด “ต่อคิว” ในหน้าหลัก')) return;
     busy = true; notice = null; paint();
@@ -180,8 +193,33 @@
       '<li><b>พยายามไม่ให้ซับกรุ๊ปเดียวกันเป็นคู่กัน</b> (กรอบเหลืองประ = เลี่ยงไม่ได้)</li></ol></details>';
   }
 
+  // ── the announcement: one match at a time, the players appear one by one so there is a little suspense ──
+  function stageHtml() {
+    var ms = result.matches, n = ms.length, m = ms[step], last = step === n - 1;
+    var dots = ms.map(function (x, i) { return '<i class="' + (i < step ? 'is-done' : i === step ? 'is-now' : '') + '"></i>'; }).join('');
+    var sameR = m.red[0].sub === m.red[1].sub, sameB = m.blue[0].sub === m.blue[1].sub;
+    return modeBar() + '<main class="r2-main"><section class="dw-card r2-stage" data-step="' + step + '">' +
+      '<div class="r2-stage-top"><span>คู่ที่</span><b>' + (step + 1) + '</b><em>จาก ' + n + (drawCount > 1 ? ' · สุ่มครั้งที่ ' + drawCount : '') + '</em></div>' +
+      '<div class="r2-dots" aria-hidden="true">' + dots + '</div>' +
+      '<div class="r2-stage-match" aria-live="polite">' +
+        '<div class="r2-plate is-red' + (sameR ? ' r2-same' : '') + '">' + who(m.red[0]) + who(m.red[1]) + '</div>' +
+        '<div class="r2-sum" title="ผลบวกเลเวล">' + m.sum + '</div>' +
+        '<div class="r2-plate is-blue' + (sameB ? ' r2-same' : '') + '">' + who(m.blue[0]) + who(m.blue[1]) + '</div>' +
+      '</div></section>' +
+      '<div class="r2-bar"><span>กดถัดไปเพื่อประกาศคู่ต่อไป</span><div class="r2-actions">' +
+        '<button type="button" class="ds-btn" data-act="prev"' + (step === 0 ? ' disabled' : '') + ' aria-label="คู่ก่อนหน้า">‹ ก่อนหน้า</button>' +
+        '<button type="button" class="ds-btn" data-act="skip">ข้ามไปสรุป</button>' +
+        '<button type="button" class="ds-btn ds-btn-primary ds-btn-lg" data-act="next">' + (last ? 'ดูสรุปทั้งหมด' : 'ถัดไป ›') + '</button></div></div></main>';
+  }
+  function modeBar() {
+    if (!SEND) return '<div class="dw-mockbar"><b>PREVIEW</b><span>โหมดดูผลสุ่ม · ผลไม่ถูกบันทึก และไม่ถูกส่งเข้าระบบหลัก ไม่ว่าจะกดกี่ครั้ง</span></div>';
+    if (TEST) return '<div class="dw-mockbar"><b>TEST</b><span>โหมดทดสอบ · อ่านรายชื่อจริง แต่ส่งเข้ากล่องรอจริงไม่ได้ (เขียนลงที่ทดสอบ)</span></div>';
+    return '';
+  }
+
   function paint() {
     if (!$root || !unlocked()) return;
+    if (!record && result && result.ok && step != null && step < result.matches.length) { $root.innerHTML = stageHtml(); return; }
     var c = counts(), head, body = '', bar = '';
     var shown = record ? recordMatches() : (result && result.ok ? result.matches : null);
 
@@ -206,22 +244,23 @@
     }
     if (shown && shown.length) {
       var gaps = record ? 0 : result.same;
-      main += '<section class="dw-card" id="r2List"><h2>' + (record ? 'คู่ที่ส่งไปแล้ว' : 'ผลสุ่ม' + (drawCount > 1 ? ' (ครั้งที่ ' + drawCount + ')' : '')) + ' · ' + shown.length + ' แมตช์</h2>' +
-        (record ? '' : '<p class="dw-note">ผ่านกติกาครบทุกข้อ ✓' + (gaps ? ' · มีคู่ซับกรุ๊ปเดียวกัน ' + gaps + ' คู่ (เลี่ยงไม่ได้)' : ' · ไม่มีคู่ซับกรุ๊ปเดียวกัน') + ' · ยังไม่ได้บันทึกอะไร จนกว่าจะกดยืนยัน</p>') +
+      main += '<section class="dw-card" id="r2List"><h2>' + (record ? 'คู่ที่ส่งไปแล้ว' : 'สรุปผลสุ่ม' + (drawCount > 1 ? ' (ครั้งที่ ' + drawCount + ')' : '')) + ' · ' + shown.length + ' แมตช์</h2>' +
+        (record ? '' : '<p class="dw-note">ผ่านกติกาครบทุกข้อ ✓' + (gaps ? ' · มีคู่ซับกรุ๊ปเดียวกัน ' + gaps + ' คู่ (เลี่ยงไม่ได้)' : ' · ไม่มีคู่ซับกรุ๊ปเดียวกัน') + (SEND ? ' · ยังไม่ได้บันทึกอะไร จนกว่าจะกดยืนยัน' : ' · ดูผลเท่านั้น ไม่ได้บันทึก') + '</p>' +
+          '<div class="r2-actions r2-replay"><button type="button" class="ds-btn" data-act="replay">▶ ประกาศทีละคู่อีกครั้ง</button></div>') +
         '<ul class="r2-list">' + shown.map(function (m, i) { return rowHtml(m, i, record ? m.id : ''); }).join('') + '</ul></section>';
     } else if (loaded && !result && !record) {
-      main += '<section class="dw-card"><div class="dw-who">' + mascot('smash', 120) + '</div><h2>พร้อมสุ่มรอบ 2</h2><p>กด “สุ่มรอบ 2” แล้วดูผล ถ้ายังไม่ถูกใจกด “สุ่มใหม่” ได้เรื่อยๆ ผลจะยังไม่เข้าระบบจนกว่าจะกดยืนยัน</p></section>';
+      main += '<section class="dw-card"><div class="dw-who">' + mascot('smash', 120) + '</div><h2>พร้อมสุ่มรอบ 2</h2><p>กด “สุ่มรอบ 2” แล้วระบบจะประกาศทีละคู่ กด “ถัดไป” ไปเรื่อยๆ จนถึงหน้าสรุป ถ้ายังไม่ถูกใจกด “สุ่มใหม่” ได้เรื่อยๆ ' + (SEND ? 'ผลจะยังไม่เข้าระบบจนกว่าจะกดยืนยัน' : 'ผลไม่ถูกบันทึกและไม่เข้าระบบหลัก') + '</p></section>';
     }
 
     var canDraw = loaded && !record && !busy;
     if (!record && loaded) {
       var hasRes = result && result.ok;
-      bar = '<div class="r2-bar"><span>' + (hasRes ? 'ยังไม่ได้บันทึก · ยืนยันเพื่อส่งเข้ากล่องรอทันที' : 'ยังไม่ได้สุ่ม') + '</span><div class="r2-actions">' +
+      bar = '<div class="r2-bar"><span>' + (hasRes ? (SEND ? 'ยังไม่ได้บันทึก · ยืนยันเพื่อส่งเข้ากล่องรอทันที' : 'ดูผลเท่านั้น · ไม่ได้ส่งเข้าระบบหลัก') : 'ยังไม่ได้สุ่ม') + '</span><div class="r2-actions">' +
         '<button type="button" class="ds-btn' + (hasRes ? '' : ' ds-btn-primary ds-btn-lg') + '" data-act="draw"' + (canDraw ? '' : ' disabled') + '>' + (hasRes ? 'สุ่มใหม่ (Reshuffle)' : 'สุ่มรอบ 2') + '</button>' +
-        (hasRes ? '<button type="button" class="ds-btn ds-btn-primary ds-btn-lg" data-act="confirm"' + (busy ? ' disabled' : '') + '>' + (busy ? 'กำลังส่ง…' : 'ยืนยัน ส่งเข้ากล่องรอ') + '</button>' : '') + '</div></div>';
+        (hasRes && SEND ? '<button type="button" class="ds-btn ds-btn-primary ds-btn-lg" data-act="confirm"' + (busy ? ' disabled' : '') + '>' + (busy ? 'กำลังส่ง…' : 'ยืนยัน ส่งเข้ากล่องรอ') + '</button>' : '') + '</div></div>';
     }
 
-    $root.innerHTML = (TEST ? '<div class="dw-mockbar"><b>TEST</b><span>โหมดทดสอบ · อ่านรายชื่อจริง แต่ส่งเข้ากล่องรอจริงไม่ได้ (เขียนลงที่ทดสอบ)</span></div>' : '') +
+    $root.innerHTML = modeBar() +
       '<main class="r2-main"><section class="dw-card">' + head + info + '</section>' + rulesHtml() + main + bar + '</main>';
   }
 
@@ -229,9 +268,13 @@
     var el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
     var a = el.getAttribute('data-act');
     if (a === 'draw') doDraw();
+    else if (a === 'next') go(step + 1);
+    else if (a === 'prev') go(step - 1);
+    else if (a === 'skip') go(matchCount());
+    else if (a === 'replay') go(0);
     else if (a === 'confirm') confirmSend();
     else if (a === 'cancel') cancelSent();
-    else if (a === 'reload') { result = null; notice = null; loadPlayers(); }
+    else if (a === 'reload') { result = null; step = null; notice = null; loadPlayers(); }
   }
 
   function enter() { $root.onclick = onClick; $root.innerHTML = ''; paint(); loadPlayers(); listenRecord(); }

@@ -53,6 +53,37 @@
   .r2-actions { margin-left: 0; width: 100%; }
   .r2-actions .ds-btn { flex: 1 1 auto; justify-content: center; }
 }
+/* the announcement: one big match, the pieces pop in one after another (red 1, red 2, the sum, blue 1, blue 2) */
+.r2-stage { display: grid; gap: 14px; }
+.r2-stage-top { display: flex; align-items: baseline; gap: 10px; color: #0b2a52; }
+.r2-stage-top b { font-family: var(--font-num); font-weight: 400; font-size: 4rem; line-height: 1; }
+.r2-stage-top span { font-size: var(--fs-18); font-weight: 700; }
+.r2-stage-top em { font-style: normal; color: var(--t-mid); }
+.r2-dots { display: flex; flex-wrap: wrap; gap: 6px; }
+.r2-dots i { width: 14px; height: 6px; border-radius: 3px; background: rgba(11, 42, 82, .18); }
+.r2-dots i.is-done { background: #0b2a52; }
+.r2-dots i.is-now { background: #f4c430; outline: 1.5px solid #0b2a52; }
+.r2-stage-match { display: grid; grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr); align-items: center; gap: 14px; padding: 8px 0 12px; }
+.r2-stage .r2-plate { gap: 10px; padding: 26px 12px; min-height: 190px; align-content: center; border-radius: 4px; }
+.r2-stage .r2-who { gap: 10px; }
+.r2-stage .r2-who b { font-size: clamp(1.4rem, 3.4vw, 2.4rem); }
+.r2-stage .r2-lv { font-size: var(--fs-18); min-width: 52px; }
+.r2-stage .r2-sum { min-height: 110px; font-size: 3.6rem; }
+@keyframes r2-pop { from { opacity: 0; transform: translateY(16px) scale(.86); } to { opacity: 1; transform: none; } }
+.r2-stage .r2-who, .r2-stage .r2-sum { animation: r2-pop .5s cubic-bezier(.2, .9, .3, 1.2) both; }
+.r2-stage .is-red .r2-who:nth-child(1) { animation-delay: .15s; }
+.r2-stage .is-red .r2-who:nth-child(2) { animation-delay: .75s; }
+.r2-stage .r2-sum { animation-delay: 1.35s; }
+.r2-stage .is-blue .r2-who:nth-child(1) { animation-delay: 1.95s; }
+.r2-stage .is-blue .r2-who:nth-child(2) { animation-delay: 2.55s; }
+@media (prefers-reduced-motion: reduce) { .r2-stage .r2-who, .r2-stage .r2-sum { animation: none; } }
+@media (max-width: 640px) {
+  .r2-stage-match { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .r2-stage .r2-plate { min-height: 0; padding: 16px 8px; }
+  .r2-stage .r2-sum { min-height: 72px; font-size: 2.6rem; }
+  .r2-stage-top b { font-size: 3rem; }
+}
+.r2-replay { margin-left: 0; }
 .r2-bar { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 16px; margin: 0 -16px; background: var(--bg); border-top: 2px solid #0b2a52; }
 .r2-bar > span { color: var(--t-mid); font-size: var(--fs-14); }
 .r2-bar .r2-actions { margin-left: 0; }
