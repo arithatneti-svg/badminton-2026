@@ -352,6 +352,7 @@ function _amQueueRow(m, i) {
       <span class="am-qside is-red"><i aria-hidden="true">●</i><span class="ds-sr-only">RED </span>${nm(m.redNames)}</span>
       <span class="am-qside is-blue"><i aria-hidden="true">◆</i><span class="ds-sr-only">BLUE </span>${nm(m.blueNames)}</span>
       ${corrupt ? '<span class="am-qtags"><span class="ds-chip ds-chip-err">ข้อมูลเสีย</span></span>' : ''}
+      ${m.assigned ? `<span class="am-qtags"><span class="ds-chip ds-chip-gold">กรรมการ: ${escHtml(m.assigned)}</span></span>` : ''}
     </div>
     <div class="am-qact">
       ${corrupt ? '' : `<button type="button" class="ds-btn ds-btn-sm am-force am-ico" onclick="openResultModal('${m.id}')" title="ใส่ผลเอง" aria-label="ใส่ผลเอง ${id}">${dsIcon('pencil-simple')}</button>`}

@@ -24,7 +24,7 @@ const JS = [
   'shared/firebase-config.js','shared/icons.js','shared/art.js',
   'js/utils.js','js/auth.js','shared/sync-merge.js','shared/match-time.js','js/core.js','js/ui.js',
   'js/player-photo.js','js/player-profile.js','js/me.js','js/gallery.js','js/career.js','js/season.js','js/export-import.js',
-  'js/match-picker.js','js/match-staging.js','js/match-render.js','js/reactions.js','js/result-entry.js','js/stats.js',
+  'js/match-picker.js','js/match-staging.js','shared/umpire-assign.js','js/umpire-assign.js','js/match-render.js','js/reactions.js','js/result-entry.js','js/stats.js',
   'js/reports.js','js/pdf-export.js','js/dashboard.js','js/ranking.js',
   'js/effects.js','js/notifications.js','js/backup.js',
   'js/vendor/qrcode.min.js','js/qr.js','js/tv.js',

@@ -66,6 +66,7 @@ function renderMatchBoard() {
   const cb = document.getElementById('mbCreateBtn');
   if (cb) { cb.classList.toggle('mb-create-ready', n === 4); cb.setAttribute('aria-disabled', n === 4 ? 'false' : 'true'); }
   if (typeof renderStaging === 'function') renderStaging();
+  if (typeof renderUmpireAssign === 'function') renderUmpireAssign();
 }
 
 function boardToggle(id, team) {

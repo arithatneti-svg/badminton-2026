@@ -72,6 +72,8 @@ const SHELL = [
     "js/export-import.js",
     "js/match-picker.js",
     "js/match-staging.js",
+    "shared/umpire-assign.js",
+    "js/umpire-assign.js",
     "js/reactions.js",
     "js/match-render.js",
     "js/notifications.js",
