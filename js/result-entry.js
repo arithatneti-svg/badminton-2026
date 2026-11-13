@@ -271,7 +271,10 @@ function submitEditResult() {
   const newRedNames = `${p_r1.name} (G${p_r1.group}) & ${p_r2.name} (G${p_r2.group})`;
   const newBlueNames = `${p_b1.name} (G${p_b1.group}) & ${p_b2.name} (G${p_b2.group})`;
 
-  let rWin = 0, bWin = 0; if (g1R > g1B) rWin++; else if (g1B > g1R) bWin++; else { rWin += 0.5; bWin += 0.5; } if (g2R > g2B) rWin++; else if (g2B > g2R) bWin++; else { rWin += 0.5; bWin += 0.5; }
+  // a game one side retired from (old.ret1 / old.ret2) stays that side's loss whatever the points
+  const _one = (r, b, ret) => ret === 'red' ? 'b' : ret === 'blue' ? 'r' : r > b ? 'r' : b > r ? 'b' : '';
+  const _w1 = _one(g1R, g1B, old.ret1), _w2 = _one(g2R, g2B, old.ret2);
+  let rWin = 0, bWin = 0; if (_w1 === 'r') rWin++; else if (_w1 === 'b') bWin++; else { rWin += 0.5; bWin += 0.5; } if (_w2 === 'r') rWin++; else if (_w2 === 'b') bWin++; else { rWin += 0.5; bWin += 0.5; }
   let pRed = 0, pBlue = 0, rStat = '', bStat = '', resText = '';
   if (rWin > bWin) { pRed = 3; rStat = 'W'; bStat = 'L'; resText = '🔴 Red Win 2–0 (+3pts)'; } else if (bWin > rWin){ pBlue = 3; rStat = 'L'; bStat = 'W'; resText = '🔵 Blue Win 2–0 (+3pts)'; }
   else if (rWin===1 && bWin===1) { pRed=1; pBlue=1; rStat='D'; bStat='D'; resText='🤝 เสมอ 1–1 (+1pt each)'; }
