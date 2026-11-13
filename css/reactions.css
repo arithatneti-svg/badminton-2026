@@ -15,6 +15,16 @@
 @media (prefers-reduced-motion: reduce) { .rx-float { display: none; } .rx-btn:active, .rx-btn.is-pop { transform: none; } }
 @media (max-width: 380px) { .rx-ch { font-size: 1.2rem; } .rx-btn { gap: 2px; } }
 
+body.rx-off .rx-bar, body.rx-off #tvRxLayer { display: none; }
+/* admin panel */
+.rxa { padding: var(--sp-3) var(--sp-4); background: var(--s1); border: 1px solid var(--line-strong); border-radius: var(--r-md); display: grid; gap: var(--sp-3); }
+.rxa-h { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; font: 700 var(--fs-16, 1rem) var(--font-th); }
+.rxa-st { padding: 2px 12px; border-radius: 999px; font-size: var(--fs-13, .8125rem); border: 1.5px solid var(--line-strong); }
+.rxa-st.is-on { color: var(--ok, #1b7a3c); } .rxa-st.is-off { color: var(--red-text, #a01217); }
+.rxa-n { margin-left: auto; font: 600 var(--fs-13, .8125rem) var(--font-th); color: var(--t-mid); }
+.rxa-b { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.rxa-b .ds-btn { min-height: var(--tap); }
+
 /* the totals as a small line: 🔥 12  👏 5 (finished-match list, TV cards) */
 .rx-tot { font-size: var(--fs-13, .8125rem); color: var(--t-mid); white-space: nowrap; letter-spacing: .02em; }
 .rx-tot:empty { display: none; }

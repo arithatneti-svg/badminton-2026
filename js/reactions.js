@@ -19,6 +19,9 @@ const RX_FLUSH_MS = 1500, RX_BURST = 5, RX_BUCKET = 8, RX_REFILL_MS = 400, RX_PE
 
 // ?rxtest=1 writes to a throw-away node, so the bar can be tried on the real page without touching the real totals
 const rxRef = firebase.database().ref(/[?&]rxtest=1(?:&|$)/.test(location.search) ? 'reactions_test' : 'reactions');
+// the kill switch (admin): reactions_ctl/off = true hides the buttons and the floats on every phone and the TV, taps are ignored
+const rxCtlRef = firebase.database().ref(/[?&]rxtest=1(?:&|$)/.test(location.search) ? 'reactions_ctl_test' : 'reactions_ctl');
+let _rxOff = false;
 let _rx = {};                       // server totals: matchId → { fire: n, … }
 let _rxPending = {};                // taps not sent yet: matchId → { fire: n, … }
 let _rxSuppress = {};               // our own sends still to come back from the listener (so they are not drawn twice): 'm|e' → n
@@ -64,6 +67,7 @@ function _rxSchedulePaint() { if (!_rxPaintTimer) _rxPaintTimer = setTimeout(_rx
 
 // TV mode has no buttons: the emojis of every live court rise from the bottom of the screen, each with its court's name
 function _rxFloatTv(mId, ch, count) {
+  if (_rxOff) return;
   let layer = document.getElementById('tvRxLayer');
   if (!layer) { layer = document.createElement('div'); layer.id = 'tvRxLayer'; layer.setAttribute('aria-hidden', 'true'); document.body.appendChild(layer); }
   const m = ((typeof appState !== 'undefined' && appState.ongoingMatches) || []).find(x => x.id === mId);
@@ -79,6 +83,7 @@ function _rxFloatTv(mId, ch, count) {
   }
 }
 function _rxFloat(mId, e, count) {
+  if (_rxOff) return;
   const bar = document.querySelector(`.rx-bar[data-rx-m="${CSS.escape(mId)}"] .rx-floats`);
   const ch = (RX_EMOJI.find(x => x[0] === e) || [])[1];
   if (!ch || document.hidden) return;
@@ -98,6 +103,7 @@ function _rxFloat(mId, e, count) {
 function startReactions() {
   if (_rxListening) return;
   _rxListening = true;
+  rxCtlRef.child('off').on('value', snap => { _rxOff = snap.val() === true; document.body.classList.toggle('rx-off', _rxOff); if (typeof renderReactionAdmin === 'function') renderReactionAdmin(); }, () => { /* control node unreadable: stay on */ });
   rxRef.on('value', snap => {
     const next = snap.val() || {};
     // somebody else's taps float up on their card (ours already floated when we tapped)
@@ -111,6 +117,7 @@ function startReactions() {
       });
     });
     _rx = next;
+    if (typeof renderReactionAdmin === 'function') renderReactionAdmin();
     _rxSchedulePaint();
   }, () => { /* read refused / offline: the bars simply show no numbers */ });
 }
@@ -128,6 +135,7 @@ function _rxWarn(text) {
 
 function reactionTap(mId, e, btn) {
   if (!mId || !RX_EMOJI.some(x => x[0] === e)) return;
+  if (_rxOff) return _rxWarn('ปิดอีโมจิชั่วคราว');
   _rxRefill();
   if (_rxTokens < 1) { btn && btn.classList.add('is-cool'); setTimeout(() => btn && btn.classList.remove('is-cool'), 400); return _rxWarn('กดถี่ไปหน่อย พักแป๊บนะ 🙂'); }
   const sent = _rxSent(mId), queued = Object.values(_rxPending[mId] || {}).reduce((a, b) => a + b, 0);
@@ -173,6 +181,27 @@ document.addEventListener('keydown', ev => {
   ev.preventDefault();
   reactionTap(btn.closest('.rx-bar').dataset.rxM, btn.dataset.rxE, btn);
 });
+
+// ── admin panel (Admin tab, #rxAdmin): switch the feature off / on, clear every total ──
+function _rxIsAdmin() { return typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'superadmin'); }
+function rxSetEnabled(on) {
+  if (!_rxIsAdmin()) return;
+  rxCtlRef.child('off').set(on ? null : true)
+    .then(() => { if (typeof showToast === 'function') showToast(on ? 'เปิดอีโมจิแล้ว' : 'ปิดอีโมจิแล้ว — ปุ่มหายจากทุกเครื่อง', 'success'); })
+    .catch(() => { if (typeof showToast === 'function') showToast('สั่งไม่สำเร็จ ลองอีกครั้ง', 'error'); });
+}
+function rxClearAll() {
+  if (!_rxIsAdmin()) return;
+  const go = () => rxRef.remove().then(() => { if (typeof showToast === 'function') showToast('ล้างยอดอีโมจิทั้งหมดแล้ว', 'success'); }).catch(() => { if (typeof showToast === 'function') showToast('ล้างไม่สำเร็จ ลองอีกครั้ง', 'error'); });
+  if (typeof showConfirmDialog === 'function') showConfirmDialog('ล้างยอดอีโมจิของทุกแมตช์? ลบแล้วเอากลับไม่ได้', go); else go();
+}
+function renderReactionAdmin() {
+  const el = document.getElementById('rxAdmin');
+  if (!el) return;
+  const total = Object.values(_rx).reduce((a, m) => a + Object.values(m || {}).reduce((x, y) => x + (Number(y) || 0), 0), 0);
+  el.innerHTML = `<div class="rxa"><div class="rxa-h"><b>อีโมจิเชียร์</b><span class="rxa-st ${_rxOff ? 'is-off' : 'is-on'}">${_rxOff ? 'ปิดอยู่' : 'เปิดอยู่'}</span><span class="rxa-n">ยอดรวม ${total}</span></div>`
+    + `<div class="rxa-b">${_rxOff ? `<button type="button" class="ds-btn ds-btn-primary" onclick="rxSetEnabled(true)">เปิดอีโมจิ</button>` : `<button type="button" class="ds-btn" onclick="rxSetEnabled(false)">ปิดอีโมจิ (ฉุกเฉิน)</button>`}<button type="button" class="ds-btn ds-btn-danger" onclick="rxClearAll()">ล้างยอดทั้งหมด</button></div></div>`;
+}
 
 // a new season starts with no cheers: match numbers begin again at M01, so the old totals must go (called by the season reset)
 function clearReactions() { return rxRef.remove().catch(() => {}); }
