@@ -32,7 +32,7 @@ const DEFAULT_PLAYERS = [
   {name:'ฟ้า',team:'Blue',group:'2'},{name:'ก้อง',team:'Blue',group:'2'},
   {name:'กะรัต',team:'Blue',group:'2'},{name:'โบว์ลิ่ง',team:'Blue',group:'3'},
   {name:'โจ',team:'Blue',group:'3'},{name:'แม่ใหญ่',team:'Blue',group:'3'},
-  {name:'เอแคลร์',team:'Blue',group:'3'},{name:'ติ๊ก',team:'Blue',group:'3'},
+  {name:'จ๋า',team:'Blue',group:'3'},{name:'ติ๊ก',team:'Blue',group:'3'},
   {name:'เนม',team:'Blue',group:'3'},{name:'เอิ้น',team:'Blue',group:'3'},
 ];
 

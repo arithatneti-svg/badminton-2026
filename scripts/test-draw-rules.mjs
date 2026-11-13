@@ -20,7 +20,7 @@ for (let i = 0; i < N; i++) {
   const bad = R.check(a);
   if (bad.length) { broke++; if (broke < 4) console.log('  broke:', bad.join('; ')); }
   const reds = R.ROSTER.filter(p => a[p.name] === 'Red').length; sizes.add(reds);
-  ['ฝ้าย', 'นก', 'เอแคลร์', 'ต้น', 'เอิ้น', 'ฮิว', 'นาย'].forEach(n => { tally[n] = (tally[n] || 0) + (a[n] === 'Red' ? 1 : 0); });
+  ['ฝ้าย', 'นก', 'จ๋า', 'ต้น', 'เอิ้น', 'ฮิว', 'นาย'].forEach(n => { tally[n] = (tally[n] || 0) + (a[n] === 'Red' ? 1 : 0); });
   if (a['ยุ้ย'] !== opp(a['ฝ้าย']) || a['ปูม'] !== opp(a['ฝ้าย'])) pairs++;
   if (a['ฮิว'] === a['พล']) pairs++;
   seen[JSON.stringify(a)] = 1;

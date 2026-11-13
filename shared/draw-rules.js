@@ -8,7 +8,7 @@
    1. ฝ้าย and หญิง always share a colour.
    2. ยุ้ย and ปูม are both on the OTHER colour than ฝ้าย-หญิง; นก is the free one (50/50).
    3. พี่เอิ้น and โอ๊ต are on different colours. The captains are fixed: หมี is Red, เพชร is Blue.
-   4. ไนซ์ / โจ / แม็กซ์ / เอแคลร์ split 2 and 2; whoever gets เอแคลร์ also gets เอิ้น (so the other side gets โอ๊ต).
+   4. ไนซ์ / โจ / แม็กซ์ / จ๋า split 2 and 2; whoever gets จ๋า also gets เอิ้น (so the other side gets โอ๊ต).
    5. Every subgroup splits evenly between the colours. Subgroup 2.3 has 5 players, so one colour gets one more: with 39 players the teams are 20 / 19.
       Because every subgroup is split evenly, the skill of the two teams is balanced too.
    6. โบว์ลิ่ง and ปอนด์ are on different colours; ปอ and รุจิ are on different colours; ฮิว and พล are on different colours.
@@ -23,7 +23,7 @@
     ['2.1', 5, ['บอส', 'เก้', 'อรรถ', 'เก่ง', 'พี่ต่อ', 'แจ็ค']],
     ['2.2', 4, ['กัปตันต้น', 'พี่ชัย', 'นก', 'ป๋าทัศ', 'ยุ้ย', 'ปูม', 'ดุ๊ก', 'โจ๊ก']],
     ['2.3', 3, ['นาย', 'แชป', 'หญิง', 'ต้น', 'ออป']],
-    ['3.1', 2, ['ไนซ์', 'โจ', 'แม็กซ์', 'ปอ', 'รุจิ', 'โบว์ลิ่ง', 'เอแคลร์', 'ปอนด์']],
+    ['3.1', 2, ['ไนซ์', 'โจ', 'แม็กซ์', 'ปอ', 'รุจิ', 'โบว์ลิ่ง', 'จ๋า', 'ปอนด์']],
     ['3.2', 1, ['เอิ้น', 'โอ๊ต']]
   ];
   var NEW_PLAYERS = ['พล', 'ไทม์', 'อาร์ม', 'นาย', 'แม็กซ์', 'รุจิ'];
@@ -41,7 +41,7 @@
   var OPPOSITE_TO_PAIR = ['ยุ้ย', 'ปูม'];   // นก is the free one
   var FIXED = CAPTAINS;
   var PAIR_OPPOSITE = [['เอิ้น', 'โอ๊ต'], ['โบว์ลิ่ง', 'ปอนด์'], ['ปอ', 'รุจิ'], ['ฮิว', 'พล']];
-  var FOUR = ['ไนซ์', 'โจ', 'แม็กซ์', 'เอแคลร์'];
+  var FOUR = ['ไนซ์', 'โจ', 'แม็กซ์', 'จ๋า'];
 
   function opp(c) { return c === 'Red' ? 'Blue' : 'Red'; }
   function pick(rng, a) { return a[Math.floor(rng() * a.length)]; }
@@ -64,7 +64,7 @@
     Object.keys(FIXED).forEach(function (k) { if (a[k] !== FIXED[k]) bad.push(k + ' must be ' + FIXED[k]); });
     PAIR_OPPOSITE.forEach(function (p) { if (a[p[0]] === a[p[1]]) bad.push('different colours: ' + p.join(' vs ')); });
     if (count(a, FOUR, 'Red') !== 2) bad.push('four-group must split 2 / 2');
-    if (a['เอแคลร์'] !== a['เอิ้น']) bad.push('เอแคลร์ must be with เอิ้น');
+    if (a['จ๋า'] !== a['เอิ้น']) bad.push('จ๋า must be with เอิ้น');
     var extra = 0;
     SUBGROUPS.forEach(function (g, i) {
       var r = count(a, g, 'Red'), b = g.length - r;
@@ -88,8 +88,8 @@
       OPPOSITE_TO_PAIR.forEach(function (n) { a[n] = Y; });
       a['นก'] = coin(rng);
       Object.keys(FIXED).forEach(function (k) { a[k] = FIXED[k]; });
-      var S = coin(rng);                       // the side that gets เอแคลร์ and พี่เอิ้น
-      a['เอแคลร์'] = S; a['เอิ้น'] = S; a['โอ๊ต'] = opp(S);
+      var S = coin(rng);                       // the side that gets จ๋า and พี่เอิ้น
+      a['จ๋า'] = S; a['เอิ้น'] = S; a['โอ๊ต'] = opp(S);
       var rest = shuffle(rng, ['ไนซ์', 'โจ', 'แม็กซ์']);
       a[rest[0]] = S; a[rest[1]] = opp(S); a[rest[2]] = opp(S);
       [['โบว์ลิ่ง', 'ปอนด์'], ['ปอ', 'รุจิ'], ['ฮิว', 'พล']].forEach(function (p) { var c = coin(rng); a[p[0]] = c; a[p[1]] = opp(c); });
