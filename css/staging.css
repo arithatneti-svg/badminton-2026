@@ -70,6 +70,14 @@ body:has(#stagingBoard.is-dragging) { user-select: none; -webkit-user-select: no
 .ua-bar b { font-weight: 700; color: var(--t-mid); }
 .ua-warn { margin: 4px 0 0; font-weight: 700; color: var(--red-text); }
 .ua-search { width: 100%; margin-bottom: 8px; min-height: var(--tap); }
+.ua-pools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .ua-pools { grid-template-columns: minmax(0, 1fr); } }
+.ua-col { border: 2px solid var(--line-strong); border-radius: 12px; padding: 8px; background: var(--s2); }
+.ua-col.r { border-color: var(--red); } .ua-col.b { border-color: var(--blue); }
+.ua-colh { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-bottom: 6px; font-size: var(--fs-13, .8125rem); color: var(--t-mid); }
+.ua-colh b { font: 800 var(--fs-14, .875rem) var(--font-th); }
+.ua-col.r .ua-colh b { color: var(--red-text); } .ua-col.b .ua-colh b { color: var(--blue-text); }
+.ua-chip.r:not(.is-on) { border-color: var(--red); } .ua-chip.b:not(.is-on) { border-color: var(--blue); }
 .ua-pool { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow: auto; padding: 2px; }
 .ua-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 12px; font: 700 var(--fs-14, .875rem) var(--font-th); color: var(--t-hi); background: var(--s2); border: 1.5px solid var(--line-strong); border-radius: 999px; cursor: pointer; }
 .ua-chip small { font-weight: 600; font-size: .72em; color: var(--t-mid); }
@@ -87,3 +95,10 @@ body:has(#stagingBoard.is-dragging) { user-select: none; -webkit-user-select: no
 .ua-pick { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0; min-height: var(--tap); padding: 4px 12px; }
 .ua-pick small { font-weight: 600; font-size: .72em; opacity: .85; }
 .ua-as { font-weight: 600; } .ua-none, .ua-ghost { font-size: var(--fs-13, .8125rem); color: var(--t-mid); }
+
+.ua-chip[draggable="true"] { cursor: grab; }
+.ua-m { transition: outline-color .1s, background .1s; }
+.ua-dragging .ua-m { outline: 2px dashed var(--line-strong); outline-offset: 2px; }
+.ua-m.is-over { outline: 3px solid var(--gold); outline-offset: 2px; background: var(--gold-dim); }
+.ua-ctl { display: block; }
+.ua-self { width: 100%; min-height: var(--tap); font-size: var(--fs-14, .875rem); }

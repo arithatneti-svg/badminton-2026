@@ -13,6 +13,7 @@ let isGame2 = false;
 let isFirstLoad = true;
 let selectedTeam = '';
 let selectedGroup = '';
+let _uNoTeam = false;   // the login list shows the people without a colour (hidden by default: they do not play today)
 let _uSrvLive = {};   // match id -> the score the server holds (see _uOnSnapshot)
 
 // which side scored the last point → drives the "just scored" glow.
@@ -611,23 +612,8 @@ function setTeamFilter(team) {
   if (team === 'Red') document.getElementById('tbtn-Red').classList.add('selected-red');
   else if (team === 'Blue') document.getElementById('tbtn-Blue').classList.add('selected-blue');
 
-  const groupSec = document.getElementById('group-section');
-  if (team) {
-    groupSec.style.display = 'block';
-    document.getElementById('nameStepNum').textContent = '3';
-    document.querySelectorAll('#group-toggles .toggle-btn').forEach(b => b.classList.remove('selected-gold'));
-    document.querySelector('#group-toggles .toggle-btn:first-child').classList.add('selected-gold');
-  } else {
-    groupSec.style.display = 'none';
-    document.getElementById('nameStepNum').textContent = '2';
-  }
-  renderUmpireList();
-}
-
-function setGroupFilter(group) {
-  selectedGroup = group;
-  document.querySelectorAll('#group-toggles .toggle-btn').forEach(b => b.classList.remove('selected-gold'));
-  event.currentTarget.classList.add('selected-gold');
+  _uNoTeam = false;
+  const ns = document.getElementById('nameSearch'); if (ns) ns.value = '';
   renderUmpireList();
 }
 
@@ -909,25 +895,43 @@ function renderUmpireList() {
   const rt = document.getElementById('namesRetry'); if (rt) rt.hidden = true;   // the list has arrived
   const select = document.getElementById('umpireSelect');
   const currentVal = select.value;
+  const playersArray = Array.isArray(appState.players) ? appState.players : Object.values(appState.players);
+  const coloured = p => p.team === 'Red' || p.team === 'Blue';
+  const byName = (a, b) => String(a.name).localeCompare(String(b.name), 'th');
+  const noTeam = playersArray.filter(p => p && !coloured(p)).sort(byName);
+  // only players with a colour play today; the others sit behind one small button
+  const pool = (_uNoTeam ? noTeam : playersArray.filter(p => p && p.team === selectedTeam)).sort(byName);
+  const q = String((document.getElementById('nameSearch') || {}).value || '').trim().toLowerCase();
+  const shown = q ? pool.filter(p => String(p.name).toLowerCase().includes(q)) : pool;
 
-  select.innerHTML = '<option value="">— แตะเพื่อเลือกชื่อ —</option>';
+  select.innerHTML = '<option value="">— เลือกชื่อ —</option>' + pool.map(p => `<option value="${_uEsc(p.name)}">${_uEsc(p.name)}</option>`).join('');
+  if (currentVal && pool.some(p => p.name === currentVal)) select.value = currentVal;
 
-  const playersArray = Array.isArray(appState.players)
-    ? appState.players
-    : Object.values(appState.players);
-
-  const filtered = playersArray.filter(p =>
-    (!selectedTeam  || p.team === selectedTeam) &&
-    (!selectedGroup || String(p.group) === String(selectedGroup))
-  );
-
-  filtered.forEach(p => {
-    const prefix = p.team === 'Red' ? '●' : p.team === 'Blue' ? '◆' : '○';   // the team's shape (circle = red, diamond = blue), as everywhere else
-    select.innerHTML += `<option value="${p.name}">${prefix} ${p.name} (G${p.group})</option>`;
-  });
-
-  if (currentVal && filtered.some(p => p.name === currentVal)) select.value = currentVal;
+  const grid = document.getElementById('nameGrid'), search = document.getElementById('nameSearch'), link = document.getElementById('noTeamLink');
+  if (search) search.hidden = !(selectedTeam || _uNoTeam);
+  if (link) {
+    link.hidden = !noTeam.length;
+    link.textContent = _uNoTeam ? 'กลับไปรายชื่อทีม' : 'ไม่เจอชื่อ? ดูคนที่ไม่มีทีม (' + noTeam.length + ')';
+  }
+  if (grid) {
+    if (!selectedTeam && !_uNoTeam) grid.innerHTML = '<p class="name-hint">แตะทีมของคุณด้านบนก่อน</p>';
+    else grid.innerHTML = shown.map(p => {
+      const cls = p.name === select.value ? (p.team === 'Red' ? ' selected-red' : p.team === 'Blue' ? ' selected-blue' : ' selected-gold') : '';
+      return `<button type="button" class="ds-btn toggle-btn name-chip${cls}" aria-pressed="${p.name === select.value}" data-n="${_uEsc(p.name)}" onclick="pickUmpireName(this.dataset.n)">${_uEsc(p.name)}</button>`;
+    }).join('') || '<p class="name-hint">ไม่พบชื่อ</p>';
+  }
   updateLoginReady();
+}
+function pickUmpireName(name) {
+  const select = document.getElementById('umpireSelect');
+  if (!Array.from(select.options).some(o => o.value === name)) select.insertAdjacentHTML('beforeend', `<option value="${_uEsc(name)}">${_uEsc(name)}</option>`);
+  select.value = name;
+  renderUmpireList();
+}
+function toggleNoTeamNames() {
+  _uNoTeam = !_uNoTeam;
+  document.getElementById('umpireSelect').value = '';
+  renderUmpireList();
 }
 
 // ==========================================

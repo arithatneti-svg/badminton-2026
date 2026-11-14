@@ -16,25 +16,25 @@ try { localStorage.removeItem('bdm_theme'); } catch (e) {}
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <!-- Shared Firebase config + init (deferred, runs before umpire.js) -->
-<script defer src="shared/firebase-config.js?v=2026.11.13.6"></script>
-<link rel="stylesheet" href="css/tokens.css?v=2026.11.13.6">
-<link rel="stylesheet" href="css/ui.css?v=2026.11.13.6">
-<link rel="stylesheet" href="css/umpire.css?v=2026.11.13.6">
-<link rel="stylesheet" href="css/paper.css?v=2026.11.13.6">
+<script defer src="shared/firebase-config.js?v=2026.11.14.5"></script>
+<link rel="stylesheet" href="css/tokens.css?v=2026.11.14.5">
+<link rel="stylesheet" href="css/ui.css?v=2026.11.14.5">
+<link rel="stylesheet" href="css/umpire.css?v=2026.11.14.5">
+<link rel="stylesheet" href="css/paper.css?v=2026.11.14.5">
 <!-- PWA: installable Umpire app + offline-tolerant shell -->
 <link rel="manifest" href="umpire.webmanifest">
 <link rel="icon" type="image/png" href="icons/umpire-192.png">
 <link rel="apple-touch-icon" href="icons/umpire-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Umpire">
-<script defer src="shared/version.js?v=2026.11.13.6"></script>
-<script defer src="shared/pwa.js?v=2026.11.13.6"></script>
-<script defer src="shared/icons.js?v=2026.11.13.6"></script>
-<script defer src="shared/art.js?v=2026.11.13.6"></script>
-<script defer src="shared/sync-merge.js?v=2026.11.13.6"></script>
-<script defer src="shared/match-time.js?v=2026.11.13.6"></script>
-<script defer src="umpire/tap-gate.js?v=2026.11.13.6"></script>
-<script defer src="umpire/umpire.js?v=2026.11.13.6"></script>
+<script defer src="shared/version.js?v=2026.11.14.5"></script>
+<script defer src="shared/pwa.js?v=2026.11.14.5"></script>
+<script defer src="shared/icons.js?v=2026.11.14.5"></script>
+<script defer src="shared/art.js?v=2026.11.14.5"></script>
+<script defer src="shared/sync-merge.js?v=2026.11.14.5"></script>
+<script defer src="shared/match-time.js?v=2026.11.14.5"></script>
+<script defer src="umpire/tap-gate.js?v=2026.11.14.5"></script>
+<script defer src="umpire/umpire.js?v=2026.11.14.5"></script>
 </head>
 <body class="is-login">
 
@@ -98,24 +98,16 @@ try { localStorage.removeItem('bdm_theme'); } catch (e) {}
       </div>
     </div>
 
-    <!-- STEP 2: GROUP -->
-    <div id="group-section" hidden>
-      <div class="login-section-label"><span>2</span> เลือกกลุ่ม</div>
-      <div class="toggle-group cols-4" id="group-toggles">
-        <button type="button" class="ds-btn toggle-btn" onclick="setGroupFilter('')">ทั้งหมด</button>
-        <button type="button" class="ds-btn toggle-btn" onclick="setGroupFilter('1')">G1</button>
-        <button type="button" class="ds-btn toggle-btn" onclick="setGroupFilter('2')">G2</button>
-        <button type="button" class="ds-btn toggle-btn" onclick="setGroupFilter('3')">G3</button>
-      </div>
-    </div>
-
-    <!-- STEP 3: NAME -->
+    <!-- STEP 2: NAME — big tap targets for the chosen team only (a long mixed drop-down was hard to use); the select stays as the hidden value holder -->
     <div>
-      <div class="login-section-label"><span id="nameStepNum">2</span> เลือกชื่อของคุณ</div>
-      <select id="umpireSelect" class="ds-select ds-input-lg" aria-label="ชื่อของคุณ" aria-describedby="loginHelp" onchange="updateLoginReady()">
+      <div class="login-section-label"><span id="nameStepNum">2</span> แตะชื่อของคุณ</div>
+      <select id="umpireSelect" hidden aria-hidden="true" tabindex="-1" onchange="updateLoginReady()">
         <option value="">— กำลังโหลดรายชื่อ... —</option>
       </select>
-      <div class="login-help" id="loginHelp">เลือกชื่อของคุณเพื่อเริ่ม</div>
+      <input id="nameSearch" class="ds-input" type="search" placeholder="ค้นชื่อ…" aria-label="ค้นชื่อ" oninput="renderUmpireList()" hidden>
+      <div id="nameGrid" class="name-grid" role="group" aria-label="ชื่อของคุณ"><p class="name-hint">กำลังโหลดรายชื่อ...</p></div>
+      <button type="button" class="ds-btn ds-btn-sm name-notm" id="noTeamLink" onclick="toggleNoTeamNames()" hidden></button>
+      <div class="login-help" id="loginHelp">แตะทีมของคุณก่อน แล้วแตะชื่อ</div>
       <button type="button" class="ds-btn btn-retry" id="namesRetry" onclick="retryUmpireLoad()" hidden>ลองใหม่</button>
     </div>
 

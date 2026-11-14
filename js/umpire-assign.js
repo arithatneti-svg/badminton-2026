@@ -6,6 +6,7 @@
 //      ("จองให้ ○○"), NOT a lock: anybody can still take the match, as before.
 // ══════════════════════════════════════════
 const uaRef = firebase.database().ref(/[?&]uatest=1(?:&|$)/.test(location.search) ? 'umpire_test/avail' : 'umpire_2026/avail');
+const UA_COURTS = 5;   // courts in use: the first (5 - live) queued matches start together, the rest wait for a court
 let _uaAvail = {}, _uaFilter = '', _uaOpen = true, _uaSig = '';
 
 uaRef.on('value', snap => { _uaAvail = snap.val() || {}; renderUmpireAssign(true); }, () => { /* unreadable: the panel just shows nobody ticked */ });
@@ -27,17 +28,30 @@ function uaClearAvail() {
 
 function uaAssign(mId, name) {
   if (!_uaIsAdmin()) return;
-  setMatchField(mId, 'assigned', name).then(ok => showToast(ok ? `${mId} → กรรมการ ${name}` : 'มอบหมายไม่สำเร็จ (แมตช์อาจถูกรับไปแล้ว) ลองอีกครั้ง', ok ? 'success' : 'error'));
+  const players = appState.players || [], p = players.find(x => x.name === name && (x.team === 'Red' || x.team === 'Blue'));
+  const m = (appState.ongoingMatches || []).find(x => x && x.id === mId);
+  if (!p || !m || m.umpire) return showToast(m && m.umpire ? 'แมตช์นี้มีกรรมการรับไปแล้ว' : 'หาชื่อหรือแมตช์ไม่เจอ', 'error');
+  if ([m.r1, m.r2, m.b1, m.b2].includes(p.id)) return showToast(name + ' เป็นผู้เล่นในแมตช์นี้เอง เลือกคนอื่น', 'error');
+  const byId = {}; players.forEach(q => { byId[q.id] = q; });
+  const note = UmpireAssign.handOf(p) === 3 && UmpireAssign.matchHand(m, byId) < 3 ? ' (หมายเหตุ: มือ 3 ปกติคุมเฉพาะแมตช์มือ 3)' : '';
+  setMatchField(mId, 'assigned', name).then(ok => showToast(ok ? `${mId} → กรรมการ ${name}${note}` : 'มอบหมายไม่สำเร็จ (แมตช์อาจถูกรับไปแล้ว) ลองอีกครั้ง', ok ? (note ? 'warning' : 'success') : 'error'));
 }
+// drag a name from the pool onto a waiting match (desktop); the "เลือกกรรมการเอง" box in each match does the same by tap
+function uaDragStart(e, name) { e.dataTransfer.setData('text/plain', name); e.dataTransfer.effectAllowed = 'copy'; document.body.classList.add('ua-dragging'); }
+function uaDragEnd() { document.body.classList.remove('ua-dragging'); document.querySelectorAll('.ua-m.is-over').forEach(x => x.classList.remove('is-over')); }
+function uaDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; e.currentTarget.classList.add('is-over'); }
+function uaDragLeave(e) { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('is-over'); }
+function uaDrop(e, mId) { e.preventDefault(); uaDragEnd(); const name = e.dataTransfer.getData('text/plain'); if (name) uaAssign(mId, name); }
+function uaPick(mId, sel) { const name = sel.value; sel.value = ''; if (name) uaAssign(mId, name); }
 function uaClear(mId) {
   if (!_uaIsAdmin()) return;
   setMatchField(mId, 'assigned', null).then(ok => showToast(ok ? `ยกเลิกการมอบหมาย ${mId}` : 'ยกเลิกไม่สำเร็จ ลองอีกครั้ง', ok ? 'success' : 'error'));
 }
-async function uaAutoFill() {
+async function uaAutoFill(firstOnly) {
   if (!_uaIsAdmin()) return;
-  const rows = _uaRows().filter(r => r.kind === 'queue' && !r.assigned && r.picks.length);
+  const rows = _uaRows().filter(r => r.kind === 'queue' && !r.assigned && r.picks.length && (!firstOnly || r.batch === 'first'));
   if (!rows.length) return showToast('ไม่มีแมตช์ที่แนะนำได้ตอนนี้', 'info');
-  showConfirmDialog(`มอบหมายตามคำแนะนำข้อแรกให้ ${rows.length} แมตช์ในคิว? (ยังเปลี่ยนรายตัวได้ และกรรมการคนอื่นยังรับแทนได้)`, async () => {
+  showConfirmDialog(`มอบหมายตามคำแนะนำข้อแรกให้ ${rows.length} แมตช์${firstOnly ? 'แรกในคิว' : 'ในคิว'}? (ยังเปลี่ยนรายตัวได้ และกรรมการคนอื่นยังรับแทนได้)`, async () => {
     let ok = 0;
     for (const r of rows) { if (await setMatchField(r.id, 'assigned', r.picks[0].name)) ok++; }
     showToast(`มอบหมายแล้ว ${ok}/${rows.length} แมตช์`, ok === rows.length ? 'success' : 'warning');
@@ -48,7 +62,7 @@ function _uaRows() {
   if (typeof UmpireAssign === 'undefined' || !appState) return [];
   return UmpireAssign.suggest({
     players: appState.players, history: appState.matchHistory, ongoing: appState.ongoingMatches,
-    staged: smToArr(appState.stagedMatches), avail: _uaAvail, maxPicks: 3
+    staged: smToArr(appState.stagedMatches), avail: _uaAvail, maxPicks: 3, courts: UA_COURTS
   });
 }
 
@@ -57,47 +71,61 @@ function _uaPaintPool() {
   if (!el || !appState) return;
   const busy = {};
   (appState.ongoingMatches || []).filter(m => m && m.umpire).forEach(m => [m.r1, m.r2, m.b1, m.b2].forEach(id => { busy[id] = 1; }));
-  const order = { Red: 0, Blue: 1 };
-  const players = (appState.players || []).filter(p => !_uaFilter || String(p.name).toLowerCase().includes(_uaFilter))
-    .slice().sort((a, b) => (order[a.team] ?? 2) - (order[b.team] ?? 2) || String(a.name).localeCompare(String(b.name), 'th'));
-  el.innerHTML = players.map(p => {
+  const bal = UmpireAssign.balance(appState.players, appState.matchHistory, appState.ongoingMatches);
+  const waiting = {};   // still has a match to play (queue or waiting box)
+  (appState.ongoingMatches || []).filter(m => m && !m.umpire).concat(smToArr(appState.stagedMatches)).forEach(m => [m.r1, m.r2, m.b1, m.b2].forEach(id => { waiting[id] = 1; }));
+  const chip = p => {
     const on = !!_uaAvail[p.id], h = UmpireAssign.handOf(p), known = UmpireAssign.knownLevel(p);
-    return `<button type="button" class="ua-chip${on ? ' is-on' : ''}${p.team === 'Red' ? ' r' : p.team === 'Blue' ? ' b' : ''}" aria-pressed="${on}" onclick="uaToggleAvail('${p.id}')">`
-      + `${_uaTeamDot(p.team)}${escHtml(p.name)}<small>${known ? 'มือ ' + h : 'ไม่ทราบระดับ'}${busy[p.id] ? ' · กำลังเล่น' : ''}</small></button>`;
-  }).join('') || '<div class="stg-empty">ไม่พบผู้เล่น</div>';
+    return `<button type="button" draggable="true" data-n="${escHtml(p.name)}" ondragstart="uaDragStart(event,this.dataset.n)" ondragend="uaDragEnd()" class="ua-chip${on ? ' is-on' : ''}${p.team === 'Red' ? ' r' : ' b'}" aria-pressed="${on}" onclick="uaToggleAvail('${p.id}')">`
+      + `${escHtml(p.name)}<small>${known ? 'มือ ' + h : 'ไม่ทราบระดับ'}${busy[p.id] ? ' · กำลังเล่น' : waiting[p.id] ? ' · รอเล่น' : ' · เล่นเสร็จ'}</small></button>`;
+  };
+  const col = (team, cls, title, b) => {
+    const all = (appState.players || []).filter(p => p.team === team);
+    const shown = all.filter(p => !_uaFilter || String(p.name).toLowerCase().includes(_uaFilter))
+      .sort((x, y) => String(x.name).localeCompare(String(y.name), 'th'));
+    const on = all.filter(p => _uaAvail[p.id]).length;
+    return `<div class="ua-col ${cls}"><div class="ua-colh"><b>${title}</b><span>ว่าง ${on}/${all.length} · คุมแล้ว ${b.matches} แมตช์</span></div>`
+      + `<div class="ua-pool">${shown.map(chip).join('') || '<div class="stg-empty">ไม่พบผู้เล่น</div>'}</div></div>`;
+  };
+  el.innerHTML = col('Red', 'r', 'ทีมแดง', bal.red) + col('Blue', 'b', 'ทีมน้ำเงิน', bal.blue);
 }
 
 function renderUmpireAssign(force) {
   const el = document.getElementById('uaBox');
   if (!el || !appState || !_uaIsAdmin() || typeof UmpireAssign === 'undefined') return;
-  const rows = _uaRows();
+  const allRows = _uaRows(), rows = allRows.filter(r => r.kind === 'queue'), nStaged = allRows.length - rows.length;   // only matches already in the real queue; the waiting box joins when it is queued
   const bal = UmpireAssign.balance(appState.players, appState.matchHistory, appState.ongoingMatches);
-  const sig = JSON.stringify([rows, bal, Object.keys(_uaAvail).length, (appState.players || []).length]);
+  const sig = JSON.stringify([rows, nStaged, bal, Object.keys(_uaAvail).length, (appState.players || []).length]);
   if (!force && sig === _uaSig) return;
   _uaSig = sig;
 
-  const nAvail = Object.keys(_uaAvail).filter(k => _uaAvail[k]).length;
+  const colouredIds = {}; (appState.players || []).forEach(p => { if (p.team === 'Red' || p.team === 'Blue') colouredIds[p.id] = 1; });
+  const nAvail = Object.keys(_uaAvail).filter(k => _uaAvail[k] && colouredIds[k]).length;
   const max = Math.max(bal.red.matches, bal.blue.matches, 1);
   const bar = (cls, label, b) => `<div class="ua-bar ${cls}"><span>${label}</span><i style="width:${Math.round(b.matches / max * 100)}%"></i><b>${b.matches} แมตช์ · ${b.people} คน</b></div>`;
   const gap = Math.abs(bal.red.matches - bal.blue.matches);
   const warn = gap >= 3 ? `<p class="ua-warn">กรรมการสี${bal.red.matches > bal.blue.matches ? 'น้ำเงิน' : 'แดง'}คุมน้อยกว่า ${gap} แมตช์ — คำแนะนำจะเอียงไปทางสีนั้นเอง</p>` : '';
 
+  // "choose one yourself": the people ticked free (all coloured players when nobody is ticked), grouped by colour
+  const ready = (appState.players || []).filter(p => (p.team === 'Red' || p.team === 'Blue') && (_uaAvail[p.id] || !nAvail)).sort((x, y) => String(x.name).localeCompare(String(y.name), 'th'));
+  const optGroup = (label, team) => { const g = ready.filter(p => p.team === team); return g.length ? `<optgroup label="${label}">${g.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.name)} (มือ ${UmpireAssign.knownLevel(p) ? p.sub || UmpireAssign.handOf(p) : '?'})</option>`).join('')}</optgroup>` : ''; };
+  const selectHtml = id => `<select class="ds-select ua-self" aria-label="เลือกกรรมการเอง" onchange="uaPick('${id}',this)"><option value="">เลือกกรรมการเอง…${nAvail ? '' : ' (ยังไม่ได้ติ๊ก: ทุกคน)'}</option>${optGroup('ทีมแดง', 'Red')}${optGroup('ทีมน้ำเงิน', 'Blue')}</select>`;
+
   const list = rows.map((r, i) => {
-    const m = (r.kind === 'queue' ? appState.ongoingMatches : smToArr(appState.stagedMatches)).find(x => x && x.id === r.id) || {};
-    const head = `<div class="ua-mh"><b>${escHtml(r.id)}</b><span class="ds-chip">${r.kind === 'queue' ? 'คิว #' + (i + 1) : 'กล่องรอ'}</span><span class="ds-chip">มือ ${r.hand}</span></div>`
+    const m = (appState.ongoingMatches || []).find(x => x && x.id === r.id) || {};
+    const head = `<div class="ua-mh"><b>${escHtml(r.id)}</b><span class="ds-chip">คิว #${i + 1}</span><span class="ds-chip">มือ ${r.hand}</span><span class="ds-chip${r.batch === 'first' ? ' ds-chip-gold' : ''}">${r.batch === 'first' ? 'เริ่มก่อน' : 'หลังมีคนเล่นเสร็จ'}</span></div>`
       + `<div class="ua-mn"><span class="red">${escHtml(_uaShort(m.redNames))}</span><i>VS</i><span class="blue">${escHtml(_uaShort(m.blueNames))}</span></div>`;
     let body;
     if (r.assigned) {
-      body = `<div class="ua-as">กรรมการ: <b>${escHtml(r.assigned)}</b>${r.kind === 'queue' ? ` <button type="button" class="ds-btn ds-btn-sm" onclick="uaClear('${r.id}')">ยกเลิก</button>` : ''}</div>`;
+      body = `<div class="ua-as">กรรมการ: <b>${escHtml(r.assigned)}</b> <button type="button" class="ds-btn ds-btn-sm" onclick="uaClear('${r.id}')">ยกเลิก</button></div>`;
     } else if (!r.picks.length) {
       body = `<div class="ua-none">${escHtml(r.reason)}</div>`;
-    } else if (r.kind === 'queue') {
-      body = `<div class="ua-picks">${r.picks.map((p, j) => `<button type="button" class="ds-btn ua-pick${j === 0 ? ' ds-btn-primary' : ''}" onclick="uaAssign('${r.id}','${escHtml(p.name).replace(/'/g, '&#39;')}')">${_uaTeamDot(p.team)}${escHtml(p.name)}<small>มือ ${p.hand}${p.known ? '' : '?'} · คุมแล้ว ${p.count}</small></button>`).join('')}</div>`;
     } else {
-      body = `<div class="ua-ghost">แนะนำล่วงหน้า: ${r.picks.map(p => escHtml(p.name) + ' (มือ ' + p.hand + ')').join(' · ')} <small>— มอบหมายได้เมื่อ “ต่อคิว”</small></div>`;
+      body = `<div class="ua-picks">${r.picks.map((p, j) => `<button type="button" class="ds-btn ua-pick${j === 0 ? ' ds-btn-primary' : ''}" onclick="uaAssign('${r.id}','${escHtml(p.name)}')">${_uaTeamDot(p.team)}${escHtml(p.name)}<small>${p.known && p.sub ? 'มือ ' + p.sub : 'มือ ' + p.hand + '?'} · คุมแล้ว ${p.count}</small></button>`).join('')}</div>`;
     }
-    return `<div class="ua-m${r.kind === 'staged' ? ' is-staged' : ''}">${head}${body}</div>`;
-  }).join('') || '<div class="stg-empty">ยังไม่มีแมตช์ในคิวหรือกล่องรอ</div>';
+    return `<div class="ua-m" ondragover="uaDragOver(event)" ondragleave="uaDragLeave(event)" ondrop="uaDrop(event,'${r.id}')">${head}${body}<div class="ua-ctl">${selectHtml(r.id)}</div></div>`;
+  }).join('') || '<div class="stg-empty">ยังไม่มีแมตช์ในคิว (สร้างแมตช์แล้วกด “ต่อคิว”)</div>';
+  const stagedNote = nStaged ? `<p class="ua-ghost">อีก ${nStaged} แมตช์ยังอยู่ในกล่องรอ — จะขึ้นที่นี่เมื่อกด “ต่อคิว”</p>` : '';
 
   el.innerHTML = `<details class="ua"${_uaOpen ? ' open' : ''} ontoggle="_uaOpen=this.open">
     <summary><span class="ua-t">กรรมการ — แนะนำ &amp; มอบหมาย</span><span class="ds-chip">ว่าง ${nAvail} คน</span></summary>
@@ -105,9 +133,11 @@ function renderUmpireAssign(force) {
     <div class="ua-bal"><b>กรรมการที่คุมไปแล้ว (ถัวสี)</b>${bar('r', 'แดง', bal.red)}${bar('b', 'น้ำเงิน', bal.blue)}${warn}</div>
     <h4 class="ua-h">1) ติ๊กคนที่ว่างมาเป็นกรรมการ <button type="button" class="ds-btn ds-btn-sm ds-btn-ghost" onclick="uaClearAvail()">ล้าง</button></h4>
     <input class="ds-input ua-search" type="search" placeholder="ค้นชื่อ…" oninput="uaSetFilter(this.value)" value="${escHtml(_uaFilter)}">
-    <div id="uaPool" class="ua-pool"></div>
-    <h4 class="ua-h">2) แนะนำต่อแมตช์ <button type="button" class="ds-btn ds-btn-sm ds-btn-primary" onclick="uaAutoFill()">แนะนำทั้งหมด</button></h4>
-    <div class="ua-list">${list}</div>
+    <div id="uaPool" class="ua-pools"></div>
+    <h4 class="ua-h">2) กรรมการต่อแมตช์ในคิว <button type="button" class="ds-btn ds-btn-sm ds-btn-primary" onclick="uaAutoFill(true)">แนะนำ ${UA_COURTS} แมตช์แรก</button> <button type="button" class="ds-btn ds-btn-sm" onclick="uaAutoFill()">แนะนำทั้งหมด</button></h4>
+    <p class="ua-sub">${UA_COURTS} แมตช์แรกของคิวเริ่มพร้อมกัน — กรรมการมาจากคนที่ไม่ได้เล่นในชุดนั้น · แมตช์หลังจากนั้นแนะนำเฉพาะคนที่<b>เล่นเสร็จแล้ว</b> (จัดลำดับคิวก่อน แล้วค่อยกดปุ่ม)</p>
+    <p class="ua-sub"><b>ลากชื่อจากข้อ 1 ไปวางบนแมตช์</b> หรือเลือกจากช่อง “เลือกกรรมการเอง” ได้ทุกแมตช์ (วางทับเพื่อเปลี่ยนคน) · แมตช์จะหายจากรายการนี้เมื่อมีกรรมการกดรับด้วยมือถือแล้วเท่านั้น</p>
+    <div class="ua-list">${list}</div>${stagedNote}
   </details>`;
   _uaPaintPool();
 }

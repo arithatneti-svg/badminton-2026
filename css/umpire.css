@@ -631,6 +631,17 @@ body > .net-banner:not(:empty) { position: sticky; top: calc(var(--bar-h) + var(
   .toggle-btn.selected-blue:hover { --btn-bg: var(--blue-fill-hi); }
   .toggle-btn.selected-gold:hover { --btn-bg: var(--gold-hi); }
 }
+.name-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: var(--sp-2); margin-top: var(--sp-2); }
+.name-chip { min-height: var(--tap-lg); font-size: var(--fs-16, 1rem); justify-content: center; overflow-wrap: anywhere; }
+/* a chosen team / name must be unmistakable in every theme (paper.css paints .ds-btn itself) */
+.toggle-btn.selected-red { background: var(--red-fill) !important; color: var(--red-ink) !important; border-color: var(--red) !important; }
+.toggle-btn.selected-blue { background: var(--blue-fill) !important; color: var(--blue-ink) !important; border-color: var(--blue) !important; }
+.toggle-btn.selected-gold { background: var(--gold) !important; color: var(--gold-ink) !important; border-color: var(--gold) !important; }
+.toggle-btn.selected-red .ds-team, .toggle-btn.selected-blue .ds-team { color: inherit !important; }
+.name-chip[aria-pressed="true"] { font-weight: 800; box-shadow: none; }
+.name-hint { grid-column: 1 / -1; margin: 0; padding: var(--sp-3) 0; text-align: center; color: var(--t-mid); font-weight: 600; }
+#nameSearch { width: 100%; margin-top: var(--sp-2); }
+.name-notm { margin-top: var(--sp-2); }
 .login-help { margin-top: var(--sp-2); font: 600 var(--fs-14)/var(--lh-th) var(--font-ui); color: var(--t-mid); }
 .btn-login { position: sticky; bottom: calc(var(--sp-3) + var(--sab)); z-index: var(--z-sticky); font-weight: 800; }
 /* until a name is chosen: plain, and it says what to do (not a faded gold button) */
