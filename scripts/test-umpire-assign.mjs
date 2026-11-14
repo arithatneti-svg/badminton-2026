@@ -30,6 +30,15 @@ t('a player without a colour is never suggested, even when ticked', r[0].picks.l
 r = U.suggest({ players, history: [], ongoing: [M('M1', 'R3', 'R4', 'B3', 'B4')], staged: [], avail });
 t('every suggestion has a colour', r[0].picks.length > 0 && r[0].picks.every(p => p.team === 'Red' || p.team === 'Blue'));
 
+r = U.suggest({ players, history: [], ongoing: [M('M1', 'R1', 'R2', 'B1', 'B2')], staged: [], avail: ['U2', 'U1', 'U5'] });
+t('high levels first: 1.2 before 2.2 before 2.3 when nobody has umpired', r[0].picks.map(p => p.name).join() === 'อ5,อ1,อ2');
+r = U.suggest({ players, history: [{ umpire: 'อ5' }, { umpire: 'อ5' }, { umpire: 'อ5' }], ongoing: [M('M1', 'R1', 'R2', 'B1', 'B2')], staged: [], avail: ['U2', 'U5'] });
+t('a high-level umpire who has done 3 steps back for a weaker one with none', r[0].picks[0].name === 'อ2');
+r = U.suggest({ players, history: [{ umpire: 'อ5' }], ongoing: [M('M1', 'R1', 'R2', 'B1', 'B2')], staged: [], avail: ['U2', 'U5'] });
+t('one match more is not enough to step back', r[0].picks[0].name === 'อ5');
+r = U.suggest({ players, history: [], ongoing: [M('M3', 'R4', 'B3', 'B4', 'R4')], staged: [], avail: ['U1', 'U5', 'U3'] });
+t('a hand-3 match still prefers a hand-3 umpire over a higher level', r[0].picks[0].name === 'อ3');
+
 console.log('exclusions');
 r = U.suggest({ players, history: [], ongoing: [M('M1', 'U1', 'R2', 'B1', 'B2')], staged: [], avail });
 t('a player of the match is never suggested for it', !r[0].picks.some(p => p.id === 'U1'));

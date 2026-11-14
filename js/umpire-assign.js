@@ -100,7 +100,7 @@ function renderUmpireAssign(force) {
     } else if (!r.picks.length) {
       body = `<div class="ua-none">${escHtml(r.reason)}</div>`;
     } else if (r.kind === 'queue') {
-      body = `<div class="ua-picks">${r.picks.map((p, j) => `<button type="button" class="ds-btn ua-pick${j === 0 ? ' ds-btn-primary' : ''}" onclick="uaAssign('${r.id}','${escHtml(p.name).replace(/'/g, '&#39;')}')">${_uaTeamDot(p.team)}${escHtml(p.name)}<small>มือ ${p.hand}${p.known ? '' : '?'} · คุมแล้ว ${p.count}</small></button>`).join('')}</div>`;
+      body = `<div class="ua-picks">${r.picks.map((p, j) => `<button type="button" class="ds-btn ua-pick${j === 0 ? ' ds-btn-primary' : ''}" onclick="uaAssign('${r.id}','${escHtml(p.name).replace(/'/g, '&#39;')}')">${_uaTeamDot(p.team)}${escHtml(p.name)}<small>${p.known && p.sub ? 'มือ ' + p.sub : 'มือ ' + p.hand + '?'} · คุมแล้ว ${p.count}</small></button>`).join('')}</div>`;
     } else {
       body = `<div class="ua-ghost">แนะนำล่วงหน้า: ${r.picks.map(p => escHtml(p.name) + ' (มือ ' + p.hand + ')').join(' · ')} <small>— มอบหมายได้เมื่อ “ต่อคิว”</small></div>`;
     }

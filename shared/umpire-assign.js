@@ -10,8 +10,11 @@
      back to a hand-3 match when no hand-3 umpire is free).
    Also left out of a match's suggestions: the four players of that match, anybody playing or umpiring right now,
      anybody who plays in the next 3 queued matches, and anybody already suggested / assigned to another match.
-   Order inside a level: fewest matches umpired so far (pending assignments count), then the colour (Red / Blue) that has
-     umpired fewer matches, then who has waited longest, then name.
+   Order inside a level: the HIGHER the umpire's level the earlier (1.1 > 1.2 > 2.1 > 2.2 > 2.3 > 3.1 > 3.2), softened by how
+     many matches they have umpired: score = matches umpired (pending assignments count) + 0.5 per level step below 1.1, lowest
+     score first. So the strong players are suggested first, but one who has already umpired 2+ more than a weaker free
+     player steps back. Ties: the colour (Red / Blue) that has umpired fewer matches, then who has waited longest, then name.
+   It is only a suggestion: the admin can pick anybody, and any umpire can still take any match.
    A player without a subgroup has no known level and is treated as hand 3 (the most careful reading).
    ============================================================ */
 (function (root) {
@@ -23,6 +26,9 @@
     var s = p && p.sub, h = s ? parseInt(String(s).split('.')[0], 10) : NaN;
     return h === 1 || h === 2 || h === 3 ? h : 3;
   }
+  // sub-group → rank 7 (1.1) ... 1 (3.2); no known subgroup = lowest. Each step below 1.1 adds half a match of "load".
+  var LV = { '1.1': 7, '1.2': 6, '2.1': 5, '2.2': 4, '2.3': 3, '3.1': 2, '3.2': 1 };
+  function levelPenalty(p) { return (7 - (LV[p && p.sub] || 1)) * 0.5; }
   function knownLevel(p) { var h = p && p.sub ? parseInt(String(p.sub).split('.')[0], 10) : NaN; return h === 1 || h === 2 || h === 3; }
 
   function matchHand(m, byId) {
@@ -92,14 +98,14 @@
         return uh <= 2 || mh === 3;                              // hand 3 only on a hand-3 match
       }).map(function (p) {
         var uh = handOf(p), fit = mh === 3 ? (uh === 3 ? 0 : 1) : 0;
-        return { p: p, uh: uh, fit: fit, n: count[p.name] || 0,
+        return { p: p, uh: uh, fit: fit, n: count[p.name] || 0, sc: (count[p.name] || 0) + levelPenalty(p),
                  col: colourN[p.team] !== undefined ? colourN[p.team] : 0, idle: lastIdx[p.name] === undefined ? -1 : lastIdx[p.name] };
       });
       cands.sort(function (a, b) {
-        return a.fit - b.fit || a.n - b.n || a.col - b.col || a.idle - b.idle || String(a.p.name).localeCompare(String(b.p.name), 'th');
+        return a.fit - b.fit || a.sc - b.sc || a.col - b.col || a.idle - b.idle || String(a.p.name).localeCompare(String(b.p.name), 'th');
       });
       var picks = cands.slice(0, maxPicks).map(function (c) {
-        return { id: c.p.id, name: c.p.name, hand: c.uh, team: c.p.team || '', count: c.n, known: knownLevel(c.p) };
+        return { id: c.p.id, name: c.p.name, hand: c.uh, team: c.p.team || '', sub: c.p.sub || '', count: c.n, known: knownLevel(c.p) };
       });
       if (!m.assigned && picks.length) used[picks[0].name] = 1;   // the first choice is spoken for
       var reason = '';
