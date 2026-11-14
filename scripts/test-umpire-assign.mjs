@@ -39,6 +39,22 @@ t('one match more is not enough to step back', r[0].picks[0].name === 'อ5');
 r = U.suggest({ players, history: [], ongoing: [M('M3', 'R4', 'B3', 'B4', 'R4')], staged: [], avail: ['U1', 'U5', 'U3'] });
 t('a hand-3 match still prefers a hand-3 umpire over a higher level', r[0].picks[0].name === 'อ3');
 
+console.log('first batch / later');
+// 3 courts: queue M1..M6. Free umpires: U5 plays in M5 (a later match), U1 plays nowhere (finished), U2 plays in M1 (starting now)
+const mk = (id, a, b, c, d) => M(id, a, b, c, d);
+const q6 = [mk('M1', 'U2', 'R1', 'B1', 'B2'), mk('M2', 'R2', 'R3', 'B3', 'B4'), mk('M3', 'R4', 'R1', 'B2', 'B3'), mk('M4', 'R2', 'R3', 'B1', 'B4'), mk('M5', 'U5', 'R4', 'B3', 'B4'), mk('M6', 'R1', 'R2', 'B1', 'B2')];
+const players2 = players.concat([P('U6', 'อ6', 'Red', '2.1'), P('U7', 'อ7', 'Blue', '2.2'), P('U8', 'อ8', 'Red', '2.2'), P('U9', 'อ9', 'Blue', '2.1'), P('U10', 'อ10', 'Red', '2.3')]);
+r = U.suggest({ players: players2, history: [], ongoing: q6, staged: [], avail: ['U1', 'U6', 'U7', 'U8', 'U9', 'U10', 'U2', 'U5'], courts: 3 });
+t('rows are tagged first / later', r.slice(0, 3).every(x => x.batch === 'first') && r.slice(3).every(x => x.batch === 'later'));
+t('first batch: nobody playing in the starting matches is suggested', !r[1].picks.some(p => p.id === 'U2') && !r[2].picks.some(p => p.id === 'U2'));
+t('first batch: somebody who plays later (not next up) can umpire', r[1].picks.length > 0);
+t('later match: a player who still has a match is never suggested', r.slice(3).every(x => !x.picks.some(p => p.id === 'U5' || p.id === 'U2')));
+t('later match: a finished player (no match left) is suggested', r.slice(3).some(x => x.picks.some(p => ['U1', 'U6', 'U7', 'U8', 'U9', 'U10'].includes(p.id))));
+r = U.suggest({ players, history: [], ongoing: q6, staged: [], avail: ['U2', 'U5'], courts: 3 });
+t('later match with only unfinished players free: nobody, and it says why', r[4].picks.length === 0 && /เล่นเสร็จ/.test(r[4].reason));
+r = U.suggest({ players, history: [], ongoing: [Object.assign(mk('L1', 'R1', 'R2', 'B1', 'B2'), { umpire: 'อ1' }), mk('M2', 'R3', 'R4', 'B3', 'B4')], staged: [], avail: ['U5'], courts: 1 });
+t('a free court is needed to count as first batch: with 1 court taken the queue is all later', r[0].batch === 'later');
+
 console.log('exclusions');
 r = U.suggest({ players, history: [], ongoing: [M('M1', 'U1', 'R2', 'B1', 'B2')], staged: [], avail });
 t('a player of the match is never suggested for it', !r[0].picks.some(p => p.id === 'U1'));
