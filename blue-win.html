@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>ขอแสดงความยินดี ทีมน้ำเงิน — กีฬาสี 14 พ.ย.</title>
+<!-- Big-screen congratulation page for the BLUE team (16:9, scales to any screen; press F or tap for full screen).
+     Self-contained on purpose: only media/ images + Google Fonts, so it works in source mode and in the built dist/.
+     The two scores are read live from the database (read only); if that fails the page simply shows no score. -->
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Kanit:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+  :root { --ink: #0b2a52; --blue: #0956b8; --deep: #06336f; --cream: #fff6ea; --yellow: #f4c430; --red: #d81a21; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--deep); color: var(--cream); font-family: Kanit, 'Noto Sans Thai', sans-serif; }
+  body { background: radial-gradient(ellipse at 70% 45%, #1a6fd8 0%, var(--blue) 38%, var(--deep) 100%); }
+  .stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; }
+  body::before { content: ''; position: fixed; inset: 0; background: url(media/riso/grain-paper.webp) center / 520px; mix-blend-mode: multiply; opacity: .22; pointer-events: none; z-index: 1; }
+  .stage { z-index: 2; }
+  .stage > * { position: absolute; }
+
+  .kicker { left: 110px; top: 70px; font-family: Anton, sans-serif; font-size: 40px; letter-spacing: .2em; color: var(--yellow); }
+  .hello { left: 110px; top: 130px; margin: 0; font-weight: 800; font-size: 108px; line-height: 1.05; text-shadow: 6px 7px 0 rgba(6, 30, 70, .45); }
+  .swipe { left: 100px; top: 275px; padding: 12px 56px 22px; background: url(media/riso/marker-yellow-1.webp) center / 100% 100% no-repeat; color: var(--ink); font-weight: 800; font-size: 58px; line-height: 1.1; }
+  .team { left: 104px; top: 395px; margin: 0; white-space: nowrap; font-family: Anton, Kanit, sans-serif; font-weight: 400; font-size: 205px; line-height: 1; letter-spacing: .04em; text-shadow: 10px 12px 0 rgba(6, 30, 70, .5); }
+  .score { left: 110px; top: 640px; display: flex; align-items: center; gap: 40px; font-family: Anton, sans-serif; line-height: 1; transition: opacity .6s; }
+  .score[hidden] { display: none; }
+  .score .side { display: grid; justify-items: center; gap: 6px; }
+  .score .num { font-size: 140px; }
+  .score .lab { font-size: 34px; letter-spacing: .22em; opacity: .85; }
+  .score .b .num { color: var(--yellow); text-shadow: 6px 7px 0 rgba(6, 30, 70, .5); }
+  .score .r .num { color: #ff9a9d; }
+  .score .dash { font-size: 110px; opacity: .7; }
+  .thanks { left: 110px; bottom: 56px; margin: 0; font-weight: 700; font-size: 44px; opacity: .95; }
+  .thanks small { display: block; margin-top: 8px; font-size: 30px; font-weight: 500; opacity: .75; }
+
+  .art { right: 30px; top: 110px; width: 800px; height: 860px; display: grid; place-items: center; }
+  .art .ring { position: absolute; inset: -10px; width: 100%; height: 100%; object-fit: contain; opacity: .95; }
+  .art .star { position: relative; width: 690px; height: auto; filter: drop-shadow(18px 22px 0 rgba(6, 30, 70, .4)); animation: bob 3.2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-22px) rotate(2deg); } }
+  #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+  .fs { position: fixed; right: 14px; bottom: 12px; z-index: 6; padding: 8px 14px; border: 1px solid rgba(255, 246, 234, .45); border-radius: 8px; background: rgba(6, 30, 70, .55); color: var(--cream); font: 500 14px/1 Kanit, sans-serif; cursor: pointer; transition: opacity .4s; }
+  body.is-full .fs { opacity: 0; pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) { .art .star { animation: none; } }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="kicker">SPORTS DAY · 14 NOV 2026</div>
+  <h1 class="hello">ขอแสดงความยินดี</h1>
+  <div class="swipe">แชมป์กีฬาสี Winter 2026</div>
+  <div class="team" role="heading" aria-level="2">BLUE TEAM</div>
+  <div class="score" id="score" hidden>
+    <div class="side b"><span class="num" id="sb">0</span><span class="lab">BLUE</span></div>
+    <span class="dash">–</span>
+    <div class="side r"><span class="num" id="sr">0</span><span class="lab">RED</span></div>
+  </div>
+  <p class="thanks">ขอบคุณทุกคนที่มาร่วมสนุก ทั้งสองสีสุดยอดมาก 🏸<small>ทีมน้ำเงิน · เสาร์ที่ 14 พ.ย. 2569</small></p>
+  <div class="art">
+    <img class="ring" src="media/riso/ring-blue-2.webp" alt="">
+    <img class="star" src="media/mascot/champion.webp" alt="น้องดาวถือถ้วยแชมป์">
+  </div>
+</div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<button type="button" class="fs" id="fs">เต็มจอ (F)</button>
+<script>
+(function () {
+  // fit the 1920x1080 stage into any window
+  var stage = document.getElementById('stage');
+  function fit() { var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080); stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')'; }
+  window.addEventListener('resize', fit); fit();
+
+  // full screen: button, key F, or a double click
+  function toggleFull() {
+    try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); } catch (e) { /* not supported */ }
+  }
+  document.getElementById('fs').onclick = toggleFull;
+  document.addEventListener('keydown', function (e) { if (e.key === 'f' || e.key === 'F') toggleFull(); });
+  document.addEventListener('dblclick', toggleFull);
+  document.addEventListener('fullscreenchange', function () { document.body.classList.toggle('is-full', !!document.fullscreenElement); });
+
+  // live scores (read only). Nothing is written from this page.
+  var DB = 'https://badminton-2026-687e7-default-rtdb.asia-southeast1.firebasedatabase.app/sportsday_2026_data/';
+  function num(path) { return fetch(DB + path + '.json', { cache: 'no-store' }).then(function (r) { return r.json(); }); }
+  function refresh() {
+    Promise.all([num('globalScoreBlue'), num('globalScoreRed')]).then(function (v) {
+      var b = Number(v[0]), r = Number(v[1]);
+      if (!isFinite(b) || !isFinite(r)) return;
+      document.getElementById('sb').textContent = b; document.getElementById('sr').textContent = r;
+      document.getElementById('score').hidden = false;
+    }).catch(function () { /* offline: the page stays valid without a score */ });
+  }
+  refresh(); setInterval(refresh, 15000);
+
+  // confetti, blue / yellow / cream. Skipped for people who ask for less motion.
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var cv = document.getElementById('confetti'), cx = cv.getContext('2d'), W = 0, H = 0, bits = [];
+  function size() { W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+  window.addEventListener('resize', size); size();
+  var COLORS = ['#f4c430', '#fff6ea', '#5aa9ff', '#ffffff', '#ffd766'];
+  function bit(top) { return { x: Math.random() * W, y: top ? -20 : Math.random() * H, w: 8 + Math.random() * 10, h: 14 + Math.random() * 14, vy: 2 + Math.random() * 3.2, vx: -1 + Math.random() * 2, a: Math.random() * 6.28, va: -.12 + Math.random() * .24, c: COLORS[(Math.random() * COLORS.length) | 0] }; }
+  for (var i = 0; i < 140; i++) bits.push(bit(false));
+  (function tick() {
+    cx.clearRect(0, 0, W, H);
+    for (var i = 0; i < bits.length; i++) {
+      var p = bits[i]; p.y += p.vy; p.x += p.vx + Math.sin(p.a) * .6; p.a += p.va;
+      if (p.y > H + 30) bits[i] = bit(true);
+      cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.fillStyle = p.c; cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); cx.restore();
+    }
+    requestAnimationFrame(tick);
+  })();
+})();
+</script>
+</body>
+</html>

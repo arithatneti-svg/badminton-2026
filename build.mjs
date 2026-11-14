@@ -48,7 +48,7 @@ const walkWebp = (dir) => readdirSync(join(root, dir), { withFileTypes: true }).
 const IMG = walkWebp('media');
 // shown while the app loads or cannot connect: precached so they also appear on a first start without signal
 const LOADER_ART = ['media/logo/mark.webp', 'media/logo/wordmark.webp', 'media/fonts/riso-num.woff2', 'media/mascot/loading.webp', 'media/mascot/offline.webp', 'media/mascot/miss.webp'];
-const COPY = ['manifest.webmanifest','umpire.webmanifest', ...ICONS.map(f => `icons/${f}`), ...IMG];
+const COPY = ['manifest.webmanifest','umpire.webmanifest','blue-win.html', ...ICONS.map(f => `icons/${f}`), ...IMG];
 
 const read = (p) => readFileSync(join(root, p), 'utf8');
 // the release number: bundles are requested as <file>?v=<release> (see sw.js), exactly like the source tags
