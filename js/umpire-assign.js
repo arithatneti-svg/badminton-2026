@@ -57,14 +57,21 @@ function _uaPaintPool() {
   if (!el || !appState) return;
   const busy = {};
   (appState.ongoingMatches || []).filter(m => m && m.umpire).forEach(m => [m.r1, m.r2, m.b1, m.b2].forEach(id => { busy[id] = 1; }));
-  const order = { Red: 0, Blue: 1 };
-  const players = (appState.players || []).filter(p => !_uaFilter || String(p.name).toLowerCase().includes(_uaFilter))
-    .slice().sort((a, b) => (order[a.team] ?? 2) - (order[b.team] ?? 2) || String(a.name).localeCompare(String(b.name), 'th'));
-  el.innerHTML = players.map(p => {
+  const bal = UmpireAssign.balance(appState.players, appState.matchHistory, appState.ongoingMatches);
+  const chip = p => {
     const on = !!_uaAvail[p.id], h = UmpireAssign.handOf(p), known = UmpireAssign.knownLevel(p);
-    return `<button type="button" class="ua-chip${on ? ' is-on' : ''}${p.team === 'Red' ? ' r' : p.team === 'Blue' ? ' b' : ''}" aria-pressed="${on}" onclick="uaToggleAvail('${p.id}')">`
-      + `${_uaTeamDot(p.team)}${escHtml(p.name)}<small>${known ? 'มือ ' + h : 'ไม่ทราบระดับ'}${busy[p.id] ? ' · กำลังเล่น' : ''}</small></button>`;
-  }).join('') || '<div class="stg-empty">ไม่พบผู้เล่น</div>';
+    return `<button type="button" class="ua-chip${on ? ' is-on' : ''}${p.team === 'Red' ? ' r' : ' b'}" aria-pressed="${on}" onclick="uaToggleAvail('${p.id}')">`
+      + `${escHtml(p.name)}<small>${known ? 'มือ ' + h : 'ไม่ทราบระดับ'}${busy[p.id] ? ' · กำลังเล่น' : ''}</small></button>`;
+  };
+  const col = (team, cls, title, b) => {
+    const all = (appState.players || []).filter(p => p.team === team);
+    const shown = all.filter(p => !_uaFilter || String(p.name).toLowerCase().includes(_uaFilter))
+      .sort((x, y) => String(x.name).localeCompare(String(y.name), 'th'));
+    const on = all.filter(p => _uaAvail[p.id]).length;
+    return `<div class="ua-col ${cls}"><div class="ua-colh"><b>${title}</b><span>ว่าง ${on}/${all.length} · คุมแล้ว ${b.matches} แมตช์</span></div>`
+      + `<div class="ua-pool">${shown.map(chip).join('') || '<div class="stg-empty">ไม่พบผู้เล่น</div>'}</div></div>`;
+  };
+  el.innerHTML = col('Red', 'r', 'ทีมแดง', bal.red) + col('Blue', 'b', 'ทีมน้ำเงิน', bal.blue);
 }
 
 function renderUmpireAssign(force) {
@@ -76,7 +83,8 @@ function renderUmpireAssign(force) {
   if (!force && sig === _uaSig) return;
   _uaSig = sig;
 
-  const nAvail = Object.keys(_uaAvail).filter(k => _uaAvail[k]).length;
+  const colouredIds = {}; (appState.players || []).forEach(p => { if (p.team === 'Red' || p.team === 'Blue') colouredIds[p.id] = 1; });
+  const nAvail = Object.keys(_uaAvail).filter(k => _uaAvail[k] && colouredIds[k]).length;
   const max = Math.max(bal.red.matches, bal.blue.matches, 1);
   const bar = (cls, label, b) => `<div class="ua-bar ${cls}"><span>${label}</span><i style="width:${Math.round(b.matches / max * 100)}%"></i><b>${b.matches} แมตช์ · ${b.people} คน</b></div>`;
   const gap = Math.abs(bal.red.matches - bal.blue.matches);
@@ -105,7 +113,7 @@ function renderUmpireAssign(force) {
     <div class="ua-bal"><b>กรรมการที่คุมไปแล้ว (ถัวสี)</b>${bar('r', 'แดง', bal.red)}${bar('b', 'น้ำเงิน', bal.blue)}${warn}</div>
     <h4 class="ua-h">1) ติ๊กคนที่ว่างมาเป็นกรรมการ <button type="button" class="ds-btn ds-btn-sm ds-btn-ghost" onclick="uaClearAvail()">ล้าง</button></h4>
     <input class="ds-input ua-search" type="search" placeholder="ค้นชื่อ…" oninput="uaSetFilter(this.value)" value="${escHtml(_uaFilter)}">
-    <div id="uaPool" class="ua-pool"></div>
+    <div id="uaPool" class="ua-pools"></div>
     <h4 class="ua-h">2) แนะนำต่อแมตช์ <button type="button" class="ds-btn ds-btn-sm ds-btn-primary" onclick="uaAutoFill()">แนะนำทั้งหมด</button></h4>
     <div class="ua-list">${list}</div>
   </details>`;

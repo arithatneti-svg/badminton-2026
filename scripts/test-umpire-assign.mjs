@@ -25,6 +25,11 @@ t('hand-3 match with only hand 1-2 free: they fall back in', only12[0].picks.len
 const only3 = U.suggest({ players, history: [], ongoing: [M('M1', 'R1', 'R2', 'B1', 'B2')], staged: [], avail: ['U3', 'U4'] });
 t('hand-1 match with only hand-3 free: nobody', only3[0].picks.length === 0);
 
+r = U.suggest({ players, history: [], ongoing: [M('M1', 'R3', 'R4', 'B3', 'B4')], staged: [], avail: ['N1'] });
+t('a player without a colour is never suggested, even when ticked', r[0].picks.length === 0);
+r = U.suggest({ players, history: [], ongoing: [M('M1', 'R3', 'R4', 'B3', 'B4')], staged: [], avail });
+t('every suggestion has a colour', r[0].picks.length > 0 && r[0].picks.every(p => p.team === 'Red' || p.team === 'Blue'));
+
 console.log('exclusions');
 r = U.suggest({ players, history: [], ongoing: [M('M1', 'U1', 'R2', 'B1', 'B2')], staged: [], avail });
 t('a player of the match is never suggested for it', !r[0].picks.some(p => p.id === 'U1'));

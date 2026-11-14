@@ -85,6 +85,7 @@
         var q = list[j].m; [q.r1, q.r2, q.b1, q.b2].forEach(function (id) { soon[id] = 1; });
       }
       var cands = availIds.map(function (id) { return ix.byId[id]; }).filter(Boolean).filter(function (p) {
+        if (p.team !== 'Red' && p.team !== 'Blue') return false;   // only players with a colour take part today
         if (own[p.id] || busy[p.id] || soon[p.id]) return false;
         if (used[p.name] && p.name !== m.assigned) return false;
         var uh = handOf(p);
