@@ -95,3 +95,10 @@ body:has(#stagingBoard.is-dragging) { user-select: none; -webkit-user-select: no
 .ua-pick { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0; min-height: var(--tap); padding: 4px 12px; }
 .ua-pick small { font-weight: 600; font-size: .72em; opacity: .85; }
 .ua-as { font-weight: 600; } .ua-none, .ua-ghost { font-size: var(--fs-13, .8125rem); color: var(--t-mid); }
+
+.ua-chip[draggable="true"] { cursor: grab; }
+.ua-m { transition: outline-color .1s, background .1s; }
+.ua-dragging .ua-m { outline: 2px dashed var(--line-strong); outline-offset: 2px; }
+.ua-m.is-over { outline: 3px solid var(--gold); outline-offset: 2px; background: var(--gold-dim); }
+.ua-ctl { display: block; }
+.ua-self { width: 100%; min-height: var(--tap); font-size: var(--fs-14, .875rem); }
